@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:fitsSystemWindows="true"
+    android:background="@color/material_blue_grey_950">
+    <!--android:background="@color/material_blue_grey_900"-->
+        <!--tools:context=".ScanActivity">-->
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical"
+        tools:context=".ScanActivity">
+
+        <!--    <android.support.design.widget.AppBarLayout android:layout_height="wrap_content"
+                android:layout_width="match_parent" android:theme="@style/AppTheme.AppBarOverlay">
+
+                <android.support.v7.widget.Toolbar android:id="@+id/toolbar"
+                    android:layout_width="match_parent" android:layout_height="?attr/actionBarSize"
+                    android:background="?attr/colorPrimary" app:popupTheme="@style/AppTheme.PopupOverlay" />
+
+            </android.support.design.widget.AppBarLayout>-->
+
+        <!--<include layout="@layout/content_scan" />-->
+
+        <!--<android.support.design.widget.FloatingActionButton android:id="@+id/fab"-->
+        <!--android:layout_width="wrap_content" android:layout_height="wrap_content"-->
+        <!--android:layout_gravity="bottom|end" android:layout_margin="@dimen/fab_margin"-->
+        <!--android:src="@android:drawable/ic_dialog_email" />-->
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:gravity="center_vertical|center_horizontal">
+
+            <Button
+                android:id="@+id/buttonStart"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Start\nScan"
+                android:textSize="12dp" />
+
+            <Button
+                android:id="@+id/buttonStop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Stop\nscan"
+                android:textSize="12dp" />
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="LOG"
+                android:id="@+id/logCheckBox"
+                android:checked="true"
+                android:textColor="#a3a3a3"
+                android:textSize="18dp" />
+
+            <Button
+                android:id="@+id/buttonTag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Insert\nTag"
+                android:textSize="12dp" />
+
+
+        </LinearLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_horizontal"
+            android:orientation="vertical"
+            android:layout_weight="1"
+            android:layout_margin="5dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="fill_parent"
+                android:layout_gravity="center_horizontal"
+                android:orientation="vertical"
+                android:layout_weight="0.3"
+                android:layout_margin="5dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="VISIBLE CLIMBM BEACONS:"
+                    android:textSize="20dp"
+                    android:textColor="#a3a3a3"
+                    android:textStyle="bold" />
+                <ExpandableListView
+                    android:id="@+id/list"
+                    android:layout_height="match_parent"
+                    android:layout_width="match_parent"
+                    android:indicatorLeft="?android:attr/expandableListPreferredItemIndicatorLeft" />
+                <!--<ListView
+                    android:id="@+id/list"
+                    android:layout_height="fill_parent"
+                    android:layout_width="match_parent"
+                    android:layout_gravity="top"
+                    android:layout_margin="5dp">
+                </ListView>-->
+
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:gravity="center_vertical|center_horizontal">
+
+                <Button
+                    android:id="@+id/buttonCheckInAll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="checkin\nALL"
+                    android:textSize="12dp" />
+
+                <Button
+                    android:id="@+id/buttonCheckOutAll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="checkout\nALL"
+                    android:textSize="12dp" />
+
+                <Button
+                    android:id="@+id/buttonReleaseBrdcstCmd"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Release\nCmd"
+                    android:textSize="12dp" />
+
+
+            </LinearLayout>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@android:color/darker_gray"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="fill_parent"
+                android:layout_gravity="center_horizontal"
+                android:orientation="vertical"
+                android:layout_weight="0.9"
+                android:layout_margin="5dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="CONSOLE:"
+                    android:textSize="20dp"
+                    android:textColor="#a3a3a3"
+                    android:textStyle="bold" />
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/scrollView" >
+
+                    <EditText
+                        android:id="@+id/console_item"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ems="10"
+                        android:enabled="false"
+                        android:maxLines="100"
+                        android:gravity="bottom"
+                        android:inputType="textMultiLine"
+                        android:textSize="10sp"
+                        android:textColor="#a3a3a3"
+                        android:scrollbars = "vertical">
+                        <requestFocus />
+                    </EditText>
+                </ScrollView>
+            </LinearLayout>
+
+        </LinearLayout>
+    </LinearLayout>
+
+</android.support.design.widget.CoordinatorLayout>
