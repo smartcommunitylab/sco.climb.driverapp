@@ -114,11 +114,11 @@
 
 // Supervision timeout value (units of 10ms, 1000=10s) if automatic parameter
 // update request is enabled
-#define DEFAULT_DESIRED_CONN_TIMEOUT          110
+#define DEFAULT_DESIRED_CONN_TIMEOUT          210
 
 // Whether to enable automatic parameter update request when a connection is
 // formed
-#define DEFAULT_ENABLE_UPDATE_REQUEST         FALSE
+#define DEFAULT_ENABLE_UPDATE_REQUEST         TRUE
 
 // Connection Pause Peripheral time value (in seconds)
 #define DEFAULT_CONN_PAUSE_PERIPHERAL         10
@@ -154,12 +154,17 @@
 
 #define LED_TIMEOUT						  	  10
 
-#define NODE_ID								  { 0x02  }
+#define CONNECTABLE_TIMEOUT					1000*60
+
+#define NODE_ID								  { 0x00  }
 
 #define NODE_ID_LENGTH						  1
 
 #define ADV_PKT_ID_OFFSET					  12
 #define ADV_PKT_STATE_OFFSET				  ADV_PKT_ID_OFFSET + NODE_ID_LENGTH
+
+#define GATT_PKT_SET_ID_CMD					  0x01
+
 
 // Task configuration
 #define SBP_TASK_PRIORITY                     1
@@ -178,6 +183,7 @@
 #define ADVERTISE_EVT					    0x0020
 #define KEY_CHANGE_EVT					  	0x0040
 #define LED_TIMEOUT_EVT						0x0080
+#define CONNECTABLE_TIMEOUT_EVT				0x0100
 #define EPOCH_EVT							0x0400
 /*********************************************************************
  * TYPEDEFS
@@ -247,6 +253,7 @@ static ICall_Semaphore sem;
 // Clock instances for internal periodic events.
 static Clock_Struct periodicClock;
 static Clock_Struct ledTimeoutClock;
+static Clock_Struct connectableTimeoutClock;
 #ifdef WORKAROUND
 static Clock_Struct epochClock;
 #endif
@@ -359,7 +366,7 @@ static uint8_t BLE_processStackMsg(ICall_Hdr *pMsg);
 static uint8_t SimpleBLEPeripheral_processGATTMsg(gattMsgEvent_t *pMsg);
 static void SimpleBLEPeripheral_processAppMsg(sbpEvt_t *pMsg);
 static void BLEPeripheral_processStateChangeEvt(gaprole_States_t newState);
-static void SimpleBLEPeripheral_processCharValueChangeEvt(uint8_t paramID);
+static void Climb_processCharValueChangeEvt(uint8_t paramID);
 static void SimpleBLEPeripheral_freeAttRsp(uint8_t status);
 static void BLE_ConnectionEventHandler(void);
 static void BLE_AdvertiseEventHandler(void);
@@ -395,6 +402,8 @@ static void CLIMB_FlashLed(PIN_Id pinId);
 static void CLIMB_handleKeys(uint8 keys);
 static void startNode();
 static void stopNode();
+static void Climb_setAsConnectable();
+static void Climb_setAsNonConnectable();
 //static void Key_callback(PIN_Handle handle, PIN_Id pinId);
 #ifdef FEATURE_LCD
 static void displayInit(void);
@@ -739,11 +748,16 @@ static void SimpleBLEPeripheral_taskFxn(UArg a0, UArg a1)
 
     }
     if (events & LED_TIMEOUT_EVT){
-
     	events &= ~LED_TIMEOUT_EVT;
     	//only turn off leds
     	PIN_setOutputValue(hGpioPin, Board_LED1, Board_LED_OFF);
     	PIN_setOutputValue(hGpioPin, Board_LED2, Board_LED_OFF);
+    }
+
+    if (events & CONNECTABLE_TIMEOUT_EVT){
+    	events &= ~CONNECTABLE_TIMEOUT_EVT;
+
+    	Climb_setAsNonConnectable();
     }
 #ifdef WORKAROUND
 	if (events & EPOCH_EVT) {
@@ -875,7 +889,7 @@ static void SimpleBLEPeripheral_processAppMsg(sbpEvt_t *pMsg)
       break;
 
     case P_CHAR_CHANGE_EVT:
-      SimpleBLEPeripheral_processCharValueChangeEvt(pMsg->hdr.state);
+      Climb_processCharValueChangeEvt(pMsg->hdr.state);
       break;
 
 	case O_STATE_CHANGE_EVT:
@@ -1031,7 +1045,7 @@ static void BLEPeripheral_processStateChangeEvt(gaprole_States_t newState)
 }
 
 /*********************************************************************
- * @fn      SimpleBLEPeripheral_processCharValueChangeEvt
+ * @fn      Climb_processCharValueChangeEvt
  *
  * @brief   Process a pending Simple Profile characteristic value change
  *          event.
@@ -1040,20 +1054,30 @@ static void BLEPeripheral_processStateChangeEvt(gaprole_States_t newState)
  *
  * @return  None.
  */
-static void SimpleBLEPeripheral_processCharValueChangeEvt(uint8_t paramID)
+static void Climb_processCharValueChangeEvt(uint8_t paramID)
 {
-  uint8_t newValue;
 
-  switch(paramID)
-  {
-    case CLIMBPROFILE_CHAR1:
-      ClimbProfile_GetParameter(CLIMBPROFILE_CHAR1, &newValue);
-      break;
+	uint8_t newValue[20];
 
-    default:
-      // should not reach here!
-      break;
-  }
+	switch (paramID) {
+	case CLIMBPROFILE_CHAR1: {
+		ClimbProfile_GetParameter(CLIMBPROFILE_CHAR1, newValue);
+
+		break;
+	}
+	case CLIMBPROFILE_CHAR2: {
+		ClimbProfile_GetParameter(CLIMBPROFILE_CHAR2, newValue);
+
+		if(newValue[0] == GATT_PKT_SET_ID_CMD){
+			memcpy(myIDArray, &newValue[1], NODE_ID_LENGTH);
+		}
+
+		break;
+	}
+	default:
+		// should not reach here!
+		break;
+	}
 }
 
 /*********************************************************************
@@ -1924,6 +1948,7 @@ static void CLIMB_handleKeys(uint8 keys) {
 
 	case BOTH:
 		CLIMB_FlashLed(Board_LED1);
+		Climb_setAsConnectable();
 		break;
 
 	default:
@@ -1976,6 +2001,45 @@ static void stopNode() {
 	Util_stopClock(&epochClock);
 #endif
 }
+
+/*********************************************************************
+ * @fn      Climb_setAsConnectable
+ *
+ * @brief
+ *
+
+ * @return  none
+ */
+static void Climb_setAsConnectable(){
+	uint8 adv_active;
+	uint8 status;
+	if(beaconActive){
+		adv_active = 0;
+		status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED, sizeof(uint8_t), &adv_active);
+	}
+	adv_active = 1;
+	status = GAPRole_SetParameter(GAPROLE_ADVERT_ENABLED, sizeof(uint8_t), &adv_active);
+}
+
+/*********************************************************************
+ * @fn      Climb_setAsNonConnectable
+ *
+ * @brief
+ *
+
+ * @return  none
+ */
+static void Climb_setAsNonConnectable(){
+	uint8 adv_active = 0;
+	uint8 status = GAPRole_SetParameter(GAPROLE_ADVERT_ENABLED, sizeof(uint8_t), &adv_active);
+
+	if(beaconActive){
+		adv_active = 1;
+		status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED, sizeof(uint8_t), &adv_active);
+	}
+
+}
+
 /*!*****************************************************************************
  *  @fn         Key_callback
  *

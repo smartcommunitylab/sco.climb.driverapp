@@ -43,7 +43,6 @@
 #include "bcomdef.h"
 #include "peripheralObserver.h"
 #include "CLIMBPerOb.h"
-#include "Keys_task.h"
 #ifdef PRINTF_ENABLED
 #include "uart_printf.h"
 //#include "UART.h"
@@ -106,7 +105,6 @@ int main(){
     /* Kick off profile - Priority 3 */
     GAPRole_createTask();
     
-    Keys_createTask();
     SimpleBLEPeripheral_createTask();
 
 #ifdef FEATURE_OAD
