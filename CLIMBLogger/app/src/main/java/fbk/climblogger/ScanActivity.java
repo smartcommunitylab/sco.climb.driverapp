@@ -41,7 +41,7 @@ import java.util.List;
 public class ScanActivity extends Activity {
 
     private final static String TAG = "ScanActivity_GIOVA";
-    private Button mStartButton,mStopButton,mTagButton,mCheckInAllButton,mCheckOutAllButton,mReleaseCmdButton;
+    private Button mStartButton,mStopButton,mTagButton,mCheckInAllButton,mCheckOutAllButton, mScheduleWUButton,mReleaseCmdButton;
     private int index = 0;
     private ArrayList<ClimbNode> climbNodeList;
     private ArrayAdapter<ListView> adapter;
@@ -244,6 +244,18 @@ public class ScanActivity extends Activity {
 
         }
     };
+    View.OnClickListener scheduleWUButtonHandler = new View.OnClickListener(){
+        public void onClick(View v) {
+
+            if(mClimbService != null){
+                mClimbService.ScheduleWakeUpCmd();
+            }else{
+                Log.i(TAG, "Stop scan not sent!");
+                log("Stop scan not sent!");
+            }
+
+        }
+    };
     View.OnClickListener releaseCmdButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
 
@@ -320,6 +332,9 @@ public class ScanActivity extends Activity {
 
         mCheckOutAllButton = (Button) findViewById(R.id.buttonCheckOutAll);
         mCheckOutAllButton.setOnClickListener(ckOutAllButtonHandler);
+
+        mScheduleWUButton = (Button) findViewById(R.id.scheduleWakeUpAll);
+        mScheduleWUButton.setOnClickListener(scheduleWUButtonHandler);
 
         mReleaseCmdButton = (Button) findViewById(R.id.buttonReleaseBrdcstCmd);
         mReleaseCmdButton.setOnClickListener(releaseCmdButtonHandler);

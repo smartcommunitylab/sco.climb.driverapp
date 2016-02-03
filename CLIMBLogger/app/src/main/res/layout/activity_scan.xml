@@ -130,6 +130,13 @@
                     android:textSize="12dp" />
 
                 <Button
+                    android:id="@+id/scheduleWakeUpAll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="schedule\nWU ALL"
+                    android:textSize="12dp" />
+
+                <Button
                     android:id="@+id/buttonReleaseBrdcstCmd"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

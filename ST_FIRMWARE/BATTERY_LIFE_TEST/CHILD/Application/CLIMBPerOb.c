@@ -84,6 +84,7 @@
 
 #include <driverlib/aon_batmon.h>
 
+
 #ifdef FEATURE_LCD
 #include "devpk_lcd.h"
 #include <stdio.h>

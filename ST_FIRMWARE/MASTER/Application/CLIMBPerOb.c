@@ -161,6 +161,15 @@
 #define ADV_PKT_ID_OFFSET					  12
 #define ADV_PKT_STATE_OFFSET				  ADV_PKT_ID_OFFSET + NODE_ID_LENGTH
 
+#define BROADCAST_MSG_TYPE_STATE_UPDATE_CMD	  0x01
+#define BROADCAST_MSG_LENGTH_STATE_UPDATE_CMD 0x02
+
+#define BROADCAST_MSG_TYPE_WU_SCHEDULE_CMD	  0x02
+#define BROADCAST_MSG_LENGTH_WU_SCHEDULE_CMD  0x04
+
+#define BROADCAST_RESET_CMD_FLAG_CMD		  0xFF
+#define BROADCAST_LENGTH_RESET_CMD_FLAG_CMD   0x01
+
 #ifdef FEATURE_OAD
 // The size of an OAD packet.
 #define OAD_PACKET_SIZE                       ((OAD_BLOCK_SIZE) + 2)
@@ -257,7 +266,7 @@ static uint8 Climb_childNodeName[] = { 'C', 'L', 'I', 'M', 'B', 'C' };
 static uint8 advUpdateReq = FALSE;
 
 static uint8 isBroadcastMessageValid = FALSE;
-static uint8 broadcastMessage = 0x00;
+static uint8 broadcastMessage[10];
 
 static uint8 beaconActive = 0;
 
@@ -1210,10 +1219,26 @@ static void Climb_advertisedStatesUpdate(void) {
 #endif
 			node = node->next; //passa al nodo sucessivo
 		}
-	} else { //send check out to everybody
+	} else { //send broadcast msg
 		memcpy(&newChildrenStatesData[i], broadcastID, NODE_ID_LENGTH);
 		i += NODE_ID_LENGTH;
-		newChildrenStatesData[i++] = broadcastMessage;
+
+		uint8 broadcastMsgType = broadcastMessage[0];
+		switch (broadcastMsgType) {
+		case BROADCAST_MSG_TYPE_STATE_UPDATE_CMD:
+			memcpy(&newChildrenStatesData[i], &broadcastMessage[0], BROADCAST_MSG_LENGTH_STATE_UPDATE_CMD);
+			i = i + BROADCAST_MSG_LENGTH_STATE_UPDATE_CMD;
+			break;
+
+		case BROADCAST_MSG_TYPE_WU_SCHEDULE_CMD:
+			memcpy(&newChildrenStatesData[i], &broadcastMessage[0], BROADCAST_MSG_LENGTH_WU_SCHEDULE_CMD);
+			i = i + BROADCAST_MSG_LENGTH_WU_SCHEDULE_CMD;
+			break;
+
+		default: //should not reach here
+			break;
+		}
+
 	}
 #ifdef CLIMB_DEBUG
 	while (i < 30) {
@@ -1269,15 +1294,40 @@ static void Climb_processCharValueChangeEvt(uint8_t paramID) {
 
 					}
 				}
-			} else { //broadcastID found!
+
+				i = i + NODE_ID_LENGTH + 1;
+
+			} else { //broadcastID found! ONLY ONE BROADCAST MSG PER NOTIFICATION (PER GATT PACKET)
 
 				isBroadcastMessageValid = TRUE;
-				broadcastMessage = newValue[i + NODE_ID_LENGTH]; //TODO: TROVARE IL MODO DI RESETTARE QUESTA FLAG!!!!
-				if(broadcastMessage == 0xFF){ //se anche il messaggio è 0xFF cancella la flag
+				uint8 broadcastMsgType = newValue[i + NODE_ID_LENGTH];
+
+				switch (broadcastMsgType) {
+				case BROADCAST_MSG_TYPE_STATE_UPDATE_CMD:
+					memcpy(broadcastMessage, &newValue[i + NODE_ID_LENGTH], BROADCAST_MSG_LENGTH_STATE_UPDATE_CMD);
+					//i = i + NODE_ID_LENGTH + BROADCAST_MSG_LENGTH_STATE_UPDATE_CMD;
+					break;
+
+				case BROADCAST_MSG_TYPE_WU_SCHEDULE_CMD:
+					memcpy(broadcastMessage, &newValue[i + NODE_ID_LENGTH], BROADCAST_MSG_LENGTH_WU_SCHEDULE_CMD);
+					//i = i + NODE_ID_LENGTH + BROADCAST_MSG_LENGTH_WU_SCHEDULE_CMD;
+					break;
+
+				case BROADCAST_RESET_CMD_FLAG_CMD:
+					//no message to be copied or to be send
 					isBroadcastMessageValid = FALSE;
+					//i = i + NODE_ID_LENGTH + BROADCAST_LENGTH_RESET_CMD_FLAG_CMD;
+					break;
+
+				default: //should not reach here
+					//i = i + NODE_ID_LENGTH; //this is to avoid infinite loops in case of wrong packet formatting
+					break;
 				}
+
+				return; //ONLY ONE BROADCAST MSG PER NOTIFICATION (PER GATT PACKET)
+
 			}
-			i = i + NODE_ID_LENGTH + 1;
+
 		}
 		break;
 	}
@@ -1607,8 +1657,8 @@ static void Climb_advertisedStatesCheck(void) {
 
 		}
 
-		if( isBroadcastMessageValid == TRUE ){ //TODO: CAPIRE SE E' IL CASO DI METTERE UN PO' PIU' DI CONTROLLI PRIMA DI ASSEGNARE LO STATO broadcastMessage
-			node->device.stateToImpose = (ChildClimbNodeStateType_t)broadcastMessage;
+		if( isBroadcastMessageValid == TRUE && broadcastMessage[0] == BROADCAST_MSG_TYPE_STATE_UPDATE_CMD ){ //TODO: CAPIRE SE E' IL CASO DI METTERE UN PO' PIU' DI CONTROLLI PRIMA DI ASSEGNARE LO STATO broadcastMessage
+			node->device.stateToImpose = (ChildClimbNodeStateType_t)broadcastMessage[1];
 		}
 
 		if (node->device.advData[ADV_PKT_STATE_OFFSET] != node->device.stateToImpose) {
@@ -1620,11 +1670,9 @@ static void Climb_advertisedStatesCheck(void) {
 }
 
 static uint8 Climb_isMyChild(uint8 nodeID) { //TODO: AGGIUNGERE LA FUNZIONALITA' DELLA LISTA
-//	if(nodeID == 0x86){
-//		return FALSE;
-//	}else{
+
 	return TRUE; //accetta tutti i nodi per adesso
-//	}
+
 }
 /*********************************************************************
  * @fn      Climb_nodeTimeoutCheck

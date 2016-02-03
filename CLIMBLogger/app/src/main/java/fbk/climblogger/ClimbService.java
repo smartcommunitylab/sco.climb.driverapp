@@ -348,7 +348,7 @@ public class ClimbService extends Service {
             }
 
             if(mPICOCharacteristic != null) {
-                byte[] gattData = {(byte) 0xFF, (byte) 0x02};
+                byte[] gattData = {(byte) 0xFF, (byte) 0x01,(byte) 0x02};
                 String tempString = "Accepting all nodes";
                 insertTag(tempString);
                 mPICOCharacteristic.setValue(gattData);
@@ -371,8 +371,31 @@ public class ClimbService extends Service {
             }
 
             if(mPICOCharacteristic != null) {
-                byte[] gattData = {(byte) 0xFF, (byte) 0x00};
+                byte[] gattData = {(byte) 0xFF,(byte) 0x01, (byte) 0x00};
                 String tempString = "Accepting all nodes";
+                insertTag(tempString);
+                mPICOCharacteristic.setValue(gattData);
+                mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
+            }else{
+                Log.w(TAG, "mPICOCharacteristic not already discovered?");
+            }
+
+        }
+    }
+
+    public void ScheduleWakeUpCmd(){
+        if (mBluetoothAdapter != null) {
+
+            if (mBluetoothGatt == null) {
+                Toast.makeText(appContext,
+                        "Master NOT CONNECTED!",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if(mPICOCharacteristic != null) {
+                byte[] gattData = {(byte) 0xFF,(byte) 0x02, (byte) 0x00, (byte) 0x00, (byte) 0x3C};
+                String tempString = "Sending_wake_up_schedule";
                 insertTag(tempString);
                 mPICOCharacteristic.setValue(gattData);
                 mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
