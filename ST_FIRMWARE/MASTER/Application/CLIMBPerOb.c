@@ -153,7 +153,7 @@
 #define NODE_TIMEOUT_OS_TICKS				  500000
 
 #define LED_TIMEOUT						  	  10
-
+#define RESET_BROADCAST_CMD_TIMEOUT			  6000
 //#define NODE_ID								  0x01 //per ora non è applicabile ai nodi master
 
 #define NODE_ID_LENGTH						  1
@@ -191,6 +191,7 @@
 #define ADVERTISE_EVT					    0x0020
 #define KEY_CHANGE_EVT					  	0x0040
 #define LED_TIMEOUT_EVT						0x0080
+#define RESET_BROADCAST_CMD_EVT				0x0100
 #define EPOCH_EVT							0x0400
 /*********************************************************************
  * TYPEDEFS
@@ -246,7 +247,10 @@ static ICall_Semaphore sem;
 // Clock instances for internal periodic events.
 static Clock_Struct periodicClock;
 static Clock_Struct ledTimeoutClock;
+#ifdef WORKAROUND
 static Clock_Struct epochClock;
+#endif
+static Clock_Struct resetBroadcastCmdClock;
 
 // Queue object used for app messages
 static Queue_Struct appMsg;
@@ -364,6 +368,7 @@ static void CLIMB_FlashLed(PIN_Id pinId);
 static void CLIMB_handleKeys(uint8 keys);
 static void startNode();
 static void stopNode();
+static void destroyNodeLists();
 //static void Key_callback(PIN_Handle handle, PIN_Id pinId);
 #ifdef FEATURE_LCD
 static void displayInit(void);
@@ -468,10 +473,16 @@ static void SimpleBLEPeripheral_init(void) {
 
 	Util_constructClock(&ledTimeoutClock, Climb_clockHandler,
 	LED_TIMEOUT, 0, false, LED_TIMEOUT_EVT);
+
+	Util_constructClock(&resetBroadcastCmdClock, Climb_clockHandler,
+			RESET_BROADCAST_CMD_TIMEOUT, 0, false, RESET_BROADCAST_CMD_EVT);
+
 #ifdef WORKAROUND
 	Util_constructClock(&epochClock, Climb_clockHandler,
 			EPOCH_PERIOD, 0, false, EPOCH_EVT);
 #endif
+
+
 
 #ifndef SENSORTAG_HW
 	Board_openLCD();
@@ -677,10 +688,11 @@ static void SimpleBLEPeripheral_taskFxn(UArg a0, UArg a1) {
 
 		if (events & PERIODIC_EVT) {
 			events &= ~PERIODIC_EVT;
-
+			if (beaconActive == 1) {
+				Util_startClock(&periodicClock);
+			}
 			// Perform periodic application task
 			if (BLE_connected) {
-				Util_startClock(&periodicClock);
 				Climb_periodicTask();
 			}
 		}
@@ -691,6 +703,12 @@ static void SimpleBLEPeripheral_taskFxn(UArg a0, UArg a1) {
 			//only turn off leds
 			PIN_setOutputValue(hGpioPin, Board_LED1, Board_LED_OFF);
 			PIN_setOutputValue(hGpioPin, Board_LED2, Board_LED_OFF);
+		}
+		if (events & RESET_BROADCAST_CMD_EVT) {
+
+			events &= ~RESET_BROADCAST_CMD_EVT;
+
+			isBroadcastMessageValid = FALSE;
 		}
 #ifdef WORKAROUND
 		if (events & EPOCH_EVT) {
@@ -910,7 +928,7 @@ static void BLEPeripheral_processStateChangeEvt(gaprole_States_t newState) {
 
 		HCI_EXT_ConnEventNoticeCmd(0, selfEntity, CONN_EVT_END_EVT);
 
-		Util_startClock(&periodicClock);
+		//Util_startClock(&periodicClock);
 
 		BLE_connected = TRUE;
 		uint8_t peerAddress[B_ADDR_LEN];
@@ -1280,27 +1298,12 @@ static void Climb_processCharValueChangeEvt(uint8_t paramID) {
 		while (i < 16) { //TODO: verificare il 16
 			uint8 nodeID[NODE_ID_LENGTH];
 			memcpy(nodeID, &newValue[i], NODE_ID_LENGTH);
-			if (memcomp(nodeID, broadcastID, NODE_ID_LENGTH) == 1) { //broadcastID not found
-
-				listNode_t *node = Climb_findChildNodeById(nodeID);
-				if (node != NULL) {
-					//controlla che lo stato richiesto tramite gatt non sia lo stesso che attualmente ha il nodo e che lo stato richiesto non sia ALERT
-					if (newValue[i + NODE_ID_LENGTH] != node->device.advData[ADV_PKT_STATE_OFFSET] && (ChildClimbNodeStateType_t) newValue[i + NODE_ID_LENGTH] != ALERT) { //PER ORA NON BROADCASTARE LO STATO ALERT ALTRIMENTI SE C'E' UN FALSO ALERT IL CHILD VA IN ALERT ANCHE SE NON DOVREBBE
-
-						node->device.stateToImpose = (ChildClimbNodeStateType_t) newValue[i + NODE_ID_LENGTH]; //quando uno di questi viene cambiato aggiorna l'adv
-						advUpdateReq = TRUE;
-
-					} else {
-
-					}
-				}
-
-				i = i + NODE_ID_LENGTH + 1;
-
-			} else { //broadcastID found! ONLY ONE BROADCAST MSG PER NOTIFICATION (PER GATT PACKET)
+			if (memcomp(nodeID, broadcastID, NODE_ID_LENGTH) == 0) { 	//broadcastID found! ONLY ONE BROADCAST MSG PER NOTIFICATION (PER GATT PACKET)
 
 				isBroadcastMessageValid = TRUE;
 				uint8 broadcastMsgType = newValue[i + NODE_ID_LENGTH];
+
+				Util_restartClock(&resetBroadcastCmdClock, RESET_BROADCAST_CMD_TIMEOUT);
 
 				switch (broadcastMsgType) {
 				case BROADCAST_MSG_TYPE_STATE_UPDATE_CMD:
@@ -1326,10 +1329,19 @@ static void Climb_processCharValueChangeEvt(uint8_t paramID) {
 
 				return; //ONLY ONE BROADCAST MSG PER NOTIFICATION (PER GATT PACKET)
 
-			}
+			} else { //broadcastID not found
 
+				listNode_t *node = Climb_findChildNodeById(nodeID);
+				if (node != NULL && newValue[i + NODE_ID_LENGTH] != node->device.advData[ADV_PKT_STATE_OFFSET]) { //se ci sono problemi spezzare questo if in due if annidati
+					if (newValue[i + NODE_ID_LENGTH] != INVALID_STATE) {
+						node->device.stateToImpose = (ChildClimbNodeStateType_t) newValue[i + NODE_ID_LENGTH]; //the correctness of this will be checked in Climb_advertisedStatesCheck
+					}
+				}
+
+			}
+			i = i + NODE_ID_LENGTH + 1;
 		}
-		break;
+
 	}
 	default:
 		// should not reach here!
@@ -1651,14 +1663,52 @@ static void Climb_advertisedStatesCheck(void) {
 
 	while (node != NULL) {
 
-		if (node->device.advData[ADV_PKT_STATE_OFFSET] == BY_MYSELF && node->device.stateToImpose == BY_MYSELF) {
+		if( isBroadcastMessageValid == TRUE && broadcastMessage[0] == BROADCAST_MSG_TYPE_STATE_UPDATE_CMD ){ //SE IL MESSAGGIO DI BROADCAST E' VALIDO SOVRASCRIVI IL CAMPO stateToImpose su tutti i nodi
+
+			if ( (ChildClimbNodeStateType_t)broadcastMessage[1] != INVALID_STATE){
+				node->device.stateToImpose = (ChildClimbNodeStateType_t)broadcastMessage[1];
+			}
+
+		}
+
+		if (node->device.advData[ADV_PKT_STATE_OFFSET] == BY_MYSELF && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
 
 			node->device.stateToImpose = CHECKING;
 
 		}
 
-		if( isBroadcastMessageValid == TRUE && broadcastMessage[0] == BROADCAST_MSG_TYPE_STATE_UPDATE_CMD ){ //TODO: CAPIRE SE E' IL CASO DI METTERE UN PO' PIU' DI CONTROLLI PRIMA DI ASSEGNARE LO STATO broadcastMessage
-			node->device.stateToImpose = (ChildClimbNodeStateType_t)broadcastMessage[1];
+		{ //CHECK IF THE REQUESTED STATE CHANGE IS VALID OR NOT
+
+			switch ( node->device.stateToImpose ) {
+			case BY_MYSELF:
+				break;
+
+			case CHECKING:
+				if (node->device.advData[ADV_PKT_STATE_OFFSET] == BY_MYSELF && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
+					node->device.stateToImpose = CHECKING;
+				}else{
+					node->device.stateToImpose = (ChildClimbNodeStateType_t)node->device.advData[ADV_PKT_STATE_OFFSET];
+				}
+				break;
+
+			case ON_BOARD:
+				if ((node->device.advData[ADV_PKT_STATE_OFFSET] == CHECKING || node->device.advData[ADV_PKT_STATE_OFFSET] == ALERT)	&& Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
+					node->device.stateToImpose = ON_BOARD;
+				}else{
+					node->device.stateToImpose = (ChildClimbNodeStateType_t)node->device.advData[ADV_PKT_STATE_OFFSET];
+				}
+				break;
+
+			case ALERT:
+				node->device.stateToImpose = ON_BOARD;
+				break;
+
+			case INVALID_STATE:
+				break;
+
+			default:
+				break;
+			}
 		}
 
 		if (node->device.advData[ADV_PKT_STATE_OFFSET] != node->device.stateToImpose) {
@@ -1900,7 +1950,7 @@ static void startNode() {
 //
 //		HCI_EXT_ConnEventNoticeCmd(0, selfEntity, CONN_EVT_END_EVT);
 //
-//		Util_startClock(&periodicClock);
+		Util_startClock(&periodicClock);
 //
 //		BLE_connected = TRUE;
 
@@ -1937,11 +1987,39 @@ static void stopNode() {
 	lastGATTCheckTicks = 1;
 	uint8 zeroArray[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	ClimbProfile_SetParameter(CLIMBPROFILE_CHAR1, 20, zeroArray);
+	Util_stopClock(&periodicClock);
+	destroyNodeLists();
 #ifdef WORKAROUND
 	Util_stopClock(&epochClock);
 #endif
 }
+/*********************************************************************
+ * @fn      destroyNodeLists
+ *
+ * @brief   Destroy master and child lists
+ *
 
+ * @return  none
+ */
+static void destroyNodeLists() {
+
+
+	listNode_t* targetNode = childListRootPtr;
+	while (targetNode != NULL) { //NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
+
+		targetNode = Climb_removeNode(targetNode, NULL); //rimuovi il nodo
+
+		//NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
+	}
+
+	targetNode = masterListRootPtr;
+	while (targetNode != NULL) { //NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
+
+		targetNode = Climb_removeNode(targetNode, NULL); //rimuovi il nodo
+
+		//NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
+	}
+}
 /*!*****************************************************************************
  *  @fn         Key_callback
  *

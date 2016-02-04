@@ -337,14 +337,14 @@ public class ClimbService extends Service {
             }
         }
 
-    public void SendCheckInAllCmd() {
+    public boolean SendCheckInAllCmd() {
         if (mBluetoothAdapter != null) {
 
             if (mBluetoothGatt == null) {
                 Toast.makeText(appContext,
                         "Master NOT CONNECTED!",
                         Toast.LENGTH_SHORT).show();
-                return;
+                return false;
             }
 
             if(mPICOCharacteristic != null) {
@@ -353,21 +353,24 @@ public class ClimbService extends Service {
                 insertTag(tempString);
                 mPICOCharacteristic.setValue(gattData);
                 mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
+                return true;
             }else{
                 Log.w(TAG, "mPICOCharacteristic not already discovered?");
+                return false;
             }
 
         }
+        return false;
     }
 
-    public void SendCheckOutAllCmd(){
+    public boolean SendCheckOutAllCmd(){
         if (mBluetoothAdapter != null) {
 
             if (mBluetoothGatt == null) {
                 Toast.makeText(appContext,
                         "Master NOT CONNECTED!",
                         Toast.LENGTH_SHORT).show();
-                return;
+                return false;
             }
 
             if(mPICOCharacteristic != null) {
@@ -376,21 +379,24 @@ public class ClimbService extends Service {
                 insertTag(tempString);
                 mPICOCharacteristic.setValue(gattData);
                 mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
+                return true;
             }else{
                 Log.w(TAG, "mPICOCharacteristic not already discovered?");
+                return false;
             }
 
         }
+        return false;
     }
 
-    public void ScheduleWakeUpCmd(){
+    public boolean ScheduleWakeUpCmd(){
         if (mBluetoothAdapter != null) {
 
             if (mBluetoothGatt == null) {
                 Toast.makeText(appContext,
                         "Master NOT CONNECTED!",
                         Toast.LENGTH_SHORT).show();
-                return;
+                return false;
             }
 
             if(mPICOCharacteristic != null) {
@@ -399,21 +405,24 @@ public class ClimbService extends Service {
                 insertTag(tempString);
                 mPICOCharacteristic.setValue(gattData);
                 mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
+                return true;
             }else{
                 Log.w(TAG, "mPICOCharacteristic not already discovered?");
+                return false;
             }
 
         }
+        return false;
     }
 
-    public void SendReleaseAllCmd(){
+    public boolean SendReleaseAllCmd(){
         if (mBluetoothAdapter != null) {
 
             if (mBluetoothGatt == null) {
                 Toast.makeText(appContext,
                         "Master NOT CONNECTED!",
                         Toast.LENGTH_SHORT).show();
-                return;
+                return false;
             }
 
             if(mPICOCharacteristic != null) {
@@ -422,11 +431,13 @@ public class ClimbService extends Service {
                 insertTag(tempString);
                 mPICOCharacteristic.setValue(gattData);
                 mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
+                return true;
             }else{
                 Log.w(TAG, "mPICOCharacteristic not already discovered?");
             }
 
         }
+        return false;
     }
 
     public boolean isMonitoring(){
@@ -451,8 +462,9 @@ public class ClimbService extends Service {
             if(mBluetoothGatt != null && childPosition == -2){
                 //mBTDevice = clickedNode.getBleDevice();
                 insertTag("Disconnecting_from_GATT");
-                mBluetoothGatt.disconnect();
+
                 mBluetoothGatt.close();
+                mBluetoothGatt.disconnect();
                 mBluetoothGatt = null;
 
                 mBTDevice = null;
@@ -548,7 +560,7 @@ public class ClimbService extends Service {
                     }
                 }
 
-                //if (result.getDevice().getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {  //AGGIUNGI SOLO I NODI MASTER!!!!
+                if (result.getDevice().getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {  //AGGIUNGI alla lista SOLO I NODI MASTER!!!!
                     //POI AVVIA IL PROCESSO PER AGGIORNARE LA UI
                     int index = isAlreadyInList(result.getDevice());
                     if (index >= 0) {
@@ -558,7 +570,7 @@ public class ClimbService extends Service {
                         Log.d(TAG, "New device found, adding it to database!");
                         addToList(result, nowMillis);
                     }
-
+                }
  /*               //se trovo il master connetilo!
                 if(result.getDevice().getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME) && mBluetoothGatt == null){
 

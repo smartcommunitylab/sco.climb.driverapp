@@ -13,6 +13,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.os.Vibrator;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -41,7 +42,8 @@ import java.util.List;
 public class ScanActivity extends Activity {
 
     private final static String TAG = "ScanActivity_GIOVA";
-    private Button mStartButton,mStopButton,mTagButton,mCheckInAllButton,mCheckOutAllButton, mScheduleWUButton,mReleaseCmdButton;
+    private Button mStartButton,mStopButton,mTagButton,mCheckInAllButton,mCheckOutAllButton, mScheduleWUButton;
+    private Vibrator mVibrator;
     private int index = 0;
     private ArrayList<ClimbNode> climbNodeList;
     private ArrayAdapter<ListView> adapter;
@@ -105,7 +107,7 @@ public class ScanActivity extends Activity {
                         Toast.LENGTH_SHORT).show();
                 log("Connected with GATT");
             }else if (ClimbService.STATE_DISCONNECTED_FROM_CLIMB_MASTER.equals(action)) {
-                climbNodeList.clear();
+                //climbNodeList.clear();
             Toast.makeText(getApplicationContext(),
                     "DISCONNECTED FORM GATT!",
                     Toast.LENGTH_SHORT).show();
@@ -171,10 +173,12 @@ public class ScanActivity extends Activity {
                 if(logCheckBox != null && logCheckBox.isChecked()) {
                     //TODO: start logging
                     mClimbService.StartMonitoring(true);
+                    mVibrator.vibrate(ConfigVals.vibrationTimeout);
                     Log.i(TAG, "Start scan with data logging!");
                     log("Start scan with data logging command sent!");
                 }else{
                     mClimbService.StartMonitoring(false);
+                    mVibrator.vibrate(ConfigVals.vibrationTimeout);
                     Log.i(TAG, "Start scan without data logging!");
                     log("Start scan without data logging command sent!");
                 }
@@ -191,6 +195,7 @@ public class ScanActivity extends Activity {
         public void onClick(View v) {
 
             if(mClimbService != null){
+                mVibrator.vibrate(ConfigVals.vibrationTimeout);
                 mClimbService.StopMonitoring();
                 Log.i(TAG, "Stop scan!");
                 log("Stop scan command sent!");
@@ -207,6 +212,7 @@ public class ScanActivity extends Activity {
 
             if(mClimbService != null){
                 if(mClimbService.insertTag("Manually_inserted_tag")){
+                    mVibrator.vibrate(ConfigVals.vibrationTimeout);
                     log("Tag Inserted!");
                 }else{
                     log("Tag not inserted! Something went wrong in ClimbService!");
@@ -224,10 +230,15 @@ public class ScanActivity extends Activity {
         public void onClick(View v) {
 
             if(mClimbService != null){
-                mClimbService.SendCheckInAllCmd();
+                if(mClimbService.SendCheckInAllCmd()) {
+                    mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                }else {
+                    Log.i(TAG, "Check in all not sent!");
+                    log("Check in all not sent!");
+                }
             }else{
-                Log.i(TAG, "Stop scan not sent!");
-                log("Stop scan not sent!");
+                Log.i(TAG, "Check in all not sent!");
+                log("Check in all not sent!");
             }
 
         }
@@ -236,10 +247,15 @@ public class ScanActivity extends Activity {
         public void onClick(View v) {
 
             if(mClimbService != null){
-                mClimbService.SendCheckOutAllCmd();
+                if(mClimbService.SendCheckOutAllCmd()){
+                    mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                }else {
+                    Log.i(TAG, "Check out all not sent!");
+                    log("Check out all not sent!");
+                }
             }else{
-                Log.i(TAG, "Stop scan not sent!");
-                log("Stop scan not sent!");
+                Log.i(TAG, "Check out all not sent!");
+                log("Check out all not sent!");
             }
 
         }
@@ -248,10 +264,15 @@ public class ScanActivity extends Activity {
         public void onClick(View v) {
 
             if(mClimbService != null){
-                mClimbService.ScheduleWakeUpCmd();
+                if(mClimbService.ScheduleWakeUpCmd()){
+                    mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                }else {
+                    Log.i(TAG, "schedule wake up not sent!");
+                    log("schedule wake up not sent!");
+                }
             }else{
-                Log.i(TAG, "Stop scan not sent!");
-                log("Stop scan not sent!");
+                Log.i(TAG, "schedule wake up not sent!");
+                log("schedule wake up not sent!");
             }
 
         }
@@ -260,10 +281,15 @@ public class ScanActivity extends Activity {
         public void onClick(View v) {
 
             if(mClimbService != null){
-                mClimbService.SendReleaseAllCmd();
+                if(mClimbService.SendReleaseAllCmd()){
+                    mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                }else {
+                    Log.i(TAG, "schedule wake up not sent!");
+                    log("schedule wake up not sent!");
+                }
             }else{
-                Log.i(TAG, "Stop scan not sent!");
-                log("Stop scan not sent!");
+                Log.i(TAG, "schedule wake up not sent!");
+                log("schedule wake up not sent!");
             }
 
         }
@@ -277,6 +303,7 @@ public class ScanActivity extends Activity {
             //ClimbNode clickedNode = climbNodeList.get(groupPosition);
 
             mClimbService.onNodeClick(groupPosition, -1);
+            mVibrator.vibrate(ConfigVals.vibrationTimeout);
 
 
         }
@@ -288,7 +315,7 @@ public class ScanActivity extends Activity {
         public void onGroupCollapse(int groupPosition) {
 
             mClimbService.onNodeClick(groupPosition, -2);
-
+            mVibrator.vibrate(ConfigVals.vibrationTimeout);
         }
     };
 
@@ -298,6 +325,7 @@ public class ScanActivity extends Activity {
                                     int groupPosition, int childPosition, long id) {
 
             mClimbService.onNodeClick(groupPosition,childPosition);
+            mVibrator.vibrate(ConfigVals.vibrationTimeout);
 
             return false;
         }
@@ -311,7 +339,7 @@ public class ScanActivity extends Activity {
         mHandler = new Handler();
 
         mContext = this.getApplicationContext();
-        mConsole = (EditText) findViewById(R.id.console_item);
+        //mConsole = (EditText) findViewById(R.id.console_item);
 
         //listView = (ListView) findViewById(R.id.list);
 
@@ -336,8 +364,10 @@ public class ScanActivity extends Activity {
         mScheduleWUButton = (Button) findViewById(R.id.scheduleWakeUpAll);
         mScheduleWUButton.setOnClickListener(scheduleWUButtonHandler);
 
-        mReleaseCmdButton = (Button) findViewById(R.id.buttonReleaseBrdcstCmd);
-        mReleaseCmdButton.setOnClickListener(releaseCmdButtonHandler);
+        //mReleaseCmdButton = (Button) findViewById(R.id.buttonReleaseBrdcstCmd);
+        //mReleaseCmdButton.setOnClickListener(releaseCmdButtonHandler);
+
+        mVibrator = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
 
         expandableListView = (ExpandableListView) findViewById(R.id.list);
 

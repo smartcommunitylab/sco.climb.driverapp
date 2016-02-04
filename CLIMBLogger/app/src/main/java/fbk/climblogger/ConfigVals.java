@@ -21,6 +21,8 @@ public class ConfigVals {
 
     static final int NODE_TIMEOUT = 7000;
 
+    static final int vibrationTimeout = 15;
+
     public final static String CLIMB_CHILD_DEVICE_NAME = "CLIMBC";
     public final static String CLIMB_MASTER_DEVICE_NAME = "CLIMBM";
 
