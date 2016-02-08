@@ -323,7 +323,7 @@ bStatus_t ClimbProfile_SetParameter( uint8 param, uint8 len, void *value )
   {
     case CLIMBPROFILE_CHAR1:
 
-      if( len <=  CLIMBPROFILE_CHAR1_LEN){
+      //if( len <=  CLIMBPROFILE_CHAR1_LEN){
     	  VOID memcpy( climbProfileChar1, value, CLIMBPROFILE_CHAR1_LEN );
 //    	  climbProfileChar1 = (uint8*)value;
 /*
@@ -337,11 +337,11 @@ bStatus_t ClimbProfile_SetParameter( uint8 param, uint8 len, void *value )
                                   climbProfileAttrTbl, GATT_NUM_ATTRS( climbProfileAttrTbl ),
                                   INVALID_TASK_ID, climbProfile_ReadAttrCB );
 
-      }
-      else
-      {
-        ret = bleInvalidRange;
-      }
+      //}
+      //else
+      //{
+      //  ret = bleInvalidRange;
+      //}
       break;
 
     default:

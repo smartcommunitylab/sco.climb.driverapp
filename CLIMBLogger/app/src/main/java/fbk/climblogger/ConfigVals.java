@@ -23,6 +23,8 @@ public class ConfigVals {
 
     static final int vibrationTimeout = 15;
 
+    static final int consecutiveBroadcastMessageTimeout_ms = 7000;
+
     public final static String CLIMB_CHILD_DEVICE_NAME = "CLIMBC";
     public final static String CLIMB_MASTER_DEVICE_NAME = "CLIMBM";
 
