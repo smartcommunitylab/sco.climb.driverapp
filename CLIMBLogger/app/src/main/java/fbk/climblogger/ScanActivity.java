@@ -13,6 +13,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.os.SystemClock;
 import android.os.Vibrator;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -52,7 +53,7 @@ public class ScanActivity extends Activity {
     private EditText mConsole = null;
     private CheckBox logCheckBox = null;
     private Handler mHandler = null;
-
+    private long lastBroadcastMessageSentMillis = 0;
     ExpandableListView expandableListView;
     MyExpandableListAdapter expandableListAdapter;
     List<ClimbNode> expandableListTitle;
@@ -108,6 +109,7 @@ public class ScanActivity extends Activity {
                 log("Connected with GATT");
             }else if (ClimbService.STATE_DISCONNECTED_FROM_CLIMB_MASTER.equals(action)) {
                 //climbNodeList.clear();
+                expandableListAdapter.notifyDataSetChanged();
             Toast.makeText(getApplicationContext(),
                     "DISCONNECTED FORM GATT!",
                     Toast.LENGTH_SHORT).show();
@@ -229,52 +231,74 @@ public class ScanActivity extends Activity {
     View.OnClickListener ckInAllButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
 
-            if(mClimbService != null){
-                if(mClimbService.SendCheckInAllCmd()) {
-                    mVibrator.vibrate(ConfigVals.vibrationTimeout);
-                }else {
+            if( (SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
+                if (mClimbService != null) {
+                    if (mClimbService.SendCheckInAllCmd()) {
+                        mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                        lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
+                    } else {
+                        Log.i(TAG, "Check in all not sent!");
+                        log("Check in all not sent!");
+                    }
+                } else {
                     Log.i(TAG, "Check in all not sent!");
                     log("Check in all not sent!");
                 }
             }else{
-                Log.i(TAG, "Check in all not sent!");
-                log("Check in all not sent!");
+                String alertString = "Wait a little";
+                Toast.makeText(getApplicationContext(),
+                        alertString,
+                        Toast.LENGTH_LONG).show();
             }
-
         }
     };
     View.OnClickListener ckOutAllButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
 
-            if(mClimbService != null){
-                if(mClimbService.SendCheckOutAllCmd()){
-                    mVibrator.vibrate(ConfigVals.vibrationTimeout);
-                }else {
+            if ((SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
+                if (mClimbService != null) {
+                    if (mClimbService.SendCheckOutAllCmd()) {
+                        mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                        lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
+                    } else {
+                        Log.i(TAG, "Check out all not sent!");
+                        log("Check out all not sent!");
+                    }
+                } else {
                     Log.i(TAG, "Check out all not sent!");
                     log("Check out all not sent!");
                 }
-            }else{
-                Log.i(TAG, "Check out all not sent!");
-                log("Check out all not sent!");
-            }
 
+            }else{
+                String alertString = "Wait a little";
+                Toast.makeText(getApplicationContext(),
+                        alertString,
+                        Toast.LENGTH_LONG).show();
+            }
         }
     };
     View.OnClickListener scheduleWUButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
 
-            if(mClimbService != null){
-                if(mClimbService.ScheduleWakeUpCmd()){
-                    mVibrator.vibrate(ConfigVals.vibrationTimeout);
-                }else {
+            if( (SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
+                if (mClimbService != null) {
+                    if (mClimbService.ScheduleWakeUpCmd()) {
+                        mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                        lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
+                    } else {
+                        Log.i(TAG, "schedule wake up not sent!");
+                        log("schedule wake up not sent!");
+                    }
+                } else {
                     Log.i(TAG, "schedule wake up not sent!");
                     log("schedule wake up not sent!");
                 }
             }else{
-                Log.i(TAG, "schedule wake up not sent!");
-                log("schedule wake up not sent!");
+                String alertString = "Wait a little";
+                Toast.makeText(getApplicationContext(),
+                        alertString,
+                        Toast.LENGTH_LONG).show();
             }
-
         }
     };
     View.OnClickListener releaseCmdButtonHandler = new View.OnClickListener(){

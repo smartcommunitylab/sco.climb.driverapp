@@ -55,6 +55,11 @@
 
             public void setConnectionState(boolean state) {
                 connectionState = state;
+                if(connectionState == false){
+                    onBoardChildrenList.clear();
+                    onBoardChildrenList = new ArrayList<MonitoredClimbNode>();
+                    lastReceivedGattData = null;
+                }
             }
 
             public String toString() {
@@ -182,9 +187,9 @@
                             }
                         }
 
-                        //if (scanResponseData.length > 17) {
-                            //description = description + "\nBattery Voltage = " + String.format("%d", (  ((((int) scanResponseData[16]) << 24) >>> 24)<<8) + ( (((int) scanResponseData[17]) << 24) >>> 24 ) ) + " mV";
-                        //}
+                        if (scanResponseData.length > 17) {
+                            description = description + "\nBattery Voltage = " + String.format("%d", (  ((((int) scanResponseData[16]) << 24) >>> 24)<<8) + ( (((int) scanResponseData[17]) << 24) >>> 24 ) ) + " mV";
+                        }
 
                         neighbourList.add(description);
                         return neighbourList;

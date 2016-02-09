@@ -77,6 +77,7 @@
 #include <xdc/runtime/System.h>
 
 #include <driverlib/aon_rtc.h>
+#include <driverlib/aon_batmon.h>
 
 #include "sensor_bmp280.h"
 #include "sensor_hdc1000.h"
@@ -249,6 +250,7 @@ typedef struct listNode{
 
 listNode_t* childListRootPtr = NULL;
 listNode_t* masterListRootPtr = NULL;
+listNode_t* adv_startNodePtr = NULL;
 
 //uint8 masterScanRes = 0;
 //uint8 childScanRes = 0;
@@ -370,6 +372,8 @@ static uint8 myIDArray[] = {0x00};//NODE_ID;
 static uint8 broadcastID[] = { 0xFF };
 
 static uint8 readyToGoSleeping = 0;
+
+static uint32 batteryLev = 0;
 /*********************************************************************
  * LOCAL FUNCTIONS
  */
@@ -1209,6 +1213,12 @@ static void BLE_AdvertiseEventHandler(void) {
 	adv_counter++; //non era incrementato....
 	Climb_updateMyBroadcastedState(nodeState); //update adv data every adv event to update adv_counter value. Since the argument is nodeState this function call doesn't modify the actual state of this node
 #endif
+
+	if ((adv_counter - 1) % 60 == 0) {
+		batteryLev = AONBatMonBatteryVoltageGet();
+		batteryLev = (batteryLev * 125) >> 5;
+	}
+
 #ifdef WORKAROUND
 	uint8 adv_active = 0;
 	uint8 status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED, sizeof(uint8_t),&adv_active);
@@ -1779,7 +1789,8 @@ static uint8 Climb_decodeBroadcastedMessage(gapDeviceInfoEvent_t *gapDeviceInfoE
 					if (memcomp(broadcastID, &gapDeviceInfoEvent_a->pEvtData[index], NODE_ID_LENGTH) == 0) { // BROADCAST MESSAGE FOUND
 
 						uint8 broadcastMsgType = gapDeviceInfoEvent_a->pEvtData[index + 1];
-						uint32 wakeUpTimeout_Sec_temp;
+						uint32 wakeUpTimeout_sec;
+						float randDelay_msec;
 
 						switch(broadcastMsgType) {
 						case BROADCAST_MSG_TYPE_STATE_UPDATE_CMD:
@@ -1787,8 +1798,10 @@ static uint8 Climb_decodeBroadcastedMessage(gapDeviceInfoEvent_t *gapDeviceInfoE
 							break;
 
 						case BROADCAST_MSG_TYPE_WU_SCHEDULE_CMD:
-							wakeUpTimeout_Sec_temp = ((gapDeviceInfoEvent_a->pEvtData[index + 2])<<16) + ((gapDeviceInfoEvent_a->pEvtData[index + 3])<<8) + (gapDeviceInfoEvent_a->pEvtData[index + 4]);
-							Util_restartClock(&wakeUpClock, wakeUpTimeout_Sec_temp*1000);
+							wakeUpTimeout_sec = ((gapDeviceInfoEvent_a->pEvtData[index + 2])<<16) + ((gapDeviceInfoEvent_a->pEvtData[index + 3])<<8) + (gapDeviceInfoEvent_a->pEvtData[index + 4]); //here the unit is seconds
+							//randomizza nell'intorno +/-1 secondo rispetto al valore prestabilito
+							randDelay_msec = 2000 * ((float) Util_GetTRNG()) / 4294967296;
+							Util_restartClock(&wakeUpClock, wakeUpTimeout_sec*1000 - 1000 + randDelay_msec);
 							break;
 
 						default: //should not reach here
@@ -1849,18 +1862,47 @@ static void Climb_updateMyBroadcastedState(ChildClimbNodeStateType_t newState) {
 //TODO: rssi can be added also when CLIMB_DEBUG is not defined
 #ifdef CLIMB_DEBUG
 	uint8 i = ADV_PKT_STATE_OFFSET + 1;
-	listNode_t* node = childListRootPtr;
-	while(i < 30){
-		if(node != NULL && i < 29){
-			newAdvertData[i++] = node->device.devRec.addr[0];
-			newAdvertData[i++] = node->device.rssi;
+	listNode_t* node = adv_startNodePtr;
+	uint8 roundCompleted = FALSE;
+
+	while (i < 27 && roundCompleted == FALSE) {
+
+		if (node != NULL) {
+			if (node->device.advData[ADV_PKT_ID_OFFSET] != 0) { //non considerare l'ID 0x00
+				memcpy(&newAdvertData[i], &node->device.advData[ADV_PKT_ID_OFFSET], NODE_ID_LENGTH);
+				i += NODE_ID_LENGTH;
+				newAdvertData[i++] = node->device.rssi;
+			}
 			node = node->next; //passa al nodo sucessivo
-		}else{
-			newAdvertData[i++] = 0;
+		} else {
+			node = childListRootPtr;
+		}
+
+		if (node == adv_startNodePtr) {
+			roundCompleted = TRUE;
 		}
 	}
+	adv_startNodePtr = node;
+
+//	while(i < 30){
+//		if(node != NULL && i < 29){
+//			newAdvertData[i++] = node->device.devRec.addr[0];
+//			newAdvertData[i++] = node->device.rssi;
+//			node = node->next; //passa al nodo sucessivo
+//		}else{
+//			newAdvertData[i++] = 0;
+//		}
+//	}
+#ifdef CLIMB_DEBUG
+	while (i < 28) {
+		newAdvertData[i++] = 0;
+	}
+	newAdvertData[i++] = (uint8) (batteryLev >> 8);
+	newAdvertData[i++] = (uint8) (batteryLev);
 	newAdvertData[i++] = adv_counter; //the counter is always in the last position
+#endif
 	newAdvertData[8] = i-9;
+
 
 	GAP_UpdateAdvertisingData(selfEntity, true, i,	&newAdvertData[0]);
 
@@ -1965,6 +2007,10 @@ static listNode_t* Climb_removeNode(listNode_t* nodeToRemove, listNode_t* previo
 
 	if (previousNode == NULL && nodeToRemove != childListRootPtr && nodeToRemove != masterListRootPtr) { //
 		return NULL;
+	}
+
+	if (nodeToRemove == adv_startNodePtr) {
+		adv_startNodePtr = NULL;
 	}
 
 	if (nodeToRemove != childListRootPtr && nodeToRemove != masterListRootPtr) { // se il nodo che voglio rimuovere non è il primo vai liscio

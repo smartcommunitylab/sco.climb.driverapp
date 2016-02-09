@@ -400,7 +400,7 @@ public class ClimbService extends Service {
             }
 
             if(mPICOCharacteristic != null) {
-                byte[] gattData = {(byte) 0xFF,(byte) 0x02, (byte) 0x00, (byte) 0x00, (byte) 0x3C};
+                byte[] gattData = {(byte) 0xFF,(byte) 0x02, (byte) 0x00, (byte) 0x00, (byte) 0x50};
                 String tempString = "Sending_wake_up_schedule";
                 insertTag(tempString);
                 mPICOCharacteristic.setValue(gattData);
@@ -452,6 +452,13 @@ public class ClimbService extends Service {
                 insertTag("Connecting_to_GATT");
                 mBTDevice = clickedNode.getBleDevice();
                 mBluetoothGatt = mBTDevice.connectGatt(appContext, false, mGattCallback);
+                //segnala il completamento dell'operazione di ricerca del backpackService
+                int index = isAlreadyInList(mBTDevice);
+                if (index >= 0) {
+                    nodeList.get(index).setConnectionState(true);
+                } else {
+                    Log.d(TAG, "Master not found in the list, CHECK!!!!");
+                }
                 Log.i(TAG, "Try to connect a CLIMB master node!");
                 Toast.makeText(appContext,
                         "Connecting!",
@@ -597,18 +604,11 @@ public class ClimbService extends Service {
                 // Attempts to discover services after successful connection.
                 Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
                 insertTag("Connected_to_GATT");
-                //mBluetoothGatt.requestMtu(251);
 
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_DISCONNECTED;
                 broadcastUpdate(STATE_DISCONNECTED_FROM_CLIMB_MASTER);
                 Log.i(TAG, "Disconnected from GATT server. Status: " + status);
-                mBluetoothGatt.disconnect();
-                mBluetoothGatt.close();
-                mBluetoothGatt = null;
-                mBTDevice = null;
-                insertTag("Disconnected_from_GATT");
-                //broadcastUpdate(intentAction);
                 if(mBTDevice != null) {
                     int index = isAlreadyInList(mBTDevice);
                     if (index >= 0) {
@@ -617,6 +617,13 @@ public class ClimbService extends Service {
                         Log.d(TAG, "Master not found in the list, CHECK!!!!");
                     }
                 }
+                mBluetoothGatt.disconnect();
+                mBluetoothGatt.close();
+                mBluetoothGatt = null;
+                mBTDevice = null;
+                insertTag("Disconnected_from_GATT");
+                //broadcastUpdate(intentAction);
+
 
             }else if (newState == BluetoothProfile.STATE_CONNECTING) {
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTING;
@@ -639,6 +646,18 @@ public class ClimbService extends Service {
                 Log.i(TAG, "onServicesDiscovered received: " + status);
                 if(mBTService == null){
                     getClimbService();
+
+                    mHandler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(!mBluetoothGatt.requestMtu(35)){
+                                Log.w(TAG, "requestMtu returns FALSE!!!!");
+                            }
+                        }
+                    }, 1000);
+
+                }else{
+
                 }
             } else {
                 Log.w(TAG, "onServicesDiscovered received: " + status);
@@ -708,14 +727,12 @@ public class ClimbService extends Service {
 
         @Override
         public void onMtuChanged (BluetoothGatt gatt, int mtu, int status){
-/*
-            if(status != 0){
+
+            if(status == 0){
+
                 return;
             }
-            if(mBluetoothGatt.requestMtu(mtu+1) == false){
-                return;
-            }
-            return;*/
+            return;
         }
 
     };
@@ -731,15 +748,9 @@ public class ClimbService extends Service {
         else {
             Log.i(TAG, "CLIMB Service successfully retrieved");
             if(getCIPOCharacteristic() && getPICOCharacteristic()){
-
-                //segnala il completamento dell'operazione di ricerca del backpackService
-                int index = isAlreadyInList(mBTDevice);
-                if (index >= 0) {
-                    nodeList.get(index).setConnectionState(true);
-                } else {
-                    Log.d(TAG, "Master not found in the list, CHECK!!!!");
-                }
                 broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER);
+
+
                 return;
             }
         }
