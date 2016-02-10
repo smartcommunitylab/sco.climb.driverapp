@@ -1,6 +1,9 @@
 angular.module('driverapp', [
     'ionic',
     'ngCordova',
+    'driverapp.services.config',
+    'driverapp.services.utils',
+    'driverapp.services.api',
     'driverapp.controllers.home',
     'driverapp.controllers.routes',
     'driverapp.controllers.route'
