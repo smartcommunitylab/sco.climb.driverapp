@@ -3,6 +3,7 @@ angular.module('driverapp', [
     'ngCordova',
     'driverapp.services.config',
     'driverapp.services.utils',
+    'driverapp.services.storage',
     'driverapp.services.api',
     'driverapp.controllers.home',
     'driverapp.controllers.routes',
@@ -29,8 +30,18 @@ angular.module('driverapp', [
     $stateProvider.state('app', {
         url: '/app',
         abstract: true,
-        templateUrl: 'templates/home.html',
-        controller: 'HomeCtrl'
+        templateUrl: 'templates/menu.html',
+        controller: 'AppCtrl'
+    })
+
+    .state('app.home', {
+        url: '/home',
+        views: {
+            'menuContent': {
+                templateUrl: 'templates/home.html',
+                controller: 'HomeCtrl'
+            }
+        }
     })
 
     .state('app.routes', {
@@ -53,5 +64,5 @@ angular.module('driverapp', [
         }
     });
 
-    $urlRouterProvider.otherwise('/app/routes');
+    $urlRouterProvider.otherwise('/app/home');
 });

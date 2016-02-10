@@ -1,9 +1,9 @@
 angular.module('driverapp.services.config', [])
 
-.factory('Config', function ($http) {
-    var SERVER_URL = 'https://climbdev.smartcommunitylab.it/context-store/api';
-    var OWNER_ID = null;
-    var X_ACCESS_TOKEN = null;
+.factory('Config', function ($http, $q) {
+    var SERVER_URL = CONF.SERVER_URL;
+    var OWNER_ID = CONF.OWNER_ID;
+    var X_ACCESS_TOKEN = CONF.X_ACCESS_TOKEN;
 
     var HTTP_CONFIG = {
         timeout: 5000,
