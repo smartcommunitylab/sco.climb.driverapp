@@ -452,10 +452,11 @@ public class ClimbService extends Service {
                 insertTag("Connecting_to_GATT");
                 mBTDevice = clickedNode.getBleDevice();
                 mBluetoothGatt = mBTDevice.connectGatt(appContext, false, mGattCallback);
-                //segnala il completamento dell'operazione di ricerca del backpackService
+
                 int index = isAlreadyInList(mBTDevice);
                 if (index >= 0) {
                     nodeList.get(index).setConnectionState(true);
+                    masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTING;
                 } else {
                     Log.d(TAG, "Master not found in the list, CHECK!!!!");
                 }
@@ -647,14 +648,14 @@ public class ClimbService extends Service {
                 if(mBTService == null){
                     getClimbService();
 
-                    mHandler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            if(!mBluetoothGatt.requestMtu(35)){
-                                Log.w(TAG, "requestMtu returns FALSE!!!!");
-                            }
-                        }
-                    }, 1000);
+//                    mHandler.postDelayed(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            if(!mBluetoothGatt.requestMtu(35)){
+//                                Log.w(TAG, "requestMtu returns FALSE!!!!");
+//                            }
+//                        }
+//                    }, 1000);
 
                 }else{
 
@@ -970,7 +971,7 @@ public class ClimbService extends Service {
             for(int i =  0; i < nodeList.size(); i++) {
                 //long millisSinceLastScan = nowMillis - nodeList.get(i).getLastContactMillis();
                 if( nodeList.get(i).getTimedOut() ){
-                    if( !(nodeList.get(i).isMasterNode() && ( masterNodeGATTConnectionState == BluetoothProfile.STATE_CONNECTING || masterNodeGATTConnectionState == BluetoothProfile.STATE_CONNECTED) ) ) {
+                    if( !(nodeList.get(i).isMasterNode() && ( masterNodeGATTConnectionState == BluetoothProfile.STATE_CONNECTING || masterNodeGATTConnectionState == BluetoothProfile.STATE_CONNECTED)  ) ) {
                         nodeList.remove(i);
                         nodeRemoved = true;
                     }
