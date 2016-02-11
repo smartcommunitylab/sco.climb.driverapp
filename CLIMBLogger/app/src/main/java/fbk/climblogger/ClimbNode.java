@@ -75,6 +75,10 @@
                     mString = mString + "MAC: " + bleDevice.getAddress() + ", ";
 
                 mString = mString + "RSSI: " + (rssi );
+
+                if(connectionState){
+                    mString = mString + ". Conn.";
+                }
         /*
                 if(scanResponseData != null){
                     for(int i = 0; i < scanResponseData.size();i++){

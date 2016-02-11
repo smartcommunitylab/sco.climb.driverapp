@@ -2120,8 +2120,8 @@ static void Climb_goToSleepHandler(){ //NB: quando lo sleep è forzato dal master
  */
 static void Climb_wakeUpHandler(){
 
-	Util_restartClock(&wakeUpClock, WAKEUP_DEFAULT_TIMEOUT);
-	Util_restartClock(&goToSleepClock, GOTOSLEEP_DEFAULT_TIMEOUT);
+	//Util_restartClock(&wakeUpClock, WAKEUP_DEFAULT_TIMEOUT);
+	//Util_restartClock(&goToSleepClock, GOTOSLEEP_DEFAULT_TIMEOUT);
 	startNode();
 
 }
@@ -2173,10 +2173,11 @@ static void CLIMB_handleKeys(uint8 keys) {
 	case RIGHT_LONG:
 		if (beaconActive != 1){
 			startNode();
-			Util_restartClock(&wakeUpClock, WAKEUP_DEFAULT_TIMEOUT);
-			Util_restartClock(&goToSleepClock, GOTOSLEEP_DEFAULT_TIMEOUT);
+			//WITH WAKEUP_DEFAULT_TIMEOUT TIMEOUT SET TO 1000*60*60*24, they wake up after 5 minutes....CHECK!!!
+			//Util_restartClock(&wakeUpClock, WAKEUP_DEFAULT_TIMEOUT);
+			//Util_restartClock(&goToSleepClock, GOTOSLEEP_DEFAULT_TIMEOUT);
 
-		}else{
+		}else{ //if manually switched off, no automatic wakeup is setted
 			stopNode();
 			Util_stopClock(&wakeUpClock);
 			Util_stopClock(&goToSleepClock);

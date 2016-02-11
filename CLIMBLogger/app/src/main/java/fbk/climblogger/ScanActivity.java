@@ -106,14 +106,17 @@ public class ScanActivity extends Activity {
                 Toast.makeText(getApplicationContext(),
                         "Connected with GATT!",
                         Toast.LENGTH_SHORT).show();
+                expandableListAdapter.notifyDataSetChanged();
                 log("Connected with GATT");
             }else if (ClimbService.STATE_DISCONNECTED_FROM_CLIMB_MASTER.equals(action)) {
                 //climbNodeList.clear();
-                expandableListAdapter.notifyDataSetChanged();
-            Toast.makeText(getApplicationContext(),
-                    "DISCONNECTED FORM GATT!",
+
+                 Toast.makeText(getApplicationContext(),
+                    "DISCONNECTED FROM GATT!",
                     Toast.LENGTH_SHORT).show();
-            log("DISCONNECTED FORM GATT!");
+                log("DISCONNECTED FROM GATT!");
+                expandableListAdapter.notifyDataSetChanged();
+
             }
             else if (ClimbService.ACTION_NODE_ALERT.equals(action)) {
                 if(intent.hasExtra(ClimbService.EXTRA_BYTE_ARRAY)){
