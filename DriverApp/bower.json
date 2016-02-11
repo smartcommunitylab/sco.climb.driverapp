@@ -15,7 +15,8 @@
             "angular-sanitize": "bower_components/angular-sanitize/angular-sanitize.min.js",
             "angular-ui-router": "bower_components/angular-ui-router/release/angular-ui-router.min.js",
             "angular-translate": "bower_components/angular-translate/angular-translate.min.js",
-            "moment": "bower_components/moment/min/moment-with-locales.min.js"
+            "moment": "bower_components/moment/min/moment-with-locales.min.js",
+            "ionic-wizard": "bower_components/ionic-wizard/dist/ion-wizard.min.js"
         }
     }
 }

@@ -1,11 +1,13 @@
 angular.module('driverapp', [
     'ionic',
+    'ionic.wizard',
     'ngCordova',
     'driverapp.services.config',
     'driverapp.services.utils',
     'driverapp.services.storage',
     'driverapp.services.api',
     'driverapp.controllers.home',
+    'driverapp.controllers.wizard',
     'driverapp.controllers.routes',
     'driverapp.controllers.route'
 ])
@@ -32,6 +34,16 @@ angular.module('driverapp', [
         abstract: true,
         templateUrl: 'templates/menu.html',
         controller: 'AppCtrl'
+    })
+
+    .state('app.wizard', {
+        url: '/wizard',
+        views: {
+            'menuContent': {
+                templateUrl: 'templates/wizard.html',
+                controller: 'WizardCtrl'
+            }
+        }
     })
 
     .state('app.home', {
