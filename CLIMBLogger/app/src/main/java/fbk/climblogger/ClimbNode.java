@@ -62,6 +62,10 @@
                 }
             }
 
+            public boolean getConnectionState(){
+                return connectionState;
+            }
+
             public String toString() {
                 String mString = "";
                 if (bleDevice.getName() != null) mString = mString + bleDevice.getName() + ", ";
