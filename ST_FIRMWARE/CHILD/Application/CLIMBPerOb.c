@@ -178,6 +178,8 @@
 
 #define SNV_BASE_ID							  0x80
 
+#define MAX_ALLOWED_TIMER_DURATION_SEC	      42000 //actual max timer duration 42949.67sec
+
 // Task configuration
 #define SBP_TASK_PRIORITY                     1
 
@@ -377,6 +379,8 @@ static uint8 broadcastID[] = { 0xFF };
 static uint8 readyToGoSleeping = 0;
 
 static uint32 batteryLev = 0;
+
+static uint32 wakeUpTimeout_sec_global;
 /*********************************************************************
  * LOCAL FUNCTIONS
  */
@@ -423,6 +427,7 @@ static void Climb_epochStartHandler();
 #endif
 static void Climb_goToSleepHandler();
 static void Climb_wakeUpHandler();
+static void Climb_setWakeUpClock(uint32 wakeUpTimeout_sec_local);
 
 ////HARDWARE RELATED FUNCTIONS
 static void CLIMB_FlashLed(PIN_Id pinId);
@@ -1805,8 +1810,8 @@ static uint8 Climb_decodeBroadcastedMessage(gapDeviceInfoEvent_t *gapDeviceInfoE
 					if (memcomp(broadcastID, &gapDeviceInfoEvent_a->pEvtData[index], NODE_ID_LENGTH) == 0) { // BROADCAST MESSAGE FOUND
 
 						uint8 broadcastMsgType = gapDeviceInfoEvent_a->pEvtData[index + 1];
-						uint32 wakeUpTimeout_sec;
-						float randDelay_msec;
+						uint32 wakeUpTimeout_sec_local;
+						//float randDelay_msec;
 
 						switch(broadcastMsgType) {
 						case BROADCAST_MSG_TYPE_STATE_UPDATE_CMD:
@@ -1814,10 +1819,18 @@ static uint8 Climb_decodeBroadcastedMessage(gapDeviceInfoEvent_t *gapDeviceInfoE
 							break;
 
 						case BROADCAST_MSG_TYPE_WU_SCHEDULE_CMD:
-							wakeUpTimeout_sec = ((gapDeviceInfoEvent_a->pEvtData[index + 2])<<16) + ((gapDeviceInfoEvent_a->pEvtData[index + 3])<<8) + (gapDeviceInfoEvent_a->pEvtData[index + 4]); //here the unit is seconds
-							//randomizza nell'intorno +/-1 secondo rispetto al valore prestabilito
-							randDelay_msec = 2000 * ((float) Util_GetTRNG()) / 4294967296;
-							Util_restartClock(&wakeUpClock, wakeUpTimeout_sec*1000 - 1000 + randDelay_msec);
+							//wakeUpTimeout_sec_global = ((gapDeviceInfoEvent_a->pEvtData[index + 2])<<16) + ((gapDeviceInfoEvent_a->pEvtData[index + 3])<<8) + (gapDeviceInfoEvent_a->pEvtData[index + 4]); //here the unit is seconds
+							wakeUpTimeout_sec_local = ((gapDeviceInfoEvent_a->pEvtData[index + 2])<<16) + ((gapDeviceInfoEvent_a->pEvtData[index + 3])<<8) + (gapDeviceInfoEvent_a->pEvtData[index + 4]);
+							Climb_setWakeUpClock( wakeUpTimeout_sec_local );
+//							if(wakeUpTimeout_sec_global > MAX_ALLOWED_TIMER_DURATION_SEC){ //max timer duration 42949.67sec
+//								Util_restartClock(&wakeUpClock, MAX_ALLOWED_TIMER_DURATION_SEC*1000);
+//								wakeUpTimeout_sec_global = wakeUpTimeout_sec_global - MAX_ALLOWED_TIMER_DURATION_SEC;
+//							}else{
+//								//randomizza nell'intorno +/-1 secondo rispetto al valore prestabilito
+//								randDelay_msec = 2000 * ((float) Util_GetTRNG()) / 4294967296;
+//								Util_restartClock(&wakeUpClock, wakeUpTimeout_sec_global*1000 - 1000 + randDelay_msec);
+//								wakeUpTimeout_sec_global = 0; //reset this so that when the device wakes up, it knows that there is no need to restart timer but it is the actual time to wake up the device
+//							}
 							break;
 
 						default: //should not reach here
@@ -2136,12 +2149,45 @@ static void Climb_goToSleepHandler(){ //NB: quando lo sleep è forzato dal master
  */
 static void Climb_wakeUpHandler(){
 
-	//Util_restartClock(&wakeUpClock, WAKEUP_DEFAULT_TIMEOUT);
-	//Util_restartClock(&goToSleepClock, GOTOSLEEP_DEFAULT_TIMEOUT);
-	startNode();
+	if(wakeUpTimeout_sec_global == 0){
+		startNode();
+		Util_restartClock(&goToSleepClock, GOTOSLEEP_DEFAULT_TIMEOUT);
+		Climb_setWakeUpClock(WAKEUP_DEFAULT_TIMEOUT);
+
+		return;
+	}
+
+	if(wakeUpTimeout_sec_global > MAX_ALLOWED_TIMER_DURATION_SEC){
+		Util_restartClock(&wakeUpClock, MAX_ALLOWED_TIMER_DURATION_SEC*1000);
+		wakeUpTimeout_sec_global = wakeUpTimeout_sec_global - MAX_ALLOWED_TIMER_DURATION_SEC;
+	}else{
+		//randomizza nell'intorno +/-1 secondo rispetto al valore prestabilito
+		float randDelay_msec = 2000 * ((float) Util_GetTRNG()) / 4294967296;
+		Util_restartClock(&wakeUpClock, wakeUpTimeout_sec_global*1000 - 1000 + randDelay_msec);
+		wakeUpTimeout_sec_global = 0; //reset this so that when the device wakes up, it knows that there is no need to restart timer but it is the actual time to wake up the device
+	}
 
 }
+/*********************************************************************
+ * @fn      Climb_setWakeUpClock
+ *
+ * @brief	Helper function that sets the wake up clock, it manages the clock overflow for intervals larger than MAX_ALLOWED_TIMER_DURATION_SEC
+ *
+ * @return  none
+ */
+static void Climb_setWakeUpClock(uint32 wakeUpTimeout_sec_local){
 
+	if(wakeUpTimeout_sec_local > MAX_ALLOWED_TIMER_DURATION_SEC){ //max timer duration 42949.67sec
+		Util_restartClock(&wakeUpClock, MAX_ALLOWED_TIMER_DURATION_SEC*1000);
+		wakeUpTimeout_sec_global = wakeUpTimeout_sec_local - MAX_ALLOWED_TIMER_DURATION_SEC;
+	}else{
+		//randomizza nell'intorno +/-1 secondo rispetto al valore prestabilito
+		float randDelay_msec = 2000 * ((float) Util_GetTRNG()) / 4294967296;
+		Util_restartClock(&wakeUpClock, wakeUpTimeout_sec_local*1000 - 1000 + randDelay_msec);
+		wakeUpTimeout_sec_global = 0; //reset this so that when the device wakes up, it knows that there is no need to restart timer but it is the actual time to wake up the device
+	}
+
+}
 
 
 /*********************************************************************
@@ -2189,9 +2235,9 @@ static void CLIMB_handleKeys(uint8 keys) {
 	case RIGHT_LONG:
 		if (beaconActive != 1){
 			startNode();
-			//WITH WAKEUP_DEFAULT_TIMEOUT TIMEOUT SET TO 1000*60*60*24, they wake up after 5 minutes....CHECK!!!
-			//Util_restartClock(&wakeUpClock, WAKEUP_DEFAULT_TIMEOUT);
-			//Util_restartClock(&goToSleepClock, GOTOSLEEP_DEFAULT_TIMEOUT);
+
+			Climb_setWakeUpClock(WAKEUP_DEFAULT_TIMEOUT);
+			Util_restartClock(&goToSleepClock, GOTOSLEEP_DEFAULT_TIMEOUT);
 
 		}else{ //if manually switched off, no automatic wakeup is setted
 			stopNode();

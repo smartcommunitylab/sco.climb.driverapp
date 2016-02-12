@@ -457,6 +457,8 @@ public class ClimbService extends Service {
                     Log.w(TAG, "connectGatt returned null!");
                 }
 
+                masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTING;
+
                 Log.i(TAG, "Try to connect a CLIMB master node!");
                 Toast.makeText(appContext,
                         "Connecting!",
@@ -763,7 +765,7 @@ public class ClimbService extends Service {
                 int index = isAlreadyInList(mBTDevice);
                 if (index >= 0) {
                     nodeList.get(index).setConnectionState(true);
-                    masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTING;
+                    masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTED;
                 } else {
                     Log.d(TAG, "Master not found in the list, CHECK!!!!");
                 }
