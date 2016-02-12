@@ -2024,12 +2024,10 @@ static void startNode() {
 	if (beaconActive != 1) {
 
 		uint8 adv_active = 1;
-		uint8 status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED,
-				sizeof(uint8_t), &adv_active);
+		uint8 status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED,sizeof(uint8_t), &adv_active);
 		HCI_EXT_AdvEventNoticeCmd(selfEntity, ADVERTISE_EVT);
 
-		GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE,
-						DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
+		GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE,	DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
 		//Util_startClock(&periodicClock);
 #ifdef WORKAROUND
 		Util_startClock(&epochClock);

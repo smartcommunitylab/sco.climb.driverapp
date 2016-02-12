@@ -349,7 +349,7 @@ public class ClimbService extends Service {
 
             if(mPICOCharacteristic != null) {
                 byte[] gattData = {(byte) 0xFF, (byte) 0x01,(byte) 0x02};
-                String tempString = "Accepting all nodes";
+                String tempString = "Checking_in_all_nodes";
                 insertTag(tempString);
                 mPICOCharacteristic.setValue(gattData);
                 mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
@@ -375,7 +375,7 @@ public class ClimbService extends Service {
 
             if(mPICOCharacteristic != null) {
                 byte[] gattData = {(byte) 0xFF,(byte) 0x01, (byte) 0x00};
-                String tempString = "Accepting all nodes";
+                String tempString = "Checking_out_all_nodes";
                 insertTag(tempString);
                 mPICOCharacteristic.setValue(gattData);
                 mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);

@@ -96,7 +96,7 @@
 #ifdef WORKAROUND
 #define DEFAULT_ADVERTISING_INTERVAL          3200
 #else
-#define DEFAULT_ADVERTISING_INTERVAL          1592
+#define DEFAULT_ADVERTISING_INTERVAL          1616
 #endif
 #define EPOCH_PERIOD						  1000
 
@@ -127,13 +127,13 @@
 #define DEFAULT_CONN_PAUSE_PERIPHERAL         10
 
 // Scan interval value in 0.625ms ticks
-#define SCAN_INTERVAL 						  6400//320
+#define SCAN_INTERVAL 						  640//320
 
 // scan window value in 0.625ms ticks
-#define SCAN_WINDOW							  3200//320
+#define SCAN_WINDOW							  640//320
 
 // Scan duration in ms
-#define DEFAULT_SCAN_DURATION                 12000//10000 //Tempo di durata di una scansione,
+#define DEFAULT_SCAN_DURATION                 2000//10000 //Tempo di durata di una scansione,
 
 // Whether to report all contacts or only the first for each device
 #define FILTER_ADV_REPORTS					  FALSE
@@ -199,6 +199,7 @@
 #define EPOCH_EVT							0x0200
 #define WAKEUP_TIMEOUT_EVT					0x0400
 #define GOTOSLEEP_TIMEOUT_EVT				0x0800
+#define RESTART_SCAN_EVT					0x1000
 /*********************************************************************
  * TYPEDEFS
  */
@@ -271,6 +272,8 @@ static Clock_Struct ledTimeoutClock;
 static Clock_Struct connectableTimeoutClock;
 static Clock_Struct wakeUpClock;
 static Clock_Struct goToSleepClock;
+
+static Clock_Struct scanRestartClock;
 #ifdef WORKAROUND
 static Clock_Struct epochClock;
 #endif
@@ -553,6 +556,9 @@ static void SimpleBLEPeripheral_init(void) {
 	Util_constructClock(&goToSleepClock, Climb_clockHandler,
 	GOTOSLEEP_DEFAULT_TIMEOUT, 0, false, GOTOSLEEP_TIMEOUT_EVT);
 
+	Util_constructClock(&scanRestartClock, Climb_clockHandler,
+	DEFAULT_SCAN_DURATION, 0, false, RESTART_SCAN_EVT);
+
 #ifdef WORKAROUND
 	Util_constructClock(&epochClock, Climb_clockHandler,
 			EPOCH_PERIOD, 0, false, EPOCH_EVT);
@@ -804,6 +810,13 @@ static void SimpleBLEPeripheral_taskFxn(UArg a0, UArg a1)
 		events &= ~WAKEUP_TIMEOUT_EVT;
 
 		Climb_wakeUpHandler();
+	}
+
+	if (events & RESTART_SCAN_EVT) {
+		events &= ~RESTART_SCAN_EVT;
+
+		GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE, DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
+
 	}
 
 #ifdef WORKAROUND
@@ -1211,13 +1224,15 @@ static void BLE_AdvertiseEventHandler(void) {
 
 #ifdef CLIMB_DEBUG
 	adv_counter++; //non era incrementato....
-	Climb_updateMyBroadcastedState(nodeState); //update adv data every adv event to update adv_counter value. Since the argument is nodeState this function call doesn't modify the actual state of this node
-#endif
 
 	if ((adv_counter - 1) % 60 == 0) {
 		batteryLev = AONBatMonBatteryVoltageGet();
 		batteryLev = (batteryLev * 125) >> 5;
 	}
+
+	Climb_updateMyBroadcastedState(nodeState); //update adv data every adv event to update adv_counter value. Since the argument is nodeState this function call doesn't modify the actual state of this node
+#endif
+
 
 #ifdef WORKAROUND
 	uint8 adv_active = 0;
@@ -1367,7 +1382,8 @@ static void SimpleBLEObserver_processRoleEvent(gapObserverRoleEvent_t *pEvent) {
 	case GAP_DEVICE_DISCOVERY_EVENT:
 #ifndef WORKAROUND
 		if(beaconActive){
-			GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE,DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
+			//GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE,DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
+			Util_startClock(&scanRestartClock);
 			CLIMB_FlashLed(Board_LED2);
 		}
 #endif
@@ -2205,14 +2221,14 @@ static void startNode() {
 
 	if (beaconActive != 1) {
 		readyToGoSleeping = 0;
-		GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE,
-				DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
+
 		uint8 adv_active = 1;
-		uint8 status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED,
-				sizeof(uint8_t), &adv_active);
+		uint8 status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED, sizeof(uint8_t), &adv_active);
 		HCI_EXT_AdvEventNoticeCmd(selfEntity, ADVERTISE_EVT);
 		Util_startClock(&periodicClock);
 		CLIMB_FlashLed(Board_LED2);
+		GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE, DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
+
 #ifdef WORKAROUND
 		Util_startClock(&epochClock);
 #endif
