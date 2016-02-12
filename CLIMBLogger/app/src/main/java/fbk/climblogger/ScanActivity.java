@@ -1,6 +1,9 @@
 package fbk.climblogger;
 
 import android.app.Activity;
+import android.app.Dialog;
+import android.app.DialogFragment;
+import android.app.TimePickerDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -20,6 +23,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.internal.widget.AdapterViewCompat;
 import android.support.v7.widget.Toolbar;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
@@ -32,10 +36,12 @@ import android.widget.EditText;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ListView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -43,7 +49,7 @@ import java.util.List;
 public class ScanActivity extends Activity {
 
     private final static String TAG = "ScanActivity_GIOVA";
-    private Button mStartButton,mStopButton,mTagButton,mCheckInAllButton,mCheckOutAllButton, mScheduleWUButton;
+    private Button mStartButton,mStopButton,mTagButton,mCheckInAllButton,mCheckOutAllButton, mScheduleWUButton,mReleaseCmdButton;
     private Vibrator mVibrator;
     private int index = 0;
     private ArrayList<ClimbNode> climbNodeList;
@@ -54,6 +60,7 @@ public class ScanActivity extends Activity {
     private CheckBox logCheckBox = null;
     private Handler mHandler = null;
     private long lastBroadcastMessageSentMillis = 0;
+    private int wakeUP_year = 0, wakeUP_month = 0, wakeUP_day = 0, wakeUP_hour = 0, wakeUP_minute = 0;
     ExpandableListView expandableListView;
     MyExpandableListAdapter expandableListAdapter;
     List<ClimbNode> expandableListTitle;
@@ -65,6 +72,23 @@ public class ScanActivity extends Activity {
     // ACTION_GATT_SERVICES_DISCOVERED: discovered GATT services.
     // ACTION_DATA_AVAILABLE: received data from the device.  This can be a result of read
     //                        or notification operations.
+
+    public void setWakeUpDate(int year, int month, int day){
+        wakeUP_year = year;
+        wakeUP_month = month;
+        wakeUP_day = day;
+    }
+
+    public void setWakeUpHour(int hour, int minute){
+        wakeUP_hour = hour;
+        wakeUP_minute = minute;
+    }
+
+    public void sendWakeUpCMD(){
+
+//TODO: ANDARE AVANTI DA QUA!!! Calcolare la differenza in secondi da adesso a wakeUp e inviarla ai nodi!
+
+    }
 
     private final BroadcastReceiver mClimbUpdateReceiver = new BroadcastReceiver() {
         @Override
@@ -307,19 +331,23 @@ public class ScanActivity extends Activity {
     View.OnClickListener releaseCmdButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
 
-            if(mClimbService != null){
-                if(mClimbService.SendReleaseAllCmd()){
-                    mVibrator.vibrate(ConfigVals.vibrationTimeout);
-                }else {
-                    Log.i(TAG, "schedule wake up not sent!");
-                    log("schedule wake up not sent!");
-                }
-            }else{
-                Log.i(TAG, "schedule wake up not sent!");
-                log("schedule wake up not sent!");
-            }
+            DialogFragment newFragment = new DatePickerFragment();
+            newFragment.show(getFragmentManager(), "datePicker");
+
+//            if(mClimbService != null){
+//                if(mClimbService.SendReleaseAllCmd()){
+//                    mVibrator.vibrate(ConfigVals.vibrationTimeout);
+//                }else {
+//                    Log.i(TAG, "schedule wake up not sent!");
+//                    log("schedule wake up not sent!");
+//                }
+//            }else{
+//                Log.i(TAG, "schedule wake up not sent!");
+//                log("schedule wake up not sent!");
+//            }
 
         }
+
     };
 
     ExpandableListView.OnGroupExpandListener mOnGroupExpandListener = new ExpandableListView.OnGroupExpandListener() {
@@ -391,8 +419,8 @@ public class ScanActivity extends Activity {
         mScheduleWUButton = (Button) findViewById(R.id.scheduleWakeUpAll);
         mScheduleWUButton.setOnClickListener(scheduleWUButtonHandler);
 
-        //mReleaseCmdButton = (Button) findViewById(R.id.buttonReleaseBrdcstCmd);
-        //mReleaseCmdButton.setOnClickListener(releaseCmdButtonHandler);
+        mReleaseCmdButton = (Button) findViewById(R.id.test);
+        mReleaseCmdButton.setOnClickListener(releaseCmdButtonHandler);
 
         mVibrator = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
 
