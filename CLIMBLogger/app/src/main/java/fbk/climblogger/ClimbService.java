@@ -541,7 +541,7 @@ public class ClimbService extends Service {
         }
 
         @Override
-        public void onScanResult(int callbackType, ScanResult result){
+        public void onScanResult(int callbackType, ScanResult result){  //public for SO, not for upper layer!
             Log.d(TAG, "onScanResult called!");
             if(callbackType == ScanSettings.CALLBACK_TYPE_ALL_MATCHES) {
                 long nowMillis = SystemClock.uptimeMillis();
