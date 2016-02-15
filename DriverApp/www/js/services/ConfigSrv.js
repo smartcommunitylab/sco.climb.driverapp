@@ -15,6 +15,8 @@ angular.module('driverapp.services.config', [])
 
     var DATE_FORMAT = 'YYYY-MM-DD';
 
+    var WIZARD_SLIDER_OPTIONS = {};
+
     return {
         getServerURL: function () {
             return SERVER_URL;
@@ -27,6 +29,9 @@ angular.module('driverapp.services.config', [])
         },
         getDateFormat: function () {
             return DATE_FORMAT;
+        },
+        getWizardSliderOptions: function () {
+            return WIZARD_SLIDER_OPTIONS;
         }
     }
 });

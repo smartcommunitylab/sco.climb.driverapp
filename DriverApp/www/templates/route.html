@@ -1,5 +1,29 @@
-<ion-view view-title="Playlist">
-  <ion-content>
-    <h1>Playlist</h1>
-  </ion-content>
+<ion-view view-title="{{route.name}}">
+    <ion-content>
+        <div class="padding">
+            <ion-list>
+                <ion-radio ng-repeat="stop in stops" ng-model="sel.stop" ng-value="stop" ng-change="getChildrenForStop(sel.stop)">
+                    {{stop.name}}
+                </ion-radio>
+            </ion-list>
+            <h3>Bambini</h3>
+            <ion-list>
+                <ion-item class="item-button-right" ng-repeat="passenger in sel.stop.passengers" ng-if="onBoard.indexOf(passenger.objectId) === -1">
+                    {{passenger.name}}
+                    <button class="button" ng-click="takeOnBoard(passenger.objectId)">
+                        <i class="icon ion-plus"></i>
+                    </button>
+                </ion-item>
+            </ion-list>
+            <h3>A bordo</h3>
+            <ion-list>
+                <ion-item class="item-button-right" ng-repeat="passengerId in onBoard">
+                    {{getChild(passengerId).name}}
+                    <button class="button" ng-click="dropOff(passengerId)">
+                        <i class="icon ion-minus"></i>
+                    </button>
+                </ion-item>
+            </ion-list>
+        </div>
+    </ion-content>
 </ion-view>

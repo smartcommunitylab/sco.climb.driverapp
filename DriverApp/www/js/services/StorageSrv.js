@@ -5,7 +5,9 @@ angular.module('driverapp.services.storage', [])
 
     var KEYS = {
         SCHOOL: 'da_school',
-        VOLUNTEER: 'da_volunteer'
+        CHILDREN: 'da_children',
+        DRIVER: 'da_driver',
+        ROUTE: 'da_route'
     };
 
     storageService.saveSchool = function (school) {
@@ -29,23 +31,51 @@ angular.module('driverapp.services.storage', [])
         return null;
     };
 
-    storageService.saveVolunteer = function (volunteer) {
+    storageService.saveChildren = function (children) {
         var deferred = $q.defer();
-        localStorage[KEYS.VOLUNTEER] = JSON.stringify(volunteer);
-        deferred.resolve(volunteer);
+        localStorage[KEYS.CHILDREN] = JSON.stringify(children);
+        deferred.resolve(children);
         return deferred.promise;
     };
 
-    storageService.getVolunteer = function () {
-        if (!!localStorage[KEYS.VOLUNTEER]) {
-            return JSON.parse(localStorage[KEYS.VOLUNTEER]);
+    storageService.getChildren = function () {
+        if (!!localStorage[KEYS.CHILDREN]) {
+            return JSON.parse(localStorage[KEYS.CHILDREN]);
         }
         return null;
     };
 
-    storageService.getVolunteerId = function () {
-        if (!!localStorage[KEYS.VOLUNTEER]) {
-            return JSON.parse(localStorage[KEYS.VOLUNTEER])['objectId'];
+    storageService.saveDriver = function (driver) {
+        var deferred = $q.defer();
+        localStorage[KEYS.DRIVER] = JSON.stringify(driver);
+        deferred.resolve(driver);
+        return deferred.promise;
+    };
+
+    storageService.getDriver = function () {
+        if (!!localStorage[KEYS.DRIVER]) {
+            return JSON.parse(localStorage[KEYS.DRIVER]);
+        }
+        return null;
+    };
+
+    storageService.getDriverId = function () {
+        if (!!localStorage[KEYS.DRIVER]) {
+            return JSON.parse(localStorage[KEYS.DRIVER])['objectId'];
+        }
+        return null;
+    };
+
+    storageService.saveRoute = function (route) {
+        var deferred = $q.defer();
+        localStorage[KEYS.ROUTE] = JSON.stringify(route);
+        deferred.resolve(route);
+        return deferred.promise;
+    };
+
+    storageService.getRoute = function () {
+        if (!!localStorage[KEYS.ROUTE]) {
+            return JSON.parse(localStorage[KEYS.ROUTE]);
         }
         return null;
     };
@@ -54,7 +84,7 @@ angular.module('driverapp.services.storage', [])
         var deferred = $q.defer();
         //localStorage.clear();
         localStorage.removeItem(KEYS.SCHOOL);
-        localStorage.removeItem(KEYS.VOLUNTEER);
+        localStorage.removeItem(KEYS.DRIVER);
         deferred.resolve();
         return deferred.promise;
     };

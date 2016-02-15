@@ -9,14 +9,5 @@
                 </ion-item>
             </ion-list>
         </div>
-        <div ng-if="!!school">
-            <h5>Chi sei?</h5>
-            <ion-list>
-                <ion-item ng-repeat="volunteer in volunteers" ng-click="chooseVolunteer(volunteer)">
-                    {{volunteer.name}}
-                </ion-item>
-            </ion-list>
-        </div>
-        <h1 ng-if="!!volunteer">Sei {{volunteer.name}}!</h1>
     </ion-content>
 </ion-view>
