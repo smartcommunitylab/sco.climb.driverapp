@@ -389,7 +389,7 @@ public class ClimbService extends Service {
         return false;
     }
 
-    public boolean ScheduleWakeUpCmd(){
+    public boolean ScheduleWakeUpCmd(int timeout_sec){
         if (mBluetoothAdapter != null) {
 
             if (mBluetoothGatt == null) {
@@ -400,7 +400,8 @@ public class ClimbService extends Service {
             }
 
             if(mPICOCharacteristic != null) {
-                byte[] gattData = {(byte) 0xFF,(byte) 0x02, (byte) 0x00, (byte) 0x00, (byte) 0x50};
+
+                byte[] gattData = {(byte) 0xFF,(byte) 0x02, (byte)((timeout_sec>>16)&0xFF), (byte)((timeout_sec>>8)&0xFF), (byte)(timeout_sec&0xFF)};
                 String tempString = "Sending_wake_up_schedule";
                 insertTag(tempString);
                 mPICOCharacteristic.setValue(gattData);
