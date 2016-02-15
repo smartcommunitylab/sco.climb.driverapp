@@ -96,7 +96,7 @@
 #ifdef WORKAROUND
 #define DEFAULT_ADVERTISING_INTERVAL          3200
 #else
-#define DEFAULT_ADVERTISING_INTERVAL          1592
+#define DEFAULT_ADVERTISING_INTERVAL          1616
 #endif
 #define EPOCH_PERIOD						  1000
 
@@ -127,13 +127,13 @@
 #define DEFAULT_CONN_PAUSE_PERIPHERAL         10
 
 // Scan interval value in 0.625ms ticks
-#define SCAN_INTERVAL 						  6400//320
+#define SCAN_INTERVAL 						  640//320
 
 // scan window value in 0.625ms ticks
-#define SCAN_WINDOW							  3200//320
+#define SCAN_WINDOW							  640//320
 
 // Scan duration in ms
-#define DEFAULT_SCAN_DURATION                 12000//10000 //Tempo di durata di una scansione,
+#define DEFAULT_SCAN_DURATION                 2000//10000 //Tempo di durata di una scansione,
 
 // Whether to report all contacts or only the first for each device
 #define FILTER_ADV_REPORTS					  FALSE
@@ -178,6 +178,8 @@
 
 #define SNV_BASE_ID							  0x80
 
+#define MAX_ALLOWED_TIMER_DURATION_SEC	      42000 //actual max timer duration 42949.67sec
+
 // Task configuration
 #define SBP_TASK_PRIORITY                     1
 
@@ -199,6 +201,7 @@
 #define EPOCH_EVT							0x0200
 #define WAKEUP_TIMEOUT_EVT					0x0400
 #define GOTOSLEEP_TIMEOUT_EVT				0x0800
+#define RESTART_SCAN_EVT					0x1000
 /*********************************************************************
  * TYPEDEFS
  */
@@ -271,6 +274,8 @@ static Clock_Struct ledTimeoutClock;
 static Clock_Struct connectableTimeoutClock;
 static Clock_Struct wakeUpClock;
 static Clock_Struct goToSleepClock;
+
+static Clock_Struct scanRestartClock;
 #ifdef WORKAROUND
 static Clock_Struct epochClock;
 #endif
@@ -374,6 +379,8 @@ static uint8 broadcastID[] = { 0xFF };
 static uint8 readyToGoSleeping = 0;
 
 static uint32 batteryLev = 0;
+
+static uint32 wakeUpTimeout_sec_global;
 /*********************************************************************
  * LOCAL FUNCTIONS
  */
@@ -420,6 +427,7 @@ static void Climb_epochStartHandler();
 #endif
 static void Climb_goToSleepHandler();
 static void Climb_wakeUpHandler();
+static void Climb_setWakeUpClock(uint32 wakeUpTimeout_sec_local);
 
 ////HARDWARE RELATED FUNCTIONS
 static void CLIMB_FlashLed(PIN_Id pinId);
@@ -552,6 +560,9 @@ static void SimpleBLEPeripheral_init(void) {
 
 	Util_constructClock(&goToSleepClock, Climb_clockHandler,
 	GOTOSLEEP_DEFAULT_TIMEOUT, 0, false, GOTOSLEEP_TIMEOUT_EVT);
+
+	Util_constructClock(&scanRestartClock, Climb_clockHandler,
+	DEFAULT_SCAN_DURATION, 0, false, RESTART_SCAN_EVT);
 
 #ifdef WORKAROUND
 	Util_constructClock(&epochClock, Climb_clockHandler,
@@ -804,6 +815,13 @@ static void SimpleBLEPeripheral_taskFxn(UArg a0, UArg a1)
 		events &= ~WAKEUP_TIMEOUT_EVT;
 
 		Climb_wakeUpHandler();
+	}
+
+	if (events & RESTART_SCAN_EVT) {
+		events &= ~RESTART_SCAN_EVT;
+
+		GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE, DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
+
 	}
 
 #ifdef WORKAROUND
@@ -1211,13 +1229,15 @@ static void BLE_AdvertiseEventHandler(void) {
 
 #ifdef CLIMB_DEBUG
 	adv_counter++; //non era incrementato....
-	Climb_updateMyBroadcastedState(nodeState); //update adv data every adv event to update adv_counter value. Since the argument is nodeState this function call doesn't modify the actual state of this node
-#endif
 
 	if ((adv_counter - 1) % 60 == 0) {
 		batteryLev = AONBatMonBatteryVoltageGet();
 		batteryLev = (batteryLev * 125) >> 5;
 	}
+
+	Climb_updateMyBroadcastedState(nodeState); //update adv data every adv event to update adv_counter value. Since the argument is nodeState this function call doesn't modify the actual state of this node
+#endif
+
 
 #ifdef WORKAROUND
 	uint8 adv_active = 0;
@@ -1367,7 +1387,8 @@ static void SimpleBLEObserver_processRoleEvent(gapObserverRoleEvent_t *pEvent) {
 	case GAP_DEVICE_DISCOVERY_EVENT:
 #ifndef WORKAROUND
 		if(beaconActive){
-			GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE,DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
+			//GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE,DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
+			Util_startClock(&scanRestartClock);
 			CLIMB_FlashLed(Board_LED2);
 		}
 #endif
@@ -1789,8 +1810,8 @@ static uint8 Climb_decodeBroadcastedMessage(gapDeviceInfoEvent_t *gapDeviceInfoE
 					if (memcomp(broadcastID, &gapDeviceInfoEvent_a->pEvtData[index], NODE_ID_LENGTH) == 0) { // BROADCAST MESSAGE FOUND
 
 						uint8 broadcastMsgType = gapDeviceInfoEvent_a->pEvtData[index + 1];
-						uint32 wakeUpTimeout_sec;
-						float randDelay_msec;
+						uint32 wakeUpTimeout_sec_local;
+						//float randDelay_msec;
 
 						switch(broadcastMsgType) {
 						case BROADCAST_MSG_TYPE_STATE_UPDATE_CMD:
@@ -1798,10 +1819,18 @@ static uint8 Climb_decodeBroadcastedMessage(gapDeviceInfoEvent_t *gapDeviceInfoE
 							break;
 
 						case BROADCAST_MSG_TYPE_WU_SCHEDULE_CMD:
-							wakeUpTimeout_sec = ((gapDeviceInfoEvent_a->pEvtData[index + 2])<<16) + ((gapDeviceInfoEvent_a->pEvtData[index + 3])<<8) + (gapDeviceInfoEvent_a->pEvtData[index + 4]); //here the unit is seconds
-							//randomizza nell'intorno +/-1 secondo rispetto al valore prestabilito
-							randDelay_msec = 2000 * ((float) Util_GetTRNG()) / 4294967296;
-							Util_restartClock(&wakeUpClock, wakeUpTimeout_sec*1000 - 1000 + randDelay_msec);
+							//wakeUpTimeout_sec_global = ((gapDeviceInfoEvent_a->pEvtData[index + 2])<<16) + ((gapDeviceInfoEvent_a->pEvtData[index + 3])<<8) + (gapDeviceInfoEvent_a->pEvtData[index + 4]); //here the unit is seconds
+							wakeUpTimeout_sec_local = ((gapDeviceInfoEvent_a->pEvtData[index + 2])<<16) + ((gapDeviceInfoEvent_a->pEvtData[index + 3])<<8) + (gapDeviceInfoEvent_a->pEvtData[index + 4]);
+							Climb_setWakeUpClock( wakeUpTimeout_sec_local );
+//							if(wakeUpTimeout_sec_global > MAX_ALLOWED_TIMER_DURATION_SEC){ //max timer duration 42949.67sec
+//								Util_restartClock(&wakeUpClock, MAX_ALLOWED_TIMER_DURATION_SEC*1000);
+//								wakeUpTimeout_sec_global = wakeUpTimeout_sec_global - MAX_ALLOWED_TIMER_DURATION_SEC;
+//							}else{
+//								//randomizza nell'intorno +/-1 secondo rispetto al valore prestabilito
+//								randDelay_msec = 2000 * ((float) Util_GetTRNG()) / 4294967296;
+//								Util_restartClock(&wakeUpClock, wakeUpTimeout_sec_global*1000 - 1000 + randDelay_msec);
+//								wakeUpTimeout_sec_global = 0; //reset this so that when the device wakes up, it knows that there is no need to restart timer but it is the actual time to wake up the device
+//							}
 							break;
 
 						default: //should not reach here
@@ -2120,12 +2149,45 @@ static void Climb_goToSleepHandler(){ //NB: quando lo sleep è forzato dal master
  */
 static void Climb_wakeUpHandler(){
 
-	Util_restartClock(&wakeUpClock, WAKEUP_DEFAULT_TIMEOUT);
-	Util_restartClock(&goToSleepClock, GOTOSLEEP_DEFAULT_TIMEOUT);
-	startNode();
+	if(wakeUpTimeout_sec_global == 0){
+		startNode();
+		Util_restartClock(&goToSleepClock, GOTOSLEEP_DEFAULT_TIMEOUT);
+		Climb_setWakeUpClock(WAKEUP_DEFAULT_TIMEOUT);
+
+		return;
+	}
+
+	if(wakeUpTimeout_sec_global > MAX_ALLOWED_TIMER_DURATION_SEC){
+		Util_restartClock(&wakeUpClock, MAX_ALLOWED_TIMER_DURATION_SEC*1000);
+		wakeUpTimeout_sec_global = wakeUpTimeout_sec_global - MAX_ALLOWED_TIMER_DURATION_SEC;
+	}else{
+		//randomizza nell'intorno +/-1 secondo rispetto al valore prestabilito
+		float randDelay_msec = 2000 * ((float) Util_GetTRNG()) / 4294967296;
+		Util_restartClock(&wakeUpClock, wakeUpTimeout_sec_global*1000 - 1000 + randDelay_msec);
+		wakeUpTimeout_sec_global = 0; //reset this so that when the device wakes up, it knows that there is no need to restart timer but it is the actual time to wake up the device
+	}
 
 }
+/*********************************************************************
+ * @fn      Climb_setWakeUpClock
+ *
+ * @brief	Helper function that sets the wake up clock, it manages the clock overflow for intervals larger than MAX_ALLOWED_TIMER_DURATION_SEC
+ *
+ * @return  none
+ */
+static void Climb_setWakeUpClock(uint32 wakeUpTimeout_sec_local){
 
+	if(wakeUpTimeout_sec_local > MAX_ALLOWED_TIMER_DURATION_SEC){ //max timer duration 42949.67sec
+		Util_restartClock(&wakeUpClock, MAX_ALLOWED_TIMER_DURATION_SEC*1000);
+		wakeUpTimeout_sec_global = wakeUpTimeout_sec_local - MAX_ALLOWED_TIMER_DURATION_SEC;
+	}else{
+		//randomizza nell'intorno +/-1 secondo rispetto al valore prestabilito
+		float randDelay_msec = 2000 * ((float) Util_GetTRNG()) / 4294967296;
+		Util_restartClock(&wakeUpClock, wakeUpTimeout_sec_local*1000 - 1000 + randDelay_msec);
+		wakeUpTimeout_sec_global = 0; //reset this so that when the device wakes up, it knows that there is no need to restart timer but it is the actual time to wake up the device
+	}
+
+}
 
 
 /*********************************************************************
@@ -2173,10 +2235,11 @@ static void CLIMB_handleKeys(uint8 keys) {
 	case RIGHT_LONG:
 		if (beaconActive != 1){
 			startNode();
-			Util_restartClock(&wakeUpClock, WAKEUP_DEFAULT_TIMEOUT);
+
+			Climb_setWakeUpClock(WAKEUP_DEFAULT_TIMEOUT);
 			Util_restartClock(&goToSleepClock, GOTOSLEEP_DEFAULT_TIMEOUT);
 
-		}else{
+		}else{ //if manually switched off, no automatic wakeup is setted
 			stopNode();
 			Util_stopClock(&wakeUpClock);
 			Util_stopClock(&goToSleepClock);
@@ -2204,14 +2267,14 @@ static void startNode() {
 
 	if (beaconActive != 1) {
 		readyToGoSleeping = 0;
-		GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE,
-				DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
+
 		uint8 adv_active = 1;
-		uint8 status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED,
-				sizeof(uint8_t), &adv_active);
+		uint8 status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED, sizeof(uint8_t), &adv_active);
 		HCI_EXT_AdvEventNoticeCmd(selfEntity, ADVERTISE_EVT);
 		Util_startClock(&periodicClock);
 		CLIMB_FlashLed(Board_LED2);
+		GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE, DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
+
 #ifdef WORKAROUND
 		Util_startClock(&epochClock);
 #endif
