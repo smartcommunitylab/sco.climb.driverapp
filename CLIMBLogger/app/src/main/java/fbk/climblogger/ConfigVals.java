@@ -21,6 +21,8 @@ public class ConfigVals {
 
     static final int NODE_TIMEOUT = 8000;
 
+    static final long MAX_WAKE_UP_DELAY_SEC = 259200;
+
     static final int vibrationTimeout = 15;
 
     static final int consecutiveBroadcastMessageTimeout_ms = 7000;

@@ -18,12 +18,6 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.os.Vibrator;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.internal.widget.AdapterViewCompat;
-import android.support.v7.widget.Toolbar;
-import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
@@ -43,13 +37,15 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 public class ScanActivity extends Activity {
 
     private final static String TAG = "ScanActivity_GIOVA";
-    private Button mStartButton,mStopButton,mTagButton,mCheckInAllButton,mCheckOutAllButton, mScheduleWUButton,mReleaseCmdButton;
+    private Button mStartButton,mStopButton,mTagButton,mCheckInAllButton,mCheckOutAllButton, mScheduleWUButton;//,mReleaseCmdButton;
     private Vibrator mVibrator;
     private int index = 0;
     private ArrayList<ClimbNode> climbNodeList;
@@ -73,22 +69,7 @@ public class ScanActivity extends Activity {
     // ACTION_DATA_AVAILABLE: received data from the device.  This can be a result of read
     //                        or notification operations.
 
-    public void setWakeUpDate(int year, int month, int day){
-        wakeUP_year = year;
-        wakeUP_month = month;
-        wakeUP_day = day;
-    }
 
-    public void setWakeUpHour(int hour, int minute){
-        wakeUP_hour = hour;
-        wakeUP_minute = minute;
-    }
-
-    public void sendWakeUpCMD(){
-
-//TODO: ANDARE AVANTI DA QUA!!! Calcolare la differenza in secondi da adesso a wakeUp e inviarla ai nodi!
-
-    }
 
     private final BroadcastReceiver mClimbUpdateReceiver = new BroadcastReceiver() {
         @Override
@@ -307,7 +288,12 @@ public class ScanActivity extends Activity {
     View.OnClickListener scheduleWUButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
 
-            if( (SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
+            mVibrator.vibrate(ConfigVals.vibrationTimeout);
+
+            DialogFragment newFragment = new DatePickerFragment();
+            newFragment.show(getFragmentManager(), "datePicker");
+
+/*            if( (SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
                 if (mClimbService != null) {
                     if (mClimbService.ScheduleWakeUpCmd()) {
                         mVibrator.vibrate(ConfigVals.vibrationTimeout);
@@ -325,30 +311,76 @@ public class ScanActivity extends Activity {
                 Toast.makeText(getApplicationContext(),
                         alertString,
                         Toast.LENGTH_LONG).show();
-            }
+            }*/
         }
     };
-    View.OnClickListener releaseCmdButtonHandler = new View.OnClickListener(){
+
+    public void setWakeUpDate(int year, int month, int day){
+        wakeUP_year = year;
+        wakeUP_month = month;
+        wakeUP_day = day;
+    }
+
+    public void setWakeUpHour(int hour, int minute){
+        wakeUP_hour = hour;
+        wakeUP_minute = minute;
+    }
+
+    public void sendWakeUpCMD(){
+
+        if( (SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
+            if (mClimbService != null) {
+
+                GregorianCalendar wakeUpDate = new GregorianCalendar(wakeUP_year,wakeUP_month,wakeUP_day,wakeUP_hour,wakeUP_minute);
+                GregorianCalendar nowDate = new GregorianCalendar(Locale.ITALY);
+
+                long wakeUpDate_millis = wakeUpDate.getTimeInMillis();
+                long nowDate_millis = nowDate.getTimeInMillis();
+
+                if( wakeUpDate_millis > nowDate_millis ) {
+                    long diff_Sec = (wakeUpDate_millis-nowDate_millis)/1000;
+                    if(diff_Sec < ConfigVals.MAX_WAKE_UP_DELAY_SEC && diff_Sec == (int)diff_Sec){
+
+                        if (mClimbService.ScheduleWakeUpCmd((int) diff_Sec)) {
+                            mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                            lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
+                            Log.i(TAG, "schedule wake up sent!");
+                            return;
+                        } else {
+                            Log.i(TAG, "schedule wake up not sent!");
+                            log("schedule wake up not sent!");
+                        }
+                        return;
+
+                    }
+                }
+
+                Toast.makeText(getApplicationContext(),
+                        "Date not accepted...",
+                        Toast.LENGTH_SHORT).show();
+                mVibrator.vibrate(ConfigVals.vibrationTimeout*2);
+
+            } else {
+                Log.i(TAG, "schedule wake up not sent!");
+                log("schedule wake up not sent!");
+            }
+        }else{
+            String alertString = "Wait a little";
+            Toast.makeText(getApplicationContext(),
+                    alertString,
+                    Toast.LENGTH_LONG).show();
+        }
+
+    }
+
+/*    View.OnClickListener releaseCmdButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
 
             DialogFragment newFragment = new DatePickerFragment();
             newFragment.show(getFragmentManager(), "datePicker");
-
-//            if(mClimbService != null){
-//                if(mClimbService.SendReleaseAllCmd()){
-//                    mVibrator.vibrate(ConfigVals.vibrationTimeout);
-//                }else {
-//                    Log.i(TAG, "schedule wake up not sent!");
-//                    log("schedule wake up not sent!");
-//                }
-//            }else{
-//                Log.i(TAG, "schedule wake up not sent!");
-//                log("schedule wake up not sent!");
-//            }
-
         }
 
-    };
+    };*/
 
     ExpandableListView.OnGroupExpandListener mOnGroupExpandListener = new ExpandableListView.OnGroupExpandListener() {
 
@@ -419,8 +451,8 @@ public class ScanActivity extends Activity {
         mScheduleWUButton = (Button) findViewById(R.id.scheduleWakeUpAll);
         mScheduleWUButton.setOnClickListener(scheduleWUButtonHandler);
 
-        mReleaseCmdButton = (Button) findViewById(R.id.test);
-        mReleaseCmdButton.setOnClickListener(releaseCmdButtonHandler);
+       // mReleaseCmdButton = (Button) findViewById(R.id.test);
+        //mReleaseCmdButton.setOnClickListener(releaseCmdButtonHandler);
 
         mVibrator = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
 

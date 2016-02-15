@@ -154,11 +154,11 @@
                     android:text="schedule\nWake up"
                     android:textSize="12dp" />
 
-                <Button
+                <!--<Button
                     android:id="@+id/test"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="test\nTIME" />
+                    android:text="test\nTIME" />-->
 
 
             </LinearLayout>
