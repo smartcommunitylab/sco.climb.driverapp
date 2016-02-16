@@ -5,6 +5,7 @@ angular.module('driverapp', [
     'driverapp.services.config',
     'driverapp.services.utils',
     'driverapp.services.storage',
+    'driverapp.services.ae',
     'driverapp.services.api',
     'driverapp.controllers.home',
     'driverapp.controllers.wizard',
@@ -71,6 +72,12 @@ angular.module('driverapp', [
 
     .state('app.route', {
         url: '/routes/:routeId',
+        params: {
+            fromWizard: false,
+            route: {},
+            driver: {},
+            helpers: []
+        },
         views: {
             'menuContent': {
                 templateUrl: 'templates/route.html',

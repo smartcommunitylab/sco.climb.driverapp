@@ -9,10 +9,11 @@ angular.module('driverapp.controllers.wizard', [])
     $scope.routes = null;
 
     $scope.wizard = {
+        children: [],
+        routes: [],
         driver: null,
-        children: null,
         route: null,
-        helpers: null
+        helpers: []
     };
 
     APISrv.getChildrenBySchool(DEV_schoolId).then(
@@ -43,34 +44,26 @@ angular.module('driverapp.controllers.wizard', [])
 
     $scope.saveWizardChoices = function () {
         // TODO save volunteer in storage after password verification
-        StorageSrv.saveDriver($scope.wizard.driver).then(
+        StorageSrv.saveChildren($scope.wizard.children).then(
             function () {
-                StorageSrv.saveChildren($scope.wizard.children).then(
+                // TODO save route
+                StorageSrv.saveRoutes($scope.wizard.route).then(
                     function () {
-                        // TODO save route
-                        StorageSrv.saveRoute($scope.wizard.route).then(
-                            function () {
-                                // TODO save helpers
-                                /*
-                                for (var vol in $scope.volunteers) {
-                                    if (vol.checked) {
-                                        $scope.wizard.helpers.push(vol);
-                                    }
-                                }
-                                */
-                                /*
-                                StorageSrv.saveHelpers($scope.wizard.helpers).then(
-                                    function () {
-                                */
-                                $state.go('app.route', {}, {
-                                    reload: true
-                                });
-                                /*
-                                    }
-                                );
-                                */
+                        $scope.volunteers.forEach(function (vol) {
+                            if (vol.checked) {
+                                $scope.wizard.helpers.push(vol);
                             }
-                        );
+                        });
+
+                        $state.go('app.route', {
+                            routeId: $scope.wizard.route.objectId,
+                            fromWizard: true,
+                            driver: $scope.wizard.driver,
+                            route: $scope.wizard.route,
+                            helpers: $scope.wizard.helpers
+                        }, {
+                            reload: true
+                        });
                     }
                 );
             }

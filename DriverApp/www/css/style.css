@@ -1,2 +1,6 @@
 /* CLIMB Driver App style */
 .dapp-theme {}
+
+.dapp-theme .btn-enroute {
+    width: 100%;
+}

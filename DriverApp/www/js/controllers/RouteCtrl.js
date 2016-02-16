@@ -1,29 +1,96 @@
 angular.module('driverapp.controllers.route', [])
 
-.controller('RouteCtrl', function ($scope, $ionicModal, StorageSrv, APISrv) {
-    $scope.children = StorageSrv.getChildren();
+.controller('RouteCtrl', function ($scope, $stateParams, $ionicHistory, $ionicModal, StorageSrv, AESrv, APISrv) {
+    $ionicHistory.clearHistory();
 
-    $scope.route = StorageSrv.getRoute();
+    var fromWizard = false;
+    var aesInstance = {};
+
+    $scope.children = StorageSrv.getChildren();
+    $scope.driver = null;
+    $scope.helpers = null;
+
+    $scope.route = {};
     $scope.stops = [];
+    $scope.onBoardTemp = [];
     $scope.onBoard = [];
 
     $scope.enRoute = false;
     $scope.enRoutePos = 0;
     $scope.enRouteArrived = false;
 
+    /* INIT */
+    if (!!$stateParams['fromWizard']) {
+        fromWizard = $stateParams['fromWizard'];
+    }
+
+    if (fromWizard) {
+        if (!!$stateParams['route']) {
+            $scope.route = $stateParams['route'];
+
+            aesInstance = AESrv.startInstance($scope.route.objectId);
+
+            if (!!$stateParams['driver']) {
+                $scope.driver = $stateParams['driver'];
+                AESrv.setDriver($scope.driver);
+            }
+
+            if (!!$stateParams['helpers']) {
+                $scope.helpers = $stateParams['helpers'];
+                $scope.helpers.forEach(function (helper) {
+                    AESrv.setHelper(helper);
+                });
+            }
+
+            APISrv.getStopsByRoute($scope.route.objectId).then(
+                function (stops) {
+                    $scope.stops = stops;
+                    // Select the first automatically
+                    $scope.sel.stop = $scope.stops[0];
+                    AESrv.stopReached($scope.sel.stop);
+                    $scope.getChildrenForStop($scope.sel.stop);
+                },
+                function (error) {
+                    // TODO handle error
+                    console.log(error);
+                }
+            );
+        }
+    }
+
     $scope.toggleEnRoute = function () {
         // if has next
         if (!!$scope.stops[$scope.enRoutePos + 1]) {
             $scope.enRoute = !$scope.enRoute;
 
-            if (!$scope.enRoute) {
+            if ($scope.enRoute) {
+                // Riparti
+                if ($scope.enRoutePos == 0) {
+                    // Parti
+                    AESrv.startRoute($scope.stops[$scope.enRoutePos]);
+                }
+
+                // NODE_CHECKIN
+                $scope.onBoardTemp.forEach(function (passenger) {
+                    AESrv.nodeCheckin(passenger);
+                });
+                $scope.onBoard = $scope.onBoard.concat($scope.onBoardTemp);
+                $scope.onBoardTemp = [];
+            } else {
+                // Fermati
                 $scope.enRoutePos++;
                 $scope.sel.stop = $scope.stops[$scope.enRoutePos];
+                AESrv.stopReached($scope.sel.stop);
                 $scope.getChildrenForStop($scope.sel.stop);
             }
 
             // if has no next
             if (!$scope.stops[$scope.enRoutePos + 1]) {
+                // Arriva
+                $scope.onBoard.forEach(function (passenger) {
+                    AESrv.nodeCheckout(passenger);
+                });
+                AESrv.endRoute($scope.stops[$scope.enRoutePos]);
                 $scope.enRouteArrived = true;
             }
         }
@@ -33,21 +100,6 @@ angular.module('driverapp.controllers.route', [])
     $scope.sel = {
         stop: null
     };
-
-    if (!!$scope.route) {
-        APISrv.getStopsByRoute($scope.route.objectId).then(
-            function (stops) {
-                $scope.stops = stops;
-                // Select the first automatically
-                $scope.sel.stop = $scope.stops[0];
-                $scope.getChildrenForStop($scope.sel.stop);
-            },
-            function (error) {
-                // TODO handle error
-                console.log(error);
-            }
-        );
-    }
 
     $scope.getChild = function (childId) {
         var foundChild = null;
@@ -72,22 +124,25 @@ angular.module('driverapp.controllers.route', [])
     };
 
     $scope.takeOnBoard = function (passengerId) {
-        if ($scope.onBoard.indexOf(passengerId) === -1) {
-            $scope.onBoard.push(passengerId);
+        if ($scope.onBoardTemp.indexOf(passengerId) === -1) {
+            $scope.onBoardTemp.push(passengerId);
         }
     };
 
     $scope.dropOff = function (passengerId) {
-        var index = $scope.onBoard.indexOf(passengerId)
+        var index = $scope.onBoardTemp.indexOf(passengerId)
         if (index !== -1) {
-            $scope.onBoard.splice(index, 1);
+            $scope.onBoardTemp.splice(index, 1);
         }
     };
 
     $scope.toBeTaken = [];
     $scope.setToBeTaken = function (child) {
-        if (!!child.checked && $scope.toBeTaken.indexOf(child.objectId) === -1) {
+        var tbtIndex = $scope.toBeTaken.indexOf(child.objectId);
+        if (!!child.checked && tbtIndex === -1) {
             $scope.toBeTaken.push(child.objectId);
+        } else if (!child.checked && tbtIndex !== -1) {
+            $scope.toBeTaken.splice(tbtIndex, 1);
         }
     };
 
@@ -117,7 +172,7 @@ angular.module('driverapp.controllers.route', [])
     // Execute action on hide modal
     $scope.$on('modal.hidden', function () {
         if ($scope.toBeTaken.length > 0) {
-            $scope.onBoard = $scope.onBoard.concat($scope.toBeTaken);
+            $scope.onBoardTemp = $scope.onBoardTemp.concat($scope.toBeTaken);
         }
 
         // reset

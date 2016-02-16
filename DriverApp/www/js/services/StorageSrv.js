@@ -7,7 +7,8 @@ angular.module('driverapp.services.storage', [])
         SCHOOL: 'da_school',
         CHILDREN: 'da_children',
         DRIVER: 'da_driver',
-        ROUTE: 'da_route'
+        ROUTES: 'da_routes',
+        APPLICATION_EVENTS: 'da_eas'
     };
 
     storageService.saveSchool = function (school) {
@@ -66,16 +67,30 @@ angular.module('driverapp.services.storage', [])
         return null;
     };
 
-    storageService.saveRoute = function (route) {
+    storageService.saveRoutes = function (routes) {
         var deferred = $q.defer();
-        localStorage[KEYS.ROUTE] = JSON.stringify(route);
-        deferred.resolve(route);
+        localStorage[KEYS.ROUTES] = JSON.stringify(routes);
+        deferred.resolve(routes);
         return deferred.promise;
     };
 
-    storageService.getRoute = function () {
-        if (!!localStorage[KEYS.ROUTE]) {
-            return JSON.parse(localStorage[KEYS.ROUTE]);
+    storageService.getRoutes = function () {
+        if (!!localStorage[KEYS.ROUTES]) {
+            return JSON.parse(localStorage[KEYS.ROUTES]);
+        }
+        return null;
+    };
+
+    storageService.saveEAs = function (eas) {
+        var deferred = $q.defer();
+        localStorage[KEYS.APPLICATION_EVENTS] = JSON.stringify(eas);
+        deferred.resolve(eas);
+        return deferred.promise;
+    };
+
+    storageService.getEAs = function () {
+        if (!!localStorage[KEYS.APPLICATION_EVENTS]) {
+            return JSON.parse(localStorage[KEYS.APPLICATION_EVENTS]);
         }
         return null;
     };
@@ -84,7 +99,7 @@ angular.module('driverapp.services.storage', [])
         var deferred = $q.defer();
         //localStorage.clear();
         localStorage.removeItem(KEYS.SCHOOL);
-        localStorage.removeItem(KEYS.DRIVER);
+        localStorage.removeItem(KEYS.ROUTES);
         deferred.resolve();
         return deferred.promise;
     };
