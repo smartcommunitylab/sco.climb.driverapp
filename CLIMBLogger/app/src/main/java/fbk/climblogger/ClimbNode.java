@@ -77,7 +77,8 @@
                 mString = mString + "RSSI: " + (rssi );
 
                 if(connectionState){
-                    mString = mString + ". Conn.";
+                    mString = mString + ". Conn. " + onBoardChildrenList.size() +" C.";
+
                 }
         /*
                 if(scanResponseData != null){

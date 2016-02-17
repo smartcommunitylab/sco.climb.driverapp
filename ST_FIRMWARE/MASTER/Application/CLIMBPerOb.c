@@ -297,15 +297,19 @@ static uint8_t rspTxRetry = 0;
 
 //static uint32 lastGATTCheckTicks = 0;
 // Pins that are actively used by the application
-static PIN_Config SensortagAppPinTable[] = {
-Board_LED1 | PIN_GPIO_OUTPUT_EN | PIN_GPIO_LOW | PIN_PUSHPULL | PIN_DRVSTR_MAX, /* LED initially off             */
-Board_LED2 | PIN_GPIO_OUTPUT_EN | PIN_GPIO_LOW | PIN_PUSHPULL | PIN_DRVSTR_MAX, /* LED initially off             */
-//Board_KEY_LEFT   | PIN_INPUT_EN | PIN_PULLUP | PIN_IRQ_BOTHEDGES | PIN_HYSTERESIS,        /* Button is active low          */
-//Board_KEY_RIGHT  | PIN_INPUT_EN | PIN_PULLUP | PIN_IRQ_BOTHEDGES | PIN_HYSTERESIS,        /* Button is active low          */
-//Board_RELAY      | PIN_INPUT_EN | PIN_PULLDOWN | PIN_IRQ_BOTHEDGES | PIN_HYSTERESIS,      /* Relay is active high          */
-		Board_BUZZER | PIN_GPIO_OUTPUT_EN | PIN_GPIO_LOW | PIN_PUSHPULL | PIN_DRVSTR_MAX, /* Buzzer initially off          */
+// Pins that are actively used by the application
+static PIN_Config SensortagAppPinTable[] =
+{
+    Board_LED1       | PIN_GPIO_OUTPUT_EN | PIN_GPIO_LOW | PIN_PUSHPULL | PIN_DRVSTR_MAX,     /* LED initially off             */
+    Board_LED2       | PIN_GPIO_OUTPUT_EN | PIN_GPIO_LOW | PIN_PUSHPULL | PIN_DRVSTR_MAX,     /* LED initially off             */
+    //Board_KEY_LEFT   | PIN_INPUT_EN | PIN_PULLUP | PIN_IRQ_BOTHEDGES | PIN_HYSTERESIS,        /* Button is active low          */
+    //Board_KEY_RIGHT  | PIN_INPUT_EN | PIN_PULLUP | PIN_IRQ_BOTHEDGES | PIN_HYSTERESIS,        /* Button is active low          */
+    //Board_RELAY      | PIN_INPUT_EN | PIN_PULLDOWN | PIN_IRQ_BOTHEDGES | PIN_HYSTERESIS,      /* Relay is active high          */
+    Board_BUZZER     | PIN_GPIO_OUTPUT_EN | PIN_GPIO_LOW | PIN_PUSHPULL | PIN_DRVSTR_MAX,     /* Buzzer initially off          */
+	//Board_MPU_POWER  | PIN_GPIO_OUTPUT_EN | PIN_GPIO_LOW | PIN_PUSHPULL | PIN_DRVSTR_MAX,
 
-		PIN_TERMINATE };
+    PIN_TERMINATE
+};
 
 // Global pin resources
 PIN_State pinGpioState;
@@ -322,7 +326,7 @@ static listNode_t* masterListRootPtr = NULL;
 static listNode_t* adv_startNodePtr = NULL;
 static listNode_t* gatt_startNodePtr = NULL;
 
-static uint8 mtu_updated = FALSE;
+//static uint8 mtu_updated = FALSE;
 
 /*********************************************************************
  * LOCAL FUNCTIONS
@@ -570,10 +574,13 @@ static void SimpleBLEPeripheral_init(void) {
 	sensorBmp280Init();
 	sensorBmp280Enable(FALSE);
 	sensorHdc1000Init();
+	//PIN_setOutputValue(hGpioPin, Board_MPU_POWER, 0);
 	//sensorMpu9250Init(); //ho gia scollegato l'alimentazione all'interno del file Board.c
-	//sensorMpuSleep();
+	//sensorMpu9250Reset();
 	sensorOpt3001Init();
 	sensorTmp007Init();
+
+
 #ifdef FEATURE_LCD
 	displayInit();
 #endif
@@ -807,7 +814,7 @@ static uint8_t SimpleBLEPeripheral_processGATTMsg(gattMsgEvent_t *pMsg) {
 
 		// Display the opcode of the message that caused the violation.
 	} else if (pMsg->method == ATT_MTU_UPDATED_EVENT) {
-		mtu_updated = TRUE;
+		//mtu_updated = TRUE;
 		//PIN_setOutputValue(hGpioPin, Board_LED1, Board_LED_ON);
 	}
 
@@ -874,7 +881,7 @@ static void BLEPeripheral_processStateChangeEvt(gaprole_States_t newState) {
 		uint8_t ownAddress[B_ADDR_LEN];
 		uint8_t systemId[DEVINFO_SYSTEM_ID_LEN];
 		BLE_connected = FALSE;
-		mtu_updated = FALSE;
+		//mtu_updated = FALSE;
 
 		GAPRole_GetParameter(GAPROLE_BD_ADDR, ownAddress);
 
@@ -969,7 +976,7 @@ static void BLEPeripheral_processStateChangeEvt(gaprole_States_t newState) {
 
 	case GAPROLE_WAITING:
 		BLE_connected = FALSE;
-		mtu_updated = FALSE;
+		//mtu_updated = FALSE;
 		GAPObserverRole_CancelDiscovery();
 		GAPRole_SetParameter(GAPROLE_ADVERT_DATA, sizeof(defAdvertData), defAdvertData);
 
@@ -982,7 +989,7 @@ static void BLEPeripheral_processStateChangeEvt(gaprole_States_t newState) {
 	case GAPROLE_WAITING_AFTER_TIMEOUT: //TIMEOUT
 
 		BLE_connected = FALSE;
-		mtu_updated = FALSE;
+		//mtu_updated = FALSE;
 		GAPObserverRole_CancelDiscovery();
 		GAPRole_SetParameter(GAPROLE_ADVERT_DATA, sizeof(defAdvertData), defAdvertData);
 		SimpleBLEPeripheral_freeAttRsp(bleNotConnected);

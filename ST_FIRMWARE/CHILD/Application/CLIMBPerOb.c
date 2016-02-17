@@ -362,6 +362,7 @@ static PIN_Config SensortagAppPinTable[] =
     //Board_KEY_RIGHT  | PIN_INPUT_EN | PIN_PULLUP | PIN_IRQ_BOTHEDGES | PIN_HYSTERESIS,        /* Button is active low          */
     //Board_RELAY      | PIN_INPUT_EN | PIN_PULLDOWN | PIN_IRQ_BOTHEDGES | PIN_HYSTERESIS,      /* Relay is active high          */
     Board_BUZZER     | PIN_GPIO_OUTPUT_EN | PIN_GPIO_LOW | PIN_PUSHPULL | PIN_DRVSTR_MAX,     /* Buzzer initially off          */
+	//Board_MPU_POWER  | PIN_GPIO_OUTPUT_EN | PIN_GPIO_LOW | PIN_PUSHPULL | PIN_DRVSTR_MAX,
 
     PIN_TERMINATE
 };
@@ -648,10 +649,12 @@ static void SimpleBLEPeripheral_init(void) {
 	sensorBmp280Init();
 	sensorBmp280Enable(FALSE);
 	sensorHdc1000Init();
+	//PIN_setOutputValue(hGpioPin, Board_MPU_POWER, 0);
 	//sensorMpu9250Init(); //ho gia scollegato l'alimentazione all'interno del file Board.c
-	//sensorMpuSleep();
+	//sensorMpu9250Reset();
 	sensorOpt3001Init();
 	sensorTmp007Init();
+
 #ifdef FEATURE_LCD
 	displayInit();
 #endif
@@ -1091,10 +1094,12 @@ static void BLEPeripheral_processStateChangeEvt(gaprole_States_t newState)
     case GAPROLE_WAITING:
       Util_stopClock(&periodicClock);
       SimpleBLEPeripheral_freeAttRsp(bleNotConnected);
+      Climb_setAsNonConnectable();
       break;
 
     case GAPROLE_WAITING_AFTER_TIMEOUT:
       SimpleBLEPeripheral_freeAttRsp(bleNotConnected);
+      Climb_setAsNonConnectable();
       #ifdef PLUS_BROADCASTER
         // Reset flag for next connection.
         firstConnFlag = false;
@@ -2346,6 +2351,7 @@ static void Climb_setAsConnectable(){
 		adv_active = 0;
 		GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED, sizeof(uint8_t), &adv_active);
 	}
+	Util_startClock(&connectableTimeoutClock);
 	adv_active = 1;
 	GAPRole_SetParameter(GAPROLE_ADVERT_ENABLED, sizeof(uint8_t), &adv_active);
 }
@@ -2361,7 +2367,7 @@ static void Climb_setAsConnectable(){
 static void Climb_setAsNonConnectable(){
 	uint8 adv_active = 0;
 	uint8 status = GAPRole_SetParameter(GAPROLE_ADVERT_ENABLED, sizeof(uint8_t), &adv_active);
-
+	Util_stopClock(&connectableTimeoutClock);
 	if(beaconActive){
 		adv_active = 1;
 		status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED, sizeof(uint8_t), &adv_active);
