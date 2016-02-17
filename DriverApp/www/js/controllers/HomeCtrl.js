@@ -1,6 +1,17 @@
 angular.module('driverapp.controllers.home', [])
 
-.controller('AppCtrl', function ($scope) {})
+.controller('AppCtrl', function ($scope, StorageSrv, APISrv) {
+    // FIXME dev purpose only!
+    StorageSrv.reset();
+
+    StorageSrv.saveSchool(CONF.DEV_SCHOOLID);
+
+    APISrv.getChildrenBySchool(StorageSrv.getSchool()).then(
+        function (children) {
+            StorageSrv.saveChildren(children);
+        }
+    );
+})
 
 .controller('HomeCtrl', function ($scope, Utils, StorageSrv, APISrv) {
     StorageSrv.reset();

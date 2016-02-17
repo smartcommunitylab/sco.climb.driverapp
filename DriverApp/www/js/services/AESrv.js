@@ -1,6 +1,6 @@
 angular.module('driverapp.services.ae', [])
 
-.factory('AESrv', function ($q, Config, Utils, StorageSrv) {
+.factory('AESrv', function ($q, $interval, Config, Utils, StorageSrv, APISrv) {
     var AE = {
         NODE_CHECKIN: 102,
         NODE_CHECKOUT: 103,
@@ -12,7 +12,7 @@ angular.module('driverapp.services.ae', [])
         END_ROUTE: 402
     };
 
-    // FIXME only dev!
+    // FIXME dev purpose only!
     /*
     var AE = {
         NODE_CHECKIN: 'NODE_CHECKIN',
@@ -30,12 +30,14 @@ angular.module('driverapp.services.ae', [])
 
     var aeInstance = {
         routeId: null,
+        driver: null,
         events: []
     };
 
     /* create a clean instance for a route */
     aeService.startInstance = function (routeId) {
         aeInstance.routeId = routeId;
+        aeInstance.driver = null;
         aeInstance.events = [];
         return aeInstance;
     };
@@ -57,6 +59,7 @@ angular.module('driverapp.services.ae', [])
             }
         };
 
+        aeInstance.driver = volunteer;
         aeInstance.events.push(event);
         return event;
     };
@@ -77,7 +80,7 @@ angular.module('driverapp.services.ae', [])
         return event;
     };
 
-    /* stop reached*/
+    /* stop reached */
     aeService.stopReached = function (stop) {
         var event = {
             routeId: aeInstance.routeId,
@@ -122,7 +125,11 @@ angular.module('driverapp.services.ae', [])
         };
 
         aeInstance.events.push(event);
-        StorageSrv.saveEAs(aeInstance.events);
+        StorageSrv.saveEAs(aeInstance.events).then(
+            function (eas) {
+                APISrv.addEvents(eas);
+            }
+        );
 
         return event;
     };
@@ -164,7 +171,7 @@ angular.module('driverapp.services.ae', [])
         var event = {
             routeId: aeInstance.routeId,
             wsnNodeId: volunteer.wsnId,
-            eventType: AE.NODE_CHECKOUT,
+            eventType: AE.DRIVER_POSITION,
             timestamp: moment().valueOf(),
             payload: {
                 'volunteerId': volunteer.objectId,

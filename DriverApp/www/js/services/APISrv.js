@@ -1,6 +1,9 @@
 angular.module('driverapp.services.api', [])
 
 .factory('APISrv', function ($http, $q, Config, Utils) {
+    var ERROR_TYPE = 'errorType';
+    var ERROR_MSG = 'errorMsg';
+
     var APIService = {};
 
     APIService.getSchools = function () {
@@ -13,7 +16,7 @@ angular.module('driverapp.services.api', [])
                 deferred.resolve(response.data);
             },
             function (responseError) {
-                deferred.reject(responseError);
+                deferred.reject('[' + responseError.headers(ERROR_TYPE) + '] ' + responseError.headers(ERROR_MSG));
             }
         );
 
@@ -35,7 +38,7 @@ angular.module('driverapp.services.api', [])
                 deferred.resolve(response.data);
             },
             function (responseError) {
-                deferred.reject(responseError);
+                deferred.reject('[' + responseError.headers(ERROR_TYPE) + '] ' + responseError.headers(ERROR_MSG));
             }
         );
 
@@ -65,7 +68,7 @@ angular.module('driverapp.services.api', [])
                 deferred.resolve(response.data);
             },
             function (responseError) {
-                deferred.reject(responseError);
+                deferred.reject('[' + responseError.headers(ERROR_TYPE) + '] ' + responseError.headers(ERROR_MSG));
             }
         );
 
@@ -87,7 +90,7 @@ angular.module('driverapp.services.api', [])
                 deferred.resolve(response.data);
             },
             function (responseError) {
-                deferred.reject(responseError);
+                deferred.reject('[' + responseError.headers(ERROR_TYPE) + '] ' + responseError.headers(ERROR_MSG));
             }
         );
 
@@ -109,7 +112,7 @@ angular.module('driverapp.services.api', [])
                 deferred.resolve(response.data);
             },
             function (responseError) {
-                deferred.reject(responseError);
+                deferred.reject('[' + responseError.headers(ERROR_TYPE) + '] ' + responseError.headers(ERROR_MSG));
             }
         );
 
@@ -139,7 +142,7 @@ angular.module('driverapp.services.api', [])
                 deferred.resolve(response.data);
             },
             function (responseError) {
-                deferred.reject(responseError);
+                deferred.reject('[' + responseError.headers(ERROR_TYPE) + '] ' + responseError.headers(ERROR_MSG));
             }
         );
 
@@ -156,7 +159,7 @@ angular.module('driverapp.services.api', [])
                 deferred.resolve(response.data);
             },
             function (responseError) {
-                deferred.reject(responseError);
+                deferred.reject('[' + responseError.headers(ERROR_TYPE) + '] ' + responseError.headers(ERROR_MSG));
             }
         );
 
@@ -178,7 +181,7 @@ angular.module('driverapp.services.api', [])
                 deferred.resolve(response.data);
             },
             function (responseError) {
-                deferred.reject(responseError);
+                deferred.reject('[' + responseError.headers(ERROR_TYPE) + '] ' + responseError.headers(ERROR_MSG));
             }
         );
 
@@ -191,15 +194,16 @@ angular.module('driverapp.services.api', [])
         if (!schoolId) {
             deferred.reject('Invalid schoolId');
             return deferred.promise;
+        } else if (!Utils.isValidDateRange(dateFrom, dateTo)) {
+            deferred.reject('Invalid date range');
+            return deferred.promise;
         }
 
         var httpConfigWithParams = angular.copy(Config.getHTTPConfig());
-        httpConfigWithParams.params = {};
-
-        if (Utils.isValidDateRange(dateFrom, dateTo)) {
-            httpConfigWithParams.params['dateFrom'] = dateFrom;
-            httpConfigWithParams.params['dateTo'] = dateTo;
-        }
+        httpConfigWithParams.params = {
+            'dateFrom': dateFrom,
+            'dateTo': dateTo
+        };
 
         $http.get(Config.getServerURL() + '/volunteercal/' + Config.getOwnerId() + '/' + schoolId, httpConfigWithParams)
 
@@ -208,7 +212,7 @@ angular.module('driverapp.services.api', [])
                 deferred.resolve(response.data);
             },
             function (responseError) {
-                deferred.reject(responseError);
+                deferred.reject('[' + responseError.headers(ERROR_TYPE) + '] ' + responseError.headers(ERROR_MSG));
             }
         );
 
@@ -224,24 +228,46 @@ angular.module('driverapp.services.api', [])
         } else if (!volunteerId) {
             deferred.reject('Invalid volunteerId');
             return deferred.promise;
+        } else if (!Utils.isValidDateRange(dateFrom, dateTo)) {
+            deferred.reject('Invalid date range');
+            return deferred.promise;
         }
 
         var httpConfigWithParams = angular.copy(Config.getHTTPConfig());
-        httpConfigWithParams.params = {};
+        httpConfigWithParams.params = {
+            'dateFrom': dateFrom,
+            'dateTo': dateTo
+        };
 
-        if (Utils.isValidDateRange(dateFrom, dateTo)) {
-            httpConfigWithParams.params['dateFrom'] = dateFrom;
-            httpConfigWithParams.params['dateTo'] = dateTo;
-        }
-
-        $http.get(Config.getServerURL() + '/volunteercal/' + Config.getOwnerId() + '/' + schoolId + '/' + volunteerId, Config.getHTTPConfig())
+        $http.get(Config.getServerURL() + '/volunteercal/' + Config.getOwnerId() + '/' + schoolId + '/' + volunteerId, httpConfigWithParams)
 
         .then(
             function (response) {
                 deferred.resolve(response.data);
             },
             function (responseError) {
-                deferred.reject(responseError);
+                deferred.reject('[' + responseError.headers(ERROR_TYPE) + '] ' + responseError.headers(ERROR_MSG));
+            }
+        );
+
+        return deferred.promise;
+    };
+
+    APIService.addEvents = function (events) {
+        var deferred = $q.defer();
+
+        if (!events || events.length === 0) {
+            deferred.reject('Invalid events');
+        }
+
+        $http.post(Config.getEventsServerURL() + '/event/' + Config.getOwnerId(), events, Config.getHTTPConfig())
+
+        .then(
+            function (response) {
+                deferred.resolve(response.data);
+            },
+            function (responseError) {
+                deferred.reject('[' + responseError.headers(ERROR_TYPE) + '] ' + responseError.headers(ERROR_MSG));
             }
         );
 

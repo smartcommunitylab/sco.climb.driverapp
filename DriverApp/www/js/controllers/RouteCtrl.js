@@ -1,6 +1,6 @@
 angular.module('driverapp.controllers.route', [])
 
-.controller('RouteCtrl', function ($scope, $stateParams, $ionicHistory, $ionicModal, StorageSrv, AESrv, APISrv) {
+.controller('RouteCtrl', function ($scope, $stateParams, $ionicHistory, $ionicModal, $interval, $ionicScrollDelegate, Config, StorageSrv, AESrv, APISrv) {
     $ionicHistory.clearHistory();
 
     var fromWizard = false;
@@ -18,6 +18,9 @@ angular.module('driverapp.controllers.route', [])
     $scope.enRoute = false;
     $scope.enRoutePos = 0;
     $scope.enRouteArrived = false;
+
+    // FIXME dev purpose only!
+    var gpsInterval = null;
 
     /* INIT */
     if (!!$stateParams['fromWizard']) {
@@ -59,23 +62,30 @@ angular.module('driverapp.controllers.route', [])
     }
 
     $scope.toggleEnRoute = function () {
+        $ionicScrollDelegate.scrollTop(true);
+
         // if has next
         if (!!$scope.stops[$scope.enRoutePos + 1]) {
             $scope.enRoute = !$scope.enRoute;
 
             if ($scope.enRoute) {
+                // NODE_CHECKIN
+                $scope.onBoardTemp.forEach(function (passengerId) {
+                    AESrv.nodeCheckin($scope.getChild(passengerId));
+                });
+                $scope.onBoard = $scope.onBoard.concat($scope.onBoardTemp);
+                $scope.onBoardTemp = [];
+
                 // Riparti
                 if ($scope.enRoutePos == 0) {
                     // Parti
                     AESrv.startRoute($scope.stops[$scope.enRoutePos]);
+                    // FIXME dev purpose only!
+                    gpsInterval = $interval(function () {
+                        AESrv.driverPosition($scope.driver);
+                        console.log('driverPosition!');
+                    }, Config.getGPSDelay());
                 }
-
-                // NODE_CHECKIN
-                $scope.onBoardTemp.forEach(function (passenger) {
-                    AESrv.nodeCheckin(passenger);
-                });
-                $scope.onBoard = $scope.onBoard.concat($scope.onBoardTemp);
-                $scope.onBoardTemp = [];
             } else {
                 // Fermati
                 $scope.enRoutePos++;
@@ -87,14 +97,16 @@ angular.module('driverapp.controllers.route', [])
             // if has no next
             if (!$scope.stops[$scope.enRoutePos + 1]) {
                 // Arriva
-                $scope.onBoard.forEach(function (passenger) {
-                    AESrv.nodeCheckout(passenger);
+                $scope.onBoard.forEach(function (passengerId) {
+                    AESrv.nodeCheckout($scope.getChild(passengerId));
                 });
                 AESrv.endRoute($scope.stops[$scope.enRoutePos]);
+                // FIXME dev purpose only!
+                $interval.cancel(gpsInterval);
+
                 $scope.enRouteArrived = true;
             }
         }
-        //console.log('enRoute: ' + $scope.enRoute + ', enRoutePos: ' + $scope.enRoutePos);
     };
 
     $scope.sel = {

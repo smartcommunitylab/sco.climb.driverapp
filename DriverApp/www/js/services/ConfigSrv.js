@@ -2,8 +2,10 @@ angular.module('driverapp.services.config', [])
 
 .factory('Config', function ($http, $q) {
     var SERVER_URL = CONF.SERVER_URL;
+    var EVENTS_SERVER_URL = CONF.EVENTS_SERVER_URL;
     var OWNER_ID = CONF.OWNER_ID;
     var X_ACCESS_TOKEN = CONF.X_ACCESS_TOKEN;
+    var GPS_DELAY = CONF.GPS_DELAY;
 
     var HTTP_CONFIG = {
         timeout: 5000,
@@ -21,8 +23,14 @@ angular.module('driverapp.services.config', [])
         getServerURL: function () {
             return SERVER_URL;
         },
+        getEventsServerURL: function () {
+            return EVENTS_SERVER_URL;
+        },
         getOwnerId: function () {
             return OWNER_ID;
+        },
+        getGPSDelay: function () {
+            return GPS_DELAY;
         },
         getHTTPConfig: function () {
             return HTTP_CONFIG;
@@ -33,5 +41,5 @@ angular.module('driverapp.services.config', [])
         getWizardSliderOptions: function () {
             return WIZARD_SLIDER_OPTIONS;
         }
-    }
+    };
 });

@@ -13,7 +13,7 @@ angular.module('driverapp', [
     'driverapp.controllers.route'
 ])
 
-.run(function ($ionicPlatform, StorageSrv) {
+.run(function ($ionicPlatform) {
     $ionicPlatform.ready(function () {
         // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
         // for form inputs)
@@ -26,9 +26,6 @@ angular.module('driverapp', [
             // org.apache.cordova.statusbar required
             StatusBar.styleDefault();
         }
-
-        // FIXME dev purpose only!!!
-        StorageSrv.reset();
     });
 })
 

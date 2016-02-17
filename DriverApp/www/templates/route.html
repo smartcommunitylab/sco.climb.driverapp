@@ -20,8 +20,8 @@
             </ion-list>
             <h4>Bambini</h4>
             <ion-list>
-                <ion-item class="item-button-right" ng-repeat="passenger in sel.stop.passengers" ng-if="(onBoard.indexOf(passenger.objectId) === -1) || (onBoardTemp.indexOf(passenger.objectId) === -1)">
-                    {{passenger.name}}
+                <ion-item class="item-button-right" ng-repeat="passenger in sel.stop.passengers" ng-if="(onBoard.indexOf(passenger.objectId) === -1) && (onBoardTemp.indexOf(passenger.objectId) === -1)">
+                    {{passenger.surname}} {{passenger.name}}
                     <button class="button" ng-click="takeOnBoard(passenger.objectId)" ng-disabled="!!enRoute || enRouteArrived">
                         <i class="icon ion-plus"></i>
                     </button>
@@ -30,10 +30,10 @@
             <h4>A bordo</h4>
             <ion-list>
                 <ion-item class="item-button-right" ng-repeat="passengerId in onBoard">
-                    {{getChild(passengerId).name}}
+                    {{getChild(passengerId).surname}} {{getChild(passengerId).name}}
                 </ion-item>
                 <ion-item class="item-button-right" ng-repeat="passengerId in onBoardTemp">
-                    {{getChild(passengerId).name}}
+                    {{getChild(passengerId).surname}} {{getChild(passengerId).name}}
                     <button class="button" ng-click="dropOff(passengerId)" ng-disabled="!!enRoute || enRouteArrived">
                         <i class="icon ion-minus"></i>
                     </button>
