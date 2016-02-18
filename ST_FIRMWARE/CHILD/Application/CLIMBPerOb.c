@@ -1749,8 +1749,9 @@ static uint8 Climb_checkNodeState(gapDeviceInfoEvent_t *gapDeviceInfoEvent_a) {
 static ChildClimbNodeStateType_t Climb_findMyBroadcastedState(gapDeviceInfoEvent_t *gapDeviceInfoEvent_a) {
 	uint8 index = 0;
 
-	if (gapDeviceInfoEvent_a->eventType == GAP_ADRPT_ADV_SCAN_IND | gapDeviceInfoEvent_a->eventType == GAP_ADRPT_ADV_IND
-			| gapDeviceInfoEvent_a->eventType == GAP_ADRPT_ADV_NONCONN_IND) { //lo stato è contenuto solo dentro i pacchetti di advertise, è inutile cercarli dentro le scan response
+	if (  gapDeviceInfoEvent_a->eventType == GAP_ADRPT_ADV_SCAN_IND
+		| gapDeviceInfoEvent_a->eventType == GAP_ADRPT_ADV_IND
+		| gapDeviceInfoEvent_a->eventType == GAP_ADRPT_ADV_NONCONN_IND) { //lo stato è contenuto solo dentro i pacchetti di advertise, è inutile cercarli dentro le scan response
 
 		while (index < gapDeviceInfoEvent_a->dataLen) {
 			if (gapDeviceInfoEvent_a->pEvtData[index + 1] == GAP_ADTYPE_MANUFACTURER_SPECIFIC) { //ho trovato il campo GAP_ADTYPE_MANUFACTURER_SPECIFIC
@@ -2299,8 +2300,7 @@ static void stopNode() {
 	beaconActive = 0;
 	GAPObserverRole_CancelDiscovery();
 	uint8 adv_active = 0;
-	uint8 status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED,
-			sizeof(uint8_t), &adv_active);
+	uint8 status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED, sizeof(uint8_t), &adv_active);
 
 	Util_stopClock(&periodicClock);
 	destroyNodeLists();
