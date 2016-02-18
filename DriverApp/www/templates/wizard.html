@@ -16,9 +16,11 @@
     <ion-slides options="swiperOptions" slider="swiper" ion-wizard>
         <!-- Route -->
         <ion-slide-page class="swiper-no-swiping" ion-wizard-step next-condition="!!wizard.route">
-            <ion-content class="has-header has-footer">
+            <div class="bar bar-subheader padding-horizontal">
+                <h5>Quale corsa?</h5>
+            </div>
+            <ion-content class="has-header has-subheader">
                 <div class="padding">
-                    <h5>Quale corsa?</h5>
                     <ion-list>
                         <ion-radio ng-repeat="route in routes" ng-model="wizard.route" ng-value="route">{{route.name}}</ion-radio>
                     </ion-list>
@@ -27,9 +29,11 @@
         </ion-slide-page>
         <!-- Driver -->
         <ion-slide-page class="swiper-no-swiping" ion-wizard-step next-condition="!!wizard.driver">
-            <ion-content class="has-header has-footer">
+            <div class="bar bar-subheader padding-horizontal">
+                <h5>Chi sei?</h5>
+            </div>
+            <ion-content class="has-header has-subheader">
                 <div class="padding">
-                    <h5>Chi sei?</h5>
                     <ion-list>
                         <ion-radio ng-repeat="volunteer in volunteers" ng-model="wizard.driver" ng-value="volunteer">{{volunteer.name}}</ion-radio>
                     </ion-list>
@@ -38,9 +42,11 @@
         </ion-slide-page>
         <!-- Helpers -->
         <ion-slide-page class="swiper-no-swiping" ion-wizard-step>
-            <ion-content class="has-header">
+            <div class="bar bar-subheader padding-horizontal">
+                <h5>Chi sono i tuoi aiutanti?</h5>
+            </div>
+            <ion-content class="has-header has-subheader">
                 <div class="padding">
-                    <h5>Chi sono i tuoi aiutanti?</h5>
                     <ion-list>
                         <ion-checkbox ng-repeat="volunteer in volunteers" ng-if="volunteer !== wizard.driver" ng-model="volunteer.checked">
                             {{volunteer.name}}

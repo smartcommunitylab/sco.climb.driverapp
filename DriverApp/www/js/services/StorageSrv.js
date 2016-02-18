@@ -6,7 +6,8 @@ angular.module('driverapp.services.storage', [])
     var KEYS = {
         SCHOOL: 'da_school',
         CHILDREN: 'da_children',
-        DRIVER: 'da_driver',
+        VOLUNTEERS: 'da_volunteers',
+        VOLUNTEERS_CALS: 'da_volunteers_cals',
         ROUTES: 'da_routes',
         APPLICATION_EVENTS: 'da_eas'
     };
@@ -46,23 +47,30 @@ angular.module('driverapp.services.storage', [])
         return null;
     };
 
-    storageService.saveDriver = function (driver) {
+    storageService.saveVolunteers = function (volunteers) {
         var deferred = $q.defer();
-        localStorage[KEYS.DRIVER] = JSON.stringify(driver);
-        deferred.resolve(driver);
+        localStorage[KEYS.VOLUNTEERS] = JSON.stringify(volunteers);
+        deferred.resolve(volunteers);
         return deferred.promise;
     };
 
-    storageService.getDriver = function () {
-        if (!!localStorage[KEYS.DRIVER]) {
-            return JSON.parse(localStorage[KEYS.DRIVER]);
+    storageService.getVolunteers = function () {
+        if (!!localStorage[KEYS.VOLUNTEERS]) {
+            return JSON.parse(localStorage[KEYS.VOLUNTEERS]);
         }
         return null;
     };
 
-    storageService.getDriverId = function () {
-        if (!!localStorage[KEYS.DRIVER]) {
-            return JSON.parse(localStorage[KEYS.DRIVER])['objectId'];
+    storageService.saveVolunteersCalendars = function (volunteerscals) {
+        var deferred = $q.defer();
+        localStorage[KEYS.VOLUNTEERS_CALS] = JSON.stringify(volunteerscals);
+        deferred.resolve(volunteerscals);
+        return deferred.promise;
+    };
+
+    storageService.getVolunteersCalendars = function () {
+        if (!!localStorage[KEYS.VOLUNTEERS_CALS]) {
+            return JSON.parse(localStorage[KEYS.VOLUNTEERS_CALS]);
         }
         return null;
     };
@@ -77,6 +85,20 @@ angular.module('driverapp.services.storage', [])
     storageService.getRoutes = function () {
         if (!!localStorage[KEYS.ROUTES]) {
             return JSON.parse(localStorage[KEYS.ROUTES]);
+        }
+        return null;
+    };
+
+    storageService.getRouteById = function (routeId) {
+        var route = null;
+        if (!!localStorage[KEYS.ROUTES]) {
+            var routes = JSON.parse(localStorage[KEYS.ROUTES]);
+            for (var i = 0; i < routes.length; i++) {
+                if (routes[i].objectId == routeId) {
+                    route = routes[i];
+                    i = routes.length;
+                }
+            }
         }
         return null;
     };
@@ -98,8 +120,10 @@ angular.module('driverapp.services.storage', [])
     storageService.reset = function () {
         var deferred = $q.defer();
         //localStorage.clear();
-        localStorage.removeItem(KEYS.SCHOOL);
+        //localStorage.removeItem(KEYS.SCHOOL);
+        localStorage.removeItem(KEYS.CHILDREN);
         localStorage.removeItem(KEYS.ROUTES);
+        localStorage.removeItem(KEYS.APPLICATION_EVENTS);
         deferred.resolve();
         return deferred.promise;
     };

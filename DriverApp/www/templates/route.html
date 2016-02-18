@@ -1,8 +1,8 @@
 <ion-view view-title="{{route.name}}">
     <ion-nav-buttons side="right">
-        <button class="button icon ion-person-add" ng-click="openModal()" ng-disabled="!!enRoute || enRouteArrived"></button>
+        <button class="button icon ion-person-add" ng-click="openModal()" ng-disabled="!!enRoute || enRouteArrived" ng-if="fromWizard"></button>
     </ion-nav-buttons>
-    <div class="bar bar-subheader padding-horizontal">
+    <div class="bar bar-subheader padding-horizontal" ng-if="fromWizard">
         <button class="button btn-enroute" ng-class="{'button-balanced': !enRoute, 'button-assertive': !!enRoute, 'button-outline': !enRoute && !!stops[enRoutePos].school}" ng-click="toggleEnRoute()">
             <span ng-if="!enRoute && !!stops[enRoutePos].start">Parti</span>
             <span ng-if="!!enRoute && !stops[enRoutePos + 1].school">Fermati</span>
@@ -11,25 +11,27 @@
             <span ng-if="!enRoute && !!stops[enRoutePos].school">Arrivato</span>
         </button>
     </div>
-    <ion-content class="has-subheader padding-top padding-horizontal">
+    <ion-content class="padding-top padding-horizontal" ng-class="{'has-subheader': fromWizard}">
+        <ion-list>
+            <ion-radio ng-repeat="stop in stops" ng-model="sel.stop" ng-value="stop" ng-change="getChildrenForStop(sel.stop)" ng-disabled="!!enRoute">
+                {{stop.name}}
+            </ion-radio>
+        </ion-list>
         <div>
-            <ion-list>
-                <ion-radio ng-repeat="stop in stops" ng-model="sel.stop" ng-value="stop" ng-change="getChildrenForStop(sel.stop)" ng-disabled="!!enRoute">
-                    {{stop.name}}
-                </ion-radio>
-            </ion-list>
             <h4>Bambini</h4>
             <ion-list>
-                <ion-item class="item-button-right" ng-repeat="passenger in sel.stop.passengers" ng-if="(onBoard.indexOf(passenger.objectId) === -1) && (onBoardTemp.indexOf(passenger.objectId) === -1)">
+                <ion-item class="item-button-right" ng-repeat="passenger in sel.stop.passengers" ng-if="(onBoard.indexOf(passenger.objectId) === -1) && (onBoardTemp.indexOf(passenger.objectId) === -1)" ng-click="showChildDetails(passenger)">
                     {{passenger.surname}} {{passenger.name}}
-                    <button class="button" ng-click="takeOnBoard(passenger.objectId)" ng-disabled="!!enRoute || enRouteArrived">
+                    <button class="button" ng-click="takeOnBoard(passenger.objectId)" ng-disabled="!!enRoute || enRouteArrived" ng-if="fromWizard">
                         <i class="icon ion-plus"></i>
                     </button>
                 </ion-item>
             </ion-list>
+        </div>
+        <div ng-if="fromWizard">
             <h4>A bordo</h4>
             <ion-list>
-                <ion-item class="item-button-right" ng-repeat="passengerId in onBoard">
+                <ion-item class="item-button-right" ng-repeat="passengerId in onBoard" ng-click="showChildDetails(getChild(passengerId))">
                     {{getChild(passengerId).surname}} {{getChild(passengerId).name}}
                 </ion-item>
                 <ion-item class="item-button-right" ng-repeat="passengerId in onBoardTemp">

@@ -10,7 +10,8 @@ angular.module('driverapp', [
     'driverapp.controllers.home',
     'driverapp.controllers.wizard',
     'driverapp.controllers.routes',
-    'driverapp.controllers.route'
+    'driverapp.controllers.route',
+    'driverapp.controllers.volunteers'
 ])
 
 .run(function ($ionicPlatform) {
@@ -39,6 +40,7 @@ angular.module('driverapp', [
 
     .state('app.wizard', {
         url: '/wizard',
+        cache: false,
         views: {
             'menuContent': {
                 templateUrl: 'templates/wizard.html',
@@ -59,6 +61,7 @@ angular.module('driverapp', [
 
     .state('app.routes', {
         url: '/routes',
+        cache: false,
         views: {
             'menuContent': {
                 templateUrl: 'templates/routes.html',
@@ -69,6 +72,7 @@ angular.module('driverapp', [
 
     .state('app.route', {
         url: '/routes/:routeId',
+        cache: false,
         params: {
             fromWizard: false,
             route: {},
@@ -79,6 +83,17 @@ angular.module('driverapp', [
             'menuContent': {
                 templateUrl: 'templates/route.html',
                 controller: 'RouteCtrl'
+            }
+        }
+    })
+
+    .state('app.volunteers', {
+        url: '/volunteers',
+        cache: false,
+        views: {
+            'menuContent': {
+                templateUrl: 'templates/volunteers.html',
+                controller: 'VolunteersCtrl'
             }
         }
     });

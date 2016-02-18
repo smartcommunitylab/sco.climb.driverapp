@@ -1,4 +1,9 @@
 <ion-view view-title="Pedibus">
-  <ion-content>
-  </ion-content>
+    <ion-content class="has-header">
+        <div class="padding">
+            <ion-list>
+                <ion-item ng-repeat="r in routes" ng-click="viewRoute(r)">{{r.name}}</ion-item>
+            </ion-list>
+        </div>
+    </ion-content>
 </ion-view>

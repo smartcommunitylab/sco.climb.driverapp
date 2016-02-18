@@ -1,0 +1,14 @@
+<ion-view view-title="Volontari">
+    <ion-content class="has-header">
+        <div class="padding">
+            <ion-list>
+                <ion-item class="item-button-right" ng-repeat="v in volunteers" ng-click="showVolunteerDetails(v)">
+                    {{v.name}}
+                    <button class="button" ng-if="!!v.phone" ng-href="tel:{{v.phone}}">
+                        <i class="icon ion-android-call"></i>
+                    </button>
+                </ion-item>
+            </ion-list>
+        </div>
+    </ion-content>
+</ion-view>

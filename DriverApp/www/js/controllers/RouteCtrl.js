@@ -1,12 +1,10 @@
 angular.module('driverapp.controllers.route', [])
 
-.controller('RouteCtrl', function ($scope, $stateParams, $ionicHistory, $ionicModal, $interval, $ionicScrollDelegate, Config, StorageSrv, AESrv, APISrv) {
-    $ionicHistory.clearHistory();
-
-    var fromWizard = false;
+.controller('RouteCtrl', function ($scope, $stateParams, $ionicHistory, $ionicNavBarDelegate, $ionicPopup, $ionicModal, $interval, $ionicScrollDelegate, Config, StorageSrv, AESrv, APISrv) {
+    $scope.fromWizard = false;
     var aesInstance = {};
 
-    $scope.children = StorageSrv.getChildren();
+    $scope.children = null;
     $scope.driver = null;
     $scope.helpers = null;
 
@@ -24,10 +22,10 @@ angular.module('driverapp.controllers.route', [])
 
     /* INIT */
     if (!!$stateParams['fromWizard']) {
-        fromWizard = $stateParams['fromWizard'];
+        $scope.fromWizard = $stateParams['fromWizard'];
     }
 
-    if (fromWizard) {
+    if ($scope.fromWizard) {
         if (!!$stateParams['route']) {
             $scope.route = $stateParams['route'];
 
@@ -44,22 +42,33 @@ angular.module('driverapp.controllers.route', [])
                     AESrv.setHelper(helper);
                 });
             }
-
-            APISrv.getStopsByRoute($scope.route.objectId).then(
-                function (stops) {
-                    $scope.stops = stops;
-                    // Select the first automatically
-                    $scope.sel.stop = $scope.stops[0];
-                    AESrv.stopReached($scope.sel.stop);
-                    $scope.getChildrenForStop($scope.sel.stop);
-                },
-                function (error) {
-                    // TODO handle error
-                    console.log(error);
-                }
-            );
+        }
+    } else {
+        if (!!$stateParams['route']) {
+            $scope.route = $stateParams['route'];
+        } else if (!!$stateParams['routeId']) {
+            $scope.route = StorageSrv.getRouteById($stateParams['routeId']);
         }
     }
+
+
+
+    APISrv.getStopsByRoute($scope.route.objectId).then(
+        function (stops) {
+            $scope.stops = stops;
+            // Select the first automatically
+            $scope.sel.stop = $scope.stops[0];
+            $scope.getChildrenForStop($scope.sel.stop);
+
+            if ($scope.fromWizard) {
+                AESrv.stopReached($scope.sel.stop);
+            }
+        },
+        function (error) {
+            // TODO handle error
+            console.log(error);
+        }
+    );
 
     $scope.toggleEnRoute = function () {
         $ionicScrollDelegate.scrollTop(true);
@@ -127,8 +136,11 @@ angular.module('driverapp.controllers.route', [])
 
     $scope.getChildrenForStop = function (stop) {
         var passengers = [];
+        if ($scope.children === null || $scope.children.length === 0) {
+            $scope.children = StorageSrv.getChildren();
+        }
         $scope.children.forEach(function (child) {
-            if (stop.passengerList.indexOf(child.objectId) != -1) {
+            if (stop.passengerList.indexOf(child.objectId) !== -1) {
                 passengers.push(child);
             }
         });
@@ -196,4 +208,16 @@ angular.module('driverapp.controllers.route', [])
 
     // Execute action on remove modal
     $scope.$on('modal.removed', function () {});
+
+    /*
+     * Child details popup
+     */
+    $scope.showChildDetails = function (child) {
+        var detailsPopup = $ionicPopup.alert({
+            title: child.surname + ' ' + child.name,
+            template: (!!child.parentName ? child.parentName + ': ' + child.phone : child.phone),
+            okText: 'OK',
+            okType: 'button'
+        });
+    };
 });
