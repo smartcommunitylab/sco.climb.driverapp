@@ -1,6 +1,12 @@
 /* CLIMB Driver App style */
-.dapp-theme {}
 
+.dapp-theme {}
 .dapp-theme .btn-enroute {
     width: 100%;
+}
+.dapp-theme .swiper-slide {
+    height: 100% !important;
+}
+.dapp-theme .swiper-slide .swiper-pagination {
+    display: none;
 }

@@ -1,9 +1,10 @@
 angular.module('driverapp.controllers.wizard', [])
 
-.controller('WizardCtrl', function ($scope, $state, $ionicHistory, Config, Utils, StorageSrv, APISrv) {
+.controller('WizardCtrl', function ($scope, $state, $ionicHistory, $ionicSlideBoxDelegate, Config, Utils, StorageSrv, APISrv) {
     $scope.swiperOptions = Config.getWizardSliderOptions();
 
     $scope.routes = StorageSrv.getRoutes();
+    $ionicSlideBoxDelegate.update();
     $scope.volunteers = null;
     var calendars = [];
 
@@ -19,6 +20,7 @@ angular.module('driverapp.controllers.wizard', [])
             function (routes) {
                 StorageSrv.saveRoutes(routes).then(function (routes) {
                     $scope.routes = routes;
+                    $ionicSlideBoxDelegate.update();
                 });
             },
             function (error) {
@@ -69,7 +71,7 @@ angular.module('driverapp.controllers.wizard', [])
                         for (var i = 0; i < sortedVolunteers.length; i++) {
                             if (sortedVolunteers[i].objectId == cal.driverId) {
                                 Utils.moveInArray(sortedVolunteers, i, 0);
-                                console.log('Driver ' + sortedVolunteers[counter].name + ' moved on top');
+                                //console.log('Driver ' + sortedVolunteers[counter].name + ' moved on top');
                                 driverOnTop = true;
                                 i = sortedVolunteers.length;
                             }
@@ -83,7 +85,7 @@ angular.module('driverapp.controllers.wizard', [])
                             for (var i = 0; i < sortedVolunteers.length; i++) {
                                 if (sortedVolunteers[i].objectId == helperId) {
                                     Utils.moveInArray(sortedVolunteers, i, counter);
-                                    console.log('Helper ' + sortedVolunteers[counter].name + ' moved to position ' + counter);
+                                    //console.log('Helper ' + sortedVolunteers[counter].name + ' moved to position ' + counter);
                                     counter++;
                                     i = sortedVolunteers.length;
                                 }
