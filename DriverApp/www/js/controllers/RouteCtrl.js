@@ -1,6 +1,6 @@
 angular.module('driverapp.controllers.route', [])
 
-.controller('RouteCtrl', function ($scope, $stateParams, $ionicHistory, $ionicNavBarDelegate, $ionicPopup, $ionicModal, $interval, $ionicScrollDelegate, Config, StorageSrv, AESrv, APISrv) {
+.controller('RouteCtrl', function ($scope, $stateParams, $ionicHistory, $ionicNavBarDelegate, $ionicPopup, $ionicModal, $interval, $ionicScrollDelegate, Config, StorageSrv, GeoSrv, AESrv, APISrv) {
     $scope.fromWizard = false;
     var aesInstance = {};
 
@@ -16,9 +16,6 @@ angular.module('driverapp.controllers.route', [])
     $scope.enRoute = false;
     $scope.enRoutePos = 0;
     $scope.enRouteArrived = false;
-
-    // FIXME dev purpose only!
-    var gpsInterval = null;
 
     /* INIT */
     if (!!$stateParams['fromWizard']) {
@@ -53,7 +50,7 @@ angular.module('driverapp.controllers.route', [])
 
 
 
-    APISrv.getStopsByRoute($scope.route.objectId).then(
+    APISrv.getStopsByRoute($stateParams['routeId']).then(
         function (stops) {
             $scope.stops = stops;
             // Select the first automatically
@@ -89,11 +86,10 @@ angular.module('driverapp.controllers.route', [])
                 if ($scope.enRoutePos == 0) {
                     // Parti
                     AESrv.startRoute($scope.stops[$scope.enRoutePos]);
-                    // FIXME dev purpose only!
-                    gpsInterval = $interval(function () {
-                        AESrv.driverPosition($scope.driver);
-                        console.log('driverPosition!');
-                    }, Config.getGPSDelay());
+
+                    GeoSrv.startWatchingPosition(function (position) {
+                        AESrv.driverPosition($scope.driver, position.coords.latitude, position.coords.longitude);
+                    }, null, Config.getGPSDelay());
                 }
             } else {
                 // Fermati
@@ -110,8 +106,8 @@ angular.module('driverapp.controllers.route', [])
                     AESrv.nodeCheckout($scope.getChild(passengerId));
                 });
                 AESrv.endRoute($scope.stops[$scope.enRoutePos]);
-                // FIXME dev purpose only!
-                $interval.cancel(gpsInterval);
+
+                GeoSrv.stopWatchingPosition();
 
                 $scope.enRouteArrived = true;
             }
@@ -136,14 +132,16 @@ angular.module('driverapp.controllers.route', [])
 
     $scope.getChildrenForStop = function (stop) {
         var passengers = [];
-        if ($scope.children === null || $scope.children.length === 0) {
+        if ($scope.children == null || $scope.children.length == 0) {
             $scope.children = StorageSrv.getChildren();
         }
-        $scope.children.forEach(function (child) {
-            if (stop.passengerList.indexOf(child.objectId) !== -1) {
-                passengers.push(child);
-            }
-        });
+        if ($scope.children != null) {
+            $scope.children.forEach(function (child) {
+                if (stop.passengerList.indexOf(child.objectId) != -1) {
+                    passengers.push(child);
+                }
+            });
+        }
         stop.passengers = passengers;
     };
 

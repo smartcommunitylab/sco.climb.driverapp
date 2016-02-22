@@ -167,7 +167,7 @@ angular.module('driverapp.services.ae', [])
     };
 
     /* driver position */
-    aeService.driverPosition = function (volunteer) {
+    aeService.driverPosition = function (volunteer, lat, lon) {
         var event = {
             routeId: aeInstance.routeId,
             wsnNodeId: volunteer.wsnId,
@@ -175,8 +175,8 @@ angular.module('driverapp.services.ae', [])
             timestamp: moment().valueOf(),
             payload: {
                 'volunteerId': volunteer.objectId,
-                'latitude': 0,
-                'longitude': 0
+                'latitude': !!lat ? lat : 0,
+                'longitude': !!lon? lon : 0
             }
         };
 
