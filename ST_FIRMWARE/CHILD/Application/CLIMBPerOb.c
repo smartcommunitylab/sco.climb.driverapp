@@ -158,8 +158,8 @@
 #define LED_TIMEOUT						  	  10
 
 #define CONNECTABLE_TIMEOUT					1000*60
-#define WAKEUP_DEFAULT_TIMEOUT_SEC				60//1000*60*60*24//1000*60*60
-#define GOTOSLEEP_DEFAULT_TIMEOUT_SEC			30//1000*60*60//1000*60*60
+#define WAKEUP_DEFAULT_TIMEOUT_SEC				1000*60*60*24//1000*60*60
+#define GOTOSLEEP_DEFAULT_TIMEOUT_SEC			1000*60*60//1000*60*60
 
 #define NODE_ID								  { 0x02  }
 
@@ -178,7 +178,7 @@
 
 #define SNV_BASE_ID							  0x80
 
-#define MAX_ALLOWED_TIMER_DURATION_SEC	      10//42000 //actual max timer duration 42949.67sec
+#define MAX_ALLOWED_TIMER_DURATION_SEC	      42000 //actual max timer duration 42949.67sec
 
 // Task configuration
 #define SBP_TASK_PRIORITY                     1
