@@ -151,15 +151,15 @@
 #define DEFAULT_MAX_SCAN_RES                  30
 
 // How often to perform periodic event (in msec)
-#define PERIODIC_EVT_PERIOD               5000
+#define PERIODIC_EVT_PERIOD_MSEC               5000
 
 #define NODE_TIMEOUT_OS_TICKS				500000
 
-#define LED_TIMEOUT						  	  10
+#define LED_TIMEOUT_MSEC						  	  10
 
-#define CONNECTABLE_TIMEOUT					1000*60
-#define WAKEUP_DEFAULT_TIMEOUT_SEC				1000*60*60*24//1000*60*60
-#define GOTOSLEEP_DEFAULT_TIMEOUT_SEC			1000*60*60//1000*60*60
+#define CONNECTABLE_TIMEOUT_MSEC					1000*60
+#define WAKEUP_DEFAULT_TIMEOUT_SEC				60*60*24//1000*60*60
+#define GOTOSLEEP_DEFAULT_TIMEOUT_SEC			60*60//1000*60*60
 
 #define NODE_ID								  { 0x02  }
 
@@ -548,13 +548,13 @@ static void SimpleBLEPeripheral_init(void) {
 
 	// Create one-shot clocks for internal periodic events.
 	Util_constructClock(&periodicClock, Climb_clockHandler,
-	PERIODIC_EVT_PERIOD, 0, false, PERIODIC_EVT);
+	PERIODIC_EVT_PERIOD_MSEC, 0, false, PERIODIC_EVT);
 
 	Util_constructClock(&ledTimeoutClock, Climb_clockHandler,
-	LED_TIMEOUT, 0, false, LED_TIMEOUT_EVT);
+	LED_TIMEOUT_MSEC, 0, false, LED_TIMEOUT_EVT);
 
 	Util_constructClock(&connectableTimeoutClock, Climb_clockHandler,
-	CONNECTABLE_TIMEOUT, 0, false, CONNECTABLE_TIMEOUT_EVT);
+	CONNECTABLE_TIMEOUT_MSEC, 0, false, CONNECTABLE_TIMEOUT_EVT);
 
 	Util_constructClock(&wakeUpClock, Climb_clockHandler,
 	WAKEUP_DEFAULT_TIMEOUT_SEC*1000, 0, false, WAKEUP_TIMEOUT_EVT);
