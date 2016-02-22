@@ -158,8 +158,8 @@
 #define LED_TIMEOUT						  	  10
 
 #define CONNECTABLE_TIMEOUT					1000*60
-#define WAKEUP_DEFAULT_TIMEOUT				1000*60*60*24//1000*60*60
-#define GOTOSLEEP_DEFAULT_TIMEOUT			1000*60*60//1000*60*60
+#define WAKEUP_DEFAULT_TIMEOUT_SEC				60//1000*60*60*24//1000*60*60
+#define GOTOSLEEP_DEFAULT_TIMEOUT_SEC			30//1000*60*60//1000*60*60
 
 #define NODE_ID								  { 0x02  }
 
@@ -178,7 +178,7 @@
 
 #define SNV_BASE_ID							  0x80
 
-#define MAX_ALLOWED_TIMER_DURATION_SEC	      42000 //actual max timer duration 42949.67sec
+#define MAX_ALLOWED_TIMER_DURATION_SEC	      10//42000 //actual max timer duration 42949.67sec
 
 // Task configuration
 #define SBP_TASK_PRIORITY                     1
@@ -557,10 +557,10 @@ static void SimpleBLEPeripheral_init(void) {
 	CONNECTABLE_TIMEOUT, 0, false, CONNECTABLE_TIMEOUT_EVT);
 
 	Util_constructClock(&wakeUpClock, Climb_clockHandler,
-	WAKEUP_DEFAULT_TIMEOUT, 0, false, WAKEUP_TIMEOUT_EVT);
+	WAKEUP_DEFAULT_TIMEOUT_SEC*1000, 0, false, WAKEUP_TIMEOUT_EVT);
 
 	Util_constructClock(&goToSleepClock, Climb_clockHandler,
-	GOTOSLEEP_DEFAULT_TIMEOUT, 0, false, GOTOSLEEP_TIMEOUT_EVT);
+	GOTOSLEEP_DEFAULT_TIMEOUT_SEC*1000, 0, false, GOTOSLEEP_TIMEOUT_EVT);
 
 	Util_constructClock(&scanRestartClock, Climb_clockHandler,
 	DEFAULT_SCAN_DURATION, 0, false, RESTART_SCAN_EVT);
@@ -2157,8 +2157,8 @@ static void Climb_wakeUpHandler(){
 
 	if(wakeUpTimeout_sec_global == 0){
 		startNode();
-		Util_restartClock(&goToSleepClock, GOTOSLEEP_DEFAULT_TIMEOUT);
-		Climb_setWakeUpClock(WAKEUP_DEFAULT_TIMEOUT);
+		Util_restartClock(&goToSleepClock, GOTOSLEEP_DEFAULT_TIMEOUT_SEC*1000);
+		Climb_setWakeUpClock(WAKEUP_DEFAULT_TIMEOUT_SEC);
 
 		return;
 	}
@@ -2242,8 +2242,8 @@ static void CLIMB_handleKeys(uint8 keys) {
 		if (beaconActive != 1){
 			startNode();
 
-			Climb_setWakeUpClock(WAKEUP_DEFAULT_TIMEOUT);
-			Util_restartClock(&goToSleepClock, GOTOSLEEP_DEFAULT_TIMEOUT);
+			Climb_setWakeUpClock(WAKEUP_DEFAULT_TIMEOUT_SEC);
+			Util_restartClock(&goToSleepClock, GOTOSLEEP_DEFAULT_TIMEOUT_SEC*1000);
 
 		}else{ //if manually switched off, no automatic wakeup is setted
 			stopNode();
