@@ -528,6 +528,7 @@ public class ClimbService extends Service {
     public BluetoothDevice getBTDevice_ClimbMaster(){
         return mBTDevice;
     }
+
     ScanCallback mScanCallback = new ScanCallback() {
 
         @Override
