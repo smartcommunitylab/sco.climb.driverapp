@@ -431,6 +431,26 @@ public class ClimbService extends Service implements ClimbServiceInterface {
         return mScanning;
     }
 
+    public NodeState[] getNetworkState() {
+        ClimbNode master = nodeListGetConnectedMaster();
+        if (master == null) {
+            // TODO
+            return null;
+        }
+        ArrayList<MonitoredClimbNode> children = master.getMonitoredClimbNodeList();
+        NodeState[] nodeStates = new NodeState[children.size()];
+
+        for(int i = 0; i < children.size(); i++){
+            MonitoredClimbNode n = children.get(i);
+            nodeStates[i].nodeID = n.getNodeIDString();
+            nodeStates[i].state = n.getNodeState();
+            //TODO: fill timestamps
+        }
+
+        return nodeStates;
+    }
+
+
     private ClimbNode nodeListGet(String master) {  //TODO: include in nodeList
         for(int i = 0; i < nodeList.size(); i++){
             if( nodeList.get(i).getNodeID().equals(master) ){
@@ -531,7 +551,7 @@ public class ClimbService extends Service implements ClimbServiceInterface {
         }
     }
 
-
+    //-----------------------------------------------------
 
     public BluetoothDevice getBTDevice_ClimbMaster(){
         return mBTDevice;
