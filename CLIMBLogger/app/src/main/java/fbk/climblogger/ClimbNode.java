@@ -103,13 +103,13 @@
                 return mString;
             }
 
-            public String getAddress() {
-                return bleDevice.getAddress();
-            }
+            public String getAddress() { return bleDevice.getAddress(); }
 
             public String getName() {
                 return bleDevice.getName();
             }
+
+            public String getNodeID() { return getAddress(); }
 
             public BluetoothDevice getBleDevice() {
                 return bleDevice;
@@ -138,6 +138,16 @@
 
             public ArrayList<MonitoredClimbNode> getMonitoredClimbNodeList(){
                 return onBoardChildrenList;
+            }
+
+            public MonitoredClimbNode getChildByID(String id) {
+                for(int i = 0; i < onBoardChildrenList.size(); i++){
+                    if( onBoardChildrenList.get(i).getNodeIDString().equals(id) ){
+                        return onBoardChildrenList.get(i);
+                    }
+                }
+
+                return null;
             }
 
             public void updateScnMetadata(byte newRssi, byte[] newScanResponse){//, long millisNow) {//SparseArray<byte[]> newScanResponse){

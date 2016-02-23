@@ -431,16 +431,36 @@ public class ClimbService extends Service implements ClimbServiceInterface {
         return mScanning;
     }
 
-    public void onNodeClick(int groupPosition, int childPosition){
-        ClimbNode clickedNode = nodeList.get(groupPosition);
-        if(clickedNode.isMasterNode()){ //do something only if it is a master node
+    private ClimbNode nodeListGet(String master) {  //TODO: include in nodeList
+        for(int i = 0; i < nodeList.size(); i++){
+            if( nodeList.get(i).getNodeID().equals(master) ){
+                return nodeList.get(i);
+            }
+        }
 
-            if(mBluetoothGatt == null && childPosition == -1){
+        return null;
+    }
+
+    private ClimbNode nodeListGetConnectedMaster() {  //TODO: include in nodeList
+        for(int i = 0; i < nodeList.size(); i++){
+            if( nodeList.get(i).getConnectionState() ){
+                return nodeList.get(i);
+            }
+        }
+
+        return null;
+    }
+
+    public void connectMaster(String master) {
+        ClimbNode node = nodeListGet(master);
+        if (node != null && node.isMasterNode()) { //do something only if it is a master node
+
+            if (mBluetoothGatt == null) {
                 insertTag("Connecting_to_GATT");
-                mBTDevice = clickedNode.getBleDevice();
+                mBTDevice = node.getBleDevice();
                 mBluetoothGatt = mBTDevice.connectGatt(appContext, false, mGattCallback);
 
-                if(mBluetoothGatt == null){
+                if (mBluetoothGatt == null) {
                     Log.w(TAG, "connectGatt returned null!");
                 }
 
@@ -451,65 +471,67 @@ public class ClimbService extends Service implements ClimbServiceInterface {
                         "Connecting!",
                         Toast.LENGTH_SHORT).show();
                 return;
-            }
-
-            if(mBluetoothGatt != null && childPosition == -2){
-                //mBTDevice = clickedNode.getBleDevice();
-                insertTag("Disconnecting_from_GATT");
-
-                mBluetoothGatt.close();
-                mBluetoothGatt.disconnect();
-                mBluetoothGatt = null;
-                mBTService = null;
-                mCIPOCharacteristic = null;
-                mPICOCharacteristic = null;
-
-                //mBTDevice = null;
-
-                Log.i(TAG, "Climb master node disconnected!");
-                Toast.makeText(appContext,
-                        "Disconnecting...",
-                        Toast.LENGTH_SHORT).show();
-
-                if(mBTDevice != null) {
-                    int index = isAlreadyInList(mBTDevice);
-                    if (index >= 0) {
-                        nodeList.get(index).setConnectionState(false);
-                    } else {
-                        Log.d(TAG, "Master not found in the list, CHECK!!!!");
-                    }
-                }
-                broadcastUpdate(STATE_DISCONNECTED_FROM_CLIMB_MASTER);
-                return;
-            }
-
-            if(childPosition >= 0){ //il click è stato fatto su uno dei child, fagli fare il check in
-                MonitoredClimbNode monitoredChild = nodeList.get(groupPosition).getMonitoredClimbNodeList().get(childPosition);
-                if(monitoredChild != null){
-                    byte[] clickedChildID = monitoredChild.getNodeID();
-                    byte clickedChildState = monitoredChild.getNodeState();
-
-                    if(clickedChildState == 1){ //se lo stato è CHECKING
-                        byte[] gattData = {clickedChildID[0],  2}; //assegna lo stato ON_BAORD e invia tutto al gatt
-                        String tempString = "Acceptiong_node_"+clickedChildID[0];
-                        insertTag(tempString);
-                        mPICOCharacteristic.setValue(gattData);
-                        mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
-                    }else if(clickedChildState == 2) { //se lo stato è ON_BAORD
-                        byte[] gattData = {clickedChildID[0],  0}; //assegna lo stato BY_MYSELF e invia tutto al gatt
-                        String tempString = "Checking_out_node_"+clickedChildID[0];
-                        insertTag(tempString);
-                        mPICOCharacteristic.setValue(gattData);
-                        mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
-                    }
-                }
-            }else{
-            }
-        }else{
-            Log.i(TAG, "it isn't a climb master!!");
+            } // TODO: else exception
         }
     }
-    // Device scan callback.
+
+    public void disconnectMaster() { //TODO: handle several masters?
+        if (mBluetoothGatt != null) {
+            insertTag("Disconnecting_from_GATT");
+
+            mBluetoothGatt.close();
+            mBluetoothGatt.disconnect();
+            mBluetoothGatt = null;
+            mBTService = null;
+            mCIPOCharacteristic = null;
+            mPICOCharacteristic = null;
+
+            Log.i(TAG, "Climb master node disconnected!");
+            Toast.makeText(appContext,
+                    "Disconnecting...",
+                    Toast.LENGTH_SHORT).show();
+
+            if (mBTDevice != null) {
+                int index = isAlreadyInList(mBTDevice);
+                if (index >= 0) {
+                    nodeList.get(index).setConnectionState(false);
+                } else {
+                    Log.d(TAG, "Master not found in the list, CHECK!!!!");
+                }
+            }
+            broadcastUpdate(STATE_DISCONNECTED_FROM_CLIMB_MASTER);
+            return;
+        }
+    }
+
+    public void checkinChild(String child) {
+        ClimbNode master = nodeListGetConnectedMaster();
+        if (master == null) {
+            return; //TODO: exception
+        }
+        MonitoredClimbNode monitoredChild = master.getChildByID(child);
+        if(monitoredChild != null){
+            byte[] clickedChildID = monitoredChild.getNodeID();
+            byte clickedChildState = monitoredChild.getNodeState();
+
+            if(clickedChildState == 1){ //se lo stato è CHECKING
+                byte[] gattData = {clickedChildID[0],  2}; //assegna lo stato ON_BAORD e invia tutto al gatt
+                String tempString = "Acceptiong_node_"+clickedChildID[0];
+                insertTag(tempString);
+                mPICOCharacteristic.setValue(gattData);
+                mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
+            }else if(clickedChildState == 2) { //se lo stato è ON_BAORD
+                byte[] gattData = {clickedChildID[0],  0}; //assegna lo stato BY_MYSELF e invia tutto al gatt
+                String tempString = "Checking_out_node_"+clickedChildID[0];
+                insertTag(tempString);
+                mPICOCharacteristic.setValue(gattData);
+                mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
+
+            }
+        }
+    }
+
+
 
     public BluetoothDevice getBTDevice_ClimbMaster(){
         return mBTDevice;
@@ -860,14 +882,15 @@ public class ClimbService extends Service implements ClimbServiceInterface {
 
     private boolean addToList(ScanResult targetNode, long nowMillis){
         BluetoothDevice device = targetNode.getDevice();
+        //nodeID id =
         boolean isMaster = device.getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME);
         ClimbNode newNode = new ClimbNode(device,
+                                //id,
                                 (byte)targetNode.getRssi() ,
                                 targetNode.getScanRecord().getManufacturerSpecificData(TEXAS_INSTRUMENTS_MANUFACTER_ID),
                                 isMaster);
                                 //nowMillis);
         nodeList.add(newNode);
-        //broadcastUpdate(ACTION_DEVICE_ADDED_TO_LIST, EXTRA_INT_ARRAY, new int[]{nodeList.indexOf(newNode)});
         broadcastUpdate(ACTION_DEVICE_ADDED_TO_LIST);
         Log.d(TAG, "Node added with index: " + nodeList.indexOf(newNode));
         return true;
