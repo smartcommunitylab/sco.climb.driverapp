@@ -4,9 +4,65 @@
 .dapp-theme .btn-enroute {
     width: 100%;
 }
-.dapp-theme .swiper-slide {
+
+/* Wizard */
+
+.dapp-theme .dapp-wizard ion-content {
+    background-color: #d9e6ea;
+}
+.dapp-theme .dapp-wizard .dapp-logo {
+    padding: 0 6em;
+}
+.dapp-theme .dapp-wizard .swiper-slide {
     height: 100% !important;
 }
-.dapp-theme .swiper-slide .swiper-pagination {
+.dapp-theme .dapp-wizard .swiper-slide .swiper-pagination {
     display: none;
+}
+.dapp-theme .dapp-wizard .helptext {
+    text-align: center;
+    padding: 10px;
+}
+.dapp-theme .dapp-wizard .item {
+    background: transparent;
+    border-color: transparent;
+}
+.dapp-theme .dapp-wizard .item-select,
+.dapp-theme .dapp-wizard .item-input {
+    border-top: 0;
+    border-right: 0;
+    border-left: 0;
+    border-color: #b0bec5;
+    margin-bottom: 10px;
+}
+.dapp-theme .dapp-wizard ion-item.item-select-dapp i.icon {
+    float: right;
+}
+.dapp-theme .dapp-wizard .button.button-dapp {
+    text-transform: uppercase;
+}
+.dapp-theme .dapp-wizard .buttonbar .button {
+    text-transform: uppercase;
+}
+.dapp-theme .dapp-wizard .buttonbar .button.button-next {
+    float: right;
+}
+
+/* Components */
+
+.dapp-theme .button.button-dapp {
+    border-color: transparent;
+    background-color: #F29100;
+    color: #FFFFFF;
+}
+.dapp-theme .button.button-dapp.button-outline {
+    border-color: #F29100;
+    background-color: transparent;
+    color: #F29100;
+}
+.dapp-theme .button.button-dapp.button-clear {
+    border-color: transparent;
+    background: none;
+    box-shadow: none;
+    color: #F29100;
 }

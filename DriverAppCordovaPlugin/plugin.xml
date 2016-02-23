@@ -18,7 +18,7 @@
                     <param name="onload" value="true" />
                 </feature>
             </config-file>
-
             <source-file src="src/android/DriverAppPlugin.java" target-dir="src/it/smartcommunitylab/climb/dap" />
+            <!-- <lib-file src="src/android/libs/gcm.jar" /> -->
         </platform>
     </plugin>

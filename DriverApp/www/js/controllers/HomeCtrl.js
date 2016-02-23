@@ -6,9 +6,7 @@ angular.module('driverapp.controllers.home', [])
      */
     StorageSrv.reset();
 
-    StorageSrv.saveSchool({
-        'objectId': CONF.DEV_SCHOOLID
-    }).then(function (school) {
+    StorageSrv.saveSchool(CONF.DEV_SCHOOL).then(function (school) {
         /*
          * INIT!
          */
