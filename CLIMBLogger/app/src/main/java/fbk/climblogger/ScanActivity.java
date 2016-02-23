@@ -151,7 +151,7 @@ public class ScanActivity extends Activity {
             mClimbService.setHandler(mHandler);
             mClimbService.setContext(getApplicationContext());
             //IN QUESTO PUNTO RICHIEDI LA LISTA DI DISPOSITIVI INIZIALI PER INSERIRLA NELLA LISTVIEW
-            climbNodeList = mClimbService.getNodeList();
+            climbNodeList = mClimbService.getNodeList(); //Csaba: TODO replace
             //expandableListTitle = climbNodeList;
             //expandableListDetail = ExpandableListDataPump.getData(); //expandableListDetail conterrà le info aggiuntive
             //expandableListTitle = new ArrayList<String>(expandableListDetail.keySet()); //expandableListTitle dovrà contenere i nomi dei dispositivi direttamente visibili dallo smartphone
@@ -383,25 +383,19 @@ public class ScanActivity extends Activity {
     };*/
 
     ExpandableListView.OnGroupExpandListener mOnGroupExpandListener = new ExpandableListView.OnGroupExpandListener() {
-
         @Override
         public void onGroupExpand(int groupPosition) {
             Log.i(TAG, "Group expanded, position: " + groupPosition);
-            //ClimbNode clickedNode = climbNodeList.get(groupPosition);
-
-            mClimbService.onNodeClick(groupPosition, -1);
+            ClimbNode clickedNode = climbNodeList.get(groupPosition);
+            mClimbService.connectMaster(clickedNode.getNodeID());
             mVibrator.vibrate(ConfigVals.vibrationTimeout);
-
-
         }
     };
 
     ExpandableListView.OnGroupCollapseListener mOnGroupCollapseListener = new ExpandableListView.OnGroupCollapseListener() {
-
         @Override
         public void onGroupCollapse(int groupPosition) {
-
-            mClimbService.onNodeClick(groupPosition, -2);
+            mClimbService.disconnectMaster();
             mVibrator.vibrate(ConfigVals.vibrationTimeout);
         }
     };
@@ -410,8 +404,9 @@ public class ScanActivity extends Activity {
         @Override
         public boolean onChildClick(ExpandableListView parent, View v,
                                     int groupPosition, int childPosition, long id) {
-
-            mClimbService.onNodeClick(groupPosition,childPosition);
+            //TODO: implement
+            //ClimbNode clickedNode = climbNodeList.get(groupPosition,childPosition);
+            //mClimbService.checkinChild(clickedNode.getNodeID());
             mVibrator.vibrate(ConfigVals.vibrationTimeout);
 
             return false;
