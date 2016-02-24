@@ -561,20 +561,39 @@ public class ClimbService extends Service implements ClimbServiceInterface {
                 insertTag(tempString);
                 mPICOCharacteristic.setValue(gattData);
                 mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
-            }else if(clickedChildState == 2) { //se lo stato è ON_BAORD
+            } //TODO: error
+        } //TODO: error
+    }
 
     public void checkinChildren(String[] children) {
         for (String child : children) {
             checkinChild(child);
         }
     }
+
+    public void checkoutChild(String child) {
+        ClimbNode master = nodeListGetConnectedMaster();
+        if (master == null) {
+            return; //TODO: error
+        }
+        MonitoredClimbNode monitoredChild = master.getChildByID(child);
+        if(monitoredChild != null){
+            byte[] clickedChildID = monitoredChild.getNodeID();
+            byte clickedChildState = monitoredChild.getNodeState();
+
+            if(clickedChildState == 2) { //se lo stato è ON_BAORD
                 byte[] gattData = {clickedChildID[0],  0}; //assegna lo stato BY_MYSELF e invia tutto al gatt
                 String tempString = "Checking_out_node_"+clickedChildID[0];
                 insertTag(tempString);
                 mPICOCharacteristic.setValue(gattData);
                 mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
+            } //TODO: error
+        } //TODO: error
+    }
 
-            }
+    public void checkoutChildren(String[] children) {
+        for (String child : children) {
+            checkoutChild(child);
         }
     }
 

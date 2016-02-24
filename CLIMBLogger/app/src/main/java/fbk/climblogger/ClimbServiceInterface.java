@@ -31,7 +31,6 @@ public interface ClimbServiceInterface {
     //public void init();
     public void connectMaster(String master);
     public void disconnectMaster();
-
     //public void setNodeList(String[] master);
 
     public NodeState getNodeState(String id);
@@ -39,8 +38,8 @@ public interface ClimbServiceInterface {
 
     public void checkinChild(String child);
     public void checkinChildren(String[] children);
-    //public void checkoutChild(String child);
-    //public void checkoutChildren(String[] children);
+    public void checkoutChild(String child);
+    public void checkoutChildren(String[] children);
 
     ////public boolean ScheduleWakeUpCmd(int timeout_sec);
 }
