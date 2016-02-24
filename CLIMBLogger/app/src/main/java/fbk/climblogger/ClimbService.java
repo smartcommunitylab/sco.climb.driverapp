@@ -135,7 +135,9 @@ public class ClimbService extends Service implements ClimbServiceInterface {
         mBinder = new LocalBinder();
 
         if(nodeList == null)  nodeList = new ArrayList<ClimbNode>(); //crea la lista (vuota) che terrà conto dei dispositivi attualmente visibili
-        if(mBluetoothManager == null) initialize();
+        if(mBluetoothManager == null) {
+            initialize(); //TODO: handle error somehow
+        }
 
     }
 
@@ -214,7 +216,7 @@ public class ClimbService extends Service implements ClimbServiceInterface {
         return nodeList;
     }
 */
-    public int StartMonitoring(boolean enableDatalog){
+    public int StartMonitoring(boolean enableDatalog){ //TODO: not exposed in main API
 
         if(mBluetoothAdapter != null) {
 
@@ -254,7 +256,7 @@ public class ClimbService extends Service implements ClimbServiceInterface {
         StartMonitoring(true);
     }
 
-    public int StopMonitoring(){
+    public int StopMonitoring(){ //TODO: not exposed in main API
         if(mBluetoothAdapter != null) {
             mScanning = true;
             disableNodeTimeout();
@@ -274,7 +276,7 @@ public class ClimbService extends Service implements ClimbServiceInterface {
         return 1;
     }
 
-    public boolean insertTag(String tagDescriptiveString){
+    public boolean insertTag(String tagDescriptiveString){ //TODO: not exposed in main API
 
             if (logEnabled) {
                 if (mBufferedWriter != null) {
@@ -327,7 +329,7 @@ public class ClimbService extends Service implements ClimbServiceInterface {
             }
         }
 
-    public boolean SendCheckInAllCmd() {
+    public boolean SendCheckInAllCmd() { //TODO: not exposed in main API
         if (mBluetoothAdapter != null) {
 
             if (mBluetoothGatt == null) {
@@ -353,7 +355,7 @@ public class ClimbService extends Service implements ClimbServiceInterface {
         return false;
     }
 
-    public boolean SendCheckOutAllCmd(){
+    public boolean SendCheckOutAllCmd(){ //TODO: not exposed in main API
         if (mBluetoothAdapter != null) {
 
             if (mBluetoothGatt == null) {
@@ -696,8 +698,9 @@ public class ClimbService extends Service implements ClimbServiceInterface {
                 Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
                 insertTag("Connected_to_GATT");
 
+                //callback is called only after onServicesDiscovered()+getClimbService()
 
-            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) { //TODO: check if this was intentional or not. If not, try to do something.
 
                 Log.i(TAG, "Disconnected from GATT server. Status: " + status);
                 if(mBTDevice != null) {
@@ -722,7 +725,7 @@ public class ClimbService extends Service implements ClimbServiceInterface {
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTING;
                 Log.i(TAG, "Connecting to GATT server. Status: " + status);
 
-            }else if (newState == BluetoothProfile.STATE_DISCONNECTING) {
+            }else if (newState == BluetoothProfile.STATE_DISCONNECTING) {   //TODO: understand difference from DISCONNECTED
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_DISCONNECTING;
                 Log.i(TAG, "Disconnecting from GATT server. Status: " + status);
                 mBluetoothGatt.disconnect();
@@ -808,7 +811,7 @@ public class ClimbService extends Service implements ClimbServiceInterface {
             }
 
             //POI AVVIA IL PROCESSO PER AGGIORNARE LA UI
-            int index = isAlreadyInList(mBTDevice);
+            int index = isAlreadyInList(mBTDevice); // TODO: check multiple master case
             if (index >= 0) {
                 Log.d(TAG, "Found device is already in database and it is at index: " + index);
                 updateGATTMetadata(index, characteristic.getValue(), nowMillis);
