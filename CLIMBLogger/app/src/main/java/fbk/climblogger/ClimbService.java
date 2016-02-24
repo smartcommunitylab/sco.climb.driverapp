@@ -250,6 +250,10 @@ public class ClimbService extends Service implements ClimbServiceInterface {
         return 1;
     }
 
+    public void init() {
+        StartMonitoring(true);
+    }
+
     public int StopMonitoring(){
         if(mBluetoothAdapter != null) {
             mScanning = true;
