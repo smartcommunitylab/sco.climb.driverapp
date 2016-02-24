@@ -157,6 +157,15 @@
                 //lastContactMillis = millisNow;
             }
 
+            private MonitoredClimbNode findChildByID(byte[] id) {
+                for (MonitoredClimbNode n : onBoardChildrenList) {
+                    if (Arrays.equals(n.getNodeID(), id)) {
+                        return n;
+                    }
+                }
+                return null;
+            }
+
             public void updateGATTMetadata(int newRssi, byte[] cipo_metadata){//}, long millisNow) {//SparseArray<byte[]> newScanResponse){
                 //rssi = newRssi;
                 lastReceivedGattData = cipo_metadata;
