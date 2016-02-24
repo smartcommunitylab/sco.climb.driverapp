@@ -177,18 +177,13 @@
                     if(lastReceivedGattData[i] != 0 ) { //se l'ID è 0x00 scartalo
                         //if (lastReceivedGattData[i + 2] == 2) { //ON_BOARD
                             byte[] tempNodeID = { lastReceivedGattData[i] };//, lastReceivedGattData[i+1]};
-                            MonitoredClimbNode tempNode = new MonitoredClimbNode(tempNodeID,lastReceivedGattData[i+1],lastReceivedGattData[i+2]);//, millisNow);
-
-                            int pos = onBoardChildrenList.indexOf(tempNode);
-                            if(pos == -1){ //aggiungi il nodo
-                                onBoardChildrenList.add(tempNode);
-                            }else{  //aggiorna il nodo (sostituisci l'istanza)
-                                onBoardChildrenList.set(pos,tempNode);
+                            MonitoredClimbNode n = findChildByID(tempNodeID);
+                            if (n == null) {
+                                onBoardChildrenList.add(new MonitoredClimbNode(tempNodeID,lastReceivedGattData[i+1],lastReceivedGattData[i+2]));//, millisNow););
                             }
                         //}
                     }
                 }
-
             }
 
             public List<String> getClimbNeighbourList() {
