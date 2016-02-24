@@ -474,7 +474,7 @@ public class ClimbService extends Service implements ClimbServiceInterface {
 
     private ClimbNode nodeListGet(String master) {  //TODO: include in nodeList
         for(int i = 0; i < nodeList.size(); i++){
-            if( nodeList.get(i).getNodeID().equals(master) ){
+            if (nodeList.get(i).getNodeID().equals(master)) {
                 return nodeList.get(i);
             }
         }
@@ -484,7 +484,7 @@ public class ClimbService extends Service implements ClimbServiceInterface {
 
     private ClimbNode nodeListGetConnectedMaster() {  //TODO: include in nodeList
         for(int i = 0; i < nodeList.size(); i++){
-            if( nodeList.get(i).getConnectionState() ){
+            if (nodeList.get(i).getConnectionState()) {
                 return nodeList.get(i);
             }
         }
@@ -513,7 +513,7 @@ public class ClimbService extends Service implements ClimbServiceInterface {
                         Toast.LENGTH_SHORT).show();
                 return;
             } // TODO: else exception
-        }
+        } //TODO: expception
     }
 
     public void disconnectMaster() { //TODO: handle several masters?
