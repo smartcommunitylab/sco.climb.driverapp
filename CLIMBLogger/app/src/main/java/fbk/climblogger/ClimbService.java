@@ -562,6 +562,12 @@ public class ClimbService extends Service implements ClimbServiceInterface {
                 mPICOCharacteristic.setValue(gattData);
                 mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
             }else if(clickedChildState == 2) { //se lo stato è ON_BAORD
+
+    public void checkinChildren(String[] children) {
+        for (String child : children) {
+            checkinChild(child);
+        }
+    }
                 byte[] gattData = {clickedChildID[0],  0}; //assegna lo stato BY_MYSELF e invia tutto al gatt
                 String tempString = "Checking_out_node_"+clickedChildID[0];
                 insertTag(tempString);

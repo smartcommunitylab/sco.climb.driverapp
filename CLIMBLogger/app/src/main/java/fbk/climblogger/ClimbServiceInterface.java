@@ -38,7 +38,7 @@ public interface ClimbServiceInterface {
     public NodeState[] getNetworkState();
 
     public void checkinChild(String child);
-    //public void checkinChildren(String[] children);
+    public void checkinChildren(String[] children);
     //public void checkoutChild(String child);
     //public void checkoutChildren(String[] children);
 
