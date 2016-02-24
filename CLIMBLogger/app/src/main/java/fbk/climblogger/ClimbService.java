@@ -431,6 +431,27 @@ public class ClimbService extends Service implements ClimbServiceInterface {
         return mScanning;
     }
 
+    public NodeState getNodeState(String id){
+        ClimbNode master = nodeListGetConnectedMaster();
+        if (master == null) {
+            // TODO
+            return null;
+        }
+        ArrayList<MonitoredClimbNode> children = master.getMonitoredClimbNodeList();
+        NodeState nodeState = null;
+        for(int i = 0; i < children.size(); i++){
+            MonitoredClimbNode n = children.get(i);
+            if (n.getNodeIDString().equals(id)) {
+                nodeState = new NodeState();
+                nodeState.nodeID = n.getNodeIDString();
+                nodeState.state = n.getNodeState();
+                //TODO: fill timestamps
+                break;
+            }
+        }
+        return nodeState; //null if not found
+    }
+
     public NodeState[] getNetworkState() {
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
