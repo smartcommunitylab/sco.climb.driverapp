@@ -177,9 +177,13 @@
                     if(lastReceivedGattData[i] != 0 ) { //se l'ID è 0x00 scartalo
                         //if (lastReceivedGattData[i + 2] == 2) { //ON_BOARD
                             byte[] tempNodeID = { lastReceivedGattData[i] };//, lastReceivedGattData[i+1]};
+                            byte state = lastReceivedGattData[i+1];
+                            byte rssi = lastReceivedGattData[i+2];
                             MonitoredClimbNode n = findChildByID(tempNodeID);
                             if (n == null) {
                                 onBoardChildrenList.add(new MonitoredClimbNode(tempNodeID,lastReceivedGattData[i+1],lastReceivedGattData[i+2]));//, millisNow););
+                            } else {
+                                n.setNodeState(state);
                             }
                         //}
                     }
