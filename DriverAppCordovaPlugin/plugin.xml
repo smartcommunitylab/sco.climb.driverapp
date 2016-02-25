@@ -12,13 +12,31 @@
         </js-module>
 
         <platform name="android">
+            <config-file target="AndroidManifest.xml" parent="/*">
+                <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
+                <uses-permission android:name="android.permission.BLUETOOTH" />
+                <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+                <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+                <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+                <uses-permission android:name="android.permission.VIBRATE" />
+                <service android:name="fbk.climblogger.ClimbService" android:enabled="true" android:exported="false">
+                </service>
+            </config-file>
+
             <config-file target="res/xml/config.xml" parent="/*">
                 <feature name="DriverAppPlugin">
                     <param name="android-package" value="it.smartcommunitylab.climb.dap.DriverAppPlugin" />
                     <param name="onload" value="true" />
                 </feature>
             </config-file>
-            <source-file src="src/android/DriverAppPlugin.java" target-dir="src/it/smartcommunitylab/climb/dap" />
+
+            <source-file src="src/android/it/smartcommunitylab/climb/dap/DriverAppPlugin.java" target-dir="src/it/smartcommunitylab/climb/dap" />
+            <source-file src="src/android/fbk/climblogger/ClimbNode.java" target-dir="src/fbk/climblogger" />
+            <source-file src="src/android/fbk/climblogger/ClimbService.java" target-dir="src/fbk/climblogger" />
+            <source-file src="src/android/fbk/climblogger/ClimbServiceInterface.java" target-dir="src/fbk/climblogger" />
+            <source-file src="src/android/fbk/climblogger/ConfigVals.java" target-dir="src/fbk/climblogger" />
+            <source-file src="src/android/fbk/climblogger/MonitoredClimbNode.java" target-dir="src/fbk/climblogger" />
+
             <!-- <lib-file src="src/android/libs/gcm.jar" /> -->
         </platform>
     </plugin>
