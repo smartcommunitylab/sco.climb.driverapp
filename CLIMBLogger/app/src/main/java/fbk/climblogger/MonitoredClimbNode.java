@@ -10,6 +10,7 @@ public class MonitoredClimbNode{
     private byte[] nodeID = {};
     private byte   nodeState = 5; //5 = INVALID_STATE
     private long lastContactMillis = 0;
+    private long lastStateChangeMillis = 0;
     private boolean timedOut = false;
     private byte RSSI;
 
@@ -33,6 +34,7 @@ public class MonitoredClimbNode{
         timedOut = false;
         RSSI = newRSSI;
         lastContactMillis = newLastContactMillis;
+        lastStateChangeMillis = lastContactMillis;
     }
 
     public void setTimedOut(boolean value){
@@ -61,12 +63,19 @@ public class MonitoredClimbNode{
         return lastContactMillis;
     }
 
-    public void setNodeState(byte newState){
+    public long getLastStateChangeMillis(){
+        return lastStateChangeMillis;
+    }
+
+    public void setNodeState(byte newState){ // TODO: handle lastStateChangeMillis
         nodeState = newState;
     }
 
     public void setNodeState(byte newState, long newLastContactMillis){
-        nodeState = newState;
+        if (nodeState != newState) {
+            nodeState = newState;
+            lastStateChangeMillis = newLastContactMillis;
+        }
         lastContactMillis = newLastContactMillis;
     }
 
