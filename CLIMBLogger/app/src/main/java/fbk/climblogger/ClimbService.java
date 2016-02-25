@@ -437,6 +437,16 @@ public class ClimbService extends Service implements ClimbServiceInterface {
         return mScanning;
     }
 
+    public String[] getMasters() {
+        ArrayList<String> ids = new ArrayList<>();
+        for(ClimbNode n : nodeList) {
+            if (n.isMasterNode()) {
+                ids.add(n.getNodeID());
+            }
+        }
+        return ids.toArray(new String[ids.size()]);
+    }
+
     public NodeState getNodeState(String id){
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {

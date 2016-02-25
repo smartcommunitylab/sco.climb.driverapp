@@ -29,6 +29,7 @@ public interface ClimbServiceInterface {
     //public ArrayList getNodeList();
 
     public void init();
+    public String[] getMasters();
     public void connectMaster(String master);
     public void disconnectMaster();
     //public void setNodeList(String[] master);
