@@ -1,5 +1,5 @@
 <ion-view>
-    <ion-nav-buttons side="left">
+    <!--<ion-nav-buttons side="left">
         <button class="button no-animation" ion-wizard-previous>
             Indietro
         </button>
@@ -11,14 +11,14 @@
         <button class="button no-animation" ion-wizard-start="saveWizardChoices()">
             Inizia
         </button>
-    </ion-nav-buttons>
+    </ion-nav-buttons>-->
 
     <ion-slides class="dapp-wizard" options="swiperOptions" slider="swiper" ion-wizard>
         <!-- School & Route -->
         <ion-slide-page class="swiper-no-swiping" ion-wizard-step next-condition="!!wizard.school && !!wizard.route">
             <ion-content class="has-header">
                 <div class="padding-horizontal">
-                    <img class="dapp-logo" src="../img/climb_logo.png" />
+                    <img class="dapp-logo" src="img/climb_logo.png" />
                     <div class="helptext">
                         Benvenuto, ti chiediamo 3 minuti per configurare la tua app
                     </div>
@@ -41,16 +41,16 @@
         <ion-slide-page class="swiper-no-swiping" ion-wizard-step next-condition="!!wizard.driver">
             <ion-content class="has-header">
                 <div class="padding-horizontal">
-                    <img class="dapp-logo" src="../img/climb_logo.png" />
+                    <img class="dapp-logo" src="img/climb_logo.png" />
                     <div class="helptext">
                         Accedi con le tue credenziali
                     </div>
                     <ion-item class="item-select" ng-click="selectDriverPopup()">
                         <span>{{wizard.driver ? wizard.driver.name : 'Chi sei?'}}</span>
                     </ion-item>
-                    <ion-item class="item-input">
+                    <!--<ion-item class="item-input">
                         <input type="password" placeholder="Password">
-                    </ion-item>
+                    </ion-item>-->
                     <div class="buttonbar">
                         <button class="button button-dapp button-clear" ion-wizard-previous>Indietro</button>
                         <button class="button button-dapp button-clear button-next" ion-wizard-next>Avanti</button>
@@ -63,7 +63,7 @@
             <ion-content class="has-header">
                 <!--<ion-content class="has-header" scroll="false">-->
                 <div class="padding">
-                    <img class="dapp-logo" src="../img/climb_logo.png" />
+                    <img class="dapp-logo" src="img/climb_logo.png" />
                     <div class="helptext">
                         Ciao <strong>{{wizard.driver.name}}</strong>! Oggi accompagnerai la <strong>{{wizard.route.name}}</strong> assieme a:
                     </div>

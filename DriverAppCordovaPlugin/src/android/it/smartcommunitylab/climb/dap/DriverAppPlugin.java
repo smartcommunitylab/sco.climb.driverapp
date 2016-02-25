@@ -9,15 +9,24 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
+import android.os.Handler;
+import android.os.IBinder;
 import android.util.Log;
+import fbk.climblogger.ClimbService;
+import fbk.climblogger.ClimbServiceInterface.NodeState;
 
 public class DriverAppPlugin extends CordovaPlugin {
 	private static final String LOG_TAG = "DriverAppPlugin";
-	BroadcastReceiver receiver;
+
+	private ClimbService mClimbService = null;
+	private BroadcastReceiver receiver = null;
 	private CallbackContext callbackContext = null;
 
 	public DriverAppPlugin() {
@@ -27,7 +36,13 @@ public class DriverAppPlugin extends CordovaPlugin {
 	@Override
 	public void initialize(CordovaInterface cordova, CordovaWebView webView) {
 		super.initialize(cordova, webView);
-		// your init code here
+
+		Log.d(LOG_TAG, "context: " + webView.getContext());
+
+		Intent climbServiceIntent = new Intent(webView.getContext(), ClimbService.class);
+		Log.d(LOG_TAG, "climbServiceIntent: " + climbServiceIntent);
+		boolean bound = webView.getContext().bindService(climbServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+		Log.d(LOG_TAG, "bound? " + bound);
 	}
 
 	@Override
@@ -70,9 +85,20 @@ public class DriverAppPlugin extends CordovaPlugin {
 			return true;
 		}
 
+		if (action.equals("getNetworkState")) {
+			Log.d(LOG_TAG, "action: getNetworkState");
+			NodeState[] networkState = mClimbService.getNetworkState();
+			String status = networkState != null ? networkState.length + " nodes connected" : "No master connected!";
+			Log.d(LOG_TAG, "networkState: " + status);
+			callbackContext.success("networkState: " + status);
+			return true;
+		}
+
 		if (action.equals("test")) {
+			Log.d(LOG_TAG, "action: test");
 			String name = data.getString(0);
-			String message = "TEST: " + name;
+			String message = "Hello, " + name;
+			Log.d(LOG_TAG, "test: " + message);
 			callbackContext.success(message);
 			return true;
 		}
@@ -119,4 +145,20 @@ public class DriverAppPlugin extends CordovaPlugin {
 			}
 		}
 	}
+
+	private final ServiceConnection mServiceConnection = new ServiceConnection() {
+		@Override
+		public void onServiceConnected(ComponentName className, IBinder service) {
+			mClimbService = ((ClimbService.LocalBinder) service).getService();
+	        //mClimbService.setHandler(new Handler());
+	        //mClimbService.setContext(webView.getContext());
+			Log.d(LOG_TAG, "climbService: " + mClimbService);
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName className) {
+			mClimbService = null;
+			Log.d(LOG_TAG, "climbService: " + mClimbService);
+		}
+	};
 }

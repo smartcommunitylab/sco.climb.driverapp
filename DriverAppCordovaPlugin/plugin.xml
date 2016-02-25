@@ -12,15 +12,21 @@
         </js-module>
 
         <platform name="android">
-            <config-file target="AndroidManifest.xml" parent="/*">
+            <config-file target="AndroidManifest.xml" parent="/manifest/application">
+          		<service android:name="fbk.climblogger.ClimbService" android:enabled="true" android:exported="false"></service>
+          	</config-file>
+
+            <config-file target="AndroidManifest.xml" parent="/manifest">
                 <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
                 <uses-permission android:name="android.permission.BLUETOOTH" />
                 <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
                 <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
                 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
                 <uses-permission android:name="android.permission.VIBRATE" />
-                <service android:name="fbk.climblogger.ClimbService" android:enabled="true" android:exported="false">
-                </service>
+
+                <intent-filter>
+        			<action android:name="fbk.climblogger.ClimbService" />
+    			</intent-filter>
             </config-file>
 
             <config-file target="res/xml/config.xml" parent="/*">

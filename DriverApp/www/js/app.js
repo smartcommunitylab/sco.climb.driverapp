@@ -36,7 +36,19 @@ angular.module('driverapp', [
                 function (response) {
                     $rootScope.PLUGIN_TEST = response;
                 },
-                function (responseError) {});
+                function (responseError) {
+                    console.log(responseError);
+                }
+            );
+
+            window.DriverAppPlugin.getNetworkState(
+                function (response) {
+                    var networkState = response;
+                },
+                function (responseError) {
+                    console.log(responseError);
+                }
+            );
         }
     });
 })

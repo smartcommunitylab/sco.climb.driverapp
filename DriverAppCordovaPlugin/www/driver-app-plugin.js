@@ -2,7 +2,10 @@
 var serviceName = 'DriverAppPlugin';
 
 module.exports = {
-    test: function (name, successCallback, errorCallback) {
-        cordova.exec(successCallback, errorCallback, serviceName, 'test', [name]);
-    }
+	getNetworkState : function(successCallback, errorCallback) {
+		cordova.exec(successCallback, errorCallback, serviceName, 'getNetworkState', []);
+	},
+	test : function(name, successCallback, errorCallback) {
+		cordova.exec(successCallback, errorCallback, serviceName, 'test', [ name ]);
+	}
 };
