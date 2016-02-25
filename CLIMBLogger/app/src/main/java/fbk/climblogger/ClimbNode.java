@@ -184,6 +184,7 @@
                                 onBoardChildrenList.add(new MonitoredClimbNode(tempNodeID,lastReceivedGattData[i+1],lastReceivedGattData[i+2]));//, millisNow););
                             } else {
                                 n.setNodeState(state);
+                                n.setNodeRssi(rssi);
                             }
                         //}
                     }
