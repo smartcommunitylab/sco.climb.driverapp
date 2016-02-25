@@ -56,6 +56,11 @@ public class MonitoredClimbNode{
     public void setNodeState(byte newState){
         nodeState = newState;
     }
+
+    public void setNodeRssi(byte newRssi) {
+        RSSI = newRssi;
+    }
+
 /*
     public void setLastContactMillis(long newLastContactMillis){
         lastContactMillis = newLastContactMillis;
