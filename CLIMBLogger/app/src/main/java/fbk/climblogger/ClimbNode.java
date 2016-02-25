@@ -166,7 +166,7 @@
                 return null;
             }
 
-            public void updateGATTMetadata(int newRssi, byte[] cipo_metadata){//}, long millisNow) {//SparseArray<byte[]> newScanResponse){
+            public void updateGATTMetadata(int newRssi, byte[] cipo_metadata, long millisNow) {//SparseArray<byte[]> newScanResponse){
                 //rssi = newRssi;
                 lastReceivedGattData = cipo_metadata;
                 timedOut = false;
@@ -181,9 +181,9 @@
                             byte rssi = lastReceivedGattData[i+2];
                             MonitoredClimbNode n = findChildByID(tempNodeID);
                             if (n == null) {
-                                onBoardChildrenList.add(new MonitoredClimbNode(tempNodeID,lastReceivedGattData[i+1],lastReceivedGattData[i+2]));//, millisNow););
+                                onBoardChildrenList.add(new MonitoredClimbNode(tempNodeID, state, rssi, millisNow));
                             } else {
-                                n.setNodeState(state);
+                                n.setNodeState(state, millisNow);
                                 n.setNodeRssi(rssi);
                             }
                         //}
