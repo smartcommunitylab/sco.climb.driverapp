@@ -451,7 +451,8 @@ public class ClimbService extends Service implements ClimbServiceInterface {
                 nodeState = new NodeState();
                 nodeState.nodeID = n.getNodeIDString();
                 nodeState.state = n.getNodeState();
-                //TODO: fill timestamps
+                nodeState.lastSeen = n.getLastContactMillis();
+                nodeState.lastStateChange = n.getLastStateChangeMillis();
                 break;
             }
         }
@@ -471,7 +472,8 @@ public class ClimbService extends Service implements ClimbServiceInterface {
             MonitoredClimbNode n = children.get(i);
             nodeStates[i].nodeID = n.getNodeIDString();
             nodeStates[i].state = n.getNodeState();
-            //TODO: fill timestamps
+            nodeStates[i].lastSeen = n.getLastContactMillis();
+            nodeStates[i].lastStateChange = n.getLastStateChangeMillis();
         }
 
         return nodeStates;
@@ -1106,7 +1108,7 @@ public class ClimbService extends Service implements ClimbServiceInterface {
                     if(childNode.getNodeState() == 2 || childNode.getNodeState() == 3) { //dai l'allert solo se il nodo è monitorato (è nello stato ON_BOARD o ALERT)
                         //long millisSinceLastScan = nowMillis - childNode.getLastContactMillis();
                         if (childNode.getTimedOut()) {
-                            childNode.setNodeState((byte) 3); //setta lo stato ALERT
+                            childNode.setNodeState((byte) 3); //setta lo stato ALERT TODO: timestamp
                             byte [] childID = childNode.getNodeID();
                             broadcastUpdate(ACTION_NODE_ALERT, EXTRA_BYTE_ARRAY, childNode.getNodeID());
 
