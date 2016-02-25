@@ -27,6 +27,14 @@ public class MonitoredClimbNode{
         RSSI = newRSSI;
     }
 
+    public MonitoredClimbNode(byte[] newNodeID, byte newNodeState, byte newRSSI, long newLastContactMillis){
+        nodeID = newNodeID;
+        nodeState = newNodeState;
+        timedOut = false;
+        RSSI = newRSSI;
+        lastContactMillis = newLastContactMillis;
+    }
+
     public void setTimedOut(boolean value){
         timedOut = value;
     }
