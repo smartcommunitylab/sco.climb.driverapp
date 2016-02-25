@@ -65,15 +65,15 @@ public class MonitoredClimbNode{
         nodeState = newState;
     }
 
+    public void setNodeState(byte newState, long newLastContactMillis){
+        nodeState = newState;
+        lastContactMillis = newLastContactMillis;
+    }
+
     public void setNodeRssi(byte newRssi) {
         RSSI = newRssi;
     }
 
-/*
-    public void setLastContactMillis(long newLastContactMillis){
-        lastContactMillis = newLastContactMillis;
-    }
-*/
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {
