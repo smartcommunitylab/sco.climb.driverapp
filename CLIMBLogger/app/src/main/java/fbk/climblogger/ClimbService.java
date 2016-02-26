@@ -503,7 +503,13 @@ public class ClimbService extends Service {
                     byte[] clickedChildID = monitoredChild.getNodeID();
                     byte clickedChildState = monitoredChild.getNodeState();
 
-                    if(clickedChildState == 1){ //se lo stato è CHECKING
+                    if(clickedChildState == 0) { //se lo stato è BY_MYSELF e voglio forzare il cambio di stato...
+                        byte[] gattData = {clickedChildID[0], 1}; //assegna lo stato ON_BAORD e invia tutto al gatt
+                        String tempString = "Check_node_" + clickedChildID[0];
+                        insertTag(tempString);
+                        mPICOCharacteristic.setValue(gattData);
+                        mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
+                    }else if(clickedChildState == 1){ //se lo stato è CHECKING
                         byte[] gattData = {clickedChildID[0],  2}; //assegna lo stato ON_BAORD e invia tutto al gatt
                         String tempString = "Acceptiong_node_"+clickedChildID[0];
                         insertTag(tempString);
@@ -747,6 +753,7 @@ public class ClimbService extends Service {
             if (index >= 0) {
                 Log.d(TAG, "Found device is already in database and it is at index: " + index);
                 updateGATTMetadata(index, characteristic.getValue(), nowMillis);
+                checkNodeStates(index);
             } else {
                 Log.d(TAG, "New device found, it should be already in the list...verify!");
             }
@@ -900,6 +907,61 @@ public class ClimbService extends Service {
         return true;
     }
 
+    private void checkNodeStates(int index){ //
+        ClimbNode nodeUnderCheck = nodeList.get(index);
+
+        byte[] gattData = new byte[20];
+        int gattDataIndex = 0;
+
+        if(nodeUnderCheck != null) {
+            ArrayList<MonitoredClimbNode> monitoredClimbNodeList = nodeUnderCheck.getMonitoredClimbNodeList();
+            if(monitoredClimbNodeList != null) {
+                for (int i = 0; i < monitoredClimbNodeList.size(); i++) { //non servirebbe controllare tutta la lista, basterebbe controllare i contatti inviati tramite l'ultimo messaggio gatt. Per ora faccio così per comodità
+                    MonitoredClimbNode tempNode = monitoredClimbNodeList.get(i);
+                    byte[] tempNodeID = tempNode.getNodeID();
+                    byte tempNodeState = tempNode.getNodeState();
+                    switch (tempNodeState){
+                        case 0x00: //BY_MYSELF
+                            if(!tempNode.getAutomaticStateChangeRequest()) { //se la richiesta è già stata fatta non ripeterla
+                                if (isMyChild(tempNodeID)) {
+                                    gattData[gattDataIndex++] = tempNodeID[0];
+                                    gattData[gattDataIndex++] = 0x01;
+                                    tempNode.setAutomaticStateChangeRequested(true); //evita di richiedere il cambio di stato continuamente
+                                }
+                            }
+                            break;
+                        case 0x01: //CHECKING
+                            break;
+                        case 0x02:  //ON_BOARD
+                            break;
+                        case 0x03: //ALERT
+                            break;
+                        default:    //INVALID STATE
+                            break;
+                    }
+
+                    if( (gattDataIndex >= 19 || i == monitoredClimbNodeList.size()-1) && gattDataIndex > 0){ //ATTENZIONE, SE SI METTONO IN CHECKING PIU DI 10 NODI SI RISCHIA DI RICHIAMARE writeCharacteristic più volte velocemente, e non è chiaro cosa possa succedere
+                        if(mPICOCharacteristic != null && mBluetoothGatt != null) {
+                            mPICOCharacteristic.setValue(gattData);
+                            mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
+
+                            //return;
+
+                            gattData = new byte[20];
+                            gattDataIndex = 0;
+                        }else{
+                            Log.w(TAG, "mPICOCharacteristic or mBluetoothGatt == null" );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean isMyChild(byte[] nodeID){
+        return true;
+    }
+
     private String startDataLog(){
         //TODO:se il file c'� gi� non crearlo, altrimenti creane un'altro
         if(mBufferedWriter == null){ // il file non � stato creato, quindi crealo
@@ -1035,7 +1097,7 @@ public class ClimbService extends Service {
                 for(int i = 0; i < childrenList.size(); i++) {
                     MonitoredClimbNode childNode = childrenList.get(i);
 
-                    if(childNode.getNodeState() == 2 || childNode.getNodeState() == 3) { //dai l'allert solo se il nodo è monitorato (è nello stato ON_BOARD o ALERT)
+                    if(childNode.getNodeState() == 2 || childNode.getNodeState() == 3) { //dai l'alert solo se il nodo è monitorato (è nello stato ON_BOARD o ALERT)
                         //long millisSinceLastScan = nowMillis - childNode.getLastContactMillis();
                         if (childNode.getTimedOut()) {
                             childNode.setNodeState((byte) 3); //setta lo stato ALERT

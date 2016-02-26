@@ -165,6 +165,12 @@
                             if(pos == -1){ //aggiungi il nodo
                                 onBoardChildrenList.add(tempNode);
                             }else{  //aggiorna il nodo (sostituisci l'istanza)
+                                MonitoredClimbNode tempNode2 = onBoardChildrenList.get(pos);
+
+                                if(tempNode2.getNodeState() != tempNode.getNodeState()){
+                                    tempNode.setAutomaticStateChangeRequested(false);
+                                }
+
                                 onBoardChildrenList.set(pos,tempNode);
                             }
                         //}
@@ -243,27 +249,8 @@
                                 }
                             }*/
                             return neighbourList;
-                        } else {
-                            if (scanResponseData != null) {
-                                for (int i = 0; i < scanResponseData.length-1; i = i + 3) { //SE NON E' INCLUSO L'RSSI NELLE SCAN RESPONSE i + 2, SE L'RSSI E' INCLUSO i + 3
-                                    if(scanResponseData[i] != 0) { //scarta l'indirizzo 0x00
-                                        if (scanResponseData[i + 1] == 0) {   //BY_MYSELF
-                                            description = "Node ID: 0x" + String.format("%02X", scanResponseData[i]) + ", State: " + "BY MYSELF";
-                                        } else if (scanResponseData[i + 1] == 1) { //CHECKING
-                                            description = "Node ID: 0x" + String.format("%02X", scanResponseData[i]) + ", State: " + "CHECKING";
-                                        } else if (scanResponseData[i + 1] == 2) { //ON_BOARD
-                                            description = "Node ID: 0x" + String.format("%02X", scanResponseData[i]) + ", State: " + "ON BOARD";
-                                        } else if (scanResponseData[i + 1] == 3) { //ALERT
-                                            description = "Node ID: 0x" + String.format("%02X", scanResponseData[i]) + ", State: " + "ALERT";
-                                        } else if (scanResponseData[i + 1] == 3) { //ERROR
-                                            description = "Node ID: 0x" + String.format("%02X", scanResponseData[i]) + ", State: " + "ERROR";
-                                        } else { //INVALID STATE
-                                            description = "Node ID: 0x" + String.format("%02X", scanResponseData[i]) + ", State: " + "INVALID STATE";
-                                        }
-                                    }
-                                    neighbourList.add(description);
-                                }
-                            }
+                        } else {//master not connected
+
                             return neighbourList;
                         }
 

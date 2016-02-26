@@ -9,6 +9,7 @@ public class MonitoredClimbNode{
 
     private byte[] nodeID = {};
     private byte   nodeState = 5; //5 = INVALID_STATE
+    private boolean stateChangeRequested = false; //questo è necessario per evitare di richiere continuamente un cambio di stato automatico (i.e. da BY_MYSELF a CHECKING)
     private long lastContactMillis = 0;
     private boolean timedOut = false;
     private byte RSSI;
@@ -51,6 +52,14 @@ public class MonitoredClimbNode{
 
     public void setNodeState(byte newState){
         nodeState = newState;
+    }
+
+    public void setAutomaticStateChangeRequested(boolean requested){ //questo è necessario per evitare di richiere continuamente un cambio di stato automatico (i.e. da BY_MYSELF a CHECKING)
+        stateChangeRequested = requested;
+    }
+
+    public boolean getAutomaticStateChangeRequest(){ //questo è necessario per evitare di richiere continuamente un cambio di stato automatico (i.e. da BY_MYSELF a CHECKING)
+        return stateChangeRequested;
     }
 /*
     public void setLastContactMillis(long newLastContactMillis){
