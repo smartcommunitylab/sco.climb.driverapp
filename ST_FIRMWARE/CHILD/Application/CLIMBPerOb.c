@@ -435,7 +435,8 @@ static void CLIMB_FlashLed(PIN_Id pinId);
 static void CLIMB_handleKeys(uint8 keys);
 static void startNode();
 static void stopNode();
-static void destroyNodeLists();
+static void destroyChildNodeList();
+static void destroyMasterNodeList();
 static void Climb_setAsConnectable();
 static void Climb_setAsNonConnectable();
 //static void Key_callback(PIN_Handle handle, PIN_Id pinId);
@@ -1661,8 +1662,10 @@ static uint8 Climb_checkNodeState(gapDeviceInfoEvent_t *gapDeviceInfoEvent_a) {
 				myMasterAddr[i] = 0;
 			}
 
-			Util_restartClock(&goToSleepClock, 20000); //schedula lo spegnimento automatico
-			readyToGoSleeping = 1;
+			if (nodeState == ON_BOARD || nodeState == ALERT) { //il passaggio da ON_BOARD o (ALERT) a BY_MYSELF triggera lo spegnimento del nodo
+				Util_restartClock(&goToSleepClock, 20000); //schedula lo spegnimento automatico
+				readyToGoSleeping = 1;
+			}
 			//}
 			break;
 		case CHECKING:
@@ -1688,8 +1691,9 @@ static uint8 Climb_checkNodeState(gapDeviceInfoEvent_t *gapDeviceInfoEvent_a) {
 			}
 			break;
 
-		case ALERT://broadcasting ALERT to everybody is not supported for now
-			break;
+		case ALERT:
+			return 0;
+			//break;
 
 		case INVALID_STATE://check to see if there is a broadcast message in this packet
 			if (nodeState == BY_MYSELF) { //broadcast message can be received only if I have a myMaster Node
@@ -1821,7 +1825,7 @@ static uint8 Climb_decodeBroadcastedMessage(gapDeviceInfoEvent_t *gapDeviceInfoE
 
 						switch(broadcastMsgType) {
 						case BROADCAST_MSG_TYPE_STATE_UPDATE_CMD:
-							//return (ChildClimbNodeStateType_t) (gapDeviceInfoEvent_a->pEvtData[index + 2]); //return broadcasted state
+							//THIS MESSAGE IS DECODED IN Climb_findMyBroadcastedState(...);
 							break;
 
 						case BROADCAST_MSG_TYPE_WU_SCHEDULE_CMD:
@@ -2140,9 +2144,19 @@ static void Climb_epochStartHandler(){
  *
  * @return  none
  */
-static void Climb_goToSleepHandler(){ //NB: quando lo sleep è forzato dal master tramite readyToGoSleeping, questa funzione non è richiamata, il wakeUoClock è gia stato avviato quando è stata settata readyToGoSleeping
+static void Climb_goToSleepHandler(){
 
 	stopNode();
+
+	destroyChildNodeList();
+	destroyMasterNodeList();
+
+	uint8 i;
+	for (i = 0; i < B_ADDR_LEN; i++) { //resetta l'indirizzo del MY_MASTER
+		myMasterAddr[i] = 0;
+	}
+
+	Climb_updateMyBroadcastedState(BY_MYSELF);
 
 }
 
@@ -2247,6 +2261,22 @@ static void CLIMB_handleKeys(uint8 keys) {
 
 		}else{ //if manually switched off, no automatic wakeup is setted
 			stopNode();
+
+			destroyChildNodeList();
+
+			if(nodeState != ON_BOARD){
+				destroyMasterNodeList();
+
+				uint8 i;
+				for (i = 0; i < B_ADDR_LEN; i++) { //resetta l'indirizzo del MY_MASTER
+					myMasterAddr[i] = 0;
+				}
+
+				Climb_updateMyBroadcastedState(BY_MYSELF);
+			}else{
+				Climb_updateMyBroadcastedState(nodeState);
+			}
+
 			Util_stopClock(&wakeUpClock);
 			Util_stopClock(&goToSleepClock);
 		}
@@ -2303,37 +2333,50 @@ static void stopNode() {
 	uint8 status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED, sizeof(uint8_t), &adv_active);
 
 	Util_stopClock(&periodicClock);
-	destroyNodeLists();
+
 	CLIMB_FlashLed(Board_LED1);
-	//TODO: liberare la memoria occupata dalla lista dei child e dei master!
+
 #ifdef WORKAROUND
 	Util_stopClock(&epochClock);
 #endif
 }
 /*********************************************************************
- * @fn      destroyNodeLists
+ * @fn      destroyChildNodeList
  *
- * @brief   Destroy master and child lists
+ * @brief   Destroy child list
  *
 
  * @return  none
  */
-static void destroyNodeLists() {
+static void destroyChildNodeList() {
 
 
 	listNode_t* targetNode = childListRootPtr;
 	while (targetNode != NULL) { //NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
 
-		targetNode = Climb_removeNode(targetNode, NULL); //rimuovi il nodo
-
+		Climb_removeNode(targetNode, NULL); //rimuovi il primo nodo
+		targetNode = childListRootPtr;
 		//NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
 	}
 
-	targetNode = masterListRootPtr;
+}
+/*********************************************************************
+ * @fn      destroyMasterNodeList
+ *
+ * @brief   Destroy master list
+ *
+
+ * @return  none
+ */
+static void destroyMasterNodeList() {
+
+
+	listNode_t* targetNode = masterListRootPtr;
+
 	while (targetNode != NULL) { //NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
 
-		targetNode = Climb_removeNode(targetNode, NULL); //rimuovi il nodo
-
+		Climb_removeNode(targetNode, NULL); //rimuovi il nodo
+		targetNode = masterListRootPtr;
 		//NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
 	}
 }
