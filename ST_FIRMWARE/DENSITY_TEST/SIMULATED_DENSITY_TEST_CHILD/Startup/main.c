@@ -43,6 +43,7 @@
 #include "bcomdef.h"
 #include "peripheralObserver.h"
 #include "CLIMBPerOb.h"
+#include "Keys_task.h"
 #ifdef PRINTF_ENABLED
 #include "uart_printf.h"
 //#include "UART.h"
@@ -80,8 +81,7 @@ extern uint32_t ti_sysbios_family_arm_m3_Hwi_resetVectors;
 /*
  *  ======== main ========
  */
-int main()
-{
+int main(){
   PIN_init(BoardGpioInitTable);
 
 #ifndef POWER_SAVING
@@ -100,12 +100,13 @@ int main()
     // Enable System_printf(..) UART output
     UART_Params uartParams;
     UART_Params_init(&uartParams);
-    uartParams.baudRate = 921600; //3000000;//1843200;
+    uartParams.baudRate = 921600;
     UartPrintf_init(UART_open(Board_UART, &uartParams));
 #endif
     /* Kick off profile - Priority 3 */
     GAPRole_createTask();
     
+    Keys_createTask();
     SimpleBLEPeripheral_createTask();
 
 #ifdef FEATURE_OAD

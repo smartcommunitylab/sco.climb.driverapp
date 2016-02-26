@@ -96,7 +96,7 @@
 #ifdef WORKAROUND
 #define DEFAULT_ADVERTISING_INTERVAL          3200
 #else
-#define DEFAULT_ADVERTISING_INTERVAL          1616
+#define DEFAULT_ADVERTISING_INTERVAL          1800//1616
 #endif
 #define EPOCH_PERIOD						  1000
 
@@ -148,7 +148,7 @@
 #define DEFAULT_DISCOVERY_WHITE_LIST          FALSE
 
 // Maximum number of scan responses to be reported to application
-#define DEFAULT_MAX_SCAN_RES                  30
+#define DEFAULT_MAX_SCAN_RES                  50
 
 // How often to perform periodic event (in msec)
 #define PERIODIC_EVT_PERIOD_MSEC               5000
@@ -180,6 +180,9 @@
 
 #define MAX_ALLOWED_TIMER_DURATION_SEC	      42000 //actual max timer duration 42949.67sec
 
+#define NUMBER_OF_SIMULATED_NODES			 6
+#define STARTING_ID							 (8-1)*NUMBER_OF_SIMULATED_NODES+1
+
 // Task configuration
 #define SBP_TASK_PRIORITY                     1
 
@@ -201,7 +204,7 @@
 #define EPOCH_EVT							0x0200
 #define WAKEUP_TIMEOUT_EVT					0x0400
 #define GOTOSLEEP_TIMEOUT_EVT				0x0800
-#define RESTART_SCAN_EVT					0x1000
+#define RESTART_ADV_EVT					0x1000
 /*********************************************************************
  * TYPEDEFS
  */
@@ -275,7 +278,7 @@ static Clock_Struct connectableTimeoutClock;
 static Clock_Struct wakeUpClock;
 static Clock_Struct goToSleepClock;
 
-static Clock_Struct scanRestartClock;
+static Clock_Struct advRestartClock;
 #ifdef WORKAROUND
 static Clock_Struct epochClock;
 #endif
@@ -292,11 +295,19 @@ Char sbpTaskStack[SBP_TASK_STACK_SIZE];
 
 static ChildClimbNodeStateType_t nodeState = BY_MYSELF;
 
-static uint8 Climb_masterNodeName[] = {'C','L','I','M','B','M'};
+static uint8 Climb_masterNodeName[] = {'C','L','I','M','B','C'};
 
 static uint8 beaconActive = 0;
 
 static uint8 myAddr[B_ADDR_LEN];
+//static uint8 fakeIdList[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A };
+//static uint8 fakeIdList[] = { 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14 };
+//static uint8 fakeIdList[] = { 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E };
+//static uint8 fakeIdList[] = { 0x1F, 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28 };
+//static uint8 fakeIdList[] = { 0x29, 0x2A, 0x2B, 0x2C, 0x2D, 0x2E, 0x2F, 0x30, 0x31, 0x32 };
+static uint8 fakeIdList[NUMBER_OF_SIMULATED_NODES];// = { 0x29, 0x2A, 0x2B, 0x2C, 0x2D, 0x2E, 0x2F, 0x30, 0x31, 0x32 };
+static uint8 myFakeIdIndex = 0;
+static uint8 odd = 0;
 static uint8 myMasterAddr[B_ADDR_LEN];
 
 static uint8 advertData[31] = {
@@ -382,6 +393,8 @@ static uint8 readyToGoSleeping = 0;
 static uint32 batteryLev = 0;
 
 static uint32 wakeUpTimeout_sec_global;
+
+static uint32 defaultAdvRestartTimeout = 1000/(2*NUMBER_OF_SIMULATED_NODES);
 /*********************************************************************
  * LOCAL FUNCTIONS
  */
@@ -435,8 +448,7 @@ static void CLIMB_FlashLed(PIN_Id pinId);
 static void CLIMB_handleKeys(uint8 keys);
 static void startNode();
 static void stopNode();
-static void destroyChildNodeList();
-static void destroyMasterNodeList();
+static void destroyNodeLists();
 static void Climb_setAsConnectable();
 static void Climb_setAsNonConnectable();
 //static void Key_callback(PIN_Handle handle, PIN_Id pinId);
@@ -563,8 +575,10 @@ static void SimpleBLEPeripheral_init(void) {
 	Util_constructClock(&goToSleepClock, Climb_clockHandler,
 	GOTOSLEEP_DEFAULT_TIMEOUT_SEC*1000, 0, false, GOTOSLEEP_TIMEOUT_EVT);
 
-	Util_constructClock(&scanRestartClock, Climb_clockHandler,
-	DEFAULT_SCAN_DURATION, 0, false, RESTART_SCAN_EVT);
+	Util_constructClock(&advRestartClock, Climb_clockHandler,
+			defaultAdvRestartTimeout, 0, false, RESTART_ADV_EVT);
+
+
 
 #ifdef WORKAROUND
 	Util_constructClock(&epochClock, Climb_clockHandler,
@@ -689,6 +703,13 @@ static void SimpleBLEPeripheral_init(void) {
 	// Register callback with SimpleGATTprofile
 	ClimbProfile_RegisterAppCBs(&SimpleBLEPeripheral_climbProfileCBs);
 
+
+
+	uint8 i = 0;
+	for(i = 0; i < NUMBER_OF_SIMULATED_NODES; i++){
+		fakeIdList[i] = STARTING_ID + i;
+	}
+
 	// Start the Device
 	bStatus_t status = GAPRole_StartDevice(&SimpleBLEPeripheral_gapRoleCBs);
 #ifdef PRINTF_ENABLED
@@ -715,135 +736,146 @@ static void SimpleBLEPeripheral_init(void) {
  *
  * @return  None.
  */
-static void SimpleBLEPeripheral_taskFxn(UArg a0, UArg a1)
-{
-  // Initialize application
-  SimpleBLEPeripheral_init();
+static void SimpleBLEPeripheral_taskFxn(UArg a0, UArg a1) {
+	// Initialize application
+	SimpleBLEPeripheral_init();
 
-  // Application main loop
-  for (;;)
-  {
-    // Waits for a signal to the semaphore associated with the calling thread.
-    // Note that the semaphore associated with a thread is signaled when a
-    // message is queued to the message receive queue of the thread or when
-    // ICall_signal() function is called onto the semaphore.
-    ICall_Errno errno = ICall_wait(ICALL_TIMEOUT_FOREVER);
+	// Application main loop
+	for (;;) {
+		// Waits for a signal to the semaphore associated with the calling thread.
+		// Note that the semaphore associated with a thread is signaled when a
+		// message is queued to the message receive queue of the thread or when
+		// ICall_signal() function is called onto the semaphore.
+		ICall_Errno errno = ICall_wait(ICALL_TIMEOUT_FOREVER);
 
-    if (errno == ICALL_ERRNO_SUCCESS)
-    {
-      ICall_EntityID dest;
-      ICall_ServiceEnum src;
-      ICall_HciExtEvt *pMsg = NULL;
+		if (errno == ICALL_ERRNO_SUCCESS) {
+			ICall_EntityID dest;
+			ICall_ServiceEnum src;
+			ICall_HciExtEvt *pMsg = NULL;
 
-      if (ICall_fetchServiceMsg(&src, &dest, (void **)&pMsg) == ICALL_ERRNO_SUCCESS)
-      {
-        uint8 safeToDealloc = TRUE;
-        
-        if ((src == ICALL_SERVICE_CLASS_BLE) && (dest == selfEntity))
-        {
-          ICall_Event *pEvt = (ICall_Event *)pMsg;
-          
-          // Check for BLE stack events first
-          if (pEvt->signature == 0xffff)
-          {
-            if (pEvt->event_flag & CONN_EVT_END_EVT)
-            {
-              // Try to retransmit pending ATT Response (if any)
-              BLE_ConnectionEventHandler();
-            }
-            if (pEvt->event_flag & ADVERTISE_EVT) {
-              BLE_AdvertiseEventHandler();
-            }
-          }
-          else
-          {
-            // Process inter-task message
-            safeToDealloc = BLE_processStackMsg((ICall_Hdr *)pMsg);
-          }
-        }
+			if (ICall_fetchServiceMsg(&src, &dest, (void **) &pMsg) == ICALL_ERRNO_SUCCESS) {
+				uint8 safeToDealloc = TRUE;
 
-        if (pMsg)
-        {
-          if(safeToDealloc){
-        	  ICall_freeMsg(pMsg);
-          }
-        }
-      }
+				if ((src == ICALL_SERVICE_CLASS_BLE) && (dest == selfEntity)) {
+					ICall_Event *pEvt = (ICall_Event *) pMsg;
 
-      // If RTOS queue is not empty, process app message.
-      while (!Queue_empty(appMsgQueue))
-      {
-        sbpEvt_t *pMsg = (sbpEvt_t *)Util_dequeueMsg(appMsgQueue);
-        if (pMsg)
-        {
-          // Process message.
-          SimpleBLEPeripheral_processAppMsg(pMsg);
+					// Check for BLE stack events first
+					if (pEvt->signature == 0xffff) {
+						if (pEvt->event_flag & CONN_EVT_END_EVT) {
+							// Try to retransmit pending ATT Response (if any)
+							BLE_ConnectionEventHandler();
+						}
+						if (pEvt->event_flag & ADVERTISE_EVT) {
+							BLE_AdvertiseEventHandler();
+						}
+					} else {
+						// Process inter-task message
+						safeToDealloc = BLE_processStackMsg((ICall_Hdr *) pMsg);
+					}
+				}
 
-          // Free the space from the message.
-          ICall_free(pMsg);
-        }
-      }
-    }
+				if (pMsg) {
+					if (safeToDealloc) {
+						ICall_freeMsg(pMsg);
+					}
+				}
+			}
 
-    if (events & PERIODIC_EVT)
-    {
-      events &= ~PERIODIC_EVT;
+			// If RTOS queue is not empty, process app message.
+			while (!Queue_empty(appMsgQueue)) {
+				sbpEvt_t *pMsg = (sbpEvt_t *) Util_dequeueMsg(appMsgQueue);
+				if (pMsg) {
+					// Process message.
+					SimpleBLEPeripheral_processAppMsg(pMsg);
 
-      if(beaconActive != 0){
-    	  Util_startClock(&periodicClock);
-    	  // Perform periodic application task
-          Climb_periodicTask();
-      }
+					// Free the space from the message.
+					ICall_free(pMsg);
+				}
+			}
+		}
 
-    }
-    if (events & LED_TIMEOUT_EVT){
-    	events &= ~LED_TIMEOUT_EVT;
-    	//only turn off leds
-    	PIN_setOutputValue(hGpioPin, Board_LED1, Board_LED_OFF);
-    	PIN_setOutputValue(hGpioPin, Board_LED2, Board_LED_OFF);
-    }
+		if (events & PERIODIC_EVT) {
+			events &= ~PERIODIC_EVT;
 
-    if (events & CONNECTABLE_TIMEOUT_EVT){
-    	events &= ~CONNECTABLE_TIMEOUT_EVT;
+			if (beaconActive != 0) {
+				Util_startClock(&periodicClock);
+				// Perform periodic application task
+				Climb_periodicTask();
+			}
 
-    	Climb_setAsNonConnectable();
-    }
+		}
+		if (events & LED_TIMEOUT_EVT) {
+			events &= ~LED_TIMEOUT_EVT;
+			//only turn off leds
+			PIN_setOutputValue(hGpioPin, Board_LED1, Board_LED_OFF);
+			PIN_setOutputValue(hGpioPin, Board_LED2, Board_LED_OFF);
+		}
 
-	if (events & GOTOSLEEP_TIMEOUT_EVT) {
-		events &= ~GOTOSLEEP_TIMEOUT_EVT;
+		if (events & CONNECTABLE_TIMEOUT_EVT) {
+			events &= ~CONNECTABLE_TIMEOUT_EVT;
 
-		Climb_goToSleepHandler();
-	}
+			Climb_setAsNonConnectable();
+		}
 
-	if (events & WAKEUP_TIMEOUT_EVT) {
-		events &= ~WAKEUP_TIMEOUT_EVT;
+		if (events & GOTOSLEEP_TIMEOUT_EVT) {
+			events &= ~GOTOSLEEP_TIMEOUT_EVT;
 
-		Climb_wakeUpHandler();
-	}
+			Climb_goToSleepHandler();
+		}
 
-	if (events & RESTART_SCAN_EVT) {
-		events &= ~RESTART_SCAN_EVT;
+		if (events & WAKEUP_TIMEOUT_EVT) {
+			events &= ~WAKEUP_TIMEOUT_EVT;
 
-		GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE, DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
+			Climb_wakeUpHandler();
+		}
 
-	}
+		if (events & RESTART_ADV_EVT) {
+			events &= ~RESTART_ADV_EVT;
 
-#ifdef WORKAROUND
-	if (events & EPOCH_EVT) {
-		events &= ~EPOCH_EVT;
+			if (odd++ % 2 == 0) {
+				if (beaconActive) {
+					uint8 adv_active = 1;
+					uint8 status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED, sizeof(uint8_t), &adv_active);
+				}
+			} else {
+				uint8 adv_active = 0;
+				uint8 status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED, sizeof(uint8_t), &adv_active);
 
-		if (beaconActive == 1) {
+				myFakeIdIndex++;
+				if (myFakeIdIndex >= NUMBER_OF_SIMULATED_NODES) {
+					myFakeIdIndex = 0;
+					adv_counter++;
+				}
+				uint8 tempAddr[B_ADDR_LEN];
+				memcpy(tempAddr, myAddr, B_ADDR_LEN); //salva l'indirizzo del nodo
+				tempAddr[0] = fakeIdList[myFakeIdIndex];
+				HCI_EXT_SetBDADDRCmd(tempAddr);
+				GAP_ConfigDeviceAddr(ADDRTYPE_STATIC, tempAddr);
 
-			Climb_epochStartHandler();
+				Climb_updateMyBroadcastedState(nodeState);
+			}
 
-			float randDelay = 10 * ((float) Util_GetTRNG()) / 4294967296;
-			Util_restartClock(&epochClock, EPOCH_PERIOD + randDelay);
+			float randDelay_msec = 20 * ((float) Util_GetTRNG()) / 4294967296;
+			Util_restartClock(&advRestartClock, defaultAdvRestartTimeout-10 + randDelay_msec);
 
 		}
 
-	}
+#ifdef WORKAROUND
+		if (events & EPOCH_EVT) {
+			events &= ~EPOCH_EVT;
+
+			if (beaconActive == 1) {
+
+				Climb_epochStartHandler();
+
+				float randDelay = 10 * ((float) Util_GetTRNG()) / 4294967296;
+				Util_restartClock(&epochClock, EPOCH_PERIOD + randDelay);
+
+			}
+
+		}
 #endif
-  }
+	}
 }
 
 /*********************************************************************
@@ -1234,15 +1266,23 @@ static void BLE_ConnectionEventHandler(void)
 static void BLE_AdvertiseEventHandler(void) {
 
 #ifdef CLIMB_DEBUG
-	adv_counter++; //non era incrementato....
 
-	if ((adv_counter - 1) % 60 == 0) {
+	if ((adv_counter) % 60 == 0) {
 		batteryLev = AONBatMonBatteryVoltageGet();
 		batteryLev = (batteryLev * 125) >> 5;
 	}
 
-	Climb_updateMyBroadcastedState(nodeState); //update adv data every adv event to update adv_counter value. Since the argument is nodeState this function call doesn't modify the actual state of this node
+	//uint8 adv_active = 0;
+	//uint8 status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED, sizeof(uint8_t), &adv_active);
+
 #endif
+	//HCI_ResetCmd();
+	//HCI_EXT_ResetSystemCmd(HCI_EXT_RESET_SYSTEM_HARD);
+
+	// reStart the Device
+	//status = GAPRole_StartDevice(&SimpleBLEPeripheral_gapRoleCBs);
+	 //update adv data every adv event to update adv_counter value. Since the argument is nodeState this function call doesn't modify the actual state of this node
+	//Climb_updateMyBroadcastedState(nodeState);
 
 
 #ifdef WORKAROUND
@@ -1339,8 +1379,15 @@ static void SimpleBLEObserver_processRoleEvent(gapObserverRoleEvent_t *pEvent) {
 	switch (pEvent->gap.opcode) {
 	case GAP_DEVICE_INIT_DONE_EVENT: {
 		memcpy(myAddr, pEvent->initDone.devAddr,B_ADDR_LEN); //salva l'indirizzo del nodo
-
-		//myIDArray[0] = myAddr[0];
+//		if(beaconActive){
+//			Util_startClock(&advRestartClock);
+//			Climb_updateMyBroadcastedState(nodeState);
+//			//uint8 tempAddr[B_ADDR_LEN];
+//			//memcpy(tempAddr, myAddr,B_ADDR_LEN); //salva l'indirizzo del nodo
+//			//tempAddr[0] = fakeIdList[myFakeIdIndex];
+//			//HCI_EXT_SetBDADDRCmd(tempAddr);
+//			//myIDArray[0] = myAddr[0];
+//		}
 
 #ifdef PRINTF_ENABLED
 		System_printf(Util_convertBdAddr2Str(pEvent->initDone.devAddr));
@@ -1394,7 +1441,7 @@ static void SimpleBLEObserver_processRoleEvent(gapObserverRoleEvent_t *pEvent) {
 #ifndef WORKAROUND
 		if(beaconActive){
 			//GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE,DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
-			Util_startClock(&scanRestartClock);
+			//Util_startClock(&advRestartClock);
 			CLIMB_FlashLed(Board_LED2);
 		}
 #endif
@@ -1402,7 +1449,6 @@ static void SimpleBLEObserver_processRoleEvent(gapObserverRoleEvent_t *pEvent) {
 	case GAP_ADV_DATA_UPDATE_DONE_EVENT:
 		break;
 	case GAP_MAKE_DISCOVERABLE_DONE_EVENT:
-
 		break;
 	case GAP_END_DISCOVERABLE_DONE_EVENT:
 		break;
@@ -1662,10 +1708,8 @@ static uint8 Climb_checkNodeState(gapDeviceInfoEvent_t *gapDeviceInfoEvent_a) {
 				myMasterAddr[i] = 0;
 			}
 
-			if (nodeState == ON_BOARD || nodeState == ALERT) { //il passaggio da ON_BOARD o (ALERT) a BY_MYSELF triggera lo spegnimento del nodo
-				Util_restartClock(&goToSleepClock, 20000); //schedula lo spegnimento automatico
-				readyToGoSleeping = 1;
-			}
+			Util_restartClock(&goToSleepClock, 20000); //schedula lo spegnimento automatico
+			readyToGoSleeping = 1;
 			//}
 			break;
 		case CHECKING:
@@ -1691,9 +1735,8 @@ static uint8 Climb_checkNodeState(gapDeviceInfoEvent_t *gapDeviceInfoEvent_a) {
 			}
 			break;
 
-		case ALERT:
-			return 0;
-			//break;
+		case ALERT://broadcasting ALERT to everybody is not supported for now
+			break;
 
 		case INVALID_STATE://check to see if there is a broadcast message in this packet
 			if (nodeState == BY_MYSELF) { //broadcast message can be received only if I have a myMaster Node
@@ -1825,7 +1868,7 @@ static uint8 Climb_decodeBroadcastedMessage(gapDeviceInfoEvent_t *gapDeviceInfoE
 
 						switch(broadcastMsgType) {
 						case BROADCAST_MSG_TYPE_STATE_UPDATE_CMD:
-							//THIS MESSAGE IS DECODED IN Climb_findMyBroadcastedState(...);
+							//return (ChildClimbNodeStateType_t) (gapDeviceInfoEvent_a->pEvtData[index + 2]); //return broadcasted state
 							break;
 
 						case BROADCAST_MSG_TYPE_WU_SCHEDULE_CMD:
@@ -1895,7 +1938,7 @@ static void Climb_updateMyBroadcastedState(ChildClimbNodeStateType_t newState) {
 	newAdvertData[9] = GAP_ADTYPE_MANUFACTURER_SPECIFIC;
 	newAdvertData[10] = 0x0D;
 	newAdvertData[11] = 0x00;
-	memcpy(&newAdvertData[ADV_PKT_ID_OFFSET], myIDArray, NODE_ID_LENGTH);
+	memcpy(&newAdvertData[ADV_PKT_ID_OFFSET], &fakeIdList[myFakeIdIndex], NODE_ID_LENGTH);
 	newAdvertData[ADV_PKT_STATE_OFFSET] = (uint8)nodeState;
 
 //TODO: rssi can be added also when CLIMB_DEBUG is not defined
@@ -2144,19 +2187,9 @@ static void Climb_epochStartHandler(){
  *
  * @return  none
  */
-static void Climb_goToSleepHandler(){
+static void Climb_goToSleepHandler(){ //NB: quando lo sleep è forzato dal master tramite readyToGoSleeping, questa funzione non è richiamata, il wakeUoClock è gia stato avviato quando è stata settata readyToGoSleeping
 
 	stopNode();
-
-	destroyChildNodeList();
-	destroyMasterNodeList();
-
-	uint8 i;
-	for (i = 0; i < B_ADDR_LEN; i++) { //resetta l'indirizzo del MY_MASTER
-		myMasterAddr[i] = 0;
-	}
-
-	Climb_updateMyBroadcastedState(BY_MYSELF);
 
 }
 
@@ -2261,24 +2294,9 @@ static void CLIMB_handleKeys(uint8 keys) {
 
 		}else{ //if manually switched off, no automatic wakeup is setted
 			stopNode();
-
-			destroyChildNodeList();
-
-			if(nodeState != ON_BOARD){
-				destroyMasterNodeList();
-
-				uint8 i;
-				for (i = 0; i < B_ADDR_LEN; i++) { //resetta l'indirizzo del MY_MASTER
-					myMasterAddr[i] = 0;
-				}
-
-				Climb_updateMyBroadcastedState(BY_MYSELF);
-			}else{
-				Climb_updateMyBroadcastedState(nodeState);
-			}
-
 			Util_stopClock(&wakeUpClock);
 			Util_stopClock(&goToSleepClock);
+
 		}
 		break;
 
@@ -2309,7 +2327,8 @@ static void startNode() {
 		HCI_EXT_AdvEventNoticeCmd(selfEntity, ADVERTISE_EVT);
 		Util_startClock(&periodicClock);
 		CLIMB_FlashLed(Board_LED2);
-		GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE, DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
+		Util_startClock(&advRestartClock);
+		//GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE, DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
 
 #ifdef WORKAROUND
 		Util_startClock(&epochClock);
@@ -2328,55 +2347,42 @@ static void startNode() {
  */
 static void stopNode() {
 	beaconActive = 0;
-	GAPObserverRole_CancelDiscovery();
+	//GAPObserverRole_CancelDiscovery();
 	uint8 adv_active = 0;
 	uint8 status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED, sizeof(uint8_t), &adv_active);
 
 	Util_stopClock(&periodicClock);
-
+	destroyNodeLists();
 	CLIMB_FlashLed(Board_LED1);
-
+	Util_stopClock(&advRestartClock);
 #ifdef WORKAROUND
 	Util_stopClock(&epochClock);
 #endif
 }
 /*********************************************************************
- * @fn      destroyChildNodeList
+ * @fn      destroyNodeLists
  *
- * @brief   Destroy child list
+ * @brief   Destroy master and child lists
  *
 
  * @return  none
  */
-static void destroyChildNodeList() {
+static void destroyNodeLists() {
 
 
 	listNode_t* targetNode = childListRootPtr;
 	while (targetNode != NULL) { //NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
 
-		Climb_removeNode(targetNode, NULL); //rimuovi il primo nodo
-		targetNode = childListRootPtr;
+		targetNode = Climb_removeNode(targetNode, NULL); //rimuovi il nodo
+
 		//NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
 	}
 
-}
-/*********************************************************************
- * @fn      destroyMasterNodeList
- *
- * @brief   Destroy master list
- *
-
- * @return  none
- */
-static void destroyMasterNodeList() {
-
-
-	listNode_t* targetNode = masterListRootPtr;
-
+	targetNode = masterListRootPtr;
 	while (targetNode != NULL) { //NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
 
-		Climb_removeNode(targetNode, NULL); //rimuovi il nodo
-		targetNode = masterListRootPtr;
+		targetNode = Climb_removeNode(targetNode, NULL); //rimuovi il nodo
+
 		//NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
 	}
 }
@@ -2389,14 +2395,14 @@ static void destroyMasterNodeList() {
  * @return  none
  */
 static void Climb_setAsConnectable(){
-	uint8 adv_active;
-	if(beaconActive){
-		adv_active = 0;
-		GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED, sizeof(uint8_t), &adv_active);
-	}
-	Util_startClock(&connectableTimeoutClock);
-	adv_active = 1;
-	GAPRole_SetParameter(GAPROLE_ADVERT_ENABLED, sizeof(uint8_t), &adv_active);
+//	uint8 adv_active;
+//	if(beaconActive){
+//		adv_active = 0;
+//		GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED, sizeof(uint8_t), &adv_active);
+//	}
+//	Util_startClock(&connectableTimeoutClock);
+//	adv_active = 1;
+//	GAPRole_SetParameter(GAPROLE_ADVERT_ENABLED, sizeof(uint8_t), &adv_active);
 }
 
 /*********************************************************************
@@ -2408,13 +2414,13 @@ static void Climb_setAsConnectable(){
  * @return  none
  */
 static void Climb_setAsNonConnectable(){
-	uint8 adv_active = 0;
-	uint8 status = GAPRole_SetParameter(GAPROLE_ADVERT_ENABLED, sizeof(uint8_t), &adv_active);
-	Util_stopClock(&connectableTimeoutClock);
-	if(beaconActive){
-		adv_active = 1;
-		status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED, sizeof(uint8_t), &adv_active);
-	}
+//	uint8 adv_active = 0;
+//	uint8 status = GAPRole_SetParameter(GAPROLE_ADVERT_ENABLED, sizeof(uint8_t), &adv_active);
+//	Util_stopClock(&connectableTimeoutClock);
+//	if(beaconActive){
+//		adv_active = 1;
+//		status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED, sizeof(uint8_t), &adv_active);
+//	}
 
 }
 

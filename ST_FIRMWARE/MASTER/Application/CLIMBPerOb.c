@@ -369,6 +369,9 @@ static uint8 Climb_isMyChild(uint8 nodeID);
 static void Climb_nodeTimeoutCheck();
 static listNode_t* Climb_removeNode(listNode_t* nodeToRemove, listNode_t* previousNode);
 static void Climb_periodicTask();
+#ifdef PRINTF_ENABLED
+static void Climb_printfNodeInfo(gapDeviceInfoEvent_t *gapDeviceInfoEvent );
+#endif
 #ifdef WORKAROUND
 static void Climb_epochStartHandler();
 #endif
@@ -378,7 +381,8 @@ static void CLIMB_FlashLed(PIN_Id pinId);
 static void CLIMB_handleKeys(uint8 keys);
 static void startNode();
 static void stopNode();
-static void destroyNodeLists();
+static void destroyChildNodeList();
+static void destroyMasterNodeList();
 //static void Key_callback(PIN_Handle handle, PIN_Id pinId);
 #ifdef FEATURE_LCD
 static void displayInit(void);
@@ -613,9 +617,7 @@ static void SimpleBLEPeripheral_init(void) {
 
 	// Start the Device
 	bStatus_t status = GAPRole_StartDevice(&SimpleBLEPeripheral_gapRoleCBs);
-#ifdef PRINTF_ENABLED
-	System_printf("\nBLE Peripheral+Broadcaster started (advertise started). Status: %d\n\n", status);
-#endif
+
 	// Start Bond Manager
 	VOID GAPBondMgr_Register(&simpleBLEPeripheral_BondMgrCBs);
 
@@ -873,9 +875,6 @@ static void BLEPeripheral_processStateChangeEvt(gaprole_States_t newState) {
 
 	static bool firstConnFlag = false;
 
-#ifdef PRINTF_ENABLED
-	System_printf("\nGAP role state change: NewState = 0x%x\n",newState);
-#endif
 	switch (newState) {
 	case GAPROLE_STARTED: {
 		uint8_t ownAddress[B_ADDR_LEN];
@@ -962,9 +961,6 @@ static void BLEPeripheral_processStateChangeEvt(gaprole_States_t newState) {
 
 			uint8 status = HCI_EXT_AdvEventNoticeCmd(selfEntity, ADVERTISE_EVT);
 
-#ifdef PRINTF_ENABLED
-			System_printf("\nAdvertise (non connectable) events notification enabled, status : %d\n", status);
-#endif
 			firstConnFlag = true;
 		}
 
@@ -1098,10 +1094,6 @@ static void BLE_AdvertiseEventHandler(void) {
 	uint8 adv_active = 0;
 	uint8 status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED, sizeof(uint8_t),&adv_active);
 	status = GAPRole_SetParameter(GAPROLE_ADVERT_ENABLED, sizeof(uint8_t),&adv_active);
-#endif
-
-#ifdef PRINTF_ENABLED
-	System_printf("\nAdvertise evt!");
 #endif
 
 }
@@ -1262,7 +1254,7 @@ static void Climb_contactsCheckSendThroughGATT(void) {
 
 				//TODO: IMPORTANTE DA QUANDO SI E' AGGIUNTO IL CHECK CIRCOLARE DEI NODI QUESTA CONDIZIONE node->device.lastContactTicks >= lastGATTCheckTicks NON VA PIU' BENE!!!!!
 
-				if (node->device.contacSentThoughGATT == FALSE && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) { //invia solo i nodi visti dopo l'ultimo check, e solo i miei CHILD per ora.
+				if (node->device.contacSentThoughGATT == FALSE){// //invia solo i nodi visti dopo l'ultimo check, invia tutti i nodi CLIMBC
 					memcpy(&childrenNodesData[i], &node->device.advData[ADV_PKT_ID_OFFSET], NODE_ID_LENGTH); //salva l'indirizzo del nodo
 					i += NODE_ID_LENGTH;
 					childrenNodesData[i++] = node->device.advData[ADV_PKT_STATE_OFFSET];
@@ -1492,9 +1484,11 @@ static void Climb_processCharValueChangeEvt(uint8_t paramID) {
 			} else { //broadcastID not found
 
 				listNode_t *node = Climb_findChildNodeById(nodeID);
-				if (node != NULL && newValue[i + NODE_ID_LENGTH] != node->device.advData[ADV_PKT_STATE_OFFSET]) { //se ci sono problemi spezzare questo if in due if annidati
-					if (newValue[i + NODE_ID_LENGTH] != INVALID_STATE) {
-						node->device.stateToImpose = (ChildClimbNodeStateType_t) newValue[i + NODE_ID_LENGTH]; //the correctness of this will be checked in Climb_advertisedStatesCheck
+				if (node != NULL) {
+					if (newValue[i + NODE_ID_LENGTH] != node->device.advData[ADV_PKT_STATE_OFFSET]) {
+						if (newValue[i + NODE_ID_LENGTH] != INVALID_STATE) {
+							node->device.stateToImpose = (ChildClimbNodeStateType_t) newValue[i + NODE_ID_LENGTH]; //the correctness of this will be checked in Climb_advertisedStatesCheck
+						}
 					}
 				}
 
@@ -1524,12 +1518,6 @@ static void Climb_processRoleEvent(gapObserverRoleEvent_t *pEvent) {
 	case GAP_DEVICE_INIT_DONE_EVENT: {
 		memcpy(myAddr, pEvent->initDone.devAddr, B_ADDR_LEN); //salva l'indirizzo del nodo
 
-#ifdef PRINTF_ENABLED
-
-		System_printf("\nInitialized, this is my MAC: ");
-		System_printf(Util_convertBdAddr2Str(pEvent->initDone.devAddr));
-		System_printf("\n");
-#endif
 #ifdef FEATURE_LCD
 		char buf[10];
 		sprintf(buf,"Me: ");
@@ -1539,9 +1527,6 @@ static void Climb_processRoleEvent(gapObserverRoleEvent_t *pEvent) {
 #endif
 		// enable advertise event notification
 		uint8 status = HCI_EXT_AdvEventNoticeCmd(selfEntity, ADVERTISE_EVT);
-#ifdef PRINTF_ENABLED
-		System_printf("\nAdvertise events notification enabled, status : %d\n", status);
-#endif
 	}
 		break;
 
@@ -1549,28 +1534,22 @@ static void Climb_processRoleEvent(gapObserverRoleEvent_t *pEvent) {
 		if (pEvent->deviceInfo.eventType == GAP_ADRPT_ADV_SCAN_IND | //adv data event (Scannable undirected)
 				pEvent->deviceInfo.eventType == GAP_ADRPT_ADV_IND | pEvent->deviceInfo.eventType == GAP_ADRPT_ADV_NONCONN_IND) { //adv data event (Connectable undirected)
 
-#ifdef PRINTF_ENABLED
-			System_printf("\nGAP_DEVICE_INFO_EVENT-GAP_ADRPT_ADV_SCAN_IND, ADV_DATA. address: ");
-			System_printf(Util_convertBdAddr2Str(pEvent->deviceInfo.addr));
-			System_printf("\nChecking if it is a CLIMB node.\n");
-#endif
 			ClimbNodeType_t nodeType = isClimbNode((gapDeviceInfoEvent_t*) &pEvent->deviceInfo);
 			if (nodeType == CLIMB_CHILD_NODE || nodeType == CLIMB_MASTER_NODE) {
 				Climb_addNodeDeviceInfo(&pEvent->deviceInfo, nodeType);
 				if (nodeType == CLIMB_CHILD_NODE) {
 					//Climb_contactsCheckSendThroughGATT();
+#ifdef PRINTF_ENABLED
+					Climb_printfNodeInfo(&pEvent->deviceInfo);
+#endif
 				}
 
 			} else {
 
-#ifdef PRINTF_ENABLED
-				System_printf("\nIt isn't a CLIMB node, device discarded!\n");
-#endif
+
 			}
 		} else if (pEvent->deviceInfo.eventType == GAP_ADRPT_SCAN_RSP) {  //scan response data event
-#ifdef PRINTF_ENABLED
-		System_printf("\nScan response received!\n");
-#endif
+
 		}
 
 	}
@@ -1589,9 +1568,6 @@ static void Climb_processRoleEvent(gapObserverRoleEvent_t *pEvent) {
 	}
 		break;
 	case GAP_ADV_DATA_UPDATE_DONE_EVENT:
-#ifdef PRINTF_ENABLED
-		System_printf("\nAdvertise data updated!!\n");
-#endif
 		break;
 	case GAP_MAKE_DISCOVERABLE_DONE_EVENT:
 		break;
@@ -1832,37 +1808,42 @@ static void Climb_advertisedStatesCheck(void) {
 
 		}
 
-		if (node->device.advData[ADV_PKT_STATE_OFFSET] == BY_MYSELF && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
-
-			node->device.stateToImpose = CHECKING;
-
-		}
+//		// se il nodo è BY_MYSELF non ha senso cercare di imporre uno stato inviato come broadcast, quindi si può sovrascrivere
+//		if (node->device.advData[ADV_PKT_STATE_OFFSET] == BY_MYSELF && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
+//
+//			node->device.stateToImpose = CHECKING;
+//
+//		}
 
 		{ //CHECK IF THE REQUESTED STATE CHANGE IS VALID OR NOT
-
+			ChildClimbNodeStateType_t actualNodeState = (ChildClimbNodeStateType_t)node->device.advData[ADV_PKT_STATE_OFFSET];
 			switch (node->device.stateToImpose) {
 			case BY_MYSELF:
+				if (actualNodeState == CHECKING || actualNodeState == ON_BOARD || actualNodeState == ALERT) { // && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
+
+				} else {
+					node->device.stateToImpose = (ChildClimbNodeStateType_t) node->device.advData[ADV_PKT_STATE_OFFSET]; //mantieni lo stato precedente
+				}
 				break;
 
 			case CHECKING:
-				if (node->device.advData[ADV_PKT_STATE_OFFSET] == BY_MYSELF && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
-					node->device.stateToImpose = CHECKING;
+				if (actualNodeState == BY_MYSELF){// && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
+
 				} else {
-					node->device.stateToImpose = (ChildClimbNodeStateType_t) node->device.advData[ADV_PKT_STATE_OFFSET];
+					node->device.stateToImpose = (ChildClimbNodeStateType_t) node->device.advData[ADV_PKT_STATE_OFFSET]; //mantieni lo stato precedente
 				}
 				break;
 
 			case ON_BOARD:
-				if ((node->device.advData[ADV_PKT_STATE_OFFSET] == CHECKING || node->device.advData[ADV_PKT_STATE_OFFSET] == ALERT)
-						&& Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
-					node->device.stateToImpose = ON_BOARD;
+				if ((actualNodeState == CHECKING || actualNodeState == ALERT)){// && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
+
 				} else {
-					node->device.stateToImpose = (ChildClimbNodeStateType_t) node->device.advData[ADV_PKT_STATE_OFFSET];
+					node->device.stateToImpose = (ChildClimbNodeStateType_t) node->device.advData[ADV_PKT_STATE_OFFSET]; //mantieni lo stato precedente
 				}
 				break;
 
 			case ALERT:
-				node->device.stateToImpose = ON_BOARD;
+				node->device.stateToImpose = ON_BOARD; //don't broadcast ALERT state!
 				break;
 
 			case INVALID_STATE:
@@ -1895,9 +1876,7 @@ static uint8 Climb_isMyChild(uint8 nodeID) { //TODO: AGGIUNGERE LA FUNZIONALITA'
  * @return  none
  */
 static void Climb_nodeTimeoutCheck() {
-#ifdef PRINTF_ENABLED
-	System_printf("\nRunning timeout check!\n");
-#endif
+
 	uint32 nowTicks = Clock_getTicks();
 
 	//controlla la lista dei child
@@ -1999,11 +1978,6 @@ static listNode_t* Climb_removeNode(listNode_t* nodeToRemove, listNode_t* previo
 			return masterListRootPtr->next;
 		}
 	}
-#ifdef PRINTF_ENABLED
-	System_printf("\nNode ");
-	System_printf(Util_convertBdAddr2Str(nodeToRemove->device.devRec.addr));
-	System_printf(" removed!\n");
-#endif
 	return NULL;
 }
 
@@ -2017,6 +1991,19 @@ static listNode_t* Climb_removeNode(listNode_t* nodeToRemove, listNode_t* previo
 static void Climb_periodicTask() {
 	Climb_nodeTimeoutCheck();
 }
+
+#ifdef PRINTF_ENABLED
+static void Climb_printfNodeInfo(gapDeviceInfoEvent_t *gapDeviceInfoEvent ){
+	static uint8 usbPktsCounter = 0;
+	uint32 nowTicks = Clock_getTicks();
+	System_printf("%d ", nowTicks);
+	//System_printf(Util_convertBdAddr2Str(myAddr));
+	System_printf(Util_convertBdAddr2Str(gapDeviceInfoEvent->addr));
+	System_printf(" CLIMBC ADV %02x %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x\n",usbPktsCounter++, gapDeviceInfoEvent->pEvtData[12],gapDeviceInfoEvent->pEvtData[13],gapDeviceInfoEvent->pEvtData[14],gapDeviceInfoEvent->pEvtData[15],gapDeviceInfoEvent->pEvtData[16],gapDeviceInfoEvent->pEvtData[17],gapDeviceInfoEvent->pEvtData[18],gapDeviceInfoEvent->pEvtData[19],gapDeviceInfoEvent->pEvtData[20],gapDeviceInfoEvent->pEvtData[21],gapDeviceInfoEvent->pEvtData[22],gapDeviceInfoEvent->pEvtData[23],gapDeviceInfoEvent->pEvtData[24],gapDeviceInfoEvent->pEvtData[25],gapDeviceInfoEvent->pEvtData[26],gapDeviceInfoEvent->pEvtData[27],gapDeviceInfoEvent->pEvtData[28],gapDeviceInfoEvent->pEvtData[29],gapDeviceInfoEvent->pEvtData[30] );
+	//System_printf(" CLIMBD ADV %02x %02x%02x%02x\n",usbPktsCounter++, gapDeviceInfoEvent->pEvtData[12] ,gapDeviceInfoEvent->pEvtData[30] );
+
+}
+#endif
 #ifdef WORKAROUND
 /*********************************************************************
  * @fn      Climb_epochStartHandler
@@ -2158,34 +2145,49 @@ static void stopNode() {
 	uint8 zeroArray[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	ClimbProfile_SetParameter(CLIMBPROFILE_CHAR1, 20, zeroArray);
 	Util_stopClock(&periodicClock);
-	destroyNodeLists();
+	destroyChildNodeList();
+	destroyMasterNodeList();
 #ifdef WORKAROUND
 	Util_stopClock(&epochClock);
 #endif
 }
 /*********************************************************************
- * @fn      destroyNodeLists
+ * @fn      destroyChildNodeList
  *
- * @brief   Destroy master and child lists
+ * @brief   Destroy child list
  *
 
  * @return  none
  */
-static void destroyNodeLists() {
+static void destroyChildNodeList() {
+
 
 	listNode_t* targetNode = childListRootPtr;
 	while (targetNode != NULL) { //NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
 
-		targetNode = Climb_removeNode(targetNode, NULL); //rimuovi il nodo
-
+		Climb_removeNode(targetNode, NULL); //rimuovi il primo nodo
+		targetNode = childListRootPtr;
 		//NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
 	}
 
-	targetNode = masterListRootPtr;
+}
+/*********************************************************************
+ * @fn      destroyMasterNodeList
+ *
+ * @brief   Destroy master list
+ *
+
+ * @return  none
+ */
+static void destroyMasterNodeList() {
+
+
+	listNode_t* targetNode = masterListRootPtr;
+
 	while (targetNode != NULL) { //NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
 
-		targetNode = Climb_removeNode(targetNode, NULL); //rimuovi il nodo
-
+		Climb_removeNode(targetNode, NULL); //rimuovi il nodo
+		targetNode = masterListRootPtr;
 		//NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
 	}
 }

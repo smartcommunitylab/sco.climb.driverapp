@@ -120,14 +120,14 @@
 #define DEFAULT_CONN_PAUSE_PERIPHERAL         10
 
 // Scan duration in ms
-#define DEFAULT_SCAN_DURATION                 10100//1000 //Tempo di durata di una scansione, allo scadere la scansione viene ricominciata
+#define DEFAULT_SCAN_DURATION                 900//1000 //Tempo di durata di una scansione, allo scadere la scansione viene ricominciata
 
 #define EPOCH_PERIOD						  1010
 // Scan interval value in 0.625ms ticks
-#define SCAN_INTERVAL 						  320
+#define SCAN_INTERVAL 						  480
 
 // scan window value in 0.625ms ticks
-#define SCAN_WINDOW							  320
+#define SCAN_WINDOW							  480
 
 // Whether to report all contacts or only the first for each device
 #define FILTER_ADV_REPORTS					  FALSE
@@ -142,7 +142,7 @@
 #define DEFAULT_DISCOVERY_WHITE_LIST          FALSE
 
 // Maximum number of scan responses to be reported to application
-#define DEFAULT_MAX_SCAN_RES                  30
+#define DEFAULT_MAX_SCAN_RES                  50
 
 // How often to perform periodic event (in msec)
 #define PERIODIC_EVT_PERIOD              	  2000
@@ -265,7 +265,7 @@ Char sbpTaskStack[SBP_TASK_STACK_SIZE];
 
 MasterClimbNodeStateType_t thisNodeState = NOT_CONNECTED;
 
-static uint8 Climb_childNodeName[] = {'C','L','I','M','B','b'}; //CLIMBB are child node used for BATTERY LIFE tests
+static uint8 Climb_childNodeName[] = {'C','L','I','M','B','C'}; //CLIMBB are child node used for BATTERY LIFE tests
 
 
 static uint8 advUpdateReq = FALSE;
@@ -1837,8 +1837,11 @@ static void Climb_printfNodeInfo(gapDeviceInfoEvent_t *gapDeviceInfoEvent ){
 	static uint8 usbPktsCounter = 0;
 	uint32 nowTicks = Clock_getTicks();
 	System_printf("%d ", nowTicks);
-	System_printf(Util_convertBdAddr2Str(myAddr));
-	System_printf(" CLIMBB ADV %02x %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x\n",usbPktsCounter++, gapDeviceInfoEvent->pEvtData[12],gapDeviceInfoEvent->pEvtData[13],gapDeviceInfoEvent->pEvtData[14],gapDeviceInfoEvent->pEvtData[15],gapDeviceInfoEvent->pEvtData[16],gapDeviceInfoEvent->pEvtData[17],gapDeviceInfoEvent->pEvtData[18],gapDeviceInfoEvent->pEvtData[19],gapDeviceInfoEvent->pEvtData[20],gapDeviceInfoEvent->pEvtData[21],gapDeviceInfoEvent->pEvtData[22],gapDeviceInfoEvent->pEvtData[23],gapDeviceInfoEvent->pEvtData[24],gapDeviceInfoEvent->pEvtData[25],gapDeviceInfoEvent->pEvtData[26],gapDeviceInfoEvent->pEvtData[27],gapDeviceInfoEvent->pEvtData[28],gapDeviceInfoEvent->pEvtData[29],gapDeviceInfoEvent->pEvtData[30] );
+	//System_printf(Util_convertBdAddr2Str(myAddr));
+	System_printf(Util_convertBdAddr2Str(gapDeviceInfoEvent->addr));
+	System_printf(" CLIMBC ADV %02x %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x\n",usbPktsCounter++, gapDeviceInfoEvent->pEvtData[12],gapDeviceInfoEvent->pEvtData[13],gapDeviceInfoEvent->pEvtData[14],gapDeviceInfoEvent->pEvtData[15],gapDeviceInfoEvent->pEvtData[16],gapDeviceInfoEvent->pEvtData[17],gapDeviceInfoEvent->pEvtData[18],gapDeviceInfoEvent->pEvtData[19],gapDeviceInfoEvent->pEvtData[20],gapDeviceInfoEvent->pEvtData[21],gapDeviceInfoEvent->pEvtData[22],gapDeviceInfoEvent->pEvtData[23],gapDeviceInfoEvent->pEvtData[24],gapDeviceInfoEvent->pEvtData[25],gapDeviceInfoEvent->pEvtData[26],gapDeviceInfoEvent->pEvtData[27],gapDeviceInfoEvent->pEvtData[28],gapDeviceInfoEvent->pEvtData[29],gapDeviceInfoEvent->pEvtData[30] );
+	//System_printf(" CLIMBD ADV %02x %02x%02x%02x\n",usbPktsCounter++, gapDeviceInfoEvent->pEvtData[12] ,gapDeviceInfoEvent->pEvtData[30] );
+
 }
 #endif
 /*********************************************************************
@@ -1926,7 +1929,7 @@ static void CLIMB_handleKeys(uint8 shift, uint8 keys) {
 			GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE,DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
 			lastGATTCheckTicks = Clock_getTicks();
 			PIN_setOutputValue(hGpioPin, Board_LED1, Board_LED_ON);
-			Util_startClock(&epochClock);
+			//Util_startClock(&epochClock);
 		}
 		beaconActive = 1;
 	}
