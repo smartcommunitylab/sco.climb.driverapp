@@ -326,7 +326,7 @@ static listNode_t* masterListRootPtr = NULL;
 static listNode_t* adv_startNodePtr = NULL;
 static listNode_t* gatt_startNodePtr = NULL;
 
-//static uint8 mtu_updated = FALSE;
+static uint8 mtu_updated = FALSE;
 
 /*********************************************************************
  * LOCAL FUNCTIONS
@@ -816,8 +816,8 @@ static uint8_t SimpleBLEPeripheral_processGATTMsg(gattMsgEvent_t *pMsg) {
 
 		// Display the opcode of the message that caused the violation.
 	} else if (pMsg->method == ATT_MTU_UPDATED_EVENT) {
-		//mtu_updated = TRUE;
-		//PIN_setOutputValue(hGpioPin, Board_LED1, Board_LED_ON);
+		mtu_updated = TRUE;
+		PIN_setOutputValue(hGpioPin, Board_LED1, Board_LED_ON);
 	}
 
 	// Free message payload. Needed only for ATT Protocol messages
@@ -880,7 +880,7 @@ static void BLEPeripheral_processStateChangeEvt(gaprole_States_t newState) {
 		uint8_t ownAddress[B_ADDR_LEN];
 		uint8_t systemId[DEVINFO_SYSTEM_ID_LEN];
 		BLE_connected = FALSE;
-		//mtu_updated = FALSE;
+		mtu_updated = FALSE;
 
 		GAPRole_GetParameter(GAPROLE_BD_ADDR, ownAddress);
 
@@ -972,7 +972,7 @@ static void BLEPeripheral_processStateChangeEvt(gaprole_States_t newState) {
 
 	case GAPROLE_WAITING:
 		BLE_connected = FALSE;
-		//mtu_updated = FALSE;
+		mtu_updated = FALSE;
 		GAPObserverRole_CancelDiscovery();
 		GAPRole_SetParameter(GAPROLE_ADVERT_DATA, sizeof(defAdvertData), defAdvertData);
 
@@ -985,7 +985,7 @@ static void BLEPeripheral_processStateChangeEvt(gaprole_States_t newState) {
 	case GAPROLE_WAITING_AFTER_TIMEOUT: //TIMEOUT
 
 		BLE_connected = FALSE;
-		//mtu_updated = FALSE;
+		mtu_updated = FALSE;
 		GAPObserverRole_CancelDiscovery();
 		GAPRole_SetParameter(GAPROLE_ADVERT_DATA, sizeof(defAdvertData), defAdvertData);
 		SimpleBLEPeripheral_freeAttRsp(bleNotConnected);
@@ -1171,74 +1171,80 @@ static void Keys_EventCB(keys_Notifications_t notificationType) {
  */
 static void Climb_contactsCheckSendThroughGATT(void) {
 	//INVIA I CONTATTI RADIO AVVENUTI NELL'ULTIMO PERIODO TRAMITE GAT
+	//TODO: //decidere qual'è la lunghezza massima e len = MTU-3 (ma verificare)
+	//NB: SE ANDROID LIMITA A 4 PPCE LA LUNGHEZZA MASSIMA PER UNA CARATTERISTICA E' 3*27+20 byte = 101 byte = 33 nodi
+	// ATTENZIONE NON USARE L'MTU IMPOSTATO NEI PREPROCESSOR DEFINES MA QUELLO OTTENUTO TRAMITE LE API O GLI EVENTI
+	// if (mtu_updated) può essere tolto, basta usare len = 20 quando mtu non è stato aggiornato
+	if (mtu_updated) {
+		uint16 len = 60;
+		attHandleValueNoti_t noti;
+		bStatus_t status = SUCCESS;
+		noti.handle = 0x0B;
+		noti.len = len;
 
-//	if (mtu_updated) {
-//		uint16 len = 30;
-//		attHandleValueNoti_t noti;
-//		bStatus_t status = SUCCESS;
-//		noti.handle = 0x0B;
-//		noti.len = len;
-//
-//		uint8 childrenNodesData[20];
-//		uint8 i = 0;
-//		uint8 roundCompleted = FALSE;
-////	listNode_t* node = childListRootPtr;
-////	listNode_t* previousNode = NULL;
-//		uint8 gattUpdateReq = FALSE;
-//		listNode_t* node = gatt_startNodePtr;
-//
-//		noti.pValue = (uint8 *) GATT_bm_alloc(0, ATT_HANDLE_VALUE_NOTI, GATT_MAX_MTU, &len);
-//
-//		if (noti.pValue != NULL) //if allocated
-//		{
-//
-//			while (i < len - 2 && roundCompleted == FALSE) {
-//
-//				if (node != NULL) {
-//
-//					//TODO: IMPORTANTE DA QUANDO SI E' AGGIUNTO IL CHECK CIRCOLARE DEI NODI QUESTA CONDIZIONE node->device.lastContactTicks >= lastGATTCheckTicks NON VA PIU' BENE!!!!!
-//
-//					if (node->device.lastContactTicks >= lastGATTCheckTicks && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) { //invia solo i nodi visti dopo l'ultimo check, e solo i miei CHILD per ora.
-//						memcpy(&noti.pValue[i], &node->device.advData[ADV_PKT_ID_OFFSET], NODE_ID_LENGTH); //salva l'indirizzo del nodo
-//						i += NODE_ID_LENGTH;
-//						noti.pValue[i++] = node->device.advData[ADV_PKT_STATE_OFFSET];
-//#ifdef INCLUDE_RSSI_IN_GATT_DATA
-//						noti.pValue[i++] = node->device.rssi;
-//#endif
-//						gattUpdateReq = TRUE;
-//					}
-//
-//					node = node->next; //passa al nodo sucessivo
-//				} else {
-//					node = childListRootPtr;
-//				}
-//
-//				if (node == gatt_startNodePtr) {
-//					roundCompleted = TRUE;
-//				}
-//			}
-//		}
-//		gatt_startNodePtr = node;
-//		//salva il valore di ticks
-//		lastGATTCheckTicks = Clock_getTicks();
-//
-//		if (gattUpdateReq) {
-//			//azzero i byte successivi
-//			while (i < len) {
-//				noti.pValue[i++] = 0;
-//			}
-//
-//			status = GATT_Notification(0, &noti, 0);    //attempt to send
-//			if (status != SUCCESS) //if noti not sent
-//			{
-//				GATT_bm_free((gattMsg_t *) &noti, ATT_HANDLE_VALUE_NOTI);
-//			}
-//
-//			//ClimbProfile_SetParameter(CLIMBPROFILE_CHAR1, 20, childrenNodesData);
-//			gattUpdateReq = FALSE;
-//		}
-//
-//	} else {
+		uint8 i = 0;
+		uint8 roundCompleted = FALSE;
+//	listNode_t* node = childListRootPtr;
+//	listNode_t* previousNode = NULL;
+		uint8 gattUpdateReq = FALSE;
+		listNode_t* node = gatt_startNodePtr;
+
+		noti.pValue = (uint8 *)GATT_bm_alloc(0, ATT_HANDLE_VALUE_NOTI, GATT_MAX_MTU, &len);
+
+		if (noti.pValue != NULL) //if allocated
+		{
+
+			while (i < len - 2 && roundCompleted == FALSE) {
+
+				if (node != NULL) {
+
+					//TODO: IL CAMPO noti.len DEVE CONTENERE LA LUNGHEZZA CORRETTA CHE DIPENDE DAL NUMERO DI CONTATTI INVIATI
+					if (node->device.contacSentThoughGATT == FALSE){
+						memcpy(&noti.pValue[i], &node->device.advData[ADV_PKT_ID_OFFSET], NODE_ID_LENGTH); //salva l'indirizzo del nodo
+						i += NODE_ID_LENGTH;
+						noti.pValue[i++] = node->device.advData[ADV_PKT_STATE_OFFSET];
+#ifdef INCLUDE_RSSI_IN_GATT_DATA
+						noti.pValue[i++] = node->device.rssi;
+#endif
+						gattUpdateReq = TRUE;
+					}
+
+					node = node->next; //passa al nodo sucessivo
+				} else {
+					node = childListRootPtr;
+				}
+
+				if (node == gatt_startNodePtr) {
+					roundCompleted = TRUE;
+				}
+			}
+		}
+		else{
+
+		}
+		gatt_startNodePtr = node;
+		//salva il valore di ticks
+		//lastGATTCheckTicks = Clock_getTicks();
+
+		if (gattUpdateReq) {
+			//azzero i byte successivi
+			while (i < len) {
+				noti.pValue[i++] = 0;
+			}
+
+			status = GATT_Notification(0, &noti, 0);    //attempt to send
+			if (status != SUCCESS) //if noti not sent
+			{
+				GATT_bm_free((gattMsg_t *) &noti, ATT_HANDLE_VALUE_NOTI);
+			}
+
+			//ClimbProfile_SetParameter(CLIMBPROFILE_CHAR1, 20, childrenNodesData);
+			gattUpdateReq = FALSE;
+		}else{
+			GATT_bm_free((gattMsg_t *) &noti, ATT_HANDLE_VALUE_NOTI);
+		}
+
+	} else { //default MTU
 		//INVIA I CONTATTI RADIO AVVENUTI NELL'ULTIMO PERIODO TRAMITE GATT
 		uint8 childrenNodesData[20];
 		uint8 i = 0;
@@ -1287,7 +1293,8 @@ static void Climb_contactsCheckSendThroughGATT(void) {
 			ClimbProfile_SetParameter(CLIMBPROFILE_CHAR1, 20, childrenNodesData);
 			gattUpdateReq = FALSE;
 		}
-//	}
+
+	}
 }
 
 //static void Climb_contactsCheckSendThroughGATT(void) {
