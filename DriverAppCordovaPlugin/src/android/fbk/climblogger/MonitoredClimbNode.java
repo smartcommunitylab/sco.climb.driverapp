@@ -49,8 +49,9 @@ public class MonitoredClimbNode{
         return nodeID;
     }
 
-    public String getNodeIDString(){
-        return Arrays.toString(nodeID);
+    public String getNodeIDString() {
+        //return Arrays.toString(nodeID);
+        return String.format("%02X", nodeID[0]);
     }
 
     public byte getNodeState(){

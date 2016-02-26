@@ -15,8 +15,8 @@ angular.module('driverapp.services.api', [])
             function (response) {
                 deferred.resolve(response.data);
             },
-            function (responseError) {
-                deferred.reject('[' + responseError.headers(ERROR_TYPE) + '] ' + responseError.headers(ERROR_MSG));
+            function (reason) {
+                deferred.reject('[' + reason.headers(ERROR_TYPE) + '] ' + reason.headers(ERROR_MSG));
             }
         );
 
@@ -37,8 +37,8 @@ angular.module('driverapp.services.api', [])
             function (response) {
                 deferred.resolve(response.data);
             },
-            function (responseError) {
-                deferred.reject('[' + responseError.headers(ERROR_TYPE) + '] ' + responseError.headers(ERROR_MSG));
+            function (reason) {
+                deferred.reject('[' + reason.headers(ERROR_TYPE) + '] ' + reason.headers(ERROR_MSG));
             }
         );
 
@@ -67,8 +67,8 @@ angular.module('driverapp.services.api', [])
             function (response) {
                 deferred.resolve(response.data);
             },
-            function (responseError) {
-                deferred.reject('[' + responseError.headers(ERROR_TYPE) + '] ' + responseError.headers(ERROR_MSG));
+            function (reason) {
+                deferred.reject('[' + reason.headers(ERROR_TYPE) + '] ' + reason.headers(ERROR_MSG));
             }
         );
 
@@ -89,8 +89,8 @@ angular.module('driverapp.services.api', [])
             function (response) {
                 deferred.resolve(response.data);
             },
-            function (responseError) {
-                deferred.reject('[' + responseError.headers(ERROR_TYPE) + '] ' + responseError.headers(ERROR_MSG));
+            function (reason) {
+                deferred.reject('[' + reason.headers(ERROR_TYPE) + '] ' + reason.headers(ERROR_MSG));
             }
         );
 
@@ -111,8 +111,8 @@ angular.module('driverapp.services.api', [])
             function (response) {
                 deferred.resolve(response.data);
             },
-            function (responseError) {
-                deferred.reject('[' + responseError.headers(ERROR_TYPE) + '] ' + responseError.headers(ERROR_MSG));
+            function (reason) {
+                deferred.reject('[' + reason.headers(ERROR_TYPE) + '] ' + reason.headers(ERROR_MSG));
             }
         );
 
@@ -141,8 +141,8 @@ angular.module('driverapp.services.api', [])
             function (response) {
                 deferred.resolve(response.data);
             },
-            function (responseError) {
-                deferred.reject('[' + responseError.headers(ERROR_TYPE) + '] ' + responseError.headers(ERROR_MSG));
+            function (reason) {
+                deferred.reject('[' + reason.headers(ERROR_TYPE) + '] ' + reason.headers(ERROR_MSG));
             }
         );
 
@@ -158,8 +158,8 @@ angular.module('driverapp.services.api', [])
             function (response) {
                 deferred.resolve(response.data);
             },
-            function (responseError) {
-                deferred.reject('[' + responseError.headers(ERROR_TYPE) + '] ' + responseError.headers(ERROR_MSG));
+            function (reason) {
+                deferred.reject('[' + reason.headers(ERROR_TYPE) + '] ' + reason.headers(ERROR_MSG));
             }
         );
 
@@ -180,8 +180,8 @@ angular.module('driverapp.services.api', [])
             function (response) {
                 deferred.resolve(response.data);
             },
-            function (responseError) {
-                deferred.reject('[' + responseError.headers(ERROR_TYPE) + '] ' + responseError.headers(ERROR_MSG));
+            function (reason) {
+                deferred.reject('[' + reason.headers(ERROR_TYPE) + '] ' + reason.headers(ERROR_MSG));
             }
         );
 
@@ -211,8 +211,8 @@ angular.module('driverapp.services.api', [])
             function (response) {
                 deferred.resolve(response.data);
             },
-            function (responseError) {
-                deferred.reject('[' + responseError.headers(ERROR_TYPE) + '] ' + responseError.headers(ERROR_MSG));
+            function (reason) {
+                deferred.reject('[' + reason.headers(ERROR_TYPE) + '] ' + reason.headers(ERROR_MSG));
             }
         );
 
@@ -245,8 +245,8 @@ angular.module('driverapp.services.api', [])
             function (response) {
                 deferred.resolve(response.data);
             },
-            function (responseError) {
-                deferred.reject('[' + responseError.headers(ERROR_TYPE) + '] ' + responseError.headers(ERROR_MSG));
+            function (reason) {
+                deferred.reject('[' + reason.headers(ERROR_TYPE) + '] ' + reason.headers(ERROR_MSG));
             }
         );
 
@@ -266,8 +266,8 @@ angular.module('driverapp.services.api', [])
             function (response) {
                 deferred.resolve(response.data);
             },
-            function (responseError) {
-                deferred.reject('[' + responseError.headers(ERROR_TYPE) + '] ' + responseError.headers(ERROR_MSG));
+            function (reason) {
+                deferred.reject('[' + reason.headers(ERROR_TYPE) + '] ' + reason.headers(ERROR_MSG));
             }
         );
 

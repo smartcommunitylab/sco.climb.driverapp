@@ -65,7 +65,6 @@ public class ClimbService extends Service implements ClimbServiceInterface {
     private final String TAG = "ClimbService_GIOVA";
     private ArrayList<ClimbNode> nodeList;
 
-
     public String dirName, dirName2,update_name_log,file_name_log;
     File root;
     private File mFile = null;
@@ -133,9 +132,11 @@ public class ClimbService extends Service implements ClimbServiceInterface {
         Log.i(TAG, "ClimbService started");
 
         mBinder = new LocalBinder();
+        mHandler = new Handler();
 
         if(nodeList == null)  nodeList = new ArrayList<ClimbNode>(); //crea la lista (vuota) che terrà conto dei dispositivi attualmente visibili
-        if(mBluetoothManager == null) {
+        //TODO: why the if above? could it be not empty on onCreate?
+        if(mBluetoothManager == null) { //TODO: why this if?
             initialize(); //TODO: handle error somehow
         }
 
@@ -193,6 +194,16 @@ public class ClimbService extends Service implements ClimbServiceInterface {
     public ArrayList getNodeList(){
 
         return nodeList;
+    }
+
+    public boolean setNodeList(String[] children) {
+        ClimbNode master = nodeListGetConnectedMaster();
+        if (master == null) {
+            return false;
+        }
+        master.setAllowedChildrenList(children);
+        //TODO: handle changes
+        return true;
     }
 
     //DEBUG
@@ -437,6 +448,16 @@ public class ClimbService extends Service implements ClimbServiceInterface {
         return mScanning;
     }
 
+    public String[] getMasters() {
+        ArrayList<String> ids = new ArrayList<>();
+        for(ClimbNode n : nodeList) {
+            if (n.isMasterNode()) {
+                ids.add(n.getNodeID());
+            }
+        }
+        return ids.toArray(new String[ids.size()]);
+    }
+
     public NodeState getNodeState(String id){
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
@@ -460,17 +481,13 @@ public class ClimbService extends Service implements ClimbServiceInterface {
     }
 
     public NodeState[] getNetworkState() {
-    	Log.d(TAG, "CS getNetworkState()");
-
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             // TODO
             return null;
         }
         ArrayList<MonitoredClimbNode> children = master.getMonitoredClimbNodeList();
-        Log.d(TAG, "children: " + children.size());
         NodeState[] nodeStates = new NodeState[children.size()];
-        Log.d(TAG, "nodeStates: " + nodeStates.length);
 
         for(int i = 0; i < children.size(); i++){
             MonitoredClimbNode n = children.get(i);
@@ -616,6 +633,8 @@ public class ClimbService extends Service implements ClimbServiceInterface {
     }
     ScanCallback mScanCallback = new ScanCallback() {
 
+        boolean scanForAll = false;
+
         @Override
         public void onBatchScanResults(List<ScanResult> results){
 
@@ -666,7 +685,7 @@ public class ClimbService extends Service implements ClimbServiceInterface {
                     }
                 }
 
-                if (result.getDevice().getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {  //AGGIUNGI alla lista SOLO I NODI MASTER!!!!
+                if (scanForAll || result.getDevice().getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {  //AGGIUNGI alla lista SOLO I NODI MASTER!!!!
                     //POI AVVIA IL PROCESSO PER AGGIORNARE LA UI
                     int index = isAlreadyInList(result.getDevice());
                     if (index >= 0) {
@@ -1153,11 +1172,6 @@ public class ClimbService extends Service implements ClimbServiceInterface {
                 }
             }, ConfigVals.NODE_TIMEOUT);
         }
-    }
-
-    public void setHandler(Handler handler)
-    {
-        mHandler = handler;
     }
 
     public void setContext(Context context)

@@ -1,12 +1,12 @@
 angular.module('driverapp.controllers.wizard', [])
 
-.controller('WizardCtrl', function ($scope, $state, $ionicPopup, $ionicHistory, $ionicSlideBoxDelegate, Config, Utils, StorageSrv, APISrv) {
+.controller('WizardCtrl', function ($scope, $rootScope, $state, $ionicPopup, $ionicHistory, $ionicSlideBoxDelegate, Config, Utils, StorageSrv, APISrv, WSNSrv) {
     $scope.swiperOptions = Config.getWizardSliderOptions();
 
     $scope.schools = [];
-    $scope.routes = StorageSrv.getRoutes();
-    $ionicSlideBoxDelegate.update();
+    $scope.routes = [];
     $scope.volunteers = null;
+
     var calendars = [];
 
     $scope.wizard = {
@@ -16,61 +16,39 @@ angular.module('driverapp.controllers.wizard', [])
         helpers: []
     };
 
-    $scope.schools.push(StorageSrv.getSchool());
-
-    if ($scope.schools.length == 1) {
-        $scope.wizard.school = $scope.schools[0];
-    }
-
-    if ($scope.routes == null) {
-        APISrv.getRoutesBySchool(StorageSrv.getSchoolId(), moment().format(Config.getDateFormat())).then(
-            function (routes) {
-                StorageSrv.saveRoutes(routes).then(function (routes) {
-                    $scope.routes = routes;
-
-                    if ($scope.routes.length == 1) {
-                        $scope.wizard.route = $scope.routes[0];
-                    }
-
-                    $ionicSlideBoxDelegate.update();
-                });
+    var loadDataBySchool = function (schoolId) {
+        Utils.loading();
+        $rootScope.loadAllBySchool(schoolId).then(
+            function () {
+                $scope.routes = StorageSrv.getRoutes();
+                if ($scope.routes != null && $scope.routes.length == 1) {
+                    $scope.wizard.route = $scope.routes[0];
+                }
+                $scope.volunteers = StorageSrv.getVolunteers();
+                calendars = StorageSrv.getVolunteersCalendars();
+                $ionicSlideBoxDelegate.update();
+                Utils.loaded();
             },
             function (error) {
-                // TODO handle error
                 console.log(error);
             }
         );
-    } else if ($scope.routes.length == 1) {
-        $scope.wizard.route = $scope.routes[0];
+    };
+
+    $scope.schools = [StorageSrv.getSchool()];
+
+    // FIXME dev
+    if ($scope.schools !== null && $scope.schools.length == 1) {
+        $scope.wizard.school = $scope.schools[0];
     }
 
-    APISrv.getVolunteersBySchool(StorageSrv.getSchoolId()).then(
-        function (volunteers) {
-            StorageSrv.saveVolunteers(volunteers);
-            $scope.volunteers = volunteers;
-        },
-        function (error) {
-            // TODO handle error
-            console.log(error);
-        }
-    );
-
-    var dateFrom = moment().format(Config.getDateFormat());
-    var dateTo = moment().format(Config.getDateFormat());
-    // FIXME remove hardcoded dates!
-    dateFrom = '2016-02-22';
-    dateTo = '2016-02-24';
-
-    APISrv.getVolunteersCalendarsBySchool(StorageSrv.getSchoolId(), dateFrom, dateTo).then(
-        function (cals) {
-            StorageSrv.saveVolunteersCalendars(cals);
-            calendars = cals;
-        }
-    );
+    if ($scope.wizard.school !== null) {
+        loadDataBySchool($scope.wizard.school.objectId);
+    }
 
     $scope.selectSchoolPopup = function () {
         var schoolPopup = $ionicPopup.show({
-            templateUrl: '../templates/wizard_popup_school.html',
+            templateUrl: 'templates/wizard_popup_school.html',
             title: 'Seleziona la scuola',
             scope: $scope,
             buttons: [{
@@ -81,12 +59,13 @@ angular.module('driverapp.controllers.wizard', [])
         $scope.selectSchool = function (school) {
             $scope.wizard.school = school;
             schoolPopup.close();
+            loadDataBySchool($scope.wizard.school.objectId);
         };
     };
 
     $scope.selectRoutePopup = function () {
         var routePopup = $ionicPopup.show({
-            templateUrl: '../templates/wizard_popup_route.html',
+            templateUrl: 'templates/wizard_popup_route.html',
             title: 'Seleziona il pedibus',
             scope: $scope,
             buttons: [{
@@ -102,7 +81,7 @@ angular.module('driverapp.controllers.wizard', [])
 
     $scope.selectDriverPopup = function () {
         var driverPopup = $ionicPopup.show({
-            templateUrl: '../templates/wizard_popup_driver.html',
+            templateUrl: 'templates/wizard_popup_driver.html',
             title: 'Chi sei?',
             scope: $scope,
             buttons: [{
@@ -158,6 +137,10 @@ angular.module('driverapp.controllers.wizard', [])
                 }
             }
             $scope.volunteers = sortedVolunteers;
+        } else if (wizardIndex == 2) {
+            if ($scope.wizard.driver.wsnId !== null && $scope.wizard.driver.wsnId.length > 0) {
+                WSNSrv.connectMaster($scope.wizard.driver.wsnId);
+            }
         }
     });
 

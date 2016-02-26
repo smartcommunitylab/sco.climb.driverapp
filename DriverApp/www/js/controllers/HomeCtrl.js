@@ -1,18 +1,75 @@
 angular.module('driverapp.controllers.home', [])
 
-.controller('AppCtrl', function ($scope, $rootScope, $ionicPlatform, Config, StorageSrv, APISrv) {
+.controller('AppCtrl', function ($scope, $rootScope, $ionicPlatform, $q, Config, StorageSrv, APISrv, Utils) {
     /*
      * FIXME dev purpose only!
      */
     StorageSrv.reset();
 
+    $rootScope.loadAllBySchool = function (schoolId) {
+        var deferred = $q.defer();
+
+        APISrv.getRoutesBySchool(schoolId, moment().format(Config.getDateFormat())).then(
+            function (routes) {
+                StorageSrv.saveRoutes(routes).then(function (routes) {
+                    APISrv.getVolunteersBySchool(schoolId).then(
+                        function (volunteers) {
+                            StorageSrv.saveVolunteers(volunteers).then(function (volunteers) {
+                                var dateFrom = moment().format(Config.getDateFormat());
+                                var dateTo = moment().format(Config.getDateFormat());
+                                // FIXME remove hardcoded dates!
+                                dateFrom = '2016-02-22';
+                                dateTo = '2016-02-24';
+                                APISrv.getVolunteersCalendarsBySchool(schoolId, dateFrom, dateTo).then(
+                                    function (cals) {
+                                        StorageSrv.saveVolunteersCalendars(cals).then(function (calendars) {
+                                            APISrv.getChildrenBySchool(schoolId).then(
+                                                function (children) {
+                                                    StorageSrv.saveChildren(children);
+                                                    deferred.resolve();
+                                                },
+                                                function (error) {
+                                                    // TODO handle error
+                                                    console.log(error);
+                                                    deferred.reject(error);
+                                                }
+                                            );
+                                        });
+                                    },
+                                    function (error) {
+                                        // TODO handle error
+                                        console.log(error);
+                                        deferred.reject(error);
+                                    }
+                                );
+                            });
+                        },
+                        function (error) {
+                            // TODO handle error
+                            console.log(error);
+                            deferred.reject(error);
+                        }
+                    );
+                });
+            },
+            function (error) {
+                // TODO handle error
+                console.log(error);
+                deferred.reject(error);
+            }
+        );
+
+        return deferred.promise;
+    };
+
     StorageSrv.saveSchool(CONF.DEV_SCHOOL).then(function (school) {
         /*
          * INIT!
          */
-        APISrv.getChildrenBySchool(StorageSrv.getSchoolId()).then(
-            function (children) {
-                StorageSrv.saveChildren(children);
+        Utils.loading();
+        $rootScope.loadAllBySchool(StorageSrv.getSchoolId()).then(
+            function () {
+                Utils.loaded();
             }
         );
     });

@@ -5,6 +5,7 @@ angular.module('driverapp', [
     'driverapp.services.config',
     'driverapp.services.utils',
     'driverapp.services.storage',
+    'driverapp.services.wsn',
     'driverapp.services.geo',
     'driverapp.services.ae',
     'driverapp.services.api',
@@ -15,7 +16,7 @@ angular.module('driverapp', [
     'driverapp.controllers.volunteers'
 ])
 
-.run(function ($ionicPlatform, $rootScope) {
+.run(function ($ionicPlatform, $rootScope, WSNSrv) {
     $ionicPlatform.ready(function () {
         // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
         // for form inputs)
@@ -31,24 +32,54 @@ angular.module('driverapp', [
         }
 
         if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
-            window.DriverAppPlugin.test(
-                'PROVA',
+            /*
+            WSNSrv.test('PROVA').then(
                 function (response) {
                     $rootScope.PLUGIN_TEST = response;
                 },
-                function (responseError) {
-                    console.log(responseError);
+                function (reason) {
+                    console.log(reason);
+                }
+            );
+            */
+
+            WSNSrv.init().then(
+                function (response) {
+                    WSNSrv.getMasters().then(
+                        function (masters) {
+                            console.log('getMasters: ' + masters);
+                        },
+                        function (reason) {
+                            console.log(reason);
+                        }
+                    );
+                },
+                function (reason) {
+                    console.log(reason);
                 }
             );
 
-            window.DriverAppPlugin.getNetworkState(
-                function (response) {
-                    var networkState = response;
+            /*
+            WSNSrv.getNetworkState().then(
+                function (networkState) {
+                    console.log('getNetworkState: ' + networkState);
                 },
-                function (responseError) {
-                    console.log(responseError);
+                function (reason) {
+                    console.log(reason);
                 }
             );
+            */
+
+            $rootScope.WSNSrvGetNetworkState = function () {
+                WSNSrv.getNetworkState().then(
+                    function (networkState) {
+                        console.log('getNetworkState: ' + networkState);
+                    },
+                    function (reason) {
+                        console.log(reason);
+                    }
+                );
+            };
         }
     });
 })

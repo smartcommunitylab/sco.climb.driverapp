@@ -1,6 +1,6 @@
 angular.module('driverapp.controllers.route', [])
 
-.controller('RouteCtrl', function ($scope, $stateParams, $ionicHistory, $ionicNavBarDelegate, $ionicPopup, $ionicModal, $interval, $ionicScrollDelegate, Config, StorageSrv, GeoSrv, AESrv, APISrv) {
+.controller('RouteCtrl', function ($scope, $rootScope, $stateParams, $ionicHistory, $ionicNavBarDelegate, $ionicPopup, $ionicModal, $interval, $ionicScrollDelegate, Config, StorageSrv, GeoSrv, AESrv, APISrv, WSNSrv) {
     $scope.fromWizard = false;
     var aesInstance = {};
 
@@ -23,6 +23,9 @@ angular.module('driverapp.controllers.route', [])
     }
 
     if ($scope.fromWizard) {
+        // FIXME dev purpose
+        $rootScope.WSNSrvGetNetworkState();
+
         if (!!$stateParams['route']) {
             $scope.route = $stateParams['route'];
 
@@ -47,8 +50,6 @@ angular.module('driverapp.controllers.route', [])
             $scope.route = StorageSrv.getRouteById($stateParams['routeId']);
         }
     }
-
-
 
     APISrv.getStopsByRoute($stateParams['routeId']).then(
         function (stops) {
