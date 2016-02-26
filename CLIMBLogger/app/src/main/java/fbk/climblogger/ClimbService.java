@@ -779,8 +779,10 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTED;
                 Log.i(TAG, "Connected to GATT server.");
                 // Attempts to discover services after successful connection.
-                Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
+
                 insertTag("Connected_to_GATT");
+                mBluetoothGatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
+                mBluetoothGatt.requestMtu(256);
 
                 //callback is called only after onServicesDiscovered()+getClimbService()
 
@@ -918,6 +920,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         @Override
         public void onMtuChanged (BluetoothGatt gatt, int mtu, int status){
 
+            Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
             if(status == 0){
 
                 return;
