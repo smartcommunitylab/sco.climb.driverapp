@@ -1,14 +1,12 @@
 angular.module('driverapp.controllers.home', [])
 
-.controller('AppCtrl', function ($scope, Config, StorageSrv, APISrv) {
+.controller('AppCtrl', function ($scope, $rootScope, $ionicPlatform, Config, StorageSrv, APISrv) {
     /*
      * FIXME dev purpose only!
      */
     StorageSrv.reset();
 
-    StorageSrv.saveSchool({
-        'objectId': CONF.DEV_SCHOOLID
-    }).then(function (school) {
+    StorageSrv.saveSchool(CONF.DEV_SCHOOL).then(function (school) {
         /*
          * INIT!
          */

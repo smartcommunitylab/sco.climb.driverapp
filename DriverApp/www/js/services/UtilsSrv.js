@@ -1,6 +1,6 @@
 angular.module('driverapp.services.utils', [])
 
-.factory('Utils', function ($rootScope, $filter, $timeout, $ionicPopup, $ionicLoading, Config) {
+.factory('Utils', function ($rootScope, $filter, $timeout, $ionicPopup, $ionicLoading, $interval, Config) {
     var Utils = {};
 
     Utils.isValidDate = function (dateString) {
