@@ -54,7 +54,6 @@ public class ScanActivity extends Activity {
     private Context mContext = null;
     private EditText mConsole = null;
     private CheckBox logCheckBox = null;
-    private Handler mHandler = null;
     private long lastBroadcastMessageSentMillis = 0;
     private int wakeUP_year = 0, wakeUP_month = 0, wakeUP_day = 0, wakeUP_hour = 0, wakeUP_minute = 0;
     ExpandableListView expandableListView;
@@ -148,7 +147,6 @@ public class ScanActivity extends Activity {
         public void onServiceConnected(ComponentName componentName, IBinder service) {
             //la prossima istruzione ritorna l'oggetto BluetoothLeService
             mClimbService = ((ClimbService.LocalBinder) service).getService();
-            mClimbService.setHandler(mHandler);
             mClimbService.setContext(getApplicationContext());
             //IN QUESTO PUNTO RICHIEDI LA LISTA DI DISPOSITIVI INIZIALI PER INSERIRLA NELLA LISTVIEW
             climbNodeList = mClimbService.getNodeList(); //Csaba: TODO replace
@@ -418,7 +416,6 @@ public class ScanActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scan);
-        mHandler = new Handler();
 
         mContext = this.getApplicationContext();
         //mConsole = (EditText) findViewById(R.id.console_item);

@@ -132,9 +132,11 @@ public class ClimbService extends Service implements ClimbServiceInterface {
         Log.i(TAG, "ClimbService started");
 
         mBinder = new LocalBinder();
+        mHandler = new Handler();
 
         if(nodeList == null)  nodeList = new ArrayList<ClimbNode>(); //crea la lista (vuota) che terrà conto dei dispositivi attualmente visibili
-        if(mBluetoothManager == null) {
+        //TODO: why the if above? could it be not empty on onCreate?
+        if(mBluetoothManager == null) { //TODO: why this if?
             initialize(); //TODO: handle error somehow
         }
 
@@ -1170,11 +1172,6 @@ public class ClimbService extends Service implements ClimbServiceInterface {
                 }
             }, ConfigVals.NODE_TIMEOUT);
         }
-    }
-
-    public void setHandler(Handler handler)
-    {
-        mHandler = handler;
     }
 
     public void setContext(Context context)
