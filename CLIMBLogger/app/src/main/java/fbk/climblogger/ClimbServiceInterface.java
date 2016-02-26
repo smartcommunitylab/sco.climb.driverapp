@@ -21,6 +21,8 @@ public interface ClimbServiceInterface {
 
     public final static String STATE_CONNECTED_TO_CLIMB_MASTER = "fbk.climblogger.ClimbService.STATE_CONNECTED_TO_CLIMB_MASTER";
     public final static String STATE_DISCONNECTED_FROM_CLIMB_MASTER = "fbk.climblogger.ClimbService.STATE_DISCONNECTED_FROM_CLIMB_MASTER";
+    public final static String STATE_CHECKEDIN_CHILD = "fbk.climblogger.ClimbService.STATE_CHECKEDIN_CHILD";
+    public final static String STATE_CHECKEDOUT_CHILD = "fbk.climblogger.ClimbService.STATE_CHECKEDOUT_CHILD";
 
     public final static String EXTRA_STRING ="fbk.climblogger.ClimbService.EXTRA_STRING";
     public final static String EXTRA_INT_ARRAY ="fbk.climblogger.ClimbService.EXTRA_INT_ARRAY";
