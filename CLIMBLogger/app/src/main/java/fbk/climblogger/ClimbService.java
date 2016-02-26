@@ -634,8 +634,10 @@ public class ClimbService extends Service {
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTED;
                 Log.i(TAG, "Connected to GATT server.");
                 // Attempts to discover services after successful connection.
-                Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
+
                 insertTag("Connected_to_GATT");
+                mBluetoothGatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
+                mBluetoothGatt.requestMtu(256);
 
 
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
@@ -763,6 +765,7 @@ public class ClimbService extends Service {
         @Override
         public void onMtuChanged (BluetoothGatt gatt, int mtu, int status){
 
+            Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
             if(status == 0){
 
                 return;
