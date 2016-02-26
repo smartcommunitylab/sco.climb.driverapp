@@ -34,6 +34,7 @@ public interface ClimbServiceInterface {
     public void disconnectMaster();
     //public void setNodeList(String[] master);
 
+    public boolean setNodeList(String[] children);
     public NodeState getNodeState(String id);
     public NodeState[] getNetworkState();
 

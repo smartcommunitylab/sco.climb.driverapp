@@ -195,6 +195,16 @@ public class ClimbService extends Service implements ClimbServiceInterface {
         return nodeList;
     }
 
+    public boolean setNodeList(String[] children) {
+        ClimbNode master = nodeListGetConnectedMaster();
+        if (master == null) {
+            return false;
+        }
+        master.setAllowedChildrenList(children);
+        //TODO: handle changes
+        return true;
+    }
+
     //DEBUG
     /*
     public ArrayList addNode(){
