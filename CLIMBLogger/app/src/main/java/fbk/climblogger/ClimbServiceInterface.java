@@ -26,16 +26,31 @@ public interface ClimbServiceInterface {
     public final static String EXTRA_INT_ARRAY ="fbk.climblogger.ClimbService.EXTRA_INT_ARRAY";
     public final static String EXTRA_BYTE_ARRAY ="fbk.climblogger.ClimbService.EXTRA_BYTE_ARRAY";
 
-    //public ArrayList getNodeList();
-
     public void init();
     public String[] getMasters();
     public void connectMaster(String master);
     public void disconnectMaster();
-    //public void setNodeList(String[] master);
 
+    /**
+     * Set the list all nodes that might belong to this master, i.e. nodes for which the master can change state.
+     *
+     * @param children List of node IDs.
+     * @return false if master is not connected or other error occured
+     */
     public boolean setNodeList(String[] children);
+
+    /**
+     * Get state of a single child node.
+     *
+     * @param id Id of node.
+     * @return State if the node, if available, null otherwise.
+     */
     public NodeState getNodeState(String id);
+
+    /**
+     * Get state of every child node seen by the master.
+     * @return Array of node states.
+     */
     public NodeState[] getNetworkState();
 
     public void checkinChild(String child);
