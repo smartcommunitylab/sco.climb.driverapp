@@ -65,7 +65,6 @@ public class ClimbService extends Service implements ClimbServiceInterface {
     private final String TAG = "ClimbService_GIOVA";
     private ArrayList<ClimbNode> nodeList;
 
-
     public String dirName, dirName2,update_name_log,file_name_log;
     File root;
     private File mFile = null;
@@ -632,6 +631,8 @@ public class ClimbService extends Service implements ClimbServiceInterface {
     }
     ScanCallback mScanCallback = new ScanCallback() {
 
+        boolean scanForAll = false;
+
         @Override
         public void onBatchScanResults(List<ScanResult> results){
 
@@ -682,7 +683,7 @@ public class ClimbService extends Service implements ClimbServiceInterface {
                     }
                 }
 
-                if (result.getDevice().getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {  //AGGIUNGI alla lista SOLO I NODI MASTER!!!!
+                if (scanForAll || result.getDevice().getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {  //AGGIUNGI alla lista SOLO I NODI MASTER!!!!
                     //POI AVVIA IL PROCESSO PER AGGIORNARE LA UI
                     int index = isAlreadyInList(result.getDevice());
                     if (index >= 0) {
