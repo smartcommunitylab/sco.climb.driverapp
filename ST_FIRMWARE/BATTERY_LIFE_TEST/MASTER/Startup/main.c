@@ -100,7 +100,7 @@ int main()
     // Enable System_printf(..) UART output
     UART_Params uartParams;
     UART_Params_init(&uartParams);
-    uartParams.baudRate = 921600;
+    uartParams.baudRate = 921600; //3000000;//1843200;
     UartPrintf_init(UART_open(Board_UART, &uartParams));
 #endif
     /* Kick off profile - Priority 3 */
