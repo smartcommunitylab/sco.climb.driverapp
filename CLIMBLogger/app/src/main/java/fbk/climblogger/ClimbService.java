@@ -122,7 +122,7 @@ public class ClimbService extends Service implements ClimbServiceInterface {
 
 
     public class LocalBinder extends Binder {
-        ClimbService getService() {
+        public ClimbService getService() {
             return ClimbService.this;
         }
     }
