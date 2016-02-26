@@ -381,7 +381,8 @@ static void CLIMB_FlashLed(PIN_Id pinId);
 static void CLIMB_handleKeys(uint8 keys);
 static void startNode();
 static void stopNode();
-static void destroyNodeLists();
+static void destroyChildNodeList();
+static void destroyMasterNodeList();
 //static void Key_callback(PIN_Handle handle, PIN_Id pinId);
 #ifdef FEATURE_LCD
 static void displayInit(void);
@@ -1253,7 +1254,7 @@ static void Climb_contactsCheckSendThroughGATT(void) {
 
 				//TODO: IMPORTANTE DA QUANDO SI E' AGGIUNTO IL CHECK CIRCOLARE DEI NODI QUESTA CONDIZIONE node->device.lastContactTicks >= lastGATTCheckTicks NON VA PIU' BENE!!!!!
 
-				if (node->device.contacSentThoughGATT == FALSE && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) { //invia solo i nodi visti dopo l'ultimo check, e solo i miei CHILD per ora.
+				if (node->device.contacSentThoughGATT == FALSE){// //invia solo i nodi visti dopo l'ultimo check, invia tutti i nodi CLIMBC
 					memcpy(&childrenNodesData[i], &node->device.advData[ADV_PKT_ID_OFFSET], NODE_ID_LENGTH); //salva l'indirizzo del nodo
 					i += NODE_ID_LENGTH;
 					childrenNodesData[i++] = node->device.advData[ADV_PKT_STATE_OFFSET];
@@ -1807,38 +1808,42 @@ static void Climb_advertisedStatesCheck(void) {
 
 		}
 
-		// se il nodo è BY_MYSELF non ha senso cercare di imporre uno stato inviato come broadcast, quindi si può sovrascrivere
-		if (node->device.advData[ADV_PKT_STATE_OFFSET] == BY_MYSELF && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
-
-			node->device.stateToImpose = CHECKING;
-
-		}
+//		// se il nodo è BY_MYSELF non ha senso cercare di imporre uno stato inviato come broadcast, quindi si può sovrascrivere
+//		if (node->device.advData[ADV_PKT_STATE_OFFSET] == BY_MYSELF && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
+//
+//			node->device.stateToImpose = CHECKING;
+//
+//		}
 
 		{ //CHECK IF THE REQUESTED STATE CHANGE IS VALID OR NOT
-
+			ChildClimbNodeStateType_t actualNodeState = (ChildClimbNodeStateType_t)node->device.advData[ADV_PKT_STATE_OFFSET];
 			switch (node->device.stateToImpose) {
 			case BY_MYSELF:
+				if (actualNodeState == CHECKING || actualNodeState == ON_BOARD || actualNodeState == ALERT) { // && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
+
+				} else {
+					node->device.stateToImpose = (ChildClimbNodeStateType_t) node->device.advData[ADV_PKT_STATE_OFFSET]; //mantieni lo stato precedente
+				}
 				break;
 
 			case CHECKING:
-				if (node->device.advData[ADV_PKT_STATE_OFFSET] == BY_MYSELF && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
-					node->device.stateToImpose = CHECKING;
+				if (actualNodeState == BY_MYSELF){// && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
+
 				} else {
 					node->device.stateToImpose = (ChildClimbNodeStateType_t) node->device.advData[ADV_PKT_STATE_OFFSET]; //mantieni lo stato precedente
 				}
 				break;
 
 			case ON_BOARD:
-				if ((node->device.advData[ADV_PKT_STATE_OFFSET] == CHECKING || node->device.advData[ADV_PKT_STATE_OFFSET] == ALERT)
-						&& Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
-					node->device.stateToImpose = ON_BOARD;
+				if ((actualNodeState == CHECKING || actualNodeState == ALERT)){// && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
+
 				} else {
 					node->device.stateToImpose = (ChildClimbNodeStateType_t) node->device.advData[ADV_PKT_STATE_OFFSET]; //mantieni lo stato precedente
 				}
 				break;
 
 			case ALERT:
-				node->device.stateToImpose = ON_BOARD;
+				node->device.stateToImpose = ON_BOARD; //don't broadcast ALERT state!
 				break;
 
 			case INVALID_STATE:
@@ -2140,34 +2145,49 @@ static void stopNode() {
 	uint8 zeroArray[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	ClimbProfile_SetParameter(CLIMBPROFILE_CHAR1, 20, zeroArray);
 	Util_stopClock(&periodicClock);
-	destroyNodeLists();
+	destroyChildNodeList();
+	destroyMasterNodeList();
 #ifdef WORKAROUND
 	Util_stopClock(&epochClock);
 #endif
 }
 /*********************************************************************
- * @fn      destroyNodeLists
+ * @fn      destroyChildNodeList
  *
- * @brief   Destroy master and child lists
+ * @brief   Destroy child list
  *
 
  * @return  none
  */
-static void destroyNodeLists() {
+static void destroyChildNodeList() {
+
 
 	listNode_t* targetNode = childListRootPtr;
 	while (targetNode != NULL) { //NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
 
-		targetNode = Climb_removeNode(targetNode, NULL); //rimuovi il nodo
-
+		Climb_removeNode(targetNode, NULL); //rimuovi il primo nodo
+		targetNode = childListRootPtr;
 		//NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
 	}
 
-	targetNode = masterListRootPtr;
+}
+/*********************************************************************
+ * @fn      destroyMasterNodeList
+ *
+ * @brief   Destroy master list
+ *
+
+ * @return  none
+ */
+static void destroyMasterNodeList() {
+
+
+	listNode_t* targetNode = masterListRootPtr;
+
 	while (targetNode != NULL) { //NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
 
-		targetNode = Climb_removeNode(targetNode, NULL); //rimuovi il nodo
-
+		Climb_removeNode(targetNode, NULL); //rimuovi il nodo
+		targetNode = masterListRootPtr;
 		//NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
 	}
 }
