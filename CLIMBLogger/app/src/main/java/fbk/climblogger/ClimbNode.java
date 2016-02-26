@@ -200,6 +200,17 @@
                 }
             }
 
+            private String stateToString(byte s) {
+                switch (s) {
+                    case 0: return "BY MYSELF";
+                    case 1: return "CHECKING";
+                    case 2: return "ON BOARD";
+                    case 3: return "ALERT";
+                    case 4: return "ERROR";
+                    default: return "INVALID STATE";
+                }
+            }
+
             public List<String> getClimbNeighbourList() {
 
                 //if (scanResponseData != null) {
@@ -208,19 +219,7 @@
 
                     if (bleDevice.getName().equals(ConfigVals.CLIMB_CHILD_DEVICE_NAME)) {
                         if (scanResponseData != null && scanResponseData.length > 1){
-                            if (scanResponseData[1] == 0) {   //BY_MYSELF
-                                description = "Node ID: 0x" + String.format("%02X",scanResponseData[0]) + "\nState: BY MYSELF";
-                            } else if (scanResponseData[1] == 1) { //CHECKING
-                                description = "Node ID: 0x" + String.format("%02X",scanResponseData[0]) + "\nState: CHECKING";
-                            } else if (scanResponseData[1] == 2) { //ON_BOARD
-                                description = "Node ID: 0x" + String.format("%02X",scanResponseData[0]) + "\nState: ON BOARD";
-                            } else if (scanResponseData[1] == 3) { //ALERT
-                                description = "Node ID: 0x" + String.format("%02X",scanResponseData[0]) + "\nState: ALERT";
-                            } else if (scanResponseData[1] == 3) { //ERROR
-                                description = "Node ID: 0x" + String.format("%02X",scanResponseData[0]) + "\nState: ERROR";
-                            } else { //INVALID STATE
-                                description = "Node ID: 0x" + String.format("%02X",scanResponseData[0]) + "\nState: INVALID STATE";
-                            }
+                            description = "Node ID: 0x" + String.format("%02X",scanResponseData[0]) +"\nState: " + stateToString(scanResponseData[1]);
                         }
 
                         if (scanResponseData.length > 17) {
@@ -235,61 +234,9 @@
                         if (connectionState) {
                             for (int i = 0; i < onBoardChildrenList.size(); i++) {
                                 MonitoredClimbNode tempNode = onBoardChildrenList.get(i);
-                                if (tempNode.getNodeState() == 0) {   //BY_MYSELF
-                                    description = "Node ID: 0x" + String.format("%02X", tempNode.getNodeID()[0]) + ", State: BY MYSELF, RSSI: " + tempNode.getNodeRssi();
-                                } else if (tempNode.getNodeState()  == 1) { //CHECKING
-                                    description = "Node ID: 0x" + String.format("%02X", tempNode.getNodeID()[0]) + ", State: CHECKING, RSSI: " + tempNode.getNodeRssi();
-                                } else if (tempNode.getNodeState()  == 2) { //ON_BOARD
-                                    description = "Node ID: 0x" + String.format("%02X", tempNode.getNodeID()[0]) + ", State: ON BOARD, RSSI: " + tempNode.getNodeRssi();
-                                } else if (tempNode.getNodeState()  == 3) { //ALERT
-                                    description = "Node ID: 0x" + String.format("%02X", tempNode.getNodeID()[0]) + ", State: ALERT, RSSI: " + tempNode.getNodeRssi();
-                                } else if (tempNode.getNodeState()  == 3) { //ERROR
-                                    description = "Node ID: 0x" + String.format("%02X", tempNode.getNodeID()[0]) + ", State: ERROR, RSSI: " + tempNode.getNodeRssi();
-                                } else { //INVALID STATE
-                                    description = "Node ID: 0x" + String.format("%02X", tempNode.getNodeID()[0]) + ", State: INVALID STATE, RSSI: " + tempNode.getNodeRssi();
-                                }
+                                description = "Node ID: 0x" + String.format("%02X", tempNode.getNodeID()[0]) +"\nState: " + stateToString(tempNode.getNodeState());
+                                description += "ID: " + tempNode.getNodeIDString();
                                 neighbourList.add(description);
-                            }
-                            /*
-                            for (int i = 0; i < lastReceivedGattData.length-2; i = i + 3) {
-                                if(lastReceivedGattData[i] != 0 || lastReceivedGattData[i + 1] != 0) { //se l'indirizzo (l'ID) è 0x00 scartalo
-                                    if (lastReceivedGattData[i + 2] == 0) {   //BY_MYSELF
-                                        description = "Node ID: " + String.format("%02X", lastReceivedGattData[i]) + String.format("%02X", lastReceivedGattData[i + 1]) + ", State: " + "BY MYSELF";
-                                    } else if (lastReceivedGattData[i + 2] == 1) { //CHECKING
-                                        description = "Node ID: " + String.format("%02X", lastReceivedGattData[i]) + String.format("%02X", lastReceivedGattData[i + 1]) + ", State: " + "CHECKING";
-                                    } else if (lastReceivedGattData[i + 2] == 2) { //ON_BOARD
-                                        description = "Node ID: " + String.format("%02X", lastReceivedGattData[i]) + String.format("%02X", lastReceivedGattData[i + 1]) + ", State: " + "ON BOARD";
-                                    } else if (lastReceivedGattData[i + 2] == 3) { //ALERT
-                                        description = "Node ID: " + String.format("%02X", lastReceivedGattData[i]) + String.format("%02X", lastReceivedGattData[i + 1]) + ", State: " + "ALERT";
-                                    } else if (lastReceivedGattData[i + 2] == 3) { //ERROR
-                                        description = "Node ID: " + String.format("%02X", lastReceivedGattData[i]) + String.format("%02X", lastReceivedGattData[i + 1]) + ", State: " + "ERROR";
-                                    } else { //INVALID STATE
-                                        description = "Node ID: " + String.format("%02X", lastReceivedGattData[i]) + String.format("%02X", lastReceivedGattData[i + 1]) + ", State: " + "INVALID STATE";
-                                    }
-                                    neighbourList.add(description);
-                                }
-                            }*/
-                            return neighbourList;
-                        } else {
-                            if (scanResponseData != null) {
-                                for (int i = 0; i < scanResponseData.length-1; i = i + 3) { //SE NON E' INCLUSO L'RSSI NELLE SCAN RESPONSE i + 2, SE L'RSSI E' INCLUSO i + 3
-                                    if(scanResponseData[i] != 0) { //scarta l'indirizzo 0x00
-                                        if (scanResponseData[i + 1] == 0) {   //BY_MYSELF
-                                            description = "Node ID: 0x" + String.format("%02X", scanResponseData[i]) + ", State: " + "BY MYSELF";
-                                        } else if (scanResponseData[i + 1] == 1) { //CHECKING
-                                            description = "Node ID: 0x" + String.format("%02X", scanResponseData[i]) + ", State: " + "CHECKING";
-                                        } else if (scanResponseData[i + 1] == 2) { //ON_BOARD
-                                            description = "Node ID: 0x" + String.format("%02X", scanResponseData[i]) + ", State: " + "ON BOARD";
-                                        } else if (scanResponseData[i + 1] == 3) { //ALERT
-                                            description = "Node ID: 0x" + String.format("%02X", scanResponseData[i]) + ", State: " + "ALERT";
-                                        } else if (scanResponseData[i + 1] == 3) { //ERROR
-                                            description = "Node ID: 0x" + String.format("%02X", scanResponseData[i]) + ", State: " + "ERROR";
-                                        } else { //INVALID STATE
-                                            description = "Node ID: 0x" + String.format("%02X", scanResponseData[i]) + ", State: " + "INVALID STATE";
-                                        }
-                                    }
-                                    neighbourList.add(description);
-                                }
                             }
                             return neighbourList;
                         }
