@@ -42,11 +42,7 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
 
-interface ClimbNodeTimeout {
-    public void climbNodeTimedout(ClimbNode node);
-}
-
-public class ClimbService extends Service implements ClimbServiceInterface {
+public class ClimbService extends Service implements ClimbServiceInterface, ClimbNodeTimeout, MonitoredClimbNodeTimeout {
 
     private BluetoothDevice  mBTDevice = null;
     private BluetoothGattService mBTService = null;
@@ -592,6 +588,9 @@ public class ClimbService extends Service implements ClimbServiceInterface {
             byte clickedChildState = monitoredChild.getNodeState();
 
             if(clickedChildState == 1){ //se lo stato è CHECKING
+                if (! monitoredChild.setImposedState((byte) 2)){
+                    return false; //cannot set state, another change is in progress
+                }
                 byte[] gattData = {clickedChildID[0],  2}; //assegna lo stato ON_BAORD e invia tutto al gatt
                 String tempString = "Acceptiong_node_"+clickedChildID[0];
                 insertTag(tempString);
@@ -999,6 +998,45 @@ public class ClimbService extends Service implements ClimbServiceInterface {
 
     }
 
+    @Override
+    public void climbNodeTimedout(ClimbNode node) {
+        nodeList.remove(node);
+        broadcastUpdate(ACTION_DEVICE_REMOVED_FROM_LIST);
+        Log.d(TAG, "Timeout: node removed with index: " + nodeList.indexOf(node));
+    }
+
+    @Override
+    public void monitoredClimbNodeChangeTimedout(MonitoredClimbNode node, byte imposedState, byte state) {
+        switch (imposedState) {
+            case 1:
+                broadcastUpdate(STATE_CHECKEDOUT_CHILD); //TODO: add param: failed
+                Log.d(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
+                break;
+            case 2:
+                broadcastUpdate(STATE_CHECKEDIN_CHILD); //TODO: add param: failed
+                Log.d(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
+                break;
+            default:
+                Log.d(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
+        }
+    }
+
+    @Override
+    public void monitoredClimbNodeChangeSuccess(MonitoredClimbNode node, byte state) {
+        switch (state) {
+            case 1:
+                broadcastUpdate(STATE_CHECKEDOUT_CHILD); //TODO: add param: success
+                Log.d(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
+                break;
+            case 2:
+                broadcastUpdate(STATE_CHECKEDIN_CHILD); //TODO: add param: success
+                Log.d(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
+                break;
+            default:
+                Log.d(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
+        }
+    }
+
     private boolean addToList(ScanResult targetNode, long nowMillis){
         BluetoothDevice device = targetNode.getDevice();
         //nodeID id =
@@ -1007,15 +1045,7 @@ public class ClimbService extends Service implements ClimbServiceInterface {
                 //id,
                 (byte) targetNode.getRssi(),
                 targetNode.getScanRecord().getManufacturerSpecificData(TEXAS_INSTRUMENTS_MANUFACTER_ID),
-                isMaster,
-                new ClimbNodeTimeout() {
-                    @Override
-                    public void climbNodeTimedout(ClimbNode node) {
-                        nodeList.remove(node);
-                        broadcastUpdate(ACTION_DEVICE_REMOVED_FROM_LIST);
-                        Log.d(TAG, "Timeout: node removed with index: " + nodeList.indexOf(node));
-                    }
-                });
+                isMaster, this, this);
                                 //nowMillis);
         nodeList.add(newNode);
         broadcastUpdate(ACTION_DEVICE_ADDED_TO_LIST);
