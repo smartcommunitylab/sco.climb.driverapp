@@ -78,6 +78,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     private BufferedWriter mBufferedWriter = null;
     private boolean logEnabled;
 
+    private int used_mtu = 23;
     private Context appContext = null;
 
     private Handler mHandler = null;
@@ -812,6 +813,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 mBTService = null;
                 mCIPOCharacteristic = null;
                 mPICOCharacteristic = null;
+                used_mtu = 23;
                 insertTag("Disconnected_from_GATT");
             }else if (newState == BluetoothProfile.STATE_CONNECTING) {
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTING;
@@ -919,10 +921,10 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
         @Override
         public void onMtuChanged (BluetoothGatt gatt, int mtu, int status){
-
+            Log.i(TAG, "MTU changed. MTU = "+mtu);
             Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
             if(status == 0){
-
+                used_mtu = mtu;
                 return;
             }
             return;
