@@ -14,20 +14,6 @@ public class MonitoredClimbNode{
     private boolean timedOut = false;
     private byte RSSI;
 
-    public MonitoredClimbNode(byte[] newNodeID, byte newNodeState){//}, long newLastContactMillis){
-        nodeID = newNodeID;
-        nodeState = newNodeState;
-        timedOut = false;
-        RSSI = 0;
-    }
-
-    public MonitoredClimbNode(byte[] newNodeID, byte newNodeState, byte newRSSI){//}, long newLastContactMillis){
-        nodeID = newNodeID;
-        nodeState = newNodeState;
-        timedOut = false;
-        RSSI = newRSSI;
-    }
-
     public MonitoredClimbNode(byte[] newNodeID, byte newNodeState, byte newRSSI, long newLastContactMillis){
         nodeID = newNodeID;
         nodeState = newNodeState;
