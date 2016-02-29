@@ -533,7 +533,7 @@ public class ClimbService extends Service implements ClimbServiceInterface {
             if (mBluetoothGatt == null) {
                 insertTag("Connecting_to_GATT");
                 mBTDevice = node.getBleDevice();
-                mBluetoothGatt = mBTDevice.connectGatt(appContext, false, mGattCallback);
+                mBluetoothGatt = mBTDevice.connectGatt(appContext, false, mGattCallback); //TODO: check whu context is needed
 
                 if (mBluetoothGatt == null) {
                     Log.w(TAG, "connectGatt returned null!");
@@ -884,7 +884,7 @@ public class ClimbService extends Service implements ClimbServiceInterface {
                     Log.d(TAG, "Master not found in the list, CHECK!!!!");
                 }
 
-                broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER);
+                broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER); //TODO: add timeout on this
 
 
                 return;
@@ -963,10 +963,10 @@ public class ClimbService extends Service implements ClimbServiceInterface {
 
         //if(targetNode.getScanRecord().getManufacturerSpecificData(TEXAS_INSTRUMENTS_MANUFACTER_ID) != null) {
             //if (targetNode.getScanRecord().getManufacturerSpecificData(TEXAS_INSTRUMENTS_MANUFACTER_ID).length > 0) {
-                nodeList.get(recordIndex).updateScnMetadata((byte)targetNode.getRssi(), targetNode.getScanRecord().getManufacturerSpecificData(TEXAS_INSTRUMENTS_MANUFACTER_ID));//, nowMillis);
+        nodeList.get(recordIndex).updateScnMetadata((byte) targetNode.getRssi(), targetNode.getScanRecord().getManufacturerSpecificData(TEXAS_INSTRUMENTS_MANUFACTER_ID));//, nowMillis);
 
-                //broadcastUpdate(ACTION_METADATA_CHANGED, EXTRA_INT_ARRAY, new int[]{recordIndex}); //questa allega  al broadcast l'indice che è cambiato, per ora non serve
-                broadcastUpdate(ACTION_METADATA_CHANGED);
+        //broadcastUpdate(ACTION_METADATA_CHANGED, EXTRA_INT_ARRAY, new int[]{recordIndex}); //questa allega  al broadcast l'indice che è cambiato, per ora non serve
+                broadcastUpdate(ACTION_METADATA_CHANGED); //TODO: add nodeID
                 return true;
             //}
         //}
