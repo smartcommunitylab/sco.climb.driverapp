@@ -30,7 +30,7 @@ public interface ClimbServiceInterface {
 
     public void init();
     public String[] getMasters();
-    public void connectMaster(String master);
+    public boolean connectMaster(String master);
     public void disconnectMaster();
 
     /**

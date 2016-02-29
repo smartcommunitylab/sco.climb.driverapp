@@ -525,7 +525,7 @@ public class ClimbService extends Service implements ClimbServiceInterface {
         return null;
     }
 
-    public void connectMaster(String master) {
+    public boolean connectMaster(String master) {
         ClimbNode node = nodeListGet(master);
         if (node != null && node.isMasterNode()) { //do something only if it is a master node
 
@@ -544,9 +544,11 @@ public class ClimbService extends Service implements ClimbServiceInterface {
                 Toast.makeText(appContext,
                         "Connecting!",
                         Toast.LENGTH_SHORT).show();
-                return;
-            } // TODO: else exception
-        } //TODO: expception
+            } // TODO: else handle error
+        } else {
+            return false;
+        }
+        return true;
     }
 
     public void disconnectMaster() { //TODO: handle several masters?
