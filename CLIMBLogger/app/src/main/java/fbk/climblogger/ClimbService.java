@@ -495,6 +495,7 @@ public class ClimbService extends Service implements ClimbServiceInterface {
 
         for(int i = 0; i < children.size(); i++){
             MonitoredClimbNode n = children.get(i);
+            nodeStates[i] = new NodeState();
             nodeStates[i].nodeID = n.getNodeIDString();
             nodeStates[i].state = n.getNodeState();
             nodeStates[i].lastSeen = n.getLastContactMillis();
