@@ -229,25 +229,7 @@
                                 }
                                 neighbourList.add(description);
                             }
-                            /*
-                            for (int i = 0; i < lastReceivedGattData.length-2; i = i + 3) {
-                                if(lastReceivedGattData[i] != 0 || lastReceivedGattData[i + 1] != 0) { //se l'indirizzo (l'ID) è 0x00 scartalo
-                                    if (lastReceivedGattData[i + 2] == 0) {   //BY_MYSELF
-                                        description = "Node ID: " + String.format("%02X", lastReceivedGattData[i]) + String.format("%02X", lastReceivedGattData[i + 1]) + ", State: " + "BY MYSELF";
-                                    } else if (lastReceivedGattData[i + 2] == 1) { //CHECKING
-                                        description = "Node ID: " + String.format("%02X", lastReceivedGattData[i]) + String.format("%02X", lastReceivedGattData[i + 1]) + ", State: " + "CHECKING";
-                                    } else if (lastReceivedGattData[i + 2] == 2) { //ON_BOARD
-                                        description = "Node ID: " + String.format("%02X", lastReceivedGattData[i]) + String.format("%02X", lastReceivedGattData[i + 1]) + ", State: " + "ON BOARD";
-                                    } else if (lastReceivedGattData[i + 2] == 3) { //ALERT
-                                        description = "Node ID: " + String.format("%02X", lastReceivedGattData[i]) + String.format("%02X", lastReceivedGattData[i + 1]) + ", State: " + "ALERT";
-                                    } else if (lastReceivedGattData[i + 2] == 3) { //ERROR
-                                        description = "Node ID: " + String.format("%02X", lastReceivedGattData[i]) + String.format("%02X", lastReceivedGattData[i + 1]) + ", State: " + "ERROR";
-                                    } else { //INVALID STATE
-                                        description = "Node ID: " + String.format("%02X", lastReceivedGattData[i]) + String.format("%02X", lastReceivedGattData[i + 1]) + ", State: " + "INVALID STATE";
-                                    }
-                                    neighbourList.add(description);
-                                }
-                            }*/
+
                             return neighbourList;
                         } else {//master not connected
 
