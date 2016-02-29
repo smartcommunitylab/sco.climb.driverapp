@@ -247,8 +247,8 @@
                         if (connectionState) {
                             for (int i = 0; i < onBoardChildrenList.size(); i++) {
                                 MonitoredClimbNode tempNode = onBoardChildrenList.get(i);
-                                description = "Node ID: 0x" + String.format("%02X", tempNode.getNodeID()[0]) +"\nState: " + stateToString(tempNode.getNodeState());
-                                description += "ID: " + tempNode.getNodeIDString();
+                                description = "Node ID: " + tempNode.getNodeIDString();
+                                description += "\nState: " + stateToString(tempNode.getNodeState());
                                 neighbourList.add(description);
                             }
                             return neighbourList;
