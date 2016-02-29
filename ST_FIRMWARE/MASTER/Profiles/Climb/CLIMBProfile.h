@@ -56,9 +56,6 @@ extern "C"
 // Profile Parameters
 #define CLIMBPROFILE_CHAR1                   0  // RW uint8 - Profile Characteristic 1 value
 #define CLIMBPROFILE_CHAR2                   1  // RW uint8 - Profile Characteristic 2 value
-#define CLIMBPROFILE_CHAR3                   2  // RW uint8 - Profile Characteristic 3 value
-#define CLIMBPROFILE_CHAR4                   3  // RW uint8 - Profile Characteristic 4 value
-#define CLIMBPROFILE_CHAR5                   4  // RW uint8 - Profile Characteristic 4 value
   
 // Simple Profile Service UUID
 #define CLIMBPROFILE_SERV_UUID               0xFFF0
@@ -71,7 +68,7 @@ extern "C"
 #define CLIMBPROFILE_SERVICE               0x00000001
 
 // Length of Characteristic 1 in bytes
-#define CLIMBPROFILE_CHAR1_LEN           20
+#define CLIMBPROFILE_CHAR1_LEN           101//20
 #define CLIMBPROFILE_CHAR2_LEN           20
 /*********************************************************************
  * TYPEDEFS

@@ -114,7 +114,7 @@ static CONST gattAttrType_t climbProfileService = { ATT_BT_UUID_SIZE, ClimbProfi
 static uint8 climbProfileChar1Props = GATT_PROP_NOTIFY | GATT_PROP_READ;// | GATT_PROP_WRITE;
 
 // Characteristic 1 Value
-static uint8 climbProfileChar1[CLIMBPROFILE_CHAR1_LEN]; //FORE SI PUo' EVITARE DI ALLORARE SPAZIO QUA
+static uint8 climbProfileChar1[CLIMBPROFILE_CHAR1_LEN]; //FORSE SI PUo' EVITARE DI ALLORARE SPAZIO QUA
 
 // Simple Profile Characteristic 1 User Description
 static uint8 climbProfileChar1UserDesp[5] = "CIPO";
@@ -316,40 +316,54 @@ bStatus_t ClimbProfile_RegisterAppCBs( climbProfileCBs_t *appCallbacks )
  *
  * @return  bStatus_t
  */
-bStatus_t ClimbProfile_SetParameter( uint8 param, uint8 len, void *value )
-{
-  bStatus_t ret = SUCCESS;
-  switch ( param )
-  {
-    case CLIMBPROFILE_CHAR1:
+bStatus_t ClimbProfile_SetParameter(uint8 param, uint8 len, void *value) {
+	bStatus_t ret = SUCCESS;
+	switch (param) {
+	case CLIMBPROFILE_CHAR1: //NO CHECK ON CCCD IS PERFORMED!!!
 
-      //if( len <=  CLIMBPROFILE_CHAR1_LEN){
-    	  VOID memcpy( climbProfileChar1, value, CLIMBPROFILE_CHAR1_LEN );
-//    	  climbProfileChar1 = (uint8*)value;
-/*
-    	  attHandleValueNoti_t noti;
-    	  noti.len = len;
-    	  noti.handle = climbProfileAttrTbl[2].handle;
-    	  ret = GATT_Notification(0,&noti, FALSE);
- */
+		if (len <= CLIMBPROFILE_CHAR1_LEN) {
+			VOID memcpy(climbProfileChar1, value, len); //save locally
 
-      	  GATTServApp_ProcessCharCfg( climbProfileChar1Config, climbProfileChar1, FALSE,
-                                  climbProfileAttrTbl, GATT_NUM_ATTRS( climbProfileAttrTbl ),
-                                  INVALID_TASK_ID, climbProfile_ReadAttrCB );
+			attHandleValueNoti_t noti;
+			bStatus_t status = SUCCESS;
+			noti.handle = climbProfileAttrTbl[2].handle;
+			noti.len = (uint16) len;
 
-      //}
-      //else
-      //{
-      //  ret = bleInvalidRange;
-      //}
-      break;
+			noti.pValue = (uint8 *) GATT_bm_alloc(0, ATT_HANDLE_VALUE_NOTI, GATT_MAX_MTU, (uint16*) (&len));
 
-    default:
-      ret = INVALIDPARAMETER;
-      break;
-  }
-  
-  return ( ret );
+			if (noti.pValue != NULL) //if allocated
+			{
+				VOID memcpy(noti.pValue, value, noti.len);
+				status = GATT_Notification(0, &noti, 0);    //attempt to send
+				if (status != SUCCESS) //if noti not sent
+				{
+					GATT_bm_free((gattMsg_t *) &noti, ATT_HANDLE_VALUE_NOTI);
+				}
+			} else {
+				ret = bleNoResources; //no resources...
+			}
+
+//			climbProfileChar1 = (uint8*) value;
+//
+//			attHandleValueNoti_t noti;
+//			noti.len = len;
+//			noti.handle = climbProfileAttrTbl[2].handle;
+//			ret = GATT_Notification(0, &noti, FALSE);
+//
+//			GATTServApp_ProcessCharCfg(climbProfileChar1Config, climbProfileChar1, FALSE, climbProfileAttrTbl, GATT_NUM_ATTRS(climbProfileAttrTbl),
+//			INVALID_TASK_ID, climbProfile_ReadAttrCB);
+
+		} else {
+			ret = bleInvalidRange;
+		}
+		break;
+
+	default:
+		ret = INVALIDPARAMETER;
+		break;
+	}
+
+	return (ret);
 }
 
 /*********************************************************************
@@ -501,6 +515,7 @@ static bStatus_t climbProfile_WriteAttrCB(uint16_t connHandle,
       case CLIMBPROFILE_CHAR1_UUID:
     	  //should not get here
         break;
+
       case CLIMBPROFILE_CHAR2_UUID:
 
         //Validate the value
@@ -523,10 +538,11 @@ static bStatus_t climbProfile_WriteAttrCB(uint16_t connHandle,
 
            VOID memcpy( pAttr->pValue, pValue, len ); //VERIFICARE!!!!
 
-           notifyApp = CLIMBPROFILE_CHAR2;
+           notifyApp = CLIMBPROFILE_CHAR2;	//TODO: in some way the len parameter needs to be passed to app!
 
         }
         break;
+
       case GATT_CLIENT_CHAR_CFG_UUID:
         status = GATTServApp_ProcessCCCWriteReq( connHandle, pAttr, pValue, len,
                                                  offset, GATT_CLIENT_CFG_NOTIFY );
