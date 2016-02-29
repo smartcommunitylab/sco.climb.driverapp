@@ -403,8 +403,13 @@ public class ScanActivity extends Activity {
         public boolean onChildClick(ExpandableListView parent, View v,
                                     int groupPosition, int childPosition, long id) {
             //TODO: implement
-            //ClimbNode clickedNode = climbNodeList.get(groupPosition,childPosition);
-            //mClimbService.checkinChild(clickedNode.getNodeID());
+            ClimbNode clickedNode = climbNodeList.get(groupPosition);
+            MonitoredClimbNode monitoredChild = clickedNode.getMonitoredClimbNodeList().get(childPosition);
+            if (monitoredChild.getNodeState() == 2) {
+                mClimbService.checkoutChild(monitoredChild.getNodeIDString());
+            } else {
+                mClimbService.checkinChild(monitoredChild.getNodeIDString());
+            }
             mVibrator.vibrate(ConfigVals.vibrationTimeout);
 
             return false;
