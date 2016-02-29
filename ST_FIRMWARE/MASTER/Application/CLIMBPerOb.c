@@ -124,7 +124,7 @@
 #define DEFAULT_CONN_PAUSE_PERIPHERAL         10
 
 // Scan duration in ms
-#define DEFAULT_SCAN_DURATION                 10000//1000 //Tempo di durata di una scansione, allo scadere la scansione viene ricominciata
+#define DEFAULT_SCAN_DURATION                 1000//1000 //Tempo di durata di una scansione, allo scadere la scansione viene ricominciata
 
 // Scan interval value in 0.625ms ticks
 #define SCAN_INTERVAL 						  160
@@ -145,7 +145,7 @@
 #define DEFAULT_DISCOVERY_WHITE_LIST          FALSE
 
 // Maximum number of scan responses to be reported to application
-#define DEFAULT_MAX_SCAN_RES                  30
+#define DEFAULT_MAX_SCAN_RES                  40
 
 // How often to perform periodic event (in msec)
 #define PERIODIC_EVT_PERIOD              	  2000
@@ -1175,19 +1175,18 @@ static void Climb_contactsCheckSendThroughGATT(void) {
 	//TODO: //decidere qual'è la lunghezza massima e len = MTU-3 (ma verificare)
 	//NB: SE ANDROID LIMITA A 4 PPCE LA LUNGHEZZA MASSIMA PER UNA CARATTERISTICA E' 3*27+20 byte = 101 byte = 33 nodi
 	// ATTENZIONE NON USARE L'MTU IMPOSTATO NEI PREPROCESSOR DEFINES MA QUELLO OTTENUTO TRAMITE LE API O GLI EVENTI
-	// if (mtu_size) può essere tolto, basta usare len = 20 quando mtu non è stato aggiornato
-	if (mtu_size == 23) {	//default MTU
 
-		//INVIA I CONTATTI RADIO AVVENUTI NELL'ULTIMO PERIODO TRAMITE GATT
-		uint8 childrenNodesData[20];
-		uint8 i = 0;
-		uint8 roundCompleted = FALSE;
-		//	listNode_t* node = childListRootPtr;
-		//	listNode_t* previousNode = NULL;
-		uint8 gattUpdateReq = FALSE;
-		listNode_t* node = gatt_startNodePtr;
+	//INVIA I CONTATTI RADIO AVVENUTI NELL'ULTIMO PERIODO TRAMITE GATT
+	uint8* childrenNodesData = (uint8*) ICall_malloc((mtu_size - 3));	//	[mtu_size-3];
+	uint8 i = 0;
+	uint8 roundCompleted = FALSE;
+	//	listNode_t* node = childListRootPtr;
+	//	listNode_t* previousNode = NULL;
+	uint8 gattUpdateReq = FALSE;
+	listNode_t* node = gatt_startNodePtr;
 
-		while (i < 18 && roundCompleted == FALSE) {
+	if (childrenNodesData != NULL) { //if allocated
+		while (i < mtu_size - 5 && roundCompleted == FALSE) {
 
 			if (node != NULL) {
 
@@ -1219,139 +1218,25 @@ static void Climb_contactsCheckSendThroughGATT(void) {
 
 		if (gattUpdateReq) {
 			//azzero i byte successivi
-//			while (i < 20) {
-//				childrenNodesData[i++] = 0;
-//			}
+			//			while (i < 20) {
+			//				childrenNodesData[i++] = 0;
+			//			}
 
-			ClimbProfile_SetParameter(CLIMBPROFILE_CHAR1, i, childrenNodesData);
+			if (ClimbProfile_SetParameter(CLIMBPROFILE_CHAR1, i, childrenNodesData) != SUCCESS) {
+				PIN_setOutputValue(hGpioPin, Board_LED1, Board_LED_ON);
+				PIN_setOutputValue(hGpioPin, Board_LED2, Board_LED_ON);
+			}
 			gattUpdateReq = FALSE;
 		}
 
-	} else {
-
-		uint16 len = mtu_size-3;
-		attHandleValueNoti_t noti;
-		bStatus_t status = SUCCESS;
-		noti.handle = 0x0B;
-		noti.len = len;
-
-		uint8 i = 0;
-		uint8 roundCompleted = FALSE;
-		//	listNode_t* node = childListRootPtr;
-		//	listNode_t* previousNode = NULL;
-		uint8 gattUpdateReq = FALSE;
-		listNode_t* node = gatt_startNodePtr;
-
-		noti.pValue = (uint8 *) GATT_bm_alloc(0, ATT_HANDLE_VALUE_NOTI, GATT_MAX_MTU, &len);
-
-		if (noti.pValue != NULL) //if allocated
-		{
-
-			while (i < len - 2 && roundCompleted == FALSE) {
-
-				if (node != NULL) {
-
-					//TODO: IL CAMPO noti.len DEVE CONTENERE LA LUNGHEZZA CORRETTA CHE DIPENDE DAL NUMERO DI CONTATTI INVIATI
-					if (node->device.contactSentThoughGATT == FALSE) {
-						memcpy(&noti.pValue[i], &node->device.advData[ADV_PKT_ID_OFFSET], NODE_ID_LENGTH); //salva l'indirizzo del nodo
-						i += NODE_ID_LENGTH;
-						noti.pValue[i++] = node->device.advData[ADV_PKT_STATE_OFFSET];
-#ifdef INCLUDE_RSSI_IN_GATT_DATA
-						noti.pValue[i++] = node->device.rssi;
-#endif
-						node->device.contactSentThoughGATT = TRUE;
-						gattUpdateReq = TRUE;
-					}
-
-					node = node->next; //passa al nodo sucessivo
-				} else {
-					node = childListRootPtr;
-				}
-
-				if (node == gatt_startNodePtr) {
-					roundCompleted = TRUE;
-				}
-			}
-		} else {
-
-		}
-		gatt_startNodePtr = node;
-		//salva il valore di ticks
-		//lastGATTCheckTicks = Clock_getTicks();
-
-		if (gattUpdateReq) {
-			//azzero i byte successivi
-			//while (i < len) {
-			//	noti.pValue[i++] = 0;
-			//}
-
-			noti.len = i; //don't send long characteristics if not needed
-
-			status = GATT_Notification(0, &noti, 0);    //attempt to send
-			if (status != SUCCESS) //if noti not sent
-			{
-				GATT_bm_free((gattMsg_t *) &noti, ATT_HANDLE_VALUE_NOTI);
-			}
-
-			//ClimbProfile_SetParameter(CLIMBPROFILE_CHAR1, 20, childrenNodesData);
-			gattUpdateReq = FALSE;
-		} else {
-			GATT_bm_free((gattMsg_t *) &noti, ATT_HANDLE_VALUE_NOTI);
-		}
-
+		ICall_free(childrenNodesData);
+	} else { //childrenNodesData not allocated
+		PIN_setOutputValue(hGpioPin, Board_LED1, Board_LED_ON);
+		PIN_setOutputValue(hGpioPin, Board_LED2, Board_LED_ON);
 	}
+
 }
 
-//static void Climb_contactsCheckSendThroughGATT(void) {
-//	//INVIA I CONTATTI RADIO AVVENUTI NELL'ULTIMO PERIODO TRAMITE GATT
-//	uint8 childrenNodesData[20];
-//	uint8 i = 0;
-//	uint8 roundCompleted = FALSE;
-////	listNode_t* node = childListRootPtr;
-////	listNode_t* previousNode = NULL;
-//	uint8 gattUpdateReq = FALSE;
-//	listNode_t* node = gatt_startNodePtr;
-//
-//	while (i < 18 && roundCompleted == FALSE) {
-//
-//		if (node != NULL) {
-//
-//			//TODO: IMPORTANTE DA QUANDO SI E' AGGIUNTO IL CHECK CIRCOLARE DEI NODI QUESTA CONDIZIONE node->device.lastContactTicks >= lastGATTCheckTicks NON VA PIU' BENE!!!!!
-//
-//			if (node->device.lastContactTicks >= lastGATTCheckTicks && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) { //invia solo i nodi visti dopo l'ultimo check, e solo i miei CHILD per ora.
-//				memcpy(&childrenNodesData[i], &node->device.advData[ADV_PKT_ID_OFFSET], NODE_ID_LENGTH); //salva l'indirizzo del nodo
-//				i += NODE_ID_LENGTH;
-//				childrenNodesData[i++] = node->device.advData[ADV_PKT_STATE_OFFSET];
-//#ifdef INCLUDE_RSSI_IN_GATT_DATA
-//				childrenNodesData[i++] = node->device.rssi;
-//#endif
-//				gattUpdateReq = TRUE;
-//			}
-//
-//			node = node->next; //passa al nodo sucessivo
-//		} else {
-//			node = childListRootPtr;
-//		}
-//
-//		if (node == gatt_startNodePtr) {
-//			roundCompleted = TRUE;
-//		}
-//	}
-//	gatt_startNodePtr = node;
-//	//salva il valore di ticks
-//	lastGATTCheckTicks = Clock_getTicks();
-//
-//	if (gattUpdateReq) {
-//		//azzero i byte successivi
-//		while (i < 20) {
-//			childrenNodesData[i++] = 0;
-//		}
-//
-//		ClimbProfile_SetParameter(CLIMBPROFILE_CHAR1, 20, childrenNodesData);
-//		gattUpdateReq = FALSE;
-//	}
-//
-//}
 /*********************************************************************
  * @fn      Climb_advertisedStatesUpdate
  *
@@ -1447,7 +1332,8 @@ static void Climb_advertisedStatesUpdate(void) {
  */
 static void Climb_processCharValueChangeEvt(uint8_t paramID) {
 
-	uint8_t newValue[20];
+	//TODO: quando la lunghezza della caratteristica sarà disponibile qui, allocare un array di quella lunghezza e non CLIMBPROFILE_CHAR2_LEN
+	uint8_t newValue[CLIMBPROFILE_CHAR2_LEN];
 
 	switch (paramID) {
 	case CLIMBPROFILE_CHAR1: {
@@ -1459,7 +1345,7 @@ static void Climb_processCharValueChangeEvt(uint8_t paramID) {
 		ClimbProfile_GetParameter(CLIMBPROFILE_CHAR2, newValue);
 
 		uint8 i = 0;
-		while (i < 16) { //TODO: verificare il 16
+		while (i < CLIMBPROFILE_CHAR2_LEN-4) { //TODO: cambiare CLIMBPROFILE_CHAR2_LEN con la lunghezza effettiva dell'operazione di scrittura
 			uint8 nodeID[NODE_ID_LENGTH];
 			memcpy(nodeID, &newValue[i], NODE_ID_LENGTH);
 			if (memcomp(nodeID, broadcastID, NODE_ID_LENGTH) == 0) { 	//broadcastID found! ONLY ONE BROADCAST MSG PER NOTIFICATION (PER GATT PACKET)
@@ -1733,6 +1619,8 @@ static listNode_t* Climb_addNode(gapDeviceInfoEvent_t *gapDeviceInfoEvent, Climb
 	listNode_t* new_Node_Ptr = (listNode_t*) ICall_malloc(sizeof(listNode_t));
 	if (new_Node_Ptr == NULL) {
 		//malloc fail!
+		PIN_setOutputValue(hGpioPin, Board_LED1, Board_LED_ON);
+		PIN_setOutputValue(hGpioPin, Board_LED2, Board_LED_ON);
 		return NULL;
 	}
 
