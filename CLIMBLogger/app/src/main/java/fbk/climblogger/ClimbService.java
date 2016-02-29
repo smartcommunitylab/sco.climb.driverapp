@@ -556,14 +556,14 @@ public class ClimbService extends Service implements ClimbServiceInterface {
         if (mBluetoothGatt != null) {
             insertTag("Disconnecting_from_GATT");
 
-            mBluetoothGatt.close();
             mBluetoothGatt.disconnect();
-            mBluetoothGatt = null;
-            mBTService = null;
-            mCIPOCharacteristic = null;
-            mPICOCharacteristic = null;
+            //mBluetoothGatt.close(); //TODO: check if this is needed here, or should better be done when disconnected
+            //mBluetoothGatt = null;
+            //mBTService = null;
+            //mCIPOCharacteristic = null;
+            //mPICOCharacteristic = null;
 
-            Log.i(TAG, "Climb master node disconnected!");
+            Log.i(TAG, "Climb master node disconnecting ...");
             Toast.makeText(appContext,
                     "Disconnecting...",
                     Toast.LENGTH_SHORT).show();
@@ -745,10 +745,14 @@ public class ClimbService extends Service implements ClimbServiceInterface {
                 }
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_DISCONNECTED;
                 broadcastUpdate(STATE_DISCONNECTED_FROM_CLIMB_MASTER);
-                mBluetoothGatt.disconnect();
+                //mBluetoothGatt.disconnect();
                 mBluetoothGatt.close();
                 mBluetoothGatt = null;
                 mBTDevice = null;
+                mBTService = null;
+                mCIPOCharacteristic = null;
+                mPICOCharacteristic = null;
+
                 insertTag("Disconnected_from_GATT");
                 //broadcastUpdate(intentAction);
 
@@ -760,9 +764,9 @@ public class ClimbService extends Service implements ClimbServiceInterface {
             }else if (newState == BluetoothProfile.STATE_DISCONNECTING) {   //TODO: understand difference from DISCONNECTED
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_DISCONNECTING;
                 Log.i(TAG, "Disconnecting from GATT server. Status: " + status);
-                mBluetoothGatt.disconnect();
-                mBluetoothGatt.close();
-                mBluetoothGatt = null;
+                //mBluetoothGatt.disconnect();
+                //mBluetoothGatt.close();
+                //mBluetoothGatt = null;
 
             }
         }
