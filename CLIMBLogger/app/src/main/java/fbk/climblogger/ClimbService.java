@@ -551,7 +551,7 @@ public class ClimbService extends Service implements ClimbServiceInterface {
         return true;
     }
 
-    public void disconnectMaster() { //TODO: handle several masters?
+    public boolean disconnectMaster() { //TODO: handle several masters?
         if (mBluetoothGatt != null) {
             insertTag("Disconnecting_from_GATT");
 
@@ -576,8 +576,8 @@ public class ClimbService extends Service implements ClimbServiceInterface {
                 }
             }
             broadcastUpdate(STATE_DISCONNECTED_FROM_CLIMB_MASTER);
-            return;
         }
+        return true; //TODO: handle errors
     }
 
     public void checkinChild(String child) {

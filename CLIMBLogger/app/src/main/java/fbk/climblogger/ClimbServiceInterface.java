@@ -31,7 +31,7 @@ public interface ClimbServiceInterface {
     public void init();
     public String[] getMasters();
     public boolean connectMaster(String master);
-    public void disconnectMaster();
+    public boolean disconnectMaster();
 
     /**
      * Set the list all nodes that might belong to this master, i.e. nodes for which the master can change state.
