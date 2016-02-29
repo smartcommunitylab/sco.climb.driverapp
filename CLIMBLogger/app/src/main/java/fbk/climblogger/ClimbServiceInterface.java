@@ -55,10 +55,10 @@ public interface ClimbServiceInterface {
      */
     public NodeState[] getNetworkState();
 
-    public void checkinChild(String child);
-    public void checkinChildren(String[] children);
-    public void checkoutChild(String child);
-    public void checkoutChildren(String[] children);
+    public boolean checkinChild(String child);
+    public boolean checkinChildren(String[] children);
+    public boolean checkoutChild(String child);
+    public boolean checkoutChildren(String[] children);
 
     ////public boolean ScheduleWakeUpCmd(int timeout_sec);
 }

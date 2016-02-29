@@ -581,10 +581,10 @@ public class ClimbService extends Service implements ClimbServiceInterface {
         return true; //TODO: handle errors
     }
 
-    public void checkinChild(String child) {
+    public boolean checkinChild(String child) {
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
-            return; //TODO: exception
+            return false; //TODO: exception?
         }
         MonitoredClimbNode monitoredChild = master.getChildByID(child);
         if(monitoredChild != null){
@@ -597,40 +597,51 @@ public class ClimbService extends Service implements ClimbServiceInterface {
                 insertTag(tempString);
                 mPICOCharacteristic.setValue(gattData);
                 mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
+                return true;
             } //TODO: error
         } //TODO: error
+        return false;
     }
 
-    public void checkinChildren(String[] children) {
+    public boolean checkinChildren(String[] children) {
         for (String child : children) {
-            checkinChild(child);
+            if (! checkinChild(child)) {
+                return false;
+            }
         }
+        return true;
     }
 
-    public void checkoutChild(String child) {
+    public boolean checkoutChild(String child) {
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
-            return; //TODO: error
+            return false; //TODO: error
         }
         MonitoredClimbNode monitoredChild = master.getChildByID(child);
         if(monitoredChild != null){
             byte[] clickedChildID = monitoredChild.getNodeID();
             byte clickedChildState = monitoredChild.getNodeState();
 
-            if(clickedChildState == 2) { //se lo stato è ON_BAORD
+            if(clickedChildState == 2) { //se lo stato è ON_BOARD
                 byte[] gattData = {clickedChildID[0],  0}; //assegna lo stato BY_MYSELF e invia tutto al gatt
                 String tempString = "Checking_out_node_"+clickedChildID[0];
                 insertTag(tempString);
                 mPICOCharacteristic.setValue(gattData);
                 mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
-            } //TODO: error
-        } //TODO: error
+            } //TODO: error?
+        } else {
+            return false; //child not found
+        }
+        return true;
     }
 
-    public void checkoutChildren(String[] children) {
+    public boolean checkoutChildren(String[] children) {
         for (String child : children) {
-            checkoutChild(child);
+            if (!checkoutChild(child)) {
+                return false;
+            }
         }
+        return true;
     }
 
     //-----------------------------------------------------
