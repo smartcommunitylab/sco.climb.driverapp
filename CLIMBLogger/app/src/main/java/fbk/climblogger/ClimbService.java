@@ -87,6 +87,7 @@ public class ClimbService extends Service {
     private BufferedWriter mBufferedWriter = null;
     private boolean logEnabled;
 
+    private int used_mtu = 23;
     private int index = 0;
 
     private Context appContext = null;
@@ -601,7 +602,7 @@ public class ClimbService extends Service {
                     byte[] scanResponseData = result.getScanRecord().getManufacturerSpecificData(TEXAS_INSTRUMENTS_MANUFACTER_ID);
                     if (scanResponseData.length > 17) {
                         int batteryVoltage_mV =  (  ((((int) scanResponseData[16]) << 24) >>> 24)<<8) + ( (((int) scanResponseData[17]) << 24) >>> 24 );
-                        if (batteryVoltage_mV < 2100){
+                        if (batteryVoltage_mV < 2000){
                             Toast.makeText(appContext,
                                     "Battery low on node: 0x" + String.format("%02X",scanResponseData[0]),
                                     Toast.LENGTH_SHORT).show();
@@ -658,19 +659,21 @@ public class ClimbService extends Service {
                 mBluetoothGatt = null;
                 mBTDevice = null;
                 insertTag("Disconnected_from_GATT");
+                used_mtu = 23;
                 //broadcastUpdate(intentAction);
 
 
             }else if (newState == BluetoothProfile.STATE_CONNECTING) {
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTING;
                 Log.i(TAG, "Connecting to GATT server. Status: " + status);
-
+                used_mtu = 23;
             }else if (newState == BluetoothProfile.STATE_DISCONNECTING) {
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_DISCONNECTING;
                 Log.i(TAG, "Disconnecting from GATT server. Status: " + status);
                 mBluetoothGatt.disconnect();
                 mBluetoothGatt.close();
                 mBluetoothGatt = null;
+                used_mtu = 23;
 
             }
         }
@@ -764,10 +767,10 @@ public class ClimbService extends Service {
 
         @Override
         public void onMtuChanged (BluetoothGatt gatt, int mtu, int status){
-
+            Log.i(TAG, "MTU changed. MTU = "+mtu);
             Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
             if(status == 0){
-
+                used_mtu = mtu;
                 return;
             }
             return;
@@ -913,7 +916,7 @@ public class ClimbService extends Service {
     private void checkNodeStates(int index){ //
         ClimbNode nodeUnderCheck = nodeList.get(index);
 
-        byte[] gattData = new byte[20];
+        byte[] gattData = new byte[used_mtu-3];
         int gattDataIndex = 0;
 
         if(nodeUnderCheck != null) {
@@ -943,14 +946,14 @@ public class ClimbService extends Service {
                             break;
                     }
 
-                    if( (gattDataIndex >= 19 || i == monitoredClimbNodeList.size()-1) && gattDataIndex > 0){ //ATTENZIONE, SE SI METTONO IN CHECKING PIU DI 10 NODI SI RISCHIA DI RICHIAMARE writeCharacteristic più volte velocemente, e non è chiaro cosa possa succedere
+                    if( (gattDataIndex >= used_mtu-4 || i == monitoredClimbNodeList.size()-1) && gattDataIndex > 0){ //ATTENZIONE, SE SI METTONO IN CHECKING PIU DI 10 NODI SI RISCHIA DI RICHIAMARE writeCharacteristic più volte velocemente, e non è chiaro cosa possa succedere
                         if(mPICOCharacteristic != null && mBluetoothGatt != null) {
                             mPICOCharacteristic.setValue(gattData);
                             mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
 
                             //return;
 
-                            gattData = new byte[20];
+                            gattData = new byte[used_mtu-3];
                             gattDataIndex = 0;
                         }else{
                             Log.w(TAG, "mPICOCharacteristic or mBluetoothGatt == null" );
