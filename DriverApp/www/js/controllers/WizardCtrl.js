@@ -1,6 +1,6 @@
 angular.module('driverapp.controllers.wizard', [])
 
-.controller('WizardCtrl', function ($scope, $rootScope, $state, $ionicPopup, $ionicHistory, $ionicSlideBoxDelegate, Config, Utils, StorageSrv, APISrv, WSNSrv) {
+.controller('WizardCtrl', function ($scope, $rootScope, $state, $ionicPopup, $ionicHistory, $ionicSlideBoxDelegate, $timeout, Config, Utils, StorageSrv, APISrv, WSNSrv) {
     $scope.swiperOptions = Config.getWizardSliderOptions();
 
     $scope.schools = [];
@@ -139,7 +139,14 @@ angular.module('driverapp.controllers.wizard', [])
             $scope.volunteers = sortedVolunteers;
         } else if (wizardIndex == 2) {
             if ($scope.wizard.driver.wsnId !== null && $scope.wizard.driver.wsnId.length > 0) {
-                WSNSrv.connectMaster($scope.wizard.driver.wsnId);
+                WSNSrv.connectMaster($scope.wizard.driver.wsnId).then(
+                    function (procedureStarted) {
+                        console.log('connectMaster: ' + procedureStarted + ' (request sent)');
+                    },
+                    function (reason) {
+                        console.log(reason);
+                    }
+                );
             }
         }
     });

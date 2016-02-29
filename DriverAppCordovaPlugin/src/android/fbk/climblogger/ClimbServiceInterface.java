@@ -5,10 +5,10 @@ import java.util.ArrayList;
 public interface ClimbServiceInterface {
 
     public class NodeState{
-        String nodeID;
-        int state;
-        long lastSeen;
-        long lastStateChange;
+        public String nodeID;
+        public int state;
+        public long lastSeen;
+        public long lastStateChange;
     }
 
     public final static String ACTION_DEVICE_ADDED_TO_LIST = "fbk.climblogger.ClimbService.ACTION_DEVICE_ADDED_TO_LIST";
@@ -30,8 +30,8 @@ public interface ClimbServiceInterface {
 
     public void init();
     public String[] getMasters();
-    public void connectMaster(String master);
-    public void disconnectMaster();
+    public boolean connectMaster(String master);
+    public boolean disconnectMaster();
 
     /**
      * Set the list all nodes that might belong to this master, i.e. nodes for which the master can change state.

@@ -20,6 +20,9 @@ module.exports = {
     'getNetworkState': function (successCallback, errorCallback) {
         cordova.exec(successCallback, errorCallback, serviceName, 'getNetworkState', []);
     },
+    'setNodeList': function (nodeList, successCallback, errorCallback) {
+        cordova.exec(successCallback, errorCallback, serviceName, 'setNodeList', [nodeList]);
+    },
     'test': function (name, successCallback, errorCallback) {
         cordova.exec(successCallback, errorCallback, serviceName, 'test', [name]);
     }

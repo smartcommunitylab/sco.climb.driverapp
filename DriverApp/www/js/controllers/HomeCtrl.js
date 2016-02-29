@@ -1,6 +1,6 @@
 angular.module('driverapp.controllers.home', [])
 
-.controller('AppCtrl', function ($scope, $rootScope, $ionicPlatform, $q, Config, StorageSrv, APISrv, Utils) {
+.controller('AppCtrl', function ($scope, $rootScope, $ionicPlatform, $q, Config, StorageSrv, APISrv, WSNSrv, Utils) {
     /*
      * FIXME dev purpose only!
      */
@@ -25,7 +25,11 @@ angular.module('driverapp.controllers.home', [])
                                         StorageSrv.saveVolunteersCalendars(cals).then(function (calendars) {
                                             APISrv.getChildrenBySchool(schoolId).then(
                                                 function (children) {
-                                                    StorageSrv.saveChildren(children);
+                                                    StorageSrv.saveChildren(children).then(
+                                                        function (children) {
+                                                            WSNSrv.updateNodeList(children, 'child');
+                                                        }
+                                                    );
                                                     deferred.resolve();
                                                 },
                                                 function (error) {

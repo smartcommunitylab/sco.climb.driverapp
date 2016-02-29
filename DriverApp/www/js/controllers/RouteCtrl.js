@@ -23,9 +23,6 @@ angular.module('driverapp.controllers.route', [])
     }
 
     if ($scope.fromWizard) {
-        // FIXME dev purpose
-        $rootScope.WSNSrvGetNetworkState();
-
         if (!!$stateParams['route']) {
             $scope.route = $stateParams['route'];
 
@@ -42,6 +39,26 @@ angular.module('driverapp.controllers.route', [])
                     AESrv.setHelper(helper);
                 });
             }
+
+            $scope.$watch(
+                function () {
+                    return WSNSrv.networkState;
+                },
+                function (ns, oldNs) {
+                    if (ns === oldNs) {
+                        return;
+                    }
+
+                    console.log('[RouteCtrl] networkState changed');
+                    Object.keys(ns).forEach(function (nodeId) {
+                        if (WSNSrv.isNodeByType(nodeId, 'child') && ns[nodeId].timestamp != -1 && oldNs[nodeId].timestamp == -1) {
+                            var child = $scope.isChildOfThisStop(nodeId);
+                            if (child !== null) {
+                                $scope.takeOnBoard(child.objectId);
+                            }
+                        }
+                    });
+                });
         }
     } else {
         if (!!$stateParams['route']) {
@@ -107,9 +124,7 @@ angular.module('driverapp.controllers.route', [])
                     AESrv.nodeCheckout($scope.getChild(passengerId));
                 });
                 AESrv.endRoute($scope.stops[$scope.enRoutePos]);
-
                 GeoSrv.stopWatchingPosition();
-
                 $scope.enRouteArrived = true;
             }
         }
@@ -144,6 +159,20 @@ angular.module('driverapp.controllers.route', [])
             });
         }
         stop.passengers = passengers;
+    };
+
+    $scope.isChildOfThisStop = function (childWsnId) {
+        var child = null;
+        if (!!$scope.sel.stop && !!$scope.sel.stop.passengers) {
+            for (var i = 0; i < $scope.sel.stop.passengers.length; i++) {
+                var passenger = $scope.sel.stop.passengers[i];
+                if (passenger.wsnId === childWsnId) {
+                    child = passenger;
+                    i = $scope.sel.stop.passengers.length;
+                }
+            }
+        }
+        return child;
     };
 
     $scope.takeOnBoard = function (passengerId) {

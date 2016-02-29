@@ -32,8 +32,17 @@
                     Volontari
                 </ion-item>
                 <!-- FIXME dev only! -->
+                <ion-item nav-clear ng-click="WSNSrvGetMasters()">
+                    GET MASTERS
+                </ion-item>
+                <ion-item nav-clear ng-click="WSNSrvConnectMaster('B0:B4:48:BD:8C:02')">
+                    CONNECT MASTER
+                </ion-item>
+                <ion-item nav-clear ng-click="WSNSrvSetNodeList()">
+                    SET NODE LIST
+                </ion-item>
                 <ion-item nav-clear ng-click="WSNSrvGetNetworkState()">
-                    NETWORK STATE
+                    GET NETWORK STATE
                 </ion-item>
             </ion-list>
         </ion-content>

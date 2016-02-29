@@ -15,7 +15,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 import fbk.climblogger.ClimbService;
@@ -69,10 +68,9 @@ public class DriverAppPlugin extends CordovaPlugin {
 		if (action.equals("connectMaster")) {
 			if (data != null && data.length() == 1 && data.getString(0).length() > 0) {
 				String masterId = data.getString(0);
-				Log.w(LOG_TAG, "connectMaster: " + masterId);
-				mClimbService.connectMaster(masterId);
-				// TODO handle success
-				callbackContext.success();
+				boolean procedureStarted = mClimbService.connectMaster(masterId);
+				Log.w(LOG_TAG, "connectMaster: " + procedureStarted + " (" + masterId + ")");
+				callbackContext.success("" + procedureStarted);
 				return true;
 			}
 		}
@@ -83,9 +81,33 @@ public class DriverAppPlugin extends CordovaPlugin {
 				Log.w(LOG_TAG, "getNetworkState: No master connected!");
 				callbackContext.error("No master connected!");
 			} else {
-				JSONArray networkStateJSON = new JSONArray(networkState);
+				JSONArray networkStateJSON = new JSONArray();
+				for (int i = 0; i < networkState.length; i++) {
+					networkStateJSON.put(nodeState2json(networkState[i]));
+				}
+
 				Log.w(LOG_TAG, "getNetworkState: " + networkStateJSON.toString());
 				callbackContext.success(networkStateJSON);
+			}
+
+			return true;
+		}
+
+		if (action.equals("setNodeList")) {
+			JSONArray nodeListJSON = data.getJSONArray(0);
+			String[] nodeList = new String[nodeListJSON.length()];
+
+			for (int i = 0; i < nodeListJSON.length(); i++) {
+				nodeList[i] = nodeListJSON.getString(i);
+			}
+
+			boolean done = mClimbService.setNodeList(nodeList);
+			Log.w(LOG_TAG, "setNodeList: " + done);
+
+			if (done) {
+				callbackContext.success("" + done);
+			} else {
+				callbackContext.error("setNodeList error!");
 			}
 
 			return true;
@@ -188,7 +210,7 @@ public class DriverAppPlugin extends CordovaPlugin {
 		@Override
 		public void onServiceConnected(ComponentName className, IBinder service) {
 			mClimbService = ((ClimbService.LocalBinder) service).getService();
-			mClimbService.setHandler(new Handler());
+			// mClimbService.setHandler(new Handler());
 			mClimbService.setContext(webView.getContext());
 			Log.w(LOG_TAG, "climbService: " + mClimbService);
 		}
@@ -199,4 +221,21 @@ public class DriverAppPlugin extends CordovaPlugin {
 			Log.w(LOG_TAG, "climbService: " + mClimbService);
 		}
 	};
+
+	/*
+	 * Utils
+	 */
+	private JSONObject nodeState2json(NodeState node) {
+		JSONObject jsonObject = new JSONObject();
+		try {
+			jsonObject.put("nodeID", node.nodeID);
+			jsonObject.put("state", node.state);
+			jsonObject.put("lastSeen", node.lastSeen);
+			jsonObject.put("lastStateChange", node.lastStateChange);
+			return jsonObject;
+		} catch (JSONException e) {
+			Log.w(LOG_TAG, "nodeState2json: " + e.getMessage());
+			return null;
+		}
+	}
 }

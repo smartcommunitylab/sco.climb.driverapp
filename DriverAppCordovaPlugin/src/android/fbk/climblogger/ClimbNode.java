@@ -2,6 +2,7 @@
 
         import android.bluetooth.BluetoothDevice;
         import android.bluetooth.le.ScanResult;
+        import android.os.Handler;
         import android.util.Log;
         import android.util.SparseArray;
 
@@ -26,7 +27,10 @@
             private ArrayList<MonitoredClimbNode> onBoardChildrenList;
             private boolean connectionState = false;
             private boolean isMasterNode = false;
-            private boolean timedOut = false;
+            private ClimbNodeTimeout timedoutCallback = null;
+            private Runnable timedoutTimer = null;
+            private Handler mHandler = null;
+
 
             public ClimbNode() {
                 return;
@@ -42,7 +46,7 @@
                     return;
                 }
             */
-            public ClimbNode(BluetoothDevice dev, byte initRssi, byte[] newScanResponse, boolean masterNode) {//SparseArray<byte[]> newScanResponse){
+            public ClimbNode(BluetoothDevice dev, byte initRssi, byte[] newScanResponse, boolean masterNode, ClimbNodeTimeout cb) {//SparseArray<byte[]> newScanResponse){
 
                 bleDevice = dev;
                 rssi = initRssi;
@@ -50,7 +54,8 @@
                 //lastContactMillis = millisNow;
                 onBoardChildrenList = new ArrayList<MonitoredClimbNode>();
                 isMasterNode = masterNode;
-                timedOut = false;
+                timedoutCallback = cb;
+                mHandler = new Handler();
                 return;
             }
 
@@ -116,15 +121,6 @@
                 return bleDevice;
             }
 
-
-            public void setTimedOut(boolean value){
-                timedOut = value;
-            }
-
-            public boolean getTimedOut(){
-                return timedOut;
-            }
-
             public boolean isMasterNode(){
                 return isMasterNode;
             }
@@ -159,11 +155,28 @@
                 return null;
             }
 
+            private void timedout() {
+                (timedoutCallback).climbNodeTimedout(this);
+            }
+
+            private void timeoutRestart() {
+                if (timedoutTimer != null) {
+                    mHandler.removeCallbacks(timedoutTimer);
+                }
+                timedoutTimer = new Runnable() {
+                    @Override
+                    public void run() {
+                        timedout();
+                    }
+                };
+                mHandler.postDelayed(timedoutTimer, ConfigVals.NODE_TIMEOUT);
+            }
+
             public void updateScnMetadata(byte newRssi, byte[] newScanResponse){//, long millisNow) {//SparseArray<byte[]> newScanResponse){
                 rssi = newRssi;
                 scanResponseData = newScanResponse;
-                timedOut = false;
                 //lastContactMillis = millisNow;
+                timeoutRestart();
             }
 
             private MonitoredClimbNode findChildByID(byte[] id) {
@@ -178,8 +191,8 @@
             public void updateGATTMetadata(int newRssi, byte[] cipo_metadata, long millisNow) {//SparseArray<byte[]> newScanResponse){
                 //rssi = newRssi;
                 lastReceivedGattData = cipo_metadata;
-                timedOut = false;
                 //lastContactMillis = millisNow;
+                timeoutRestart();
 
                 //AGGIORNA LA LISTA DEI NODI ON_BOARD
                 for (int i = 0; i < lastReceivedGattData.length-2; i = i + 3) {

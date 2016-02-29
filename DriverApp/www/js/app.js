@@ -45,30 +45,62 @@ angular.module('driverapp', [
 
             WSNSrv.init().then(
                 function (response) {
-                    WSNSrv.getMasters().then(
-                        function (masters) {
-                            console.log('getMasters: ' + masters);
-                        },
-                        function (reason) {
-                            console.log(reason);
-                        }
-                    );
+                    console.log('init: ' + response);
                 },
                 function (reason) {
                     console.log(reason);
                 }
             );
 
-            /*
-            WSNSrv.getNetworkState().then(
-                function (networkState) {
-                    console.log('getNetworkState: ' + networkState);
+            WSNSrv.startListener().then(
+                function (response) {
+                    if (response.action === WSNSrv.STATE_CONNECTED_TO_CLIMB_MASTER) {
+                        console.log('+++ Yippee-ki-yay! Welcome, Master! +++');
+                    } else if (response.action === WSNSrv.STATE_DISCONNECTED_FROM_CLIMB_MASTER) {
+                        console.log('--- Where is my Master?!? ---');
+                    }
                 },
                 function (reason) {
-                    console.log(reason);
+                    console.log('startListener: ' + reason);
                 }
             );
-            */
+
+            /*
+             * WSN Functions!
+             */
+            $rootScope.WSNSrvGetMasters = function () {
+                WSNSrv.getMasters().then(
+                    function (masters) {
+                        console.log('getMasters: ' + masters);
+                    },
+                    function (reason) {
+                        console.log(reason);
+                    }
+                );
+            };
+
+            $rootScope.WSNSrvConnectMaster = function (masterId) {
+                WSNSrv.connectMaster(masterId).then(
+                    function (procedureStarted) {
+                        console.log('connectMaster: ' + procedureStarted + ' (request sent)');
+                    },
+                    function (reason) {
+                        console.log(reason);
+                    }
+                );
+            };
+
+            $rootScope.WSNSrvSetNodeList = function () {
+                var childrenWsnIds = WSNSrv.getNodeListByType('child');
+                WSNSrv.setNodeList(childrenWsnIds).then(
+                    function (procedureStarted) {
+                        console.log('setNodeList: ' + procedureStarted + ' (request sent)');
+                    },
+                    function (reason) {
+                        console.log(reason);
+                    }
+                );
+            };
 
             $rootScope.WSNSrvGetNetworkState = function () {
                 WSNSrv.getNetworkState().then(

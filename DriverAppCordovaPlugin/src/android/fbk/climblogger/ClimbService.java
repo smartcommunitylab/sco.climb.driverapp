@@ -42,6 +42,10 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
 
+interface ClimbNodeTimeout {
+    public void climbNodeTimedout(ClimbNode node);
+}
+
 public class ClimbService extends Service implements ClimbServiceInterface {
 
     private BluetoothDevice  mBTDevice = null;
@@ -483,18 +487,23 @@ public class ClimbService extends Service implements ClimbServiceInterface {
     public NodeState[] getNetworkState() {
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
+        	Log.w("DriverAppPlugin", "master null");
             // TODO
             return null;
         }
+        Log.w("DriverAppPlugin", "master: " + master);
         ArrayList<MonitoredClimbNode> children = master.getMonitoredClimbNodeList();
+        Log.w("DriverAppPlugin", "children: " + (children != null ? "" + children.size() : "0"));
         NodeState[] nodeStates = new NodeState[children.size()];
 
         for(int i = 0; i < children.size(); i++){
             MonitoredClimbNode n = children.get(i);
+            nodeStates[i] = new NodeState();
             nodeStates[i].nodeID = n.getNodeIDString();
             nodeStates[i].state = n.getNodeState();
             nodeStates[i].lastSeen = n.getLastContactMillis();
             nodeStates[i].lastStateChange = n.getLastStateChangeMillis();
+            Log.w("DriverAppPlugin", "nodeStates[" + i + "]: " + nodeStates[i]);
         }
 
         return nodeStates;
@@ -521,7 +530,7 @@ public class ClimbService extends Service implements ClimbServiceInterface {
         return null;
     }
 
-    public void connectMaster(String master) {
+    public boolean connectMaster(String master) {
         ClimbNode node = nodeListGet(master);
         if (node != null && node.isMasterNode()) { //do something only if it is a master node
 
@@ -540,12 +549,14 @@ public class ClimbService extends Service implements ClimbServiceInterface {
                 Toast.makeText(appContext,
                         "Connecting!",
                         Toast.LENGTH_SHORT).show();
-                return;
-            } // TODO: else exception
-        } //TODO: expception
+            } // TODO: else handle error
+        } else {
+            return false;
+        }
+        return true;
     }
 
-    public void disconnectMaster() { //TODO: handle several masters?
+    public boolean disconnectMaster() { //TODO: handle several masters?
         if (mBluetoothGatt != null) {
             insertTag("Disconnecting_from_GATT");
 
@@ -570,8 +581,8 @@ public class ClimbService extends Service implements ClimbServiceInterface {
                 }
             }
             broadcastUpdate(STATE_DISCONNECTED_FROM_CLIMB_MASTER);
-            return;
         }
+        return true; //TODO: handle errors
     }
 
     public void checkinChild(String child) {
@@ -877,6 +888,7 @@ public class ClimbService extends Service implements ClimbServiceInterface {
                     Log.d(TAG, "Master not found in the list, CHECK!!!!");
                 }
 
+                Log.d("DriverAppPlugin", "...just before STATE_CONNECTED_TO_CLIMB_MASTER...");
                 broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER);
 
 
@@ -982,10 +994,18 @@ public class ClimbService extends Service implements ClimbServiceInterface {
         //nodeID id =
         boolean isMaster = device.getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME);
         ClimbNode newNode = new ClimbNode(device,
-                                //id,
-                                (byte)targetNode.getRssi() ,
-                                targetNode.getScanRecord().getManufacturerSpecificData(TEXAS_INSTRUMENTS_MANUFACTER_ID),
-                                isMaster);
+                //id,
+                (byte) targetNode.getRssi(),
+                targetNode.getScanRecord().getManufacturerSpecificData(TEXAS_INSTRUMENTS_MANUFACTER_ID),
+                isMaster,
+                new ClimbNodeTimeout() {
+                    @Override
+                    public void climbNodeTimedout(ClimbNode node) {
+                        nodeList.remove(node);
+                        broadcastUpdate(ACTION_DEVICE_REMOVED_FROM_LIST);
+                        Log.d(TAG, "Timeout: node removed with index: " + nodeList.indexOf(node));
+                    }
+                });
                                 //nowMillis);
         nodeList.add(newNode);
         broadcastUpdate(ACTION_DEVICE_ADDED_TO_LIST);
@@ -1077,13 +1097,6 @@ public class ClimbService extends Service implements ClimbServiceInterface {
 
     private void enableNodeTimeout(){
         nodeTimeOutEnabled = true;
-
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                nodeTimeoutCheck();
-            }
-        }, ConfigVals.NODE_TIMEOUT);
     }
 
     private void disableNodeTimeout(){
@@ -1093,24 +1106,6 @@ public class ClimbService extends Service implements ClimbServiceInterface {
     private void nodeTimeoutCheck(){
         //controlla che il TimeoutCheck non sia stato disabilitato
         if(nodeTimeOutEnabled) {
-            //CONTROLLA I NODI DIRETTAMENTE VISIBILI DAL DISPOSITIVO ANDROID
-            //long nowMillis = SystemClock.uptimeMillis();
-            boolean nodeRemoved = false;
-            for(int i =  0; i < nodeList.size(); i++) {
-                //long millisSinceLastScan = nowMillis - nodeList.get(i).getLastContactMillis();
-                if( nodeList.get(i).getTimedOut() ){
-                    if( !(nodeList.get(i).isMasterNode() && ( masterNodeGATTConnectionState == BluetoothProfile.STATE_CONNECTING || masterNodeGATTConnectionState == BluetoothProfile.STATE_CONNECTED)  ) ) {
-                        nodeList.remove(i);
-                        nodeRemoved = true;
-                    }
-                }else {
-                    nodeList.get(i).setTimedOut(true); //se al prossimo controllo è ancora true significa che non è mai stato visto nell'ultimo periodo, quindi eliminalo
-                }
-            }
-            if(nodeRemoved){
-                broadcastUpdate(ACTION_DEVICE_REMOVED_FROM_LIST);
-            }
-
             //CONTROLLA I NODI VISIBILI DAL NODO MASTER
             ClimbNode masterNode = null;
             //cerca il master
