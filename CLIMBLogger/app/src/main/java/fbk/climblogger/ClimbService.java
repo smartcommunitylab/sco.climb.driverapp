@@ -530,6 +530,38 @@ public class ClimbService extends Service {
             Log.i(TAG, "it isn't a climb master!!");
         }
     }
+
+    public boolean setNewStateToChecked(int newState, boolean[] nodes, int masterGroupPosition){
+//TODO: GESTIRE IL CASO DI MOOOOOLTI NODI CHE NON CI STANNO DENTRO L'ARRAY temp_gattData
+        MonitoredClimbNode monitoredChild;
+        byte[] temp_gattData = new byte[101];
+        int gattDataIndex = 0;
+        if(nodes.length == nodeList.get(masterGroupPosition).getMonitoredClimbNodeList().size()) {
+            for(int i = 0; i < nodes.length; i++) {
+                if(nodes[i]) { //the node has the checkbox selected
+                    monitoredChild = nodeList.get(masterGroupPosition).getMonitoredClimbNodeList().get(i);
+                    temp_gattData[gattDataIndex++] = monitoredChild.getNodeID()[0];
+                    temp_gattData[gattDataIndex++] = (byte)newState;
+
+                    String tempString = "Accepting_node_"+monitoredChild.getNodeID()[0];
+                    insertTag(tempString);
+                }
+            }
+
+            if(gattDataIndex>0) {
+                byte[] gattData = Arrays.copyOf(temp_gattData, gattDataIndex);
+                mPICOCharacteristic.setValue(gattData);
+                return mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
+            }else{
+                return false;
+            }
+
+        }else{
+            Log.w(TAG, "error on length of lists...check!!!");
+            return false;
+        }
+
+    }
     // Device scan callback.
 
     public BluetoothDevice getBTDevice_ClimbMaster(){
@@ -758,11 +790,16 @@ public class ClimbService extends Service {
             if (index >= 0) {
                 Log.d(TAG, "Found device is already in database and it is at index: " + index);
                 updateGATTMetadata(index, characteristic.getValue(), nowMillis);
-                checkNodeStates(index);
+                if(nodeList != null){
+                    if(!nodeList.isEmpty()) {
+                        checkNodeStates(index);
+                    }
+                }
+
             } else {
                 Log.d(TAG, "New device found, it should be already in the list...verify!");
             }
-            broadcastUpdate(ACTION_METADATA_CHANGED);
+            //broadcastUpdate(ACTION_METADATA_CHANGED);
         }
 
         @Override
@@ -916,7 +953,7 @@ public class ClimbService extends Service {
     private void checkNodeStates(int index){ //
         ClimbNode nodeUnderCheck = nodeList.get(index);
 
-        byte[] gattData = new byte[used_mtu-3];
+        byte[] temp_gattData = new byte[20];//used_mtu-3];
         int gattDataIndex = 0;
 
         if(nodeUnderCheck != null) {
@@ -930,8 +967,8 @@ public class ClimbService extends Service {
                         case 0x00: //BY_MYSELF
                             if(!tempNode.getAutomaticStateChangeRequest()) { //se la richiesta è già stata fatta non ripeterla
                                 if (isMyChild(tempNodeID)) {
-                                    gattData[gattDataIndex++] = tempNodeID[0];
-                                    gattData[gattDataIndex++] = 0x01;
+                                    temp_gattData[gattDataIndex++] = tempNodeID[0];
+                                    temp_gattData[gattDataIndex++] = 0x01;
                                     tempNode.setAutomaticStateChangeRequested(true); //evita di richiedere il cambio di stato continuamente
                                 }
                             }
@@ -946,8 +983,9 @@ public class ClimbService extends Service {
                             break;
                     }
 
-                    if( (gattDataIndex >= used_mtu-4 || i == monitoredClimbNodeList.size()-1) && gattDataIndex > 0){ //ATTENZIONE, SE SI METTONO IN CHECKING PIU DI 10 NODI SI RISCHIA DI RICHIAMARE writeCharacteristic più volte velocemente, e non è chiaro cosa possa succedere
+                    if( (gattDataIndex >= 19 || i == monitoredClimbNodeList.size()-1) && gattDataIndex > 0){ //ATTENZIONE, SE SI METTONO IN CHECKING PIU DI 10 NODI SI RISCHIA DI RICHIAMARE writeCharacteristic più volte velocemente, e non è chiaro cosa possa succedere
                         if(mPICOCharacteristic != null && mBluetoothGatt != null) {
+                            byte[] gattData = Arrays.copyOf(temp_gattData, gattDataIndex);
                             mPICOCharacteristic.setValue(gattData);
                             mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
 
@@ -1067,10 +1105,11 @@ public class ClimbService extends Service {
 
     private void nodeTimeoutCheck(){
         //controlla che il TimeoutCheck non sia stato disabilitato
+        boolean nodeRemoved = false;
         if(nodeTimeOutEnabled) {
             //CONTROLLA I NODI DIRETTAMENTE VISIBILI DAL DISPOSITIVO ANDROID
             //long nowMillis = SystemClock.uptimeMillis();
-            boolean nodeRemoved = false;
+
             for(int i =  0; i < nodeList.size(); i++) {
                 //long millisSinceLastScan = nowMillis - nodeList.get(i).getLastContactMillis();
                 if( nodeList.get(i).getTimedOut() ){
@@ -1081,9 +1120,6 @@ public class ClimbService extends Service {
                 }else {
                     nodeList.get(i).setTimedOut(true); //se al prossimo controllo è ancora true significa che non è mai stato visto nell'ultimo periodo, quindi eliminalo
                 }
-            }
-            if(nodeRemoved){
-                broadcastUpdate(ACTION_DEVICE_REMOVED_FROM_LIST);
             }
 
             //CONTROLLA I NODI VISIBILI DAL NODO MASTER
@@ -1123,19 +1159,20 @@ public class ClimbService extends Service {
                         if (childNode.getTimedOut()) {
                             timedOutCounter++;
                             childrenList.remove(i);
+                            broadcastUpdate(ACTION_DEVICE_REMOVED_FROM_LIST);
                         }else {
                             childNode.setTimedOut(true); //se al prossimo controllo è ancora true significa che non è mai stato visto nell'ultimo periodo, quindi eliminalo
                         }
                     }
                 }
-                if(alertCounter > 0 && masterNodeGATTConnectionState == BluetoothProfile.STATE_CONNECTED){ //invia un pacchetto gatt solo se almeno un nodo è andato in timeout
-                    if(mBluetoothGatt != null && mPICOCharacteristic != null) {
-                        mPICOCharacteristic.setValue(gattData);
-                        mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
-                    }
-                }
+//                if(alertCounter > 0 && masterNodeGATTConnectionState == BluetoothProfile.STATE_CONNECTED){ //invia un pacchetto gatt solo se almeno un nodo è andato in timeout
+//                    if(mBluetoothGatt != null && mPICOCharacteristic != null) {
+//                        mPICOCharacteristic.setValue(gattData);
+//                        mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
+//                    }
+//                }
 
-                if(timedOutCounter > 0){
+                if(timedOutCounter > 0 || nodeRemoved){
                     broadcastUpdate(ACTION_DEVICE_REMOVED_FROM_LIST);
                 }
             }

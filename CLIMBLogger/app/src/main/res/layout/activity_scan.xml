@@ -6,7 +6,7 @@
     android:layout_height="match_parent" android:fitsSystemWindows="true"
     android:background="@color/material_blue_grey_950">
     <!--android:background="@color/material_blue_grey_900"-->
-        <!--tools:context=".ScanActivity">-->
+    <!--tools:context=".ScanActivity">-->
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
@@ -116,52 +116,65 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_gravity="center_horizontal"
-                android:orientation="vertical"
+                android:layout_gravity="center_horizontal|center_vertical"
+                android:orientation="horizontal"
                 android:layout_weight="1.8"
-                android:layout_margin="5dp">
-                <TextView
+                android:layout_margin="2dp">
+
+                <LinearLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="BROADCAST MESSAGES"
-                    android:textSize="15dp"
-                    android:textColor="#a3a3a3"
-                    android:textStyle="bold" />
-            <LinearLayout
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:gravity="center_vertical|center_horizontal">
-
-                <Button
-                    android:id="@+id/buttonCheckInAll"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="check in"
-                    android:textSize="12dp" />
-
-                <Button
-                    android:id="@+id/buttonCheckOutAll"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="check out"
-                    android:textSize="12dp" />
-
-                <Button
-                    android:id="@+id/scheduleWakeUpAll"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="schedule\nWake up"
-                    android:textSize="12dp" />
-
-                <!--<Button
-                    android:id="@+id/test"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="test\nTIME" />-->
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:gravity="start|center_vertical">
 
 
-            </LinearLayout>
+
+                    <Button
+                        android:id="@+id/buttonCheckInAll"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="check in"
+                        android:textSize="12dp" />
+
+                    <Button
+                        android:id="@+id/buttonCheckOutAll"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="check out"
+                        android:textSize="12dp" />
+
+                    <CheckBox
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Broadcast\nmessage"
+                        android:id="@+id/broadcastCheckBox"
+                        android:buttonTint="#d5d6d6"
+                        android:textColor="#d5d6d6" />
+                </LinearLayout>
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"
+                    android:background="@android:color/darker_gray"/>
+                <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:gravity="end|center_vertical">
+                    <Button
+                        android:id="@+id/scheduleWakeUpAll"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="schedule\nWake up"
+                        android:textSize="12sp" />
+
+                    <!--<Button
+                        android:id="@+id/test"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="test\nTIME" />-->
+
+
+                </LinearLayout>
 
             </LinearLayout>
             <!--<View

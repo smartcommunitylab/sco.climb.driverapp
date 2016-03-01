@@ -22,6 +22,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -46,9 +47,10 @@ public class ScanActivity extends Activity {
 
     private final static String TAG = "ScanActivity_GIOVA";
     private Button mStartButton,mStopButton,mTagButton,mCheckInAllButton,mCheckOutAllButton, mScheduleWUButton;//,mReleaseCmdButton;
+    private CheckBox mBroadcastCheckBox;
     private Vibrator mVibrator;
     private int index = 0;
-    private ArrayList<ClimbNode> climbNodeList;
+
     private ArrayAdapter<ListView> adapter;
     private ClimbService mClimbService;
     private Context mContext = null;
@@ -57,6 +59,8 @@ public class ScanActivity extends Activity {
     private Handler mHandler = null;
     private long lastBroadcastMessageSentMillis = 0;
     private int wakeUP_year = 0, wakeUP_month = 0, wakeUP_day = 0, wakeUP_hour = 0, wakeUP_minute = 0;
+    private ArrayList<ClimbNode> climbNodeList;
+    private View monitoredChildNodeView;
     ExpandableListView expandableListView;
     MyExpandableListAdapter expandableListAdapter;
     List<ClimbNode> expandableListTitle;
@@ -155,9 +159,9 @@ public class ScanActivity extends Activity {
             //expandableListTitle = climbNodeList;
             //expandableListDetail = ExpandableListDataPump.getData(); //expandableListDetail conterrà le info aggiuntive
             //expandableListTitle = new ArrayList<String>(expandableListDetail.keySet()); //expandableListTitle dovrà contenere i nomi dei dispositivi direttamente visibili dallo smartphone
-            expandableListDetail = new HashMap<ClimbNode, List<String>>();
+            expandableListDetail = new HashMap<ClimbNode, List<String>>(); //expandableListDetail conterrà le info aggiuntive
             expandableListAdapter = new MyExpandableListAdapter(mContext, climbNodeList, expandableListDetail);
-            expandableListView.setAdapter(expandableListAdapter);
+            expandableListView.setAdapter(expandableListAdapter); // climbNodeList dovrà contenere i nomi dei dispositivi direttamente visibili dallo smartphone
 /*
             //crea un adapter per gestire la listView
             adapter = new ArrayAdapter<ListView>(mContext, android.R.layout.simple_list_item_1, android.R.id.text1,climbNodeList);
@@ -239,49 +243,71 @@ public class ScanActivity extends Activity {
     View.OnClickListener ckInAllButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
 
-            if( (SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
-                if (mClimbService != null) {
-                    if (mClimbService.SendCheckInAllCmd()) {
-                        mVibrator.vibrate(ConfigVals.vibrationTimeout);
-                        lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
+            if (mBroadcastCheckBox.isChecked()) {
+                if ((SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
+                    if (mClimbService != null) {
+                        if (mClimbService.SendCheckInAllCmd()) {
+                            mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                            lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
+                        } else {
+                            Log.i(TAG, "Check in all not sent!");
+                            log("Check in all not sent!");
+                        }
                     } else {
                         Log.i(TAG, "Check in all not sent!");
                         log("Check in all not sent!");
                     }
                 } else {
-                    Log.i(TAG, "Check in all not sent!");
-                    log("Check in all not sent!");
+                    String alertString = "Wait a little";
+                    Toast.makeText(getApplicationContext(),
+                            alertString,
+                            Toast.LENGTH_LONG).show();
                 }
-            }else{
-                String alertString = "Wait a little";
-                Toast.makeText(getApplicationContext(),
-                        alertString,
-                        Toast.LENGTH_LONG).show();
+            }else{ //not broadcast a message
+                if(expandableListAdapter != null) {
+                    boolean[] childCheckStates = expandableListAdapter.getNodeCheckState(0);
+                    if(mClimbService.setNewStateToChecked(0x02,childCheckStates,0)){
+                        mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                    }
+                }else {
+                    Log.w(TAG, "expandableListAdapter == null!!");
+                }
             }
         }
     };
     View.OnClickListener ckOutAllButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
 
-            if ((SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
-                if (mClimbService != null) {
-                    if (mClimbService.SendCheckOutAllCmd()) {
-                        mVibrator.vibrate(ConfigVals.vibrationTimeout);
-                        lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
+            if (mBroadcastCheckBox.isChecked()) {
+                if ((SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
+                    if (mClimbService != null) {
+                        if (mClimbService.SendCheckOutAllCmd()) {
+                            mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                            lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
+                        } else {
+                            Log.i(TAG, "Check out all not sent!");
+                            log("Check out all not sent!");
+                        }
                     } else {
                         Log.i(TAG, "Check out all not sent!");
                         log("Check out all not sent!");
                     }
-                } else {
-                    Log.i(TAG, "Check out all not sent!");
-                    log("Check out all not sent!");
-                }
 
-            }else{
-                String alertString = "Wait a little";
-                Toast.makeText(getApplicationContext(),
-                        alertString,
-                        Toast.LENGTH_LONG).show();
+                }else{
+                    String alertString = "Wait a little";
+                    Toast.makeText(getApplicationContext(),
+                            alertString,
+                            Toast.LENGTH_LONG).show();
+                }
+            }else{ //not broadcast a messages
+                if(expandableListAdapter != null) {
+                    boolean[] childCheckStates = expandableListAdapter.getNodeCheckState(0);
+                    if(mClimbService.setNewStateToChecked(0x00,childCheckStates,0)){
+                        mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                    }
+                }else {
+                    Log.w(TAG, "expandableListAdapter == null!!");
+                }
             }
         }
     };
@@ -426,6 +452,7 @@ public class ScanActivity extends Activity {
         mHandler = new Handler();
 
         mContext = this.getApplicationContext();
+
         //mConsole = (EditText) findViewById(R.id.console_item);
 
         //listView = (ListView) findViewById(R.id.list);
@@ -450,6 +477,8 @@ public class ScanActivity extends Activity {
 
         mScheduleWUButton = (Button) findViewById(R.id.scheduleWakeUpAll);
         mScheduleWUButton.setOnClickListener(scheduleWUButtonHandler);
+
+        mBroadcastCheckBox = (CheckBox) findViewById(R.id.broadcastCheckBox);
 
        // mReleaseCmdButton = (Button) findViewById(R.id.test);
         //mReleaseCmdButton.setOnClickListener(releaseCmdButtonHandler);
