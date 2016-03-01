@@ -546,10 +546,9 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         return null;
     }
 
-    public boolean connectMaster(String master) {
+    public boolean connectMaster(final String master) {
         ClimbNode node = nodeListGet(master);
         if (node != null && node.isMasterNode()) { //do something only if it is a master node
-
             if (mBluetoothGatt == null) {
                 insertTag("Connecting_to_GATT");
                 mBTDevice = node.getBleDevice();
@@ -566,9 +565,11 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                         "Connecting!",
                         Toast.LENGTH_SHORT).show();
                 connectMasterCB = new Runnable() {
+                    String id = master;
                     @Override
                     public void run() {
-                        broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, nodeListGetConnectedMaster().getNodeID(), false, "Connect timed out");
+                        mBluetoothGatt.disconnect(); //be consistent, do not try anymore
+                        broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, id, false, "Connect timed out");
                     }
                 };
                 mHandler.postDelayed(connectMasterCB, ConfigVals.CONNECT_TIMEOUT);
