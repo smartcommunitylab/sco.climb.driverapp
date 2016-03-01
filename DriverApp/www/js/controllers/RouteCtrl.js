@@ -1,6 +1,6 @@
 angular.module('driverapp.controllers.route', [])
 
-.controller('RouteCtrl', function ($scope, $rootScope, $stateParams, $ionicHistory, $ionicNavBarDelegate, $ionicPopup, $ionicModal, $interval, $ionicScrollDelegate, Config, StorageSrv, GeoSrv, AESrv, APISrv, WSNSrv) {
+.controller('RouteCtrl', function ($scope, $rootScope, $stateParams, $ionicHistory, $ionicNavBarDelegate, $ionicPopup, $ionicModal, $interval, $ionicScrollDelegate, Config, Utils, StorageSrv, GeoSrv, AESrv, APISrv, WSNSrv) {
     $scope.fromWizard = false;
     var aesInstance = {};
 
@@ -45,16 +45,18 @@ angular.module('driverapp.controllers.route', [])
                     return WSNSrv.networkState;
                 },
                 function (ns, oldNs) {
-                    if (ns === oldNs) {
+                    if (Utils.fastCompareObjects(ns, oldNs)) {
                         return;
                     }
 
                     console.log('[RouteCtrl] networkState changed');
                     Object.keys(ns).forEach(function (nodeId) {
-                        if (WSNSrv.isNodeByType(nodeId, 'child') && ns[nodeId].timestamp != -1 && oldNs[nodeId].timestamp == -1) {
+                        //if (WSNSrv.isNodeByType(nodeId, 'child') && ns[nodeId].timestamp != -1 && oldNs[nodeId].timestamp == -1) {
+                        if (WSNSrv.isNodeByType(nodeId, 'child') && (ns[nodeId].status == WSNSrv.STATUS_NEW)) {
                             var child = $scope.isChildOfThisStop(nodeId);
                             if (child !== null) {
                                 $scope.takeOnBoard(child.objectId);
+                                ns[nodeId].status = WSNSrv.STATUS_BOARDED_ALREADY;
                             }
                         }
                     });

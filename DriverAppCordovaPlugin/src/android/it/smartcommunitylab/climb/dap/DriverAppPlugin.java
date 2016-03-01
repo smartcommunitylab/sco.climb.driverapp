@@ -171,7 +171,10 @@ public class DriverAppPlugin extends CordovaPlugin {
 
 		try {
 			obj.put("action", intent.getAction());
-			obj.put("id", intent.getStringExtra("id"));
+			obj.put("id", intent.getStringExtra(ClimbServiceInterface.INTENT_EXTRA_ID));
+			if (intent.getBooleanExtra(ClimbServiceInterface.INTENT_EXTRA_SUCCESS, true) == false) {
+				obj.put("errorMsg", intent.getStringExtra(ClimbServiceInterface.INTENT_EXTRA_MSG));
+			}
 		} catch (JSONException e) {
 			Log.e(LOG_TAG, e.getMessage(), e);
 		}
