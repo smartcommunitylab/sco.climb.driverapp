@@ -24,6 +24,19 @@ public interface ClimbServiceInterface {
     public final static String STATE_CHECKEDIN_CHILD = "fbk.climblogger.ClimbService.STATE_CHECKEDIN_CHILD";
     public final static String STATE_CHECKEDOUT_CHILD = "fbk.climblogger.ClimbService.STATE_CHECKEDOUT_CHILD";
 
+    /*
+     * NodeID in string format
+     */
+    public final static String INTENT_EXTRA_ID ="fbk.climblogger.ClimbService.INTENT_EXTRA_ID";
+    /*
+     * Success/failure as boolean
+     */
+    public final static String INTENT_EXTRA_SUCCESS ="fbk.climblogger.ClimbService.INTENT_EXTRA_SUCCESS";
+    /*
+     * Message describing failure reason in case of failure
+     */
+    public final static String INTENT_EXTRA_MSG ="fbk.climblogger.ClimbService.INTENT_EXTRA_MSG";
+
     public final static String EXTRA_STRING ="fbk.climblogger.ClimbService.EXTRA_STRING";
     public final static String EXTRA_INT_ARRAY ="fbk.climblogger.ClimbService.EXTRA_INT_ARRAY";
     public final static String EXTRA_BYTE_ARRAY ="fbk.climblogger.ClimbService.EXTRA_BYTE_ARRAY";
