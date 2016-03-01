@@ -607,9 +607,11 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                     Log.d(TAG, "Master not found in the list, CHECK!!!!");
                 }
             }
-            broadcastUpdate(STATE_DISCONNECTED_FROM_CLIMB_MASTER);
+            //broadcastUpdate(STATE_DISCONNECTED_FROM_CLIMB_MASTER);
+            return true;
+        } else {
+            return false;
         }
-        return true; //TODO: handle errors
     }
 
     public boolean checkinChild(String child) {
