@@ -38,20 +38,6 @@
             private Handler mHandler = null;
 
 
-            public ClimbNode() {
-                return;
-            }
-
-            /*
-                public ClimbNode(String initName, String initAddress , int initRssi, byte[] newScanResponse, long millisNow){//SparseArray<byte[]> newScanResponse){
-
-                    bleDevice = null;
-                    rssi = initRssi;
-                    scanResponseData = newScanResponse;
-                    lastContactMillis = millisNow;
-                    return;
-                }
-            */
             public ClimbNode(BluetoothDevice dev, byte initRssi, byte[] newScanResponse, boolean masterNode, ClimbNodeTimeout cb, MonitoredClimbNodeTimeout cb2) {//SparseArray<byte[]> newScanResponse){
 
                 bleDevice = dev;
