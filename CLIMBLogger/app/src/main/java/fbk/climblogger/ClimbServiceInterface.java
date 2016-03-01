@@ -5,10 +5,10 @@ import java.util.ArrayList;
 public interface ClimbServiceInterface {
 
     public class NodeState{
-        String nodeID;
-        int state;
-        long lastSeen;
-        long lastStateChange;
+        public String nodeID;
+        public int state;
+        public long lastSeen;
+        public long lastStateChange;
     }
 
     public final static String ACTION_DEVICE_ADDED_TO_LIST = "fbk.climblogger.ClimbService.ACTION_DEVICE_ADDED_TO_LIST";
