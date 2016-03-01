@@ -1,40 +1,42 @@
 package fbk.climblogger;
 
+import android.os.Handler;
+
 import java.util.Arrays;
 
 /**
  * Created by user on 24/11/2015.
  */
+
+interface MonitoredClimbNodeTimeout {
+    public void monitoredClimbNodeChangeSuccess(MonitoredClimbNode node, byte state);
+    public void monitoredClimbNodeChangeTimedout(MonitoredClimbNode node, byte imposedState, byte state);
+}
+
 public class MonitoredClimbNode{
 
     private byte[] nodeID = {};
-    private byte   nodeState = 5; //5 = INVALID_STATE
+
+    private byte imposedState = 5;
+    private byte nodeState = 5; //5 = INVALID_STATE
     private long lastContactMillis = 0;
     private long lastStateChangeMillis = 0;
     private boolean timedOut = false;
     private byte RSSI;
+    private MonitoredClimbNodeTimeout timedoutCallback = null;
+    private Runnable timedoutTimer = null;
+    private Handler mHandler = null;
 
-    public MonitoredClimbNode(byte[] newNodeID, byte newNodeState){//}, long newLastContactMillis){
-        nodeID = newNodeID;
-        nodeState = newNodeState;
-        timedOut = false;
-        RSSI = 0;
-    }
-
-    public MonitoredClimbNode(byte[] newNodeID, byte newNodeState, byte newRSSI){//}, long newLastContactMillis){
-        nodeID = newNodeID;
-        nodeState = newNodeState;
-        timedOut = false;
-        RSSI = newRSSI;
-    }
-
-    public MonitoredClimbNode(byte[] newNodeID, byte newNodeState, byte newRSSI, long newLastContactMillis){
+    public MonitoredClimbNode(byte[] newNodeID, byte newNodeState, byte newRSSI, long newLastContactMillis, MonitoredClimbNodeTimeout cb, Handler handler){
         nodeID = newNodeID;
         nodeState = newNodeState;
         timedOut = false;
         RSSI = newRSSI;
         lastContactMillis = newLastContactMillis;
         lastStateChangeMillis = lastContactMillis;
+        timedoutCallback = cb;
+        //mHandler = new Handler(); // cannot create handler when this one is called from GATT
+        mHandler = handler;
     }
 
     public void setTimedOut(boolean value){
@@ -58,6 +60,10 @@ public class MonitoredClimbNode{
         return nodeState;
     }
 
+    public byte getImposedState() {
+        return imposedState;
+    }
+
     public byte getNodeRssi() {return RSSI;}
 
     public long getLastContactMillis(){
@@ -72,12 +78,40 @@ public class MonitoredClimbNode{
         nodeState = newState;
     }
 
+    private void timedout() {
+        (timedoutCallback).monitoredClimbNodeChangeTimedout(this, imposedState, nodeState);
+    }
+
     public void setNodeState(byte newState, long newLastContactMillis){
+        if (newState == imposedState) {
+            if (timedoutTimer != null) {
+                mHandler.removeCallbacks(timedoutTimer);
+                (timedoutCallback).monitoredClimbNodeChangeSuccess(this, imposedState);
+            } //TODO: handle error
+        }
+
         if (nodeState != newState) {
             nodeState = newState;
             lastStateChangeMillis = newLastContactMillis;
         }
         lastContactMillis = newLastContactMillis;
+    }
+
+    public boolean setImposedState(byte newImposedState) {
+        if (timedoutTimer != null) {
+            return false; //another state change is in progress
+            //mHandler.removeCallbacks(timedoutTimer);
+        }
+
+        timedoutTimer = new Runnable() {
+            @Override
+            public void run() {
+                timedout();
+            }
+        };
+        mHandler.postDelayed(timedoutTimer, ConfigVals.MON_NODE_TIMEOUT);
+        imposedState = newImposedState;
+        return true;
     }
 
     public void setNodeRssi(byte newRssi) {

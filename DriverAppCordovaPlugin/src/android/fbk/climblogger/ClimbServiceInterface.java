@@ -7,8 +7,8 @@ public interface ClimbServiceInterface {
     public class NodeState{
         public String nodeID;
         public int state;
-        public long lastSeen;
-        public long lastStateChange;
+        public long lastSeen;   //local time in millisec
+        public long lastStateChange; //local time in millisec
     }
 
     public final static String ACTION_DEVICE_ADDED_TO_LIST = "fbk.climblogger.ClimbService.ACTION_DEVICE_ADDED_TO_LIST";
@@ -24,6 +24,19 @@ public interface ClimbServiceInterface {
     public final static String STATE_CHECKEDIN_CHILD = "fbk.climblogger.ClimbService.STATE_CHECKEDIN_CHILD";
     public final static String STATE_CHECKEDOUT_CHILD = "fbk.climblogger.ClimbService.STATE_CHECKEDOUT_CHILD";
 
+    /*
+     * NodeID in string format
+     */
+    public final static String INTENT_EXTRA_ID ="fbk.climblogger.ClimbService.INTENT_EXTRA_ID";
+    /*
+     * Success/failure as boolean
+     */
+    public final static String INTENT_EXTRA_SUCCESS ="fbk.climblogger.ClimbService.INTENT_EXTRA_SUCCESS";
+    /*
+     * Message describing failure reason in case of failure
+     */
+    public final static String INTENT_EXTRA_MSG ="fbk.climblogger.ClimbService.INTENT_EXTRA_MSG";
+
     public final static String EXTRA_STRING ="fbk.climblogger.ClimbService.EXTRA_STRING";
     public final static String EXTRA_INT_ARRAY ="fbk.climblogger.ClimbService.EXTRA_INT_ARRAY";
     public final static String EXTRA_BYTE_ARRAY ="fbk.climblogger.ClimbService.EXTRA_BYTE_ARRAY";
@@ -37,7 +50,7 @@ public interface ClimbServiceInterface {
      * Set the list all nodes that might belong to this master, i.e. nodes for which the master can change state.
      *
      * @param children List of node IDs.
-     * @return false if master is not connected or other error occured
+     * @return false if master is not connected or other error occurs
      */
     public boolean setNodeList(String[] children);
 
@@ -55,10 +68,10 @@ public interface ClimbServiceInterface {
      */
     public NodeState[] getNetworkState();
 
-    public void checkinChild(String child);
-    public void checkinChildren(String[] children);
-    public void checkoutChild(String child);
-    public void checkoutChildren(String[] children);
+    public boolean checkinChild(String child);
+    public boolean checkinChildren(String[] children);
+    public boolean checkoutChild(String child);
+    public boolean checkoutChildren(String[] children);
 
     ////public boolean ScheduleWakeUpCmd(int timeout_sec);
 }

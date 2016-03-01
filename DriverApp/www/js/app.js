@@ -16,7 +16,7 @@ angular.module('driverapp', [
     'driverapp.controllers.volunteers'
 ])
 
-.run(function ($ionicPlatform, $rootScope, WSNSrv) {
+.run(function ($ionicPlatform, $rootScope, $interval, WSNSrv) {
     $ionicPlatform.ready(function () {
         // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
         // for form inputs)
@@ -56,6 +56,11 @@ angular.module('driverapp', [
                 function (response) {
                     if (response.action === WSNSrv.STATE_CONNECTED_TO_CLIMB_MASTER) {
                         console.log('+++ Yippee-ki-yay! Welcome, Master! +++');
+                        $rootScope.WSNSrvSetNodeList();
+
+                        $rootScope.intervalGetNetworkState = $interval(function () {
+                            $rootScope.WSNSrvGetNetworkState();
+                        }, CONF.NETWORKSTATE_DELAY);
                     } else if (response.action === WSNSrv.STATE_DISCONNECTED_FROM_CLIMB_MASTER) {
                         console.log('--- Where is my Master?!? ---');
                     }
