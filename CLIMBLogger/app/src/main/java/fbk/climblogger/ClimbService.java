@@ -53,6 +53,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     private BluetoothGatt mBluetoothGatt = null;
 
     private boolean nodeTimeOutEnabled = false;
+    private Runnable connectMasterCB;
 
     private final static int TEXAS_INSTRUMENTS_MANUFACTER_ID = 0x000D;
 
@@ -564,7 +565,16 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 Toast.makeText(appContext,
                         "Connecting!",
                         Toast.LENGTH_SHORT).show();
-            } // TODO: else handle error
+                connectMasterCB = new Runnable() {
+                    @Override
+                    public void run() {
+                        broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, nodeListGetConnectedMaster().getNodeID(), false, "Connect timed out");
+                    }
+                };
+                mHandler.postDelayed(connectMasterCB, ConfigVals.CONNECT_TIMEOUT);
+            } else {
+                return false;
+            }
         } else {
             return false;
         }
@@ -924,7 +934,9 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                     Log.d(TAG, "Master not found in the list, CHECK!!!!");
                 }
 
-                broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER); //TODO: add timeout on this
+                mHandler.removeCallbacks(connectMasterCB);
+                connectMasterCB = null;
+                broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, nodeListGetConnectedMaster().getNodeID(), true, null); //TODO: add timeout on this
 
 
                 return;

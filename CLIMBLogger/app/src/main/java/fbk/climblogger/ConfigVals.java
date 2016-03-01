@@ -21,6 +21,7 @@ public class ConfigVals {
 
     static final int NODE_TIMEOUT = 15 * 1000;
     static final int MON_NODE_TIMEOUT = 15 * 1000;
+    static final int CONNECT_TIMEOUT = 15 * 1000;
 
     static final long MAX_WAKE_UP_DELAY_SEC = 259200;
 
