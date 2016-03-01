@@ -560,15 +560,16 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTING;
 
-                Log.i(TAG, "Try to connect a CLIMB master node!");
+                Log.i(TAG, "Try to connect a CLIMB master node ...");
                 Toast.makeText(appContext,
-                        "Connecting!",
+                        "Connecting ...",
                         Toast.LENGTH_SHORT).show();
                 connectMasterCB = new Runnable() {
                     String id = master;
                     @Override
                     public void run() {
                         mBluetoothGatt.disconnect(); //be consistent, do not try anymore
+                        Log.i(TAG, "Connect to " + master + " failed: timeout.");
                         broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, id, false, "Connect timed out");
                     }
                 };
