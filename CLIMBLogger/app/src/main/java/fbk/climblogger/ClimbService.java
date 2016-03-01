@@ -25,7 +25,6 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
-import android.os.SystemClock;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -291,7 +290,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
             if (logEnabled) {
                 if (mBufferedWriter != null) {
-                    long nowMillis = SystemClock.uptimeMillis();
+                    long nowMillis = System.currentTimeMillis();
                     final String timestamp = new SimpleDateFormat("yyyy MM dd HH mm ss").format(new Date()); // salva il timestamp per il log
                     try {
 
@@ -666,7 +665,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         public void onScanResult(int callbackType, ScanResult result){  //public for SO, not for upper layer!
             Log.d(TAG, "onScanResult called!");
             if(callbackType == ScanSettings.CALLBACK_TYPE_ALL_MATCHES) {
-                long nowMillis = SystemClock.uptimeMillis();
+                long nowMillis = System.currentTimeMillis();
                 //PRIMA DI TUTTO SALVA IL LOG
                 if (logEnabled) {
                     if (mBufferedWriter != null) { // questo significa che il log � stato abilitato
@@ -820,7 +819,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
             Log.d(TAG, "onCharacteristicChanged called!");
             // if(callbackType == ScanSettings.CALLBACK_TYPE_ALL_MATCHES){
-            long nowMillis = SystemClock.uptimeMillis();
+            long nowMillis = System.currentTimeMillis();
             //PRIMA DI TUTTO SALVA IL LOG
             if (logEnabled) {
                 if (mBufferedWriter != null) { // questo significa che il log � stato abilitato
