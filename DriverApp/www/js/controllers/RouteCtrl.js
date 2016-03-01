@@ -85,6 +85,20 @@ angular.module('driverapp.controllers.route', [])
         }
     );
 
+/*
+    $scope.checkStopPosition = function(position){
+       if(position == $scope.stops[0].position){
+           return "-first";
+       } else {
+           if(position == $scope.stops[$scope.stops.length-1].position){
+               return "-last";
+           } else {
+               return "";
+           }
+       }
+    };
+*/
+
     $scope.toggleEnRoute = function () {
         $ionicScrollDelegate.scrollTop(true);
 
@@ -147,6 +161,7 @@ angular.module('driverapp.controllers.route', [])
     };
 
     $scope.getChildrenForStop = function (stop) {
+        $scope.sel.stop = stop;
         var passengers = [];
         if ($scope.children == null || $scope.children.length == 0) {
             $scope.children = StorageSrv.getChildren();

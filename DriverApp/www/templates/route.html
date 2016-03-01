@@ -2,7 +2,10 @@
     <ion-nav-buttons side="right">
         <button class="button icon ion-person-add" ng-click="openModal()" ng-disabled="!!enRoute || enRouteArrived" ng-if="fromWizard"></button>
     </ion-nav-buttons>
-    <div class="bar bar-subheader padding-horizontal" ng-if="fromWizard">
+    <div class="routebutton" > <!--  class="bar bar-subheader padding-horizontal" ng-if="fromWizard" -->
+
+    </div>
+    <ion-content ng-class="{'has-subheader': fromWizard}"><!-- class="padding-top  padding-horizontal" -->
         <button class="button btn-enroute" ng-class="{'button-balanced': !enRoute, 'button-assertive': !!enRoute, 'button-outline': !enRoute && !!stops[enRoutePos].school}" ng-click="toggleEnRoute()">
             <span ng-if="!enRoute && !!stops[enRoutePos].start">Parti</span>
             <span ng-if="!!enRoute && !stops[enRoutePos + 1].school">Fermati</span>
@@ -10,13 +13,21 @@
             <span ng-if="!!enRoute && !!stops[enRoutePos + 1].school">Arriva</span>
             <span ng-if="!enRoute && !!stops[enRoutePos].school">Arrivato</span>
         </button>
-    </div>
-    <ion-content class="padding-top padding-horizontal" ng-class="{'has-subheader': fromWizard}">
-        <ion-list>
+        <ion-list class="routebox">
+            <ion-item class="item-icon-left routeitem" ng-repeat="stop in stops" ng-click="getChildrenForStop(stop)" ng-disabled="!!enRoute">
+                <i class="icon" ng-class="{'ion-record': stop.position <= sel.stop.position, 'ion-android-radio-button-off': stop.position > sel.stop.position ,'line-background-first': stop.position==1, 'line-background-last': stop.position==stops.length, 'line-background': stop.position > 1 && stop.position < stops.length}"></i>
+                <!--<i class="icon ion-android-radio-button-on"></i>-->
+                {{stop.name}}
+            </ion-item>
+        </ion-list>
+
+        <!--<ion-list>
             <ion-radio ng-repeat="stop in stops" ng-model="sel.stop" ng-value="stop" ng-change="getChildrenForStop(sel.stop)" ng-disabled="!!enRoute">
                 {{stop.name}}
             </ion-radio>
-        </ion-list>
+        </ion-list>-->
+
+
         <div>
             <h4>Bambini</h4>
             <ion-list>

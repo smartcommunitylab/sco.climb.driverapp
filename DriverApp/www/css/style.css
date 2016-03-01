@@ -2,7 +2,13 @@
 
 .dapp-theme {}
 .dapp-theme .btn-enroute {
-    width: 100%;
+    /*width: 100%;*/
+    width: 27%;
+    height: 15%;
+    position: absolute;
+    left: 70%;
+    top: 5%;
+    z-index: 1000;
 }
 
 /* Wizard */
@@ -49,7 +55,6 @@
 }
 
 /* Components */
-
 .dapp-theme .button.button-dapp {
     border-color: transparent;
     background-color: #F29100;
@@ -66,3 +71,35 @@
     box-shadow: none;
     color: #F29100;
 }
+
+/* Route components */
+.dapp-theme .list.routebox {
+    background-color: #C6DAE0
+}
+.dapp-theme .line-background {
+    background-image: url("../img/small_verticalline.png");
+    /*background-image: url("../img/ic_point_line.png");*/
+    background-repeat: repeat-y;
+    background-position: center;
+    background-size: auto;
+}
+.dapp-theme .line-background-first {
+    background-image: url("../img/small_verticalline.png");
+    /*background-image: url("../img/ic_point_line.png");*/
+    background-repeat: no-repeat;
+    background-position: center bottom;
+    /*background-size: auto 50%;*/
+}
+.dapp-theme .line-background-last {
+    background-image: url("../img/small_verticalline.png");
+    /*background-image: url("../img/ic_point_line.png");*/
+    background-repeat: no-repeat;
+    background-position: center top;
+    /*background-size: 20% 50%;*/
+}
+.dapp-theme .item.routeitem {
+    border-style: none;
+    font-weight: bold;
+    background-color: #C6DAE0
+}
+
