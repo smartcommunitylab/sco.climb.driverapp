@@ -37,7 +37,7 @@ public interface ClimbServiceInterface {
      * Set the list all nodes that might belong to this master, i.e. nodes for which the master can change state.
      *
      * @param children List of node IDs.
-     * @return false if master is not connected or other error occured
+     * @return false if master is not connected or other error occurs
      */
     public boolean setNodeList(String[] children);
 
