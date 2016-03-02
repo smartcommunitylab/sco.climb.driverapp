@@ -781,11 +781,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 mBTService = null;
                 mCIPOCharacteristic = null;
                 mPICOCharacteristic = null;
-
                 insertTag("Disconnected_from_GATT");
-                //broadcastUpdate(intentAction);
-
-
             }else if (newState == BluetoothProfile.STATE_CONNECTING) {
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTING;
                 Log.i(TAG, "Connecting to GATT server. Status: " + status);
@@ -793,10 +789,6 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             }else if (newState == BluetoothProfile.STATE_DISCONNECTING) {   //TODO: understand difference from DISCONNECTED
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_DISCONNECTING;
                 Log.i(TAG, "Disconnecting from GATT server. Status: " + status);
-                //mBluetoothGatt.disconnect();
-                //mBluetoothGatt.close();
-                //mBluetoothGatt = null;
-
             }
         }
 
