@@ -1,7 +1,7 @@
 angular.module('driverapp.controllers.wizard', [])
 
 .controller('WizardCtrl', function ($scope, $rootScope, $state, $ionicPopup, $ionicHistory, $ionicSlideBoxDelegate, $timeout, Config, Utils, StorageSrv, APISrv, WSNSrv) {
-    $scope.swiperOptions = Config.getWizardSliderOptions();
+    $scope.swiperOptions = Config.WIZARD_SLIDER_OPTIONS;
 
     $scope.schools = [];
     $scope.routes = [];

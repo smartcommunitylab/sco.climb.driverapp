@@ -1,6 +1,6 @@
 <ion-view view-title="{{route.name}}">
     <ion-nav-buttons side="right">
-        <button class="button icon ion-person-add" ng-click="openModal()" ng-disabled="!!enRoute || enRouteArrived" ng-if="fromWizard"></button>
+        <button class="button icon ion-person-add" ng-click="openModal()" ng-disabled="stops.indexOf(sel.stop) != enRoutePos || !!enRoute || enRouteArrived" ng-if="fromWizard"></button>
     </ion-nav-buttons>
     <div class="bar bar-subheader padding-horizontal" ng-if="fromWizard">
         <button class="button btn-enroute" ng-class="{'button-balanced': !enRoute, 'button-assertive': !!enRoute, 'button-outline': !enRoute && !!stops[enRoutePos].school}" ng-click="toggleEnRoute()">
@@ -22,7 +22,7 @@
             <ion-list>
                 <ion-item class="item-button-right" ng-repeat="passenger in sel.stop.passengers" ng-if="(onBoard.indexOf(passenger.objectId) === -1) && (onBoardTemp.indexOf(passenger.objectId) === -1)" ng-click="showChildDetails(passenger)">
                     {{passenger.surname}} {{passenger.name}}
-                    <button class="button" ng-click="takeOnBoard(passenger.objectId)" ng-disabled="!!enRoute || enRouteArrived" ng-if="fromWizard">
+                    <button class="button" ng-click="takeOnBoard(passenger.objectId)" ng-disabled="stops.indexOf(sel.stop) != enRoutePos || !!enRoute || enRouteArrived" ng-if="fromWizard">
                         <i class="icon ion-plus"></i>
                     </button>
                 </ion-item>

@@ -4,12 +4,12 @@ angular.module('driverapp.services.utils', [])
     var Utils = {};
 
     Utils.isValidDate = function (dateString) {
-        return moment(dateString, Config.getDateFormat(), true).isValid();
+        return moment(dateString, Config.DATE_FORMAT, true).isValid();
     };
 
     Utils.isValidDateRange = function (dateFromString, dateToString) {
-        var dateFromValid = moment(dateFromString, Config.getDateFormat(), true).isValid();
-        var dateToValid = moment(dateToString, Config.getDateFormat(), true).isValid();
+        var dateFromValid = moment(dateFromString, Config.DATE_FORMAT, true).isValid();
+        var dateToValid = moment(dateToString, Config.DATE_FORMAT, true).isValid();
         var rightOrder = moment(dateFromString).isSameOrBefore(dateToString);
         return (dateFromValid && dateToValid && rightOrder);
     };

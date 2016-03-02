@@ -4,7 +4,7 @@ angular.module('driverapp.controllers.routes', [])
     $scope.routes = StorageSrv.getRoutes();
 
     if ($scope.routes == null) {
-        APISrv.getRoutesBySchool(StorageSrv.getSchoolId(), moment().format(Config.getDateFormat())).then(
+        APISrv.getRoutesBySchool(StorageSrv.getSchoolId(), moment().format(Config.DATE_FORMAT)).then(
             function (routes) {
                 StorageSrv.saveRoutes(routes);
                 $scope.routes = routes;

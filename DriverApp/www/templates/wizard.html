@@ -67,6 +67,10 @@
                     <div class="helptext">
                         Ciao <strong>{{wizard.driver.name}}</strong>! Oggi accompagnerai la <strong>{{wizard.route.name}}</strong> assieme a:
                     </div>
+                    <div class="buttonbar">
+                        <button class="button button-dapp button-clear" ion-wizard-previous>Indietro</button>
+                        <button class="button button-dapp button-clear button-next" ion-wizard-start="saveWizardChoices()">Inizia</button>
+                    </div>
                     <!--<ion-scroll>-->
                     <ion-list scroll="true">
                         <ion-checkbox ng-repeat="volunteer in volunteers" ng-if="volunteer !== wizard.driver" ng-model="volunteer.checked">

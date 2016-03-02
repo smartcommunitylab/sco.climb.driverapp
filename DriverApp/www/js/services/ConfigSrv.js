@@ -1,45 +1,26 @@
 angular.module('driverapp.services.config', [])
 
 .factory('Config', function ($http, $q) {
-    var SERVER_URL = CONF.SERVER_URL;
-    var EVENTS_SERVER_URL = CONF.EVENTS_SERVER_URL;
-    var OWNER_ID = CONF.OWNER_ID;
-    var X_ACCESS_TOKEN = CONF.X_ACCESS_TOKEN;
-    var GPS_DELAY = CONF.GPS_DELAY;
+    var config = {};
 
-    var HTTP_CONFIG = {
+    config.SERVER_URL = CONF.SERVER_URL;
+    config.EVENTS_SERVER_URL = CONF.EVENTS_SERVER_URL;
+    config.OWNER_ID = CONF.OWNER_ID;
+    config.X_ACCESS_TOKEN = CONF.X_ACCESS_TOKEN;
+    config.GPS_DELAY = CONF.GPS_DELAY;
+    config.NETWORKSTATE_DELAY = CONF.NETWORKSTATE_DELAY;
+    config.NODESTATE_TIMEOUT = CONF.NODESTATE_TIMEOUT;
+
+    config.HTTP_CONFIG = {
         timeout: 5000,
         headers: {
             'Content-Type': 'application/json',
-            'X-ACCESS-TOKEN': X_ACCESS_TOKEN
+            'X-ACCESS-TOKEN': config.X_ACCESS_TOKEN
         }
     };
 
-    var DATE_FORMAT = 'YYYY-MM-DD';
+    config.DATE_FORMAT = 'YYYY-MM-DD';
+    config.WIZARD_SLIDER_OPTIONS = {};
 
-    var WIZARD_SLIDER_OPTIONS = {};
-
-    return {
-        getServerURL: function () {
-            return SERVER_URL;
-        },
-        getEventsServerURL: function () {
-            return EVENTS_SERVER_URL;
-        },
-        getOwnerId: function () {
-            return OWNER_ID;
-        },
-        getGPSDelay: function () {
-            return GPS_DELAY;
-        },
-        getHTTPConfig: function () {
-            return HTTP_CONFIG;
-        },
-        getDateFormat: function () {
-            return DATE_FORMAT;
-        },
-        getWizardSliderOptions: function () {
-            return WIZARD_SLIDER_OPTIONS;
-        }
-    };
+    return config;
 });

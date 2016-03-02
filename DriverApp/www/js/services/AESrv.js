@@ -4,6 +4,8 @@ angular.module('driverapp.services.ae', [])
     var AE = {
         NODE_CHECKIN: 102,
         NODE_CHECKOUT: 103,
+        //NODE_AT_DESTINATION: 104,
+        NODE_OUT_OF_RANGE: 105,
         STOP_REACHED: 202,
         SET_DRIVER: 301,
         SET_HELPER: 302,
@@ -17,6 +19,8 @@ angular.module('driverapp.services.ae', [])
     var AE = {
         NODE_CHECKIN: 'NODE_CHECKIN',
         NODE_CHECKOUT: 'NODE_CHECKOUT',
+        NODE_AT_DESTINATION: 'NODE_AT_DESTINATION',
+        NODE_OUT_OF_RANGE: 'NODE_OUT_OF_RANGE',
         STOP_REACHED: 'STOP_REACHED',
         SET_DRIVER: 'SET_DRIVER',
         SET_HELPER: 'SET_HELPER',
@@ -32,6 +36,10 @@ angular.module('driverapp.services.ae', [])
         routeId: null,
         driver: null,
         events: []
+    };
+
+    var isValidAEInstance = function (aeInstance) {
+        return (aeInstance.routeId != null && aeInstance.driver != null && aeInstance.events != null);
     };
 
     /* create a clean instance for a route */
@@ -166,6 +174,23 @@ angular.module('driverapp.services.ae', [])
         return event;
     };
 
+    /* node out of range */
+    /* node checkout */
+    aeService.nodeOutOfRange = function (wsnId, lastCheck) {
+        var event = {
+            routeId: aeInstance.routeId,
+            wsnNodeId: wsnId.wsnId,
+            eventType: AE.NODE_OUT_OF_RANGE,
+            timestamp: lastCheck,
+            payload: {
+                'wsnId': wsnId
+            }
+        };
+
+        aeInstance.events.push(event);
+        return event;
+    };
+
     /* driver position */
     aeService.driverPosition = function (volunteer, lat, lon) {
         var event = {
@@ -176,7 +201,7 @@ angular.module('driverapp.services.ae', [])
             payload: {
                 'volunteerId': volunteer.objectId,
                 'latitude': !!lat ? lat : 0,
-                'longitude': !!lon? lon : 0
+                'longitude': !!lon ? lon : 0
             }
         };
 
