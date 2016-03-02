@@ -531,24 +531,36 @@ public class ClimbService extends Service {
         }
     }
 
-    public boolean setNewStateToChecked(int newState, boolean[] nodes, int masterGroupPosition){
+    public boolean setNewStateToCheckedNodes(int newState, boolean[] checked, int masterGroupPosition){
 //TODO: GESTIRE IL CASO DI MOOOOOLTI NODI CHE NON CI STANNO DENTRO L'ARRAY temp_gattData
         MonitoredClimbNode monitoredChild;
-        byte[] temp_gattData = new byte[101];
+        byte[] temp_gattData = new byte[used_mtu-3];
         int gattDataIndex = 0;
-        if(nodes.length == nodeList.get(masterGroupPosition).getMonitoredClimbNodeList().size()) {
-            for(int i = 0; i < nodes.length; i++) {
-                if(nodes[i]) { //the node has the checkbox selected
+        if(checked.length == nodeList.get(masterGroupPosition).getMonitoredClimbNodeList().size()) {
+            for(int i = 0; i < checked.length; i++) {
+                if(checked[i]) { //the node has the checkbox selected
                     monitoredChild = nodeList.get(masterGroupPosition).getMonitoredClimbNodeList().get(i);
                     temp_gattData[gattDataIndex++] = monitoredChild.getNodeID()[0];
                     temp_gattData[gattDataIndex++] = (byte)newState;
-
-                    String tempString = "Accepting_node_"+monitoredChild.getNodeID()[0];
+                    String tempString;
+                    if(newState == 0x02) {
+                        tempString = "Accepting_node_" + monitoredChild.getNodeID()[0];
+                    }else if(newState == 0x00){
+                        tempString = "Checking_out_node_" + monitoredChild.getNodeID()[0];
+                    }else{
+                        tempString = "Setting_state:_"+newState+"_to_node_" + monitoredChild.getNodeID()[0];
+                    }
                     insertTag(tempString);
+                }
+                if(gattDataIndex >= temp_gattData.length){
+                    Toast.makeText(appContext,
+                            "Not all nodes have been updated!",
+                            Toast.LENGTH_SHORT).show();
+                    break;
                 }
             }
 
-            if(gattDataIndex>0) {
+            if(gattDataIndex > 0) {
                 byte[] gattData = Arrays.copyOf(temp_gattData, gattDataIndex);
                 mPICOCharacteristic.setValue(gattData);
                 return mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
@@ -556,7 +568,7 @@ public class ClimbService extends Service {
                 return false;
             }
 
-        }else{
+        } else{
             Log.w(TAG, "error on length of lists...check!!!");
             return false;
         }
@@ -953,7 +965,7 @@ public class ClimbService extends Service {
     private void checkNodeStates(int index){ //
         ClimbNode nodeUnderCheck = nodeList.get(index);
 
-        byte[] temp_gattData = new byte[20];//used_mtu-3];
+        byte[] temp_gattData = new byte[used_mtu-3];
         int gattDataIndex = 0;
 
         if(nodeUnderCheck != null) {
@@ -983,16 +995,16 @@ public class ClimbService extends Service {
                             break;
                     }
 
-                    if( (gattDataIndex >= 19 || i == monitoredClimbNodeList.size()-1) && gattDataIndex > 0){ //ATTENZIONE, SE SI METTONO IN CHECKING PIU DI 10 NODI SI RISCHIA DI RICHIAMARE writeCharacteristic più volte velocemente, e non è chiaro cosa possa succedere
+                    if( (gattDataIndex >= used_mtu-4 || i == monitoredClimbNodeList.size()-1) && gattDataIndex > 0){ //ATTENZIONE, SE SI METTONO IN CHECKING PIU DI 10 NODI SI RISCHIA DI RICHIAMARE writeCharacteristic più volte velocemente, e non è chiaro cosa possa succedere
                         if(mPICOCharacteristic != null && mBluetoothGatt != null) {
                             byte[] gattData = Arrays.copyOf(temp_gattData, gattDataIndex);
                             mPICOCharacteristic.setValue(gattData);
                             mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
 
-                            //return;
+                            return;
 
-                            gattData = new byte[used_mtu-3];
-                            gattDataIndex = 0;
+                            //gattData = new byte[used_mtu-3];
+                            //gattDataIndex = 0;
                         }else{
                             Log.w(TAG, "mPICOCharacteristic or mBluetoothGatt == null" );
                         }

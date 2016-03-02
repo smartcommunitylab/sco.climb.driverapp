@@ -47,7 +47,7 @@ public class ScanActivity extends Activity {
 
     private final static String TAG = "ScanActivity_GIOVA";
     private Button mStartButton,mStopButton,mTagButton,mCheckInAllButton,mCheckOutAllButton, mScheduleWUButton;//,mReleaseCmdButton;
-    private CheckBox mBroadcastCheckBox;
+    private CheckBox mBroadcastCheckBox, mSelectAllCheckbox;
     private Vibrator mVibrator;
     private int index = 0;
 
@@ -266,7 +266,7 @@ public class ScanActivity extends Activity {
             }else{ //not broadcast a message
                 if(expandableListAdapter != null) {
                     boolean[] childCheckStates = expandableListAdapter.getNodeCheckState(0);
-                    if(mClimbService.setNewStateToChecked(0x02,childCheckStates,0)){
+                    if(mClimbService.setNewStateToCheckedNodes(0x02,childCheckStates,0)){
                         mVibrator.vibrate(ConfigVals.vibrationTimeout);
                     }
                 }else {
@@ -302,7 +302,7 @@ public class ScanActivity extends Activity {
             }else{ //not broadcast a messages
                 if(expandableListAdapter != null) {
                     boolean[] childCheckStates = expandableListAdapter.getNodeCheckState(0);
-                    if(mClimbService.setNewStateToChecked(0x00,childCheckStates,0)){
+                    if(mClimbService.setNewStateToCheckedNodes(0x00, childCheckStates,0)){
                         mVibrator.vibrate(ConfigVals.vibrationTimeout);
                     }
                 }else {
@@ -338,6 +338,22 @@ public class ScanActivity extends Activity {
                         alertString,
                         Toast.LENGTH_LONG).show();
             }*/
+        }
+    };
+
+    View.OnClickListener selectAllCheckboxHandler = new View.OnClickListener(){
+        public void onClick(View v) {
+
+            mVibrator.vibrate(ConfigVals.vibrationTimeout);
+
+            if(expandableListAdapter != null) {
+                boolean nodeCheckState[] = expandableListAdapter.getNodeCheckState(0);
+                boolean checked = mSelectAllCheckbox.isChecked();
+                for (int i = 0; i < nodeCheckState.length; i++) {
+                    nodeCheckState[i] = checked;
+                }
+                expandableListAdapter.notifyDataSetChanged();
+            }
         }
     };
 
@@ -477,6 +493,9 @@ public class ScanActivity extends Activity {
 
         mScheduleWUButton = (Button) findViewById(R.id.scheduleWakeUpAll);
         mScheduleWUButton.setOnClickListener(scheduleWUButtonHandler);
+
+        mSelectAllCheckbox = (CheckBox) findViewById(R.id.selectAllCheckbox);
+        mSelectAllCheckbox.setOnClickListener(selectAllCheckboxHandler);
 
         mBroadcastCheckBox = (CheckBox) findViewById(R.id.broadcastCheckBox);
 
