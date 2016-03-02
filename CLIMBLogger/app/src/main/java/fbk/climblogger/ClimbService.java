@@ -479,6 +479,16 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         return true;
     }
 
+    private NodeState getNodeState(MonitoredClimbNode n) {
+        NodeState nodeState = new NodeState();
+        nodeState.nodeID = n.getNodeIDString();
+        nodeState.state = n.getNodeState();
+        nodeState.lastSeen = n.getLastContactMillis();
+        nodeState.lastStateChange = n.getLastStateChangeMillis();
+
+        return nodeState;
+    }
+
     public NodeState getNodeState(String id){
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
@@ -487,14 +497,9 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         }
         ArrayList<MonitoredClimbNode> children = master.getMonitoredClimbNodeList();
         NodeState nodeState = null;
-        for(int i = 0; i < children.size(); i++){
-            MonitoredClimbNode n = children.get(i);
+        for (MonitoredClimbNode n : children){
             if (n.getNodeIDString().equals(id)) {
-                nodeState = new NodeState();
-                nodeState.nodeID = n.getNodeIDString();
-                nodeState.state = n.getNodeState();
-                nodeState.lastSeen = n.getLastContactMillis();
-                nodeState.lastStateChange = n.getLastStateChangeMillis();
+                nodeState = getNodeState(n);
                 break;
             }
         }
@@ -510,13 +515,9 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         ArrayList<MonitoredClimbNode> children = master.getMonitoredClimbNodeList();
         NodeState[] nodeStates = new NodeState[children.size()];
 
-        for(int i = 0; i < children.size(); i++){
+        for (int i = 0; i < children.size(); i++){
             MonitoredClimbNode n = children.get(i);
-            nodeStates[i] = new NodeState();
-            nodeStates[i].nodeID = n.getNodeIDString();
-            nodeStates[i].state = n.getNodeState();
-            nodeStates[i].lastSeen = n.getLastContactMillis();
-            nodeStates[i].lastStateChange = n.getLastStateChangeMillis();
+            nodeStates[i] = getNodeState(n);
         }
 
         return nodeStates;
