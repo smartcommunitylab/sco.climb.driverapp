@@ -104,7 +104,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         intent.putExtra(INTENT_EXTRA_SUCCESS, success);
         intent.putExtra(INTENT_EXTRA_MSG, msg);
 
-        Log.d(TAG, "Sending broadcast, action = " + action +" id = " + id + " " + success + " m=" + msg);
+        Log.d(TAG, "Sending broadcast, action = " + action + " id = " + id + " " + success + " m=" + msg);
 
         sendBroadcast(intent);
     }
