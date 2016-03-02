@@ -28,7 +28,7 @@
             private byte[] lastReceivedGattData = {};
             private final String TAG = "ClimbNode_GIOVA";
             //private long lastContactMillis = 0;
-            private String[] allowedChildrenList;
+            private String[] allowedChildrenList = new String[0];
             private ArrayList<MonitoredClimbNode> onBoardChildrenList;
             private boolean connectionState = false;
             private boolean isMasterNode = false;
