@@ -546,6 +546,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                     @Override
                     public void run() {
                         mBluetoothGatt.disconnect(); //be consistent, do not try anymore
+                        //mBluetoothGatt = null; //TODO: handled by BluetoothGattCallback?
                         Log.i(TAG, "Connect to " + master + " failed: timeout.");
                         broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, id, false, "Connect timed out");
                     }
