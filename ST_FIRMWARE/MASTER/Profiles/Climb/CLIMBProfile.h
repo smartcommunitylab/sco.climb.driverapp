@@ -69,7 +69,7 @@ extern "C"
 
 // Length of Characteristic 1 in bytes
 #define CLIMBPROFILE_CHAR1_LEN           101//20
-#define CLIMBPROFILE_CHAR2_LEN           20
+#define CLIMBPROFILE_CHAR2_LEN           101//20
 /*********************************************************************
  * TYPEDEFS
  */
