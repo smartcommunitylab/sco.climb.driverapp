@@ -532,6 +532,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
                 if (mBluetoothGatt == null) {
                     Log.w(TAG, "connectGatt returned null!");
+                    return false;
                 }
 
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTING;
