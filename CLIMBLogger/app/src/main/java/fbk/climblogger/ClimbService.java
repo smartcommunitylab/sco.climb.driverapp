@@ -769,6 +769,10 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 }
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_DISCONNECTED;
                 broadcastUpdate(STATE_DISCONNECTED_FROM_CLIMB_MASTER);
+                if (connectMasterCB != null) {
+                    mHandler.removeCallbacks(connectMasterCB);
+                    connectMasterCB = null;
+                }
                 //mBluetoothGatt.disconnect();
                 mBluetoothGatt.close();
                 mBluetoothGatt = null;
