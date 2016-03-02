@@ -80,7 +80,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
     private void broadcastUpdate(final String action) {
         final Intent intent = new Intent(action);
-        Log.d(TAG, "Sending broadcast, action = " + action);
+        Log.v(TAG, "Sending broadcast, action = " + action);
 
         sendBroadcast(intent);
     }
@@ -563,6 +563,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
     public boolean disconnectMaster() { //TODO: handle several masters?
         if (mBluetoothGatt != null) {
+            Log.i(TAG, "Climb master node disconnecting ...");
             insertTag("Disconnecting_from_GATT");
 
             mBluetoothGatt.disconnect();
@@ -572,7 +573,6 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             //mCIPOCharacteristic = null;
             //mPICOCharacteristic = null;
 
-            Log.i(TAG, "Climb master node disconnecting ...");
             Toast.makeText(appContext,
                     "Disconnecting...",
                     Toast.LENGTH_SHORT).show();
@@ -679,7 +679,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
         @Override
         public void onScanResult(int callbackType, ScanResult result){  //public for SO, not for upper layer!
-            Log.d(TAG, "onScanResult called!");
+            Log.v(TAG, "onScanResult called!");
             if(callbackType == ScanSettings.CALLBACK_TYPE_ALL_MATCHES) {
                 long nowMillis = System.currentTimeMillis();
                 //PRIMA DI TUTTO SALVA IL LOG
@@ -721,7 +721,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                     //POI AVVIA IL PROCESSO PER AGGIORNARE LA UI
                     int index = isAlreadyInList(result.getDevice());
                     if (index >= 0) {
-                        Log.d(TAG, "Found device is already in database and it is at index: " + index);
+                        Log.v(TAG, "Found device is already in database and it is at index: " + index);
                         updateScnMetadata(index, result, nowMillis);
                     } else {
                         Log.d(TAG, "New device found, adding it to database!");
@@ -878,7 +878,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             //POI AVVIA IL PROCESSO PER AGGIORNARE LA UI
             int index = isAlreadyInList(mBTDevice); // TODO: check multiple master case
             if (index >= 0) {
-                Log.d(TAG, "Found device is already in database and it is at index: " + index);
+                Log.v(TAG, "Found device is already in database and it is at index: " + index);
                 updateGATTMetadata(index, characteristic.getValue(), nowMillis);
             } else {
                 Log.d(TAG, "New device found, it should be already in the list...verify!");
