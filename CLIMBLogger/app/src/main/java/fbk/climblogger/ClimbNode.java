@@ -209,7 +209,7 @@
 
                             if (driveTransitionToChecking) {
                                 if (state == 0 && isAllowedChild(tempNodeID)) {
-                                    state = 1; //TODO: send this out on GATT
+                                    //state = 1; //TODO: think whether this makes things faster
                                     toChecking.add(tempNodeID);
                                 }
                             }
