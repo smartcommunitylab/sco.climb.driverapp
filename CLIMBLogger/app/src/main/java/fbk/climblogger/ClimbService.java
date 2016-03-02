@@ -429,9 +429,9 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     // ------ CLIMB API Helpers ---------------------------------------------
 
     private ClimbNode nodeListGet(String master) {  //TODO: include in nodeList
-        for(int i = 0; i < nodeList.size(); i++){
-            if (nodeList.get(i).getNodeID().equals(master)) {
-                return nodeList.get(i);
+        for(ClimbNode n : nodeList) {
+            if (n.getNodeID().equals(master)) {
+                return n;
             }
         }
 
@@ -439,9 +439,9 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     private ClimbNode nodeListGetConnectedMaster() {  //TODO: include in nodeList
-        for(int i = 0; i < nodeList.size(); i++){
-            if (nodeList.get(i).getConnectionState()) {
-                return nodeList.get(i);
+        for(ClimbNode n : nodeList){
+            if (n.getConnectionState()) {
+                return n;
             }
         }
 
