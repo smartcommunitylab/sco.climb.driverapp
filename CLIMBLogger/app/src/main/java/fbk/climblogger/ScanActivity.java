@@ -385,7 +385,9 @@ public class ScanActivity extends Activity {
         public void onGroupExpand(int groupPosition) {
             Log.i(TAG, "Group expanded, position: " + groupPosition);
             ClimbNode clickedNode = climbNodeList.get(groupPosition);
-            mClimbService.connectMaster(clickedNode.getNodeID());
+            if (! mClimbService.connectMaster(clickedNode.getNodeID())) {
+                Log.w(TAG, "Cannot connect to " + clickedNode.getNodeID());
+            }
             mVibrator.vibrate(ConfigVals.vibrationTimeout);
         }
     };
