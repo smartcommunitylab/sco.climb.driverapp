@@ -36,6 +36,7 @@
             private MonitoredClimbNodeTimeout timedoutCallback2 = null;
             private Runnable timedoutTimer = null;
             private Handler mHandler = null;
+            private boolean driveTransitionToChecking = false;
 
 
             public ClimbNode(BluetoothDevice dev, byte initRssi, byte[] newScanResponse, boolean masterNode, ClimbNodeTimeout cb, MonitoredClimbNodeTimeout cb2) {//SparseArray<byte[]> newScanResponse){
@@ -195,6 +196,12 @@
                             byte state = lastReceivedGattData[i+1];
                             byte rssi = lastReceivedGattData[i+2];
                             MonitoredClimbNode n = findChildByID(tempNodeID);
+
+                            if (driveTransitionToChecking) {
+                                if (state == 0) {
+                                    state = 1; //TODO: send this out on GATT
+                                }
+                            }
                             if (n == null) {
                                 onBoardChildrenList.add(new MonitoredClimbNode(tempNodeID, state, rssi, millisNow, timedoutCallback2, mHandler));
                             } else {
