@@ -9,11 +9,11 @@
     <!--tools:context=".ScanActivity">-->
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:orientation="vertical"
-        tools:context=".ScanActivity">
+                  xmlns:tools="http://schemas.android.com/tools"
+                  android:layout_width="fill_parent"
+                  android:layout_height="fill_parent"
+                  android:orientation="vertical"
+                  tools:context=".ScanActivity">
 
         <!--    <android.support.design.widget.AppBarLayout android:layout_height="wrap_content"
                 android:layout_width="match_parent" android:theme="@style/AppTheme.AppBarOverlay">
@@ -77,147 +77,171 @@
             android:layout_height="match_parent"
             android:layout_gravity="center_horizontal"
             android:orientation="vertical"
-            android:layout_weight="1"
+            android:layout_weight="0.5"
             android:layout_margin="5dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="fill_parent"
-                android:layout_gravity="center_horizontal"
-                android:orientation="vertical"
-                android:layout_weight="0.38"
-                android:layout_margin="5dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="VISIBLE CLIMBM BEACONS:"
-                    android:textSize="20dp"
-                    android:textColor="#a3a3a3"
-                    android:textStyle="bold" />
-                <ExpandableListView
-                    android:id="@+id/list"
-                    android:layout_height="match_parent"
-                    android:layout_width="match_parent"
-                    android:indicatorLeft="?android:attr/expandableListPreferredItemIndicatorLeft" />
-                <!--<ListView
-                    android:id="@+id/list"
-                    android:layout_height="fill_parent"
-                    android:layout_width="match_parent"
-                    android:layout_gravity="top"
-                    android:layout_margin="5dp">
-                </ListView>-->
-
-            </LinearLayout>
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@android:color/darker_gray"/>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal|center_vertical"
-                android:orientation="horizontal"
-                android:layout_weight="1.8"
-                android:layout_margin="2dp">
+                android:orientation="horizontal">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start"
+                    android:orientation="horizontal">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="VISIBLE CLIMBM BEACONS:"
+                        android:textSize="20dp"
+                        android:textColor="#a3a3a3"
+                        android:textStyle="bold"
+                        android:layout_gravity="start"
+                        android:gravity="start|left"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start"
                     android:orientation="horizontal"
-                    android:gravity="start|center_vertical">
-
-
-
-                    <Button
-                        android:id="@+id/buttonCheckInAll"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="check in"
-                        android:textSize="12dp" />
-
-                    <Button
-                        android:id="@+id/buttonCheckOutAll"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="check out"
-                        android:textSize="12dp" />
-
+                    android:gravity="end">
                     <CheckBox
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Broadcast\nmessage"
-                        android:id="@+id/broadcastCheckBox"
+                        android:id="@+id/selectAllCheckbox"
                         android:buttonTint="#d5d6d6"
-                        android:textColor="#d5d6d6" />
-                </LinearLayout>
-                <View
-                    android:layout_width="1dp"
-                    android:layout_height="match_parent"
-                    android:background="@android:color/darker_gray"/>
-                <LinearLayout
-                    android:layout_width="fill_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal"
-                    android:gravity="end|center_vertical">
-                    <Button
-                        android:id="@+id/scheduleWakeUpAll"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="schedule\nWake up"
-                        android:textSize="12sp" />
-
-                    <!--<Button
-                        android:id="@+id/test"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="test\nTIME" />-->
-
-
+                        android:layout_gravity="end"
+                        android:gravity="end|right" />
                 </LinearLayout>
 
             </LinearLayout>
-            <!--<View
+            <ExpandableListView
+                android:id="@+id/list"
+                android:layout_height="match_parent"
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@android:color/darker_gray"/>
-            <LinearLayout
-                android:layout_width="match_parent"
+                android:indicatorLeft="?android:attr/expandableListPreferredItemIndicatorLeft" />
+            <!--<ListView
+                android:id="@+id/list"
                 android:layout_height="fill_parent"
-                android:layout_gravity="center_horizontal"
-                android:orientation="vertical"
-                android:layout_weight="0.9"
+                android:layout_width="match_parent"
+                android:layout_gravity="top"
                 android:layout_margin="5dp">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="CONSOLE:"
-                    android:textSize="20dp"
-                    android:textColor="#a3a3a3"
-                    android:textStyle="bold" />
-                <ScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:id="@+id/scrollView" >
-
-                    <EditText
-                        android:id="@+id/console_item"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ems="10"
-                        android:enabled="false"
-                        android:maxLines="100"
-                        android:gravity="bottom"
-                        android:inputType="textMultiLine"
-                        android:textSize="10sp"
-                        android:textColor="#a3a3a3"
-                        android:scrollbars = "vertical">
-                        <requestFocus />
-                    </EditText>
-                </ScrollView>
-            </LinearLayout>-->
+            </ListView>-->
 
         </LinearLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal|center_vertical"
+            android:orientation="horizontal"
+            android:layout_weight="0"
+            android:layout_margin="2dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:gravity="start|center_vertical">
+
+
+
+                <Button
+                    android:id="@+id/buttonCheckInAll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="check in"
+                    android:textSize="12dp" />
+
+                <Button
+                    android:id="@+id/buttonCheckOutAll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="check out"
+                    android:textSize="12dp" />
+
+                <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Broadcast\nmessage"
+                    android:id="@+id/broadcastCheckBox"
+                    android:buttonTint="#d5d6d6"
+                    android:textColor="#d5d6d6"
+                    android:textSize="12dp"/>
+            </LinearLayout>
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="@android:color/darker_gray"/>
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="end|center_vertical">
+                <Button
+                    android:id="@+id/scheduleWakeUpAll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="schedule\nWake up"
+                    android:textSize="12sp" />
+
+                <!--<Button
+                    android:id="@+id/test"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="test\nTIME" />-->
+
+
+            </LinearLayout>
+
+        </LinearLayout>
+        <!--<View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="fill_parent"
+            android:layout_gravity="center_horizontal"
+            android:orientation="vertical"
+            android:layout_weight="0.9"
+            android:layout_margin="5dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CONSOLE:"
+                android:textSize="20dp"
+                android:textColor="#a3a3a3"
+                android:textStyle="bold" />
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/scrollView" >
+
+                <EditText
+                    android:id="@+id/console_item"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:enabled="false"
+                    android:maxLines="100"
+                    android:gravity="bottom"
+                    android:inputType="textMultiLine"
+                    android:textSize="10sp"
+                    android:textColor="#a3a3a3"
+                    android:scrollbars = "vertical">
+                    <requestFocus />
+                </EditText>
+            </ScrollView>
+        </LinearLayout>-->
+
     </LinearLayout>
+
 
 </android.support.design.widget.CoordinatorLayout>
