@@ -36,7 +36,7 @@
             private MonitoredClimbNodeTimeout timedoutCallback2 = null;
             private Runnable timedoutTimer = null;
             private Handler mHandler = null;
-            private boolean driveTransitionToChecking = false;
+            private boolean driveTransitionToChecking = true;
 
 
             public ClimbNode(BluetoothDevice dev, byte initRssi, byte[] newScanResponse, boolean masterNode, ClimbNodeTimeout cb, MonitoredClimbNodeTimeout cb2) {//SparseArray<byte[]> newScanResponse){
