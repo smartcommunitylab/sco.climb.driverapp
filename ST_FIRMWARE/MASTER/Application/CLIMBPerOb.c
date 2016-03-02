@@ -114,7 +114,7 @@
 
 // Supervision timeout value (units of 10ms, 1000=10s) if automatic parameter
 // update request is enabled
-#define DEFAULT_DESIRED_CONN_TIMEOUT          210
+#define DEFAULT_DESIRED_CONN_TIMEOUT          310
 
 // Whether to enable automatic parameter update request when a connection is
 // formed
@@ -327,7 +327,7 @@ static listNode_t* adv_startNodePtr = NULL;
 static listNode_t* gatt_startNodePtr = NULL;
 
 static uint8 mtu_size = 23;
-
+static uint8 ready = FALSE;
 /*********************************************************************
  * LOCAL FUNCTIONS
  */
@@ -350,6 +350,7 @@ static uint8_t BLEObserver_eventCB(gapObserverRoleEvent_t *pEvent);
 static void BLEPeripheral_stateChangeCB(gaprole_States_t newState);
 static void BLEPeripheral_charValueChangeCB(uint8_t paramID);
 static void Keys_EventCB(keys_Notifications_t notificationType);
+static void updateConnParam_CB(uint16_t connInterval, uint16_t connSlaveLatency, uint16_t connTimeout);
 
 ////CLIMB IN/OUT FUNCTIONS
 static void Climb_contactsCheckSendThroughGATT(void);
@@ -415,6 +416,9 @@ NULL, // Passcode callback (not used by application)
 // Simple GATT Profile Callbacks
 static climbProfileCBs_t SimpleBLEPeripheral_climbProfileCBs = { BLEPeripheral_charValueChangeCB, // Characteristic value change callback
 		};
+
+static gapRolesParamUpdateCB_t gapRoleUpdateConnParam_CB = updateConnParam_CB;
+
 
 /*********************************************************************
  * PUBLIC FUNCTIONS
@@ -629,6 +633,9 @@ static void SimpleBLEPeripheral_init(void) {
 
 	//SETTING POWER
 	HCI_EXT_SetTxPowerCmd(HCI_EXT_TX_POWER_0_DBM);
+
+
+	GAPRole_RegisterAppCBs(&gapRoleUpdateConnParam_CB);
 
 }
 
@@ -1043,9 +1050,9 @@ static void SimpleBLEPeripheral_freeAttRsp(uint8_t status) {
  */
 static void BLE_ConnectionEventHandler(void) {
 
-	//if(mtu_size){
+	if(ready){
 		Climb_contactsCheckSendThroughGATT();
-	//}
+	}
 
 	// See if there's a pending ATT Response to be transmitted
 	if (pAttRsp != NULL) {
@@ -1084,6 +1091,10 @@ static void BLE_AdvertiseEventHandler(void) {
 	if (BLE_connected) {
 		advUpdateReq = true;
 		adv_counter++;
+	} else {
+
+		CLIMB_FlashLed(Board_LED2);
+
 	}
 #endif
 
@@ -1091,6 +1102,7 @@ static void BLE_AdvertiseEventHandler(void) {
 		Climb_advertisedStatesUpdate();
 		advUpdateReq = false;
 	}
+
 #ifdef WORKAROUND
 	uint8 adv_active = 0;
 	uint8 status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED, sizeof(uint8_t),&adv_active);
@@ -1158,6 +1170,22 @@ static void Keys_EventCB(keys_Notifications_t notificationType) {
 
 	SimpleBLEPeripheral_enqueueMsg(KEY_CHANGE_EVT, (uint8) notificationType,
 	NULL);
+
+}
+/*********************************************************************
+ * @fn      Keys_EventCB
+ *
+ * @brief   Callback from peripheralObserver task indicating a connection parameter change.
+ *
+ * @param   notificationType - type of button press
+ *
+ * @return  None.
+ */
+static void updateConnParam_CB(uint16_t connInterval, uint16_t connSlaveLatency, uint16_t connTimeout){
+
+	if( (connInterval >=  DEFAULT_DESIRED_MIN_CONN_INTERVAL &&  connInterval <=  DEFAULT_DESIRED_MAX_CONN_INTERVAL) && connSlaveLatency==DEFAULT_DESIRED_SLAVE_LATENCY && connTimeout==DEFAULT_DESIRED_CONN_TIMEOUT){
+		ready = TRUE;
+	}
 
 }
 
