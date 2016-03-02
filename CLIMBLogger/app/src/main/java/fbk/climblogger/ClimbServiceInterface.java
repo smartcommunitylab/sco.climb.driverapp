@@ -1,8 +1,17 @@
 package fbk.climblogger;
 
+import android.content.Context;
+
 import java.util.ArrayList;
 
 public interface ClimbServiceInterface {
+
+    public enum State {
+        BYMYSELF(0), CHECKING(1), ONBOARD(2), ALERT(3), ERROR(4);
+        private final int id;
+        State(int id) { this.id = id; }
+        public int getValue() { return id; }
+    }
 
     public class NodeState{
         public String nodeID;
@@ -42,6 +51,7 @@ public interface ClimbServiceInterface {
     public final static String EXTRA_BYTE_ARRAY ="fbk.climblogger.ClimbService.EXTRA_BYTE_ARRAY";
 
     public void init();
+    public void setContext(Context context);
     public String[] getMasters();
     public boolean connectMaster(String master);
     public boolean disconnectMaster();
