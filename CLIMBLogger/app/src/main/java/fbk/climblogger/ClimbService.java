@@ -49,7 +49,6 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     final static private UUID mClimbServiceUuid = ConfigVals.Service.CLIMB;
     final static private UUID mCIPOCharacteristicUuid = ConfigVals.Characteristic.CIPO;
     final static private UUID mPICOCharacteristicUuid = ConfigVals.Characteristic.PICO;
-    private String mBluetoothDeviceAddress;
     private BluetoothGatt mBluetoothGatt = null;
 
     private boolean nodeTimeOutEnabled = false;
@@ -65,19 +64,19 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     private final String TAG = "ClimbService_GIOVA";
     private ArrayList<ClimbNode> nodeList;
 
-    public String dirName, dirName2,update_name_log,file_name_log;
+    public String dirName, file_name_log;
     File root;
     private File mFile = null;
     private FileWriter mFileWriter = null;
     private BufferedWriter mBufferedWriter = null;
     private boolean logEnabled;
 
-    private int index = 0;
-
     private Context appContext = null;
 
     private Handler mHandler = null;
     private int masterNodeGATTConnectionState = BluetoothProfile.STATE_DISCONNECTED;
+
+    // ----- Helpers ----------------------------------------------
 
     private void broadcastUpdate(final String action) {
         final Intent intent = new Intent(action);
@@ -110,15 +109,6 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         sendBroadcast(intent);
     }
 
-    private void broadcastUpdate(final String action, final String extra_type, final int[] extra_data) {
-        final Intent intent = new Intent(action);
-
-        intent.putExtra(extra_type,extra_data);
-
-        Log.d(TAG, "Sending broadcast, action = " + action + ". extra_type = " + extra_type + ". extra dimensions = " + extra_data.length);
-        sendBroadcast(intent);
-    }
-
     private void broadcastUpdate(final String action, final String extra_type, final byte[] extra_data) {
         final Intent intent = new Intent(action);
 
@@ -135,6 +125,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         Log.d(TAG, "Sending broadcast, action = " + action + ". extra_type = " + extra_type);
         sendBroadcast(intent);
     }
+
+    // ----- Service ----------------------------------------------
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -186,7 +178,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         return START_STICKY; // run until explicitly stopped.
     }
 
-    public boolean initialize() {
+    private boolean initialize() {
         // For API level 18 and above, get a reference to BluetoothAdapter through
         // BluetoothManager.
         if (mBluetoothManager == null) {
@@ -214,43 +206,13 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         return true;
     }
 
+    // ------- old API -----------------------------------------
 
-    public ArrayList getNodeList(){
-
-        return nodeList;
-    }
-
-    public boolean setNodeList(String[] children) {
-        ClimbNode master = nodeListGetConnectedMaster();
-        if (master == null) {
-            return false;
-        }
-        master.setAllowedChildrenList(children);
-        //TODO: handle changes
-        return true;
-    }
-
-    //DEBUG
-    /*
-    public ArrayList addNode(){
-        String name = "Nome " + index;
-        nodeList.add(index, new ClimbNode(name, null, index*10));
-        index ++;
-
-        broadcastUpdate(ACTION_DEVICE_ADDED_TO_LIST);
+    public ArrayList getNodeList(){ // old API
 
         return nodeList;
     }
-    //DEBUG
-    public ArrayList removeNode(){
-        index--;
-        nodeList.remove(index);
 
-        broadcastUpdate(ACTION_DEVICE_ADDED_TO_LIST);
-
-        return nodeList;
-    }
-*/
     public int StartMonitoring(boolean enableDatalog){ //TODO: not exposed in main API
 
         if(mBluetoothAdapter != null) {
@@ -285,10 +247,6 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         //TODO: iniziare la ricerca ble
         //TODO: avviare il log
         return 1;
-    }
-
-    public void init() {
-        StartMonitoring(true);
     }
 
     public int StopMonitoring(){ //TODO: not exposed in main API
@@ -468,8 +426,37 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         return false;
     }
 
-    public boolean isMonitoring(){
-        return mScanning;
+    // ------ CLIMB API Helpers ---------------------------------------------
+
+    private ClimbNode nodeListGet(String master) {  //TODO: include in nodeList
+        for(int i = 0; i < nodeList.size(); i++){
+            if (nodeList.get(i).getNodeID().equals(master)) {
+                return nodeList.get(i);
+            }
+        }
+
+        return null;
+    }
+
+    private ClimbNode nodeListGetConnectedMaster() {  //TODO: include in nodeList
+        for(int i = 0; i < nodeList.size(); i++){
+            if (nodeList.get(i).getConnectionState()) {
+                return nodeList.get(i);
+            }
+        }
+
+        return null;
+    }
+
+    // ------ CLIMB API Implementation ---------------------------------------------
+
+    public void init() {
+        StartMonitoring(true);
+    }
+
+    public void setContext(Context context)
+    {
+        appContext = context;
     }
 
     public String[] getMasters() {
@@ -480,6 +467,16 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             }
         }
         return ids.toArray(new String[ids.size()]);
+    }
+
+    public boolean setNodeList(String[] children) {
+        ClimbNode master = nodeListGetConnectedMaster();
+        if (master == null) {
+            return false;
+        }
+        master.setAllowedChildrenList(children);
+        //TODO: handle changes
+        return true;
     }
 
     public NodeState getNodeState(String id){
@@ -523,27 +520,6 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         }
 
         return nodeStates;
-    }
-
-
-    private ClimbNode nodeListGet(String master) {  //TODO: include in nodeList
-        for(int i = 0; i < nodeList.size(); i++){
-            if (nodeList.get(i).getNodeID().equals(master)) {
-                return nodeList.get(i);
-            }
-        }
-
-        return null;
-    }
-
-    private ClimbNode nodeListGetConnectedMaster() {  //TODO: include in nodeList
-        for(int i = 0; i < nodeList.size(); i++){
-            if (nodeList.get(i).getConnectionState()) {
-                return nodeList.get(i);
-            }
-        }
-
-        return null;
     }
 
     public boolean connectMaster(final String master) {
@@ -683,11 +659,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         return true;
     }
 
-    //-----------------------------------------------------
+    //---------------------------------------------------------------------
 
-    public BluetoothDevice getBTDevice_ClimbMaster(){
-        return mBTDevice;
-    }
     ScanCallback mScanCallback = new ScanCallback() {
 
         boolean scanForAll = false;
@@ -919,6 +892,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
     };
 
+    // ------ BLE integration ---------------------------------------------
+
     public void getClimbService() {
         Log.i(TAG, "Getting CLIMB Service");
         mBTService = mBluetoothGatt.getService(mClimbServiceUuid); //QUI VIENE CONTROLLATO CHE IL SERVER SU CUI SI E' CONNESSI ABBIA IL SERVIZIO ADATTO
@@ -1004,7 +979,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         }
     }
 
-    private int isAlreadyInList(BluetoothDevice device){//ScanResult targetNode){
+    private int isAlreadyInList(BluetoothDevice device){
 
         for(int i = 0; i < nodeList.size(); i++){
             if( nodeList.get(i).getAddress().equals(device.getAddress()) ){
@@ -1249,10 +1224,5 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 }
             }, ConfigVals.NODE_TIMEOUT);
         }
-    }
-
-    public void setContext(Context context)
-    {
-        appContext = context;
     }
 }
