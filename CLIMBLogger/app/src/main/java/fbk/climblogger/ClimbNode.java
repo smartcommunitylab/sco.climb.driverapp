@@ -182,12 +182,22 @@
                 return null;
             }
 
-            public void updateGATTMetadata(int newRssi, byte[] cipo_metadata, long millisNow) {//SparseArray<byte[]> newScanResponse){
+            private boolean isAllowedChild(byte[] nodeID) {
+                for (String s : allowedChildrenList) {
+                    if (scanResponseData.equals(String.format("%02X", nodeID[0]))) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            public List<byte[]> updateGATTMetadata(int newRssi, byte[] cipo_metadata, long millisNow) {//SparseArray<byte[]> newScanResponse){
                 //rssi = newRssi;
                 lastReceivedGattData = cipo_metadata;
                 //lastContactMillis = millisNow;
                 timeoutRestart();
 
+                List<byte[]> toChecking = new ArrayList<>();
                 //AGGIORNA LA LISTA DEI NODI ON_BOARD
                 for (int i = 0; i < lastReceivedGattData.length-2; i = i + 3) {
                     if(lastReceivedGattData[i] != 0 ) { //se l'ID è 0x00 scartalo
@@ -198,8 +208,9 @@
                             MonitoredClimbNode n = findChildByID(tempNodeID);
 
                             if (driveTransitionToChecking) {
-                                if (state == 0) {
+                                if (state == 0 && isAllowedChild(tempNodeID)) {
                                     state = 1; //TODO: send this out on GATT
+                                    toChecking.add(tempNodeID);
                                 }
                             }
                             if (n == null) {
@@ -211,6 +222,7 @@
                         //}
                     }
                 }
+                return toChecking;
             }
 
             private String stateToString(byte s) {
