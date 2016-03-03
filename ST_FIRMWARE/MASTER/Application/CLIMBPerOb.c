@@ -201,7 +201,13 @@
  */
 
 typedef enum ChildClimbNodeStateType_t {
-	BY_MYSELF, CHECKING, ON_BOARD, ALERT, ERROR, INVALID_STATE
+	BY_MYSELF,
+	CHECKING,
+	ON_BOARD,
+	ALERT,
+	GOING_TO_SLEEP,
+	ERROR,
+	INVALID_STATE
 } ChildClimbNodeStateType_t;
 
 typedef enum MasterClimbNodeStateType_t {
@@ -1762,8 +1768,8 @@ static void Climb_advertisedStatesCheck(void) {
 			ChildClimbNodeStateType_t actualNodeState = (ChildClimbNodeStateType_t)node->device.advData[ADV_PKT_STATE_OFFSET];
 			switch (node->device.stateToImpose) {
 			case BY_MYSELF:
-				if (actualNodeState == CHECKING || actualNodeState == ON_BOARD || actualNodeState == ALERT) { // && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
-
+				if (actualNodeState == CHECKING || actualNodeState == ON_BOARD || actualNodeState == ALERT || actualNodeState == GOING_TO_SLEEP) { // && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
+					//allowed transition
 				} else {
 					node->device.stateToImpose = actualNodeState; //mantieni lo stato precedente
 				}
@@ -1771,7 +1777,7 @@ static void Climb_advertisedStatesCheck(void) {
 
 			case CHECKING:
 				if (actualNodeState == BY_MYSELF){// && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
-
+					//allowed transition
 				} else {
 					node->device.stateToImpose = actualNodeState; //mantieni lo stato precedente
 				}
@@ -1779,7 +1785,7 @@ static void Climb_advertisedStatesCheck(void) {
 
 			case ON_BOARD:
 				if ((actualNodeState == CHECKING || actualNodeState == ALERT)){// && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
-
+					//allowed transition
 				} else {
 					node->device.stateToImpose = actualNodeState; //mantieni lo stato precedente
 				}
@@ -1787,6 +1793,14 @@ static void Climb_advertisedStatesCheck(void) {
 
 			case ALERT:
 				node->device.stateToImpose = ON_BOARD; //don't broadcast ALERT state!
+				break;
+
+			case GOING_TO_SLEEP:
+				if (actualNodeState == CHECKING || actualNodeState == ON_BOARD ) { // && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
+					//allowed transition
+				} else {
+					node->device.stateToImpose = actualNodeState; //mantieni lo stato precedente
+				}
 				break;
 
 			case INVALID_STATE:
@@ -1844,11 +1858,15 @@ static void Climb_nodeTimeoutCheck() {
 					previousNode = targetNode;
 					targetNode = targetNode->next; //passa al nodo sucessivo
 					break;
+				case GOING_TO_SLEEP:
+					//do nothing
+					targetNode = Climb_removeNode(targetNode, previousNode); //rimuovi il nodo
+					break;
 
 				default:
 					//should not reach here
 					//previousNode = targetNode;
-					//targetNode = targetNode->next; //passa al nodo sucessivo
+					targetNode = targetNode->next; //passa al nodo sucessivo
 					break;
 				}
 			} else { //the child node is not my child
