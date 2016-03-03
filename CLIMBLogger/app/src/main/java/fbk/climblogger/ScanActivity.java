@@ -162,6 +162,7 @@ public class ScanActivity extends Activity {
             expandableListDetail = new HashMap<ClimbNode, List<String>>(); //expandableListDetail conterrà le info aggiuntive
             expandableListAdapter = new MyExpandableListAdapter(mContext, climbNodeList, expandableListDetail);
             expandableListView.setAdapter(expandableListAdapter); // climbNodeList dovrà contenere i nomi dei dispositivi direttamente visibili dallo smartphone
+            expandableListAdapter.notifyDataSetChanged();
 /*
             //crea un adapter per gestire la listView
             adapter = new ArrayAdapter<ListView>(mContext, android.R.layout.simple_list_item_1, android.R.id.text1,climbNodeList);
@@ -250,11 +251,11 @@ public class ScanActivity extends Activity {
                             mVibrator.vibrate(ConfigVals.vibrationTimeout);
                             lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
                         } else {
-                            Log.i(TAG, "Check in all not sent!");
+                            Log.w(TAG, "Check in all not sent!");
                             log("Check in all not sent!");
                         }
                     } else {
-                        Log.i(TAG, "Check in all not sent!");
+                        Log.w(TAG, "Check in all not sent!");
                         log("Check in all not sent!");
                     }
                 } else {
@@ -268,6 +269,8 @@ public class ScanActivity extends Activity {
                     boolean[] childCheckStates = expandableListAdapter.getNodeCheckState(0);
                     if(mClimbService.setNewStateToCheckedNodes(0x02,childCheckStates,0)){
                         mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                    }else {
+                        Log.w(TAG, "Check in not sent!");
                     }
                 }else {
                     Log.w(TAG, "expandableListAdapter == null!!");
@@ -285,11 +288,11 @@ public class ScanActivity extends Activity {
                             mVibrator.vibrate(ConfigVals.vibrationTimeout);
                             lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
                         } else {
-                            Log.i(TAG, "Check out all not sent!");
+                            Log.w(TAG, "Check out all not sent!");
                             log("Check out all not sent!");
                         }
                     } else {
-                        Log.i(TAG, "Check out all not sent!");
+                        Log.w(TAG, "Check out all not sent!");
                         log("Check out all not sent!");
                     }
 
@@ -304,6 +307,8 @@ public class ScanActivity extends Activity {
                     boolean[] childCheckStates = expandableListAdapter.getNodeCheckState(0);
                     if(mClimbService.setNewStateToCheckedNodes(0x00, childCheckStates,0)){
                         mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                    }else{
+                        Log.i(TAG, "Check out not sent!");
                     }
                 }else {
                     Log.w(TAG, "expandableListAdapter == null!!");
