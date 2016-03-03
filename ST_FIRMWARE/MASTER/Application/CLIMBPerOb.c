@@ -124,9 +124,9 @@
 #define DEFAULT_CONN_PAUSE_PERIPHERAL         4
 
 // Scan duration in ms
-#define DEFAULT_SCAN_DURATION                 1250//1000 //Tempo di durata di una scansione, allo scadere la scansione viene ricominciata
+#define DEFAULT_SCAN_DURATION                 2000//1300//250//1000 //Tempo di durata di una scansione, allo scadere la scansione viene ricominciata
 
-#define PRE_ADV_TIMEOUT				  DEFAULT_NON_CONNECTABLE_ADVERTISING_INTERVAL*0.625-5
+#define PRE_ADV_TIMEOUT				  (DEFAULT_NON_CONNECTABLE_ADVERTISING_INTERVAL*625)/1000-3
 
 // Scan interval value in 0.625ms ticks
 #define SCAN_INTERVAL 						  160
@@ -2006,9 +2006,13 @@ static void Climb_preAdvEvtHandler(){
 		advUpdateReq = false;
 	}
 
-	if(!scanning && BLE_connected){
-		uint8 status = GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE, DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
-		scanning = TRUE;
+	if (BLE_connected) {
+		GAPObserverRole_CancelDiscovery();
+		scanning = FALSE;
+		if (!scanning) {
+			uint8 status = GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE, DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
+			scanning = TRUE;
+		}
 	}
 }
 /*********************************************************************
