@@ -563,8 +563,10 @@ public class ClimbService extends Service {
             if(gattDataIndex > 0) {
                 byte[] gattData = Arrays.copyOf(temp_gattData, gattDataIndex);
                 mPICOCharacteristic.setValue(gattData);
+                Log.i(TAG, "No selected nodes!");
                 return mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
             }else{
+                Log.w(TAG, "No selected nodes!");
                 return false;
             }
 
