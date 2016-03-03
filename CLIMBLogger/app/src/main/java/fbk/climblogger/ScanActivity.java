@@ -519,11 +519,12 @@ public class ScanActivity extends Activity {
         startService(climbServiceIntent);
 
 
-        expandableListView.setOnGroupExpandListener( mOnGroupExpandListener );
+        expandableListView.setOnGroupExpandListener(mOnGroupExpandListener );
 
-        expandableListView.setOnGroupCollapseListener( mOnGroupCollapseListener );
+        expandableListView.setOnGroupCollapseListener(mOnGroupCollapseListener );
 
-        expandableListView.setOnChildClickListener( mOnChildClickListener );
+        expandableListView.setOnChildClickListener(mOnChildClickListener );
+
     }
 
 
