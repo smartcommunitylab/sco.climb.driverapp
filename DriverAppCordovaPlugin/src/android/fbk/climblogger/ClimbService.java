@@ -104,7 +104,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         intent.putExtra(INTENT_EXTRA_SUCCESS, success);
         intent.putExtra(INTENT_EXTRA_MSG, msg);
 
-        Log.d(TAG, "Sending broadcast, action = " + action +" id = " + id + " " + success + " m=" + msg);
+        Log.d(TAG, "Sending broadcast, action = " + action + " id = " + id + " " + success + " m=" + msg);
 
         sendBroadcast(intent);
     }
@@ -1006,12 +1006,22 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     private boolean updateGATTMetadata(int recordIndex, byte[] cipo_data, long nowMillis){
 
 //TODO: L'rssi viene letto tramite un'altra callback, quindi per ora non ne tengo conto (in ClimbNode.updateGATTMetadata l'rssi non viene toccato)
-                nodeList.get(recordIndex).updateGATTMetadata(0, cipo_data, nowMillis);
+                List<byte[]> toChecking = nodeList.get(recordIndex).updateGATTMetadata(0, cipo_data, nowMillis);
 
                 //broadcastUpdate(ACTION_METADATA_CHANGED, EXTRA_INT_ARRAY, new int[]{recordIndex}); //questa allega  al broadcast l'indice che è cambiato, per ora non serve
                 broadcastUpdate(ACTION_METADATA_CHANGED);
-                return true;
 
+                // TODO: move this code down to ClimbNode
+                for (byte[] nodeID : toChecking) {
+                    Log.i(TAG, "Allowing child " + nodeID[0]);
+                    byte[] gattData = {nodeID[0],  1}; //assegna lo stato CHECKING e invia tutto al gatt
+                    String tempString = "Allowing_node_"+nodeID[0];
+                    insertTag(tempString);
+                    mPICOCharacteristic.setValue(gattData);
+                    mBluetoothGatt.writeCharacteristic(mPICOCharacteristic); //TODO: write batched
+                }
+
+                return true;
     }
 
     @Override

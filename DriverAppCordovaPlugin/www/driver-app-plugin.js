@@ -17,11 +17,23 @@ module.exports = {
     'connectMaster': function (masterId, successCallback, errorCallback) {
         cordova.exec(successCallback, errorCallback, serviceName, 'connectMaster', [masterId]);
     },
+    'setNodeList': function (nodeList, successCallback, errorCallback) {
+        cordova.exec(successCallback, errorCallback, serviceName, 'setNodeList', [nodeList]);
+    },
     'getNetworkState': function (successCallback, errorCallback) {
         cordova.exec(successCallback, errorCallback, serviceName, 'getNetworkState', []);
     },
-    'setNodeList': function (nodeList, successCallback, errorCallback) {
-        cordova.exec(successCallback, errorCallback, serviceName, 'setNodeList', [nodeList]);
+    'checkinChild': function (childId, successCallback, errorCallback) {
+        cordova.exec(successCallback, errorCallback, serviceName, 'checkinChild', [childId]);
+    },
+    'checkinChildren': function (childrenIds, successCallback, errorCallback) {
+        cordova.exec(successCallback, errorCallback, serviceName, 'checkinChildren', [childrenIds]);
+    },
+    'checkoutChild': function (childId, successCallback, errorCallback) {
+        cordova.exec(successCallback, errorCallback, serviceName, 'checkoutChild', [childId]);
+    },
+    'checkoutChildren': function (childrenIds, successCallback, errorCallback) {
+        cordova.exec(successCallback, errorCallback, serviceName, 'checkoutChildren', [childrenIds]);
     },
     'test': function (name, successCallback, errorCallback) {
         cordova.exec(successCallback, errorCallback, serviceName, 'test', [name]);

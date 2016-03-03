@@ -1,6 +1,6 @@
 angular.module('driverapp.services.wsn', [])
 
-.factory('WSNSrv', function ($rootScope, $q) {
+.factory('WSNSrv', function ($rootScope, $q, $interval, Utils, Config) {
     var wsnService = {};
 
     wsnService.NODESTATE_NODEID = 'nodeID';
@@ -17,16 +17,19 @@ angular.module('driverapp.services.wsn', [])
     wsnService.STATUS_BOARDED_ALREADY = 'BOARDED_ALREADY';
     wsnService.STATUS_OUT_OF_RANGE = 'OUT_OF_RANGE';
 
+    wsnService.intervalGetNetworkState = null;
+
     wsnService.init = function () {
         var deferred = $q.defer();
 
         if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
             window.DriverAppPlugin.init(
                 function (response) {
+                    console.log('init: ' + response);
                     deferred.resolve(response);
                 },
                 function (reason) {
-                    console.log(reason);
+                    console.log('init: ' + reason);
                     deferred.reject(reason);
                 }
             );
@@ -41,6 +44,37 @@ angular.module('driverapp.services.wsn', [])
         if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
             window.DriverAppPlugin.startListener(
                 function (response) {
+                    if (response.action === wsnService.STATE_CONNECTED_TO_CLIMB_MASTER) {
+                        if (response.errorMsg === null || response.errorMsg === undefined) {
+                            console.log('### Yippee-ki-yay! Welcome, Master! ###');
+                            wsnService.setNodeList(wsnService.getNodeListByType('child'));
+                            wsnService.intervalGetNetworkState = $interval(function () {
+                                wsnService.getNetworkState();
+                            }, Config.NETWORKSTATE_DELAY);
+                        } else {
+                            console.log('/// Master connection timeout! ///');
+                            Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
+                        }
+                    } else if (response.action === wsnService.STATE_DISCONNECTED_FROM_CLIMB_MASTER) {
+                        console.log('=== Where is my Master?!? ===');
+                        Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
+                    }
+                    /*
+                    else if (response.action === wsnService.STATE_CHECKEDIN_CHILD) {
+                        if (response.errorMsg === null || response.errorMsg === undefined) {
+                            console.log('+++ Child ' + response.id + ' checked in! +++');
+                        } else {
+                            console.log('/// Child ' + response.id + ' NOT checked in! ///');
+                        }
+                    } else if (response.action === wsnService.STATE_CHECKEDOUT_CHILD) {
+                        if (response.errorMsg === null || response.errorMsg === undefined) {
+                            console.log('--- Child ' + response.id + ' checked out! ---');
+                        } else {
+                            console.log('/// Child ' + response.id + ' NOT checked out! ///');
+                        }
+                    }
+                    */
+
                     deferred.resolve(response)
                 },
                 function (reason) {
@@ -58,6 +92,9 @@ angular.module('driverapp.services.wsn', [])
         if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
             window.DriverAppPlugin.getMasters(
                 function (response) {
+                    if (!!wsnService.intervalGetNetworkState) {
+                        $interval.cancel(wsnService.intervalGetNetworkState);
+                    }
                     deferred.resolve(response);
                 },
                 function (reason) {
@@ -76,10 +113,11 @@ angular.module('driverapp.services.wsn', [])
         if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
             window.DriverAppPlugin.getMasters(
                 function (masters) {
+                    console.log('getMasters: ' + masters);
                     deferred.resolve(masters);
                 },
                 function (reason) {
-                    console.log(reason);
+                    console.log('getMasters: ' + reason);
                     deferred.reject(reason);
                 }
             );
@@ -95,10 +133,31 @@ angular.module('driverapp.services.wsn', [])
             window.DriverAppPlugin.connectMaster(
                 masterId,
                 function (procedureStarted) {
+                    console.log('connectMaster: ' + procedureStarted);
                     deferred.resolve(procedureStarted);
                 },
                 function (reason) {
-                    console.log(reason);
+                    console.log('connectMaster: ' + reason);
+                    deferred.reject(reason);
+                }
+            );
+        }
+
+        return deferred.promise;
+    };
+
+    wsnService.setNodeList = function (list) {
+        var deferred = $q.defer();
+
+        if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+            window.DriverAppPlugin.setNodeList(
+                list,
+                function (procedureStarted) {
+                    console.log('setNodeList: ' + procedureStarted);
+                    deferred.resolve(procedureStarted);
+                },
+                function (reason) {
+                    console.log('setNodeList: ' + reason);
                     deferred.reject(reason);
                 }
             );
@@ -114,20 +173,21 @@ angular.module('driverapp.services.wsn', [])
             window.DriverAppPlugin.getNetworkState(
                 function (networkState) {
                     var ns = angular.copy(wsnService.networkState);
-
                     networkState.forEach(function (nodeState) {
-                        if (ns[nodeState.nodeID].status == '') {
-                            ns[nodeState.nodeID].status = wsnService.STATUS_NEW;
+                        if (!!ns[nodeState.nodeID]) {
+                            if (ns[nodeState.nodeID].status == '') {
+                                ns[nodeState.nodeID].status = wsnService.STATUS_NEW;
+                            }
+                            ns[nodeState.nodeID].timestamp = nodeState[wsnService.NODESTATE_LASTSEEN];
                         }
-
-                        ns[nodeState.nodeID].timestamp = nodeState[wsnService.NODESTATE_LASTSEEN];
                     });
-
                     wsnService.networkState = ns;
+
+                    console.log('getNetworkState: ' + networkState);
                     deferred.resolve(networkState);
                 },
                 function (reason) {
-                    console.log(reason);
+                    console.log('getNetworkState: ' + reason);
                     deferred.reject(reason);
                 }
             );
@@ -136,17 +196,78 @@ angular.module('driverapp.services.wsn', [])
         return deferred.promise;
     };
 
-    wsnService.setNodeList = function (list) {
+    wsnService.checkinChild = function (childId) {
         var deferred = $q.defer();
 
         if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
-            window.DriverAppPlugin.setNodeList(
-                list,
-                function (response) {
-                    deferred.resolve(response);
+            window.DriverAppPlugin.checkinChild(
+                childId,
+                function (procedureStarted) {
+                    console.log('checkinChild: ' + procedureStarted + ' (' + childId + ')');
+                    deferred.resolve(procedureStarted);
                 },
                 function (reason) {
-                    console.log(reason);
+                    console.log('checkinChild: ' + reason + ' (' + childId + ')');
+                    deferred.reject(reason);
+                }
+            );
+        }
+
+        return deferred.promise;
+    };
+
+    wsnService.checkinChildern = function (childrenIds) {
+        var deferred = $q.defer();
+
+        if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+            window.DriverAppPlugin.checkinChildren(
+                childrenIds,
+                function (procedureStarted) {
+                    console.log('checkinChildern: ' + procedureStarted  + ' (' + childrenIds + ')');
+                    deferred.resolve(procedureStarted);
+                },
+                function (reason) {
+                    console.log('checkinChildern: ' + reason + ' (' + childrenIds + ')');
+                    deferred.reject(reason);
+                }
+            );
+        }
+
+        return deferred.promise;
+    };
+
+    wsnService.checkoutChild = function (childId) {
+        var deferred = $q.defer();
+
+        if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+            window.DriverAppPlugin.checkoutChild(
+                childId,
+                function (procedureStarted) {
+                    console.log('checkoutChild: ' + procedureStarted);
+                    deferred.resolve(procedureStarted);
+                },
+                function (reason) {
+                    console.log('checkoutChild: ' + reason);
+                    deferred.reject(reason);
+                }
+            );
+        }
+
+        return deferred.promise;
+    };
+
+    wsnService.checkoutChildern = function (childrenIds) {
+        var deferred = $q.defer();
+
+        if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+            window.DriverAppPlugin.checkoutChildren(
+                childrenIds,
+                function (procedureStarted) {
+                    console.log('checkoutChildren: ' + procedureStarted);
+                    deferred.resolve(procedureStarted);
+                },
+                function (reason) {
+                    console.log('checkoutChildren: ' + reason);
                     deferred.reject(reason);
                 }
             );
@@ -162,10 +283,11 @@ angular.module('driverapp.services.wsn', [])
             window.DriverAppPlugin.test(
                 text,
                 function (response) {
+                    console.log('test: ' + response);
                     deferred.resolve(response);
                 },
                 function (reason) {
-                    console.log(reason);
+                    console.log('test: ' + reason);
                     deferred.reject(reason);
                 }
             );

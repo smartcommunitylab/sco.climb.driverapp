@@ -16,7 +16,7 @@ angular.module('driverapp', [
     'driverapp.controllers.volunteers'
 ])
 
-.run(function ($ionicPlatform, $rootScope, $interval, Config, Utils, WSNSrv) {
+.run(function ($ionicPlatform, $rootScope, Config, Utils, WSNSrv) {
     $ionicPlatform.ready(function () {
         // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
         // for form inputs)
@@ -32,47 +32,14 @@ angular.module('driverapp', [
         }
 
         if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
-            /*
-            WSNSrv.test('PROVA').then(
-                function (response) {
-                    $rootScope.PLUGIN_TEST = response;
-                },
-                function (reason) {
-                    console.log(reason);
-                }
-            );
-            */
-
             WSNSrv.init().then(
-                function (response) {
-                    console.log('init: ' + response);
-                },
-                function (reason) {
-                    console.log(reason);
-                }
+                function (response) {},
+                function (reason) {}
             );
 
             WSNSrv.startListener().then(
-                function (response) {
-                    if (response.action === WSNSrv.STATE_CONNECTED_TO_CLIMB_MASTER) {
-                        if (response.errorMsg === null || response.errorMsg === undefined) {
-                            console.log('+++ Yippee-ki-yay! Welcome, Master! +++');
-                            $rootScope.WSNSrvSetNodeList();
-                            $rootScope.intervalGetNetworkState = $interval(function () {
-                                $rootScope.WSNSrvGetNetworkState();
-                            }, Config.NETWORKSTATE_DELAY);
-                        } else {
-                            console.log('/// Master connection timeout! ///');
-                            Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
-                        }
-                    } else if (response.action === WSNSrv.STATE_DISCONNECTED_FROM_CLIMB_MASTER) {
-                        console.log('--- Where is my Master?!? ---');
-                        Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
-                    }
-                },
-                function (reason) {
-                    console.log('startListener: ' + reason);
-                }
+                function (response) {},
+                function (reason) {}
             );
 
             /*
@@ -80,46 +47,30 @@ angular.module('driverapp', [
              */
             $rootScope.WSNSrvGetMasters = function () {
                 WSNSrv.getMasters().then(
-                    function (masters) {
-                        console.log('getMasters: ' + masters);
-                    },
-                    function (reason) {
-                        console.log(reason);
-                    }
+                    function (masters) {},
+                    function (reason) {}
                 );
             };
 
             $rootScope.WSNSrvConnectMaster = function (masterId) {
                 WSNSrv.connectMaster(masterId).then(
-                    function (procedureStarted) {
-                        console.log('connectMaster: ' + procedureStarted + ' (request sent)');
-                    },
-                    function (reason) {
-                        console.log(reason);
-                    }
+                    function (procedureStarted) {},
+                    function (reason) {}
                 );
             };
 
             $rootScope.WSNSrvSetNodeList = function () {
                 var childrenWsnIds = WSNSrv.getNodeListByType('child');
                 WSNSrv.setNodeList(childrenWsnIds).then(
-                    function (procedureStarted) {
-                        console.log('setNodeList: ' + procedureStarted + ' (request sent)');
-                    },
-                    function (reason) {
-                        console.log(reason);
-                    }
+                    function (procedureStarted) {},
+                    function (reason) {}
                 );
             };
 
             $rootScope.WSNSrvGetNetworkState = function () {
                 WSNSrv.getNetworkState().then(
-                    function (networkState) {
-                        console.log('getNetworkState: ' + networkState);
-                    },
-                    function (reason) {
-                        console.log(reason);
-                    }
+                    function (networkState) {},
+                    function (reason) {}
                 );
             };
         }

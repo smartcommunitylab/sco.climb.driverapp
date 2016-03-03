@@ -80,12 +80,14 @@ public class MonitoredClimbNode{
 
     private void timedout() {
         (timedoutCallback).monitoredClimbNodeChangeTimedout(this, imposedState, nodeState);
+        timedoutTimer = null;
     }
 
     public void setNodeState(byte newState, long newLastContactMillis){
-        if (newState == imposedState) {
-            if (timedoutTimer != null) {
+        if (timedoutTimer != null) {
+            if (newState == imposedState) {
                 mHandler.removeCallbacks(timedoutTimer);
+                timedoutTimer = null;
                 (timedoutCallback).monitoredClimbNodeChangeSuccess(this, imposedState);
             } //TODO: handle error
         }

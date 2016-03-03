@@ -69,7 +69,7 @@ angular.module('driverapp.controllers.route', [])
                                     AESrv.nodeOutOfRange(nodeId, ns[nodeId].timestamp);
                                     var errorString = 'Attenzione! ';
                                     errorString += ns[nodeId].object.surname + ' ' + ns[nodeId].object.name + ' (' + nodeId + ') fuori portata!';
-                                    console.log('nodeOutOfRange: ' + nodeId + ' (last seen ', + ns[nodeId].timestamp + ')');
+                                    console.log('nodeOutOfRange: ' + nodeId + ' (last seen ', +ns[nodeId].timestamp + ')');
                                     Utils.toast(errorString, 5000, 'center');
                                 } else if (!overTimeout && ns[nodeId].status === WSNSrv.STATUS_OUT_OF_RANGE) {
                                     ns[nodeId].status = WSNSrv.STATUS_BOARDED_ALREADY;
@@ -111,6 +111,20 @@ angular.module('driverapp.controllers.route', [])
         }
     );
 
+/*
+    $scope.checkStopPosition = function(position){
+       if(position == $scope.stops[0].position){
+           return "-first";
+       } else {
+           if(position == $scope.stops[$scope.stops.length-1].position){
+               return "-last";
+           } else {
+               return "";
+           }
+       }
+    };
+*/
+
     $scope.toggleEnRoute = function () {
         $ionicScrollDelegate.scrollTop(true);
 
@@ -123,10 +137,16 @@ angular.module('driverapp.controllers.route', [])
 
                 // NODE_CHECKIN
                 $scope.onBoardTemp.forEach(function (passengerId) {
-                    AESrv.nodeCheckin($scope.getChild(passengerId));
+                    var child = $scope.getChild(passengerId);
+                    AESrv.nodeCheckin(child);
+                    if (!!child.wsnId) {
+                        WSNSrv.checkinChild(child.wsnId);
+                    }
                 });
+
                 $scope.onBoard = $scope.onBoard.concat($scope.onBoardTemp);
                 $scope.onBoardTemp = [];
+                $scope.mergedOnBoard = $scope.getMergedOnBoard();
 
                 // Riparti
                 if ($scope.enRoutePos == 0) {
@@ -149,7 +169,11 @@ angular.module('driverapp.controllers.route', [])
             if (!$scope.stops[$scope.enRoutePos + 1]) {
                 // Arriva
                 $scope.onBoard.forEach(function (passengerId) {
-                    AESrv.nodeCheckout($scope.getChild(passengerId));
+                    var child = $scope.getChild(passengerId);
+                    AESrv.nodeCheckout(child);
+                    if (!!child.wsnId) {
+                        WSNSrv.checkoutChild(child.wsnId);
+                    }
                 });
                 AESrv.endRoute($scope.stops[$scope.enRoutePos]);
                 GeoSrv.stopWatchingPosition();
@@ -175,6 +199,7 @@ angular.module('driverapp.controllers.route', [])
     };
 
     $scope.getChildrenForStop = function (stop) {
+        $scope.sel.stop = stop;
         var passengers = [];
         if ($scope.children == null || $scope.children.length == 0) {
             $scope.children = StorageSrv.getChildren();
@@ -207,6 +232,7 @@ angular.module('driverapp.controllers.route', [])
         if ($scope.onBoardTemp.indexOf(passengerId) === -1) {
             $scope.onBoardTemp.push(passengerId);
         }
+        $scope.mergedOnBoard = $scope.getMergedOnBoard();
     };
 
     $scope.dropOff = function (passengerId) {
@@ -214,6 +240,7 @@ angular.module('driverapp.controllers.route', [])
         if (index !== -1) {
             $scope.onBoardTemp.splice(index, 1);
         }
+        $scope.mergedOnBoard = $scope.getMergedOnBoard();
     };
 
     $scope.toBeTaken = [];
@@ -283,4 +310,69 @@ angular.module('driverapp.controllers.route', [])
             okType: 'button'
         });
     };
+
+    /*
+     * Merge lists method: used to merge the two lists (onBoard and onBoardTmp) and generate a matrix with rows of 3 cols
+     */
+    $scope.getMergedOnBoard = function(){
+        var onBoardMerged = [];
+        var onBoardMatrix = [];
+        var cols = 3;
+        for(var i = 0; i < $scope.onBoard.length; i++){
+            var tmpData = {
+                id: $scope.onBoard[i],
+                tmp: false
+            };
+            onBoardMerged.push(tmpData);
+        }
+        for(var i = 0; i < $scope.onBoardTemp.length; i++){
+            var tmpData = {
+                id: $scope.onBoardTemp[i],
+                tmp: true
+            };
+            if($scope.isNewValue(onBoardMerged,tmpData)){
+                onBoardMerged.push(tmpData);
+            }
+        }
+        // here I have to convert in matrix
+        for(var i = 0; i < onBoardMerged.length; i+=cols){
+            var rowArr = [];
+            var actualCols = (i + cols);
+            if((actualCols) <= onBoardMerged.length){
+                for(var c = 0; c < cols; c++){
+                    rowArr.push(onBoardMerged[i+c]);
+                }
+            } else {
+                for(var c = i; c < onBoardMerged.length; c++){
+                    rowArr.push(onBoardMerged[c]);
+                }
+            }
+            onBoardMatrix.push(rowArr);
+        }
+        //return onBoardMerged;
+        return onBoardMatrix;
+    }
+
+    /*
+     * Check lists method: used to check if a value is already present in a list or not
+     */
+    $scope.isNewValue = function(arr, val){
+        var present = false;
+        for(var i = 0; i < arr.length && !present; i++){
+            if(arr[i] == val){
+                present = true;
+            }
+        }
+        return !present;
+    }
+
+    $scope.isRoutePanelOpen = false;    // initial state of the route panel (closed)
+    $scope.openRouteView = function(){
+        $scope.isRoutePanelOpen = true;
+    }
+
+    $scope.closeRouteView = function(){
+        $scope.isRoutePanelOpen= false;
+    }
+
 });
