@@ -203,10 +203,6 @@
     padding-top: 23px;
 }
 .dapp-theme .route-on-board {
-    /*border-width: 3px;
-    border-color: #B0BEC5;
-    border-style: solid;
-    margin: 2px;*/
     padding: 1px;
     background-image: url("../img/rt_background_child.png");
     background-repeat: no-repeat;
@@ -223,10 +219,6 @@
     border-style: solid;
     margin: 1px;
     min-height: inherit;
-    /*background-image: url("../img/person_route.png");
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-size: contain;*/
 }
 .dapp-theme .route-on-board-content {
     position: absolute;
@@ -302,10 +294,6 @@
     width: 100%;
     position: relative;
     overflow: hidden;
-/*  margin-bottom: 1px;
-    border-top-color: #438699;
-    border-top-width: 2px;
-    border-top-style: solid;*/
 }
 .route-open-button-container {
     position: absolute;
@@ -328,10 +316,6 @@
     width: 100%;
     position: relative;
     overflow: hidden;
-/*  margin-bottom: 1px;
-    border-top-color: #438699;
-    border-top-width: 2px;
-    border-top-style: solid;*/
 }
 .route-button-container {
     position: absolute;
