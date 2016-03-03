@@ -1,6 +1,6 @@
 <ion-view view-title="{{route.name}}">
     <ion-nav-buttons side="right">
-        <button class="button icon ion-person-add" ng-click="openModal()" ng-disabled="stops.indexOf(sel.stop) != enRoutePos || !!enRoute || enRouteArrived" ng-if="fromWizard"></button>
+         <button class="button icon ion-person-stalker route-title-button" ng-click="openModal()" ng-disabled="!!enRoute || enRouteArrived" ng-if="fromWizard && !enRoute && enRoutePos==0"></button>
     </ion-nav-buttons>
     <ion-content class="route-view" scroll="false" ><!-- class="padding-top  padding-horizontal" ng-class="{'has-subheader': fromWizard}" -->
         <button class="button btn-enroute" ng-class="{'button-route-balanced': !enRoute, 'button-route-assertive': !!enRoute, 'button-route-outline': !enRoute && !!stops[enRoutePos].school}" ng-click="toggleEnRoute()" ng-if="fromWizard">
