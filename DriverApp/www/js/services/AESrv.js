@@ -153,9 +153,16 @@ angular.module('driverapp.services.ae', [])
                 'passengerId': passenger.objectId
             }
         };
-
         aeInstance.events.push(event);
         return event;
+    };
+
+    aeService.nodeCheckinBatch = function (passengers) {
+        var events = [];
+        passengers.forEach(function (passenger) {
+            events.push(aeService.nodeCheckin(passenger));
+        });
+        return events;
     };
 
     /* node checkout */
@@ -169,13 +176,19 @@ angular.module('driverapp.services.ae', [])
                 'passengerId': passenger.objectId
             }
         };
-
         aeInstance.events.push(event);
         return event;
     };
 
+    aeService.nodeCheckoutBatch = function (passengers) {
+        var events = [];
+        passengers.forEach(function (passenger) {
+            events.push(aeService.nodeCheckout(passenger));
+        });
+        return events;
+    };
+
     /* node out of range */
-    /* node checkout */
     aeService.nodeOutOfRange = function (wsnId, lastCheck) {
         var event = {
             routeId: aeInstance.routeId,

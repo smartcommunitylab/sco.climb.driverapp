@@ -152,6 +152,54 @@ public class DriverAppPlugin extends CordovaPlugin {
 			return true;
 		}
 
+		if (action.equals("checkinChild")) {
+			if (data != null && data.length() == 1 && data.getString(0).length() > 0) {
+				String childId = data.getString(0);
+				boolean procedureStarted = mClimbService.checkinChild(childId);
+				Log.w(LOG_TAG, "checkinChild: " + procedureStarted + " (" + childId + ")");
+				callbackContext.success("" + procedureStarted);
+				return true;
+			}
+		}
+
+		if (action.equals("checkinChildren")) {
+			if (data != null && data.length() == 1 && data.getJSONArray(0).length() > 0) {
+				JSONArray childrenIdsJSON = data.getJSONArray(0);
+				String[] childrenIds = new String[childrenIdsJSON.length()];
+				for (int i = 0; i < childrenIdsJSON.length(); i++) {
+					childrenIds[i] = childrenIdsJSON.getString(i);
+				}
+				boolean procedureStarted = mClimbService.checkinChildren(childrenIds);
+				Log.w(LOG_TAG, "checkinChildren: " + procedureStarted + " (" + childrenIds + ")");
+				callbackContext.success("" + procedureStarted);
+				return true;
+			}
+		}
+
+		if (action.equals("checkoutChild")) {
+			if (data != null && data.length() == 1 && data.getString(0).length() > 0) {
+				String childId = data.getString(0);
+				boolean procedureStarted = mClimbService.checkoutChild(childId);
+				Log.w(LOG_TAG, "checkoutChild: " + procedureStarted + " (" + childId + ")");
+				callbackContext.success("" + procedureStarted);
+				return true;
+			}
+		}
+
+		if (action.equals("checkoutChildren")) {
+			if (data != null && data.length() == 1 && data.getJSONArray(0).length() > 0) {
+				JSONArray childrenIdsJSON = data.getJSONArray(0);
+				String[] childrenIds = new String[childrenIdsJSON.length()];
+				for (int i = 0; i < childrenIdsJSON.length(); i++) {
+					childrenIds[i] = childrenIdsJSON.getString(i);
+				}
+				boolean procedureStarted = mClimbService.checkoutChildren(childrenIds);
+				Log.w(LOG_TAG, "checkoutChildren: " + procedureStarted + " (" + childrenIds + ")");
+				callbackContext.success("" + procedureStarted);
+				return true;
+			}
+		}
+
 		if (action.equals("test")) {
 			String name = data.getString(0);
 			String message = "Hello, " + name;
