@@ -69,7 +69,7 @@ angular.module('driverapp.controllers.route', [])
                                     AESrv.nodeOutOfRange(nodeId, ns[nodeId].timestamp);
                                     var errorString = 'Attenzione! ';
                                     errorString += ns[nodeId].object.surname + ' ' + ns[nodeId].object.name + ' (' + nodeId + ') fuori portata!';
-                                    console.log('nodeOutOfRange: ' + nodeId + ' (last seen ', + ns[nodeId].timestamp + ')');
+                                    console.log('nodeOutOfRange: ' + nodeId + ' (last seen ', +ns[nodeId].timestamp + ')');
                                     Utils.toast(errorString, 5000, 'center');
                                 } else if (!overTimeout && ns[nodeId].status === WSNSrv.STATUS_OUT_OF_RANGE) {
                                     ns[nodeId].status = WSNSrv.STATUS_BOARDED_ALREADY;
@@ -123,8 +123,13 @@ angular.module('driverapp.controllers.route', [])
 
                 // NODE_CHECKIN
                 $scope.onBoardTemp.forEach(function (passengerId) {
-                    AESrv.nodeCheckin($scope.getChild(passengerId));
+                    var child = $scope.getChild(passengerId);
+                    AESrv.nodeCheckin(child);
+                    if (!!child.wsnId) {
+                        WSNSrv.checkinChild(child.wsnId);
+                    }
                 });
+
                 $scope.onBoard = $scope.onBoard.concat($scope.onBoardTemp);
                 $scope.onBoardTemp = [];
 
@@ -149,7 +154,11 @@ angular.module('driverapp.controllers.route', [])
             if (!$scope.stops[$scope.enRoutePos + 1]) {
                 // Arriva
                 $scope.onBoard.forEach(function (passengerId) {
-                    AESrv.nodeCheckout($scope.getChild(passengerId));
+                    var child = $scope.getChild(passengerId);
+                    AESrv.nodeCheckout(child);
+                    if (!!child.wsnId) {
+                        WSNSrv.checkoutChild(child.wsnId);
+                    }
                 });
                 AESrv.endRoute($scope.stops[$scope.enRoutePos]);
                 GeoSrv.stopWatchingPosition();
