@@ -68,11 +68,13 @@
                         Ciao <strong>{{wizard.driver.name}}</strong>! Oggi accompagnerai la <strong>{{wizard.route.name}}</strong> assieme a:
                     </div>
                     <!--<ion-scroll>-->
-                    <ion-list scroll="true">
+                    <div class="wiz-scroll-panel">
+                    <ion-list scroll="true" >
                         <ion-checkbox ng-repeat="volunteer in volunteers" ng-if="volunteer !== wizard.driver" ng-model="volunteer.checked">
                             {{volunteer.name}}
                         </ion-checkbox>
                     </ion-list>
+                    </div>
                     <!--</ion-scroll>-->
                     <div class="buttonbar">
                         <button class="button button-dapp button-clear" ion-wizard-previous>Indietro</button>

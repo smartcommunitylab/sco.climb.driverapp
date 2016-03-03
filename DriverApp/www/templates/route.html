@@ -1,47 +1,93 @@
 <ion-view view-title="{{route.name}}">
     <ion-nav-buttons side="right">
-        <button class="button icon ion-person-add" ng-click="openModal()" ng-disabled="!!enRoute || enRouteArrived" ng-if="fromWizard"></button>
+        <button class="button icon ion-person-stalker route-title-button" ng-click="openModal()" ng-disabled="!!enRoute || enRouteArrived" ng-if="fromWizard && !enRoute && enRoutePos==0"></button>
     </ion-nav-buttons>
-    <div class="routebutton" > <!--  class="bar bar-subheader padding-horizontal" ng-if="fromWizard" -->
-
-    </div>
-    <ion-content ng-class="{'has-subheader': fromWizard}"><!-- class="padding-top  padding-horizontal" -->
-        <button class="button btn-enroute" ng-class="{'button-balanced': !enRoute, 'button-assertive': !!enRoute, 'button-outline': !enRoute && !!stops[enRoutePos].school}" ng-click="toggleEnRoute()">
+    <ion-content class="route-view" scroll="false" ><!-- class="padding-top  padding-horizontal" ng-class="{'has-subheader': fromWizard}" -->
+        <button class="button btn-enroute" ng-class="{'button-route-balanced': !enRoute, 'button-route-assertive': !!enRoute, 'button-route-outline': !enRoute && !!stops[enRoutePos].school}" ng-click="toggleEnRoute()" ng-if="fromWizard">
             <span ng-if="!enRoute && !!stops[enRoutePos].start">Parti</span>
             <span ng-if="!!enRoute && !stops[enRoutePos + 1].school">Fermati</span>
             <span ng-if="!enRoute && !stops[enRoutePos].start && !stops[enRoutePos].school">Riparti</span>
             <span ng-if="!!enRoute && !!stops[enRoutePos + 1].school">Arriva</span>
             <span ng-if="!enRoute && !!stops[enRoutePos].school">Arrivato</span>
         </button>
-        <ion-list class="routebox">
-            <ion-item class="item-icon-left routeitem" ng-repeat="stop in stops" ng-click="getChildrenForStop(stop)" ng-disabled="!!enRoute">
-                <i class="icon" ng-class="{'ion-record': stop.position <= sel.stop.position, 'ion-android-radio-button-off': stop.position > sel.stop.position ,'line-background-first': stop.position==1, 'line-background-last': stop.position==stops.length, 'line-background': stop.position > 1 && stop.position < stops.length}"></i>
-                <!--<i class="icon ion-android-radio-button-on"></i>-->
-                {{stop.name}}
-            </ion-item>
-        </ion-list>
-
+        <div id="route-button-div" class="listwrapper-expanded" ng-class="{'listwrapper-expanded': isRoutePanelOpen, 'listwrapper-reduced':!isRoutePanelOpen}">
+            <ion-list ng-if="isRoutePanelOpen">
+                <ion-item class="item routeitem" ng-repeat="stop in stops" ng-click="getChildrenForStop(stop)" ng-disabled="!!enRoute">
+                    <div ng-class="{'line-background-first': stop.position==1, 'line-background-last': stop.position==stops.length, 'line-background': stop.position > 1 && stop.position < stops.length}" >
+                    <img ng-if="stop.position <= sel.stop.position" src="img/rt_poi.png">
+                    <img ng-if="stop.position > sel.stop.position" src="img/rt_poi_outline.png">
+                    </div>
+                    <div class="text-background">
+                    <!-- 'ion-record': stop.position <= sel.stop.position, 'ion-android-radio-button-off': stop.position > sel.stop.position , -->
+                    <!--<i class="icon" ng-class="{'line-background-first': stop.position==1, 'line-background-last': stop.position==stops.length, 'line-background': stop.position > 1 && stop.position < stops.length}"></i>-->
+                    {{stop.name}}
+                    </div>
+                </ion-item>
+            </ion-list>
+            <ion-list ng-if="!isRoutePanelOpen">
+                <ion-item class="item routeitem reduced">
+                    <div ng-class="{'line-background-first': sel.stop.position==1, 'line-background-last': sel.stop.position==stops.length, 'line-background': sel.stop.position > 1 && sel.stop.position < stops.length}" >
+                    <img src="img/rt_poi.png">
+                    </div>
+                    <div class="text-background">
+                        {{sel.stop.name}}
+                    </div>
+                </ion-item>
+            </ion-list>
+            <!--<div class="route-button-container" ng-if="isRoutePanelOpen">
+                <div class="route-button-inner">
+                    <i ng-click="closeRouteView()" class="icon ion-chevron-up"></i>
+                </div>
+            </div>-->
+        </div>
+        <div id="route-open-button-div"><!-- ng-if="!isRoutePanelOpen" -->
+            <div class="route-open-button-container">
+                <div ng-if="!isRoutePanelOpen" class="route-open-button-inner" ng-click="openRouteView()">
+                    <i ng-click="openRouteView()" class="icon ion-chevron-down"></i>
+                </div>
+                <div ng-if="isRoutePanelOpen" class="route-open-button-inner" ng-click="closeRouteView()">
+                    <i ng-click="closeRouteView()" class="icon ion-chevron-up"></i>
+                </div>
+            </div>
+        </div>
         <!--<ion-list>
             <ion-radio ng-repeat="stop in stops" ng-model="sel.stop" ng-value="stop" ng-change="getChildrenForStop(sel.stop)" ng-disabled="!!enRoute">
                 {{stop.name}}
             </ion-radio>
         </ion-list>-->
-
-
         <div>
-            <h4>Bambini</h4>
-            <ion-list>
-                <ion-item class="item-button-right" ng-repeat="passenger in sel.stop.passengers" ng-if="(onBoard.indexOf(passenger.objectId) === -1) && (onBoardTemp.indexOf(passenger.objectId) === -1)" ng-click="showChildDetails(passenger)">
-                    {{passenger.surname}} {{passenger.name}}
-                    <button class="button" ng-click="takeOnBoard(passenger.objectId)" ng-disabled="!!enRoute || enRouteArrived" ng-if="fromWizard">
-                        <i class="icon ion-plus"></i>
-                    </button>
-                </ion-item>
-            </ion-list>
+            <div class="row passenger-panel-title">
+                <h4>PASSEGGERI</h4>
+                <button class="button button-passenger" ng-click="openModal()" ng-disabled="!!enRoute || enRouteArrived" ng-if="fromWizard" >
+                    <i class="icon ion-person-add"></i>
+                </button>
+            </div>
+            <div ><!-- class="listwrapper-expanded" -->
+                <!--<ion-list>
+                    <ion-item class="item-button-right" ng-repeat="passenger in sel.stop.passengers" ng-if="(onBoard.indexOf(passenger.objectId) === -1) && (onBoardTemp.indexOf(passenger.objectId) === -1)" ng-click="showChildDetails(passenger)">
+                        {{passenger.surname}} {{passenger.name}}
+                        <button class="button" ng-click="takeOnBoard(passenger.objectId)" ng-disabled="!!enRoute || enRouteArrived" ng-if="fromWizard">
+                            <i class="icon ion-plus"></i>
+                        </button>
+                    </ion-item>
+                </ion-list>-->
+                <ion-scroll scroll-height class="passenger-list"><!-- wsnId -->
+                    <ion-item class="item item-avatar item-button-right route-passenger" ng-repeat="passenger in sel.stop.passengers" ng-if="(onBoard.indexOf(passenger.objectId) === -1) && (onBoardTemp.indexOf(passenger.objectId) === -1)" ng-click="showChildDetails(passenger)">
+                        <img ng-if="!passenger.wsnId" src="img/rt_placeholder_child.png">
+                        <img ng-if="passenger.wsnId" src="img/rt_placeholder_child_it.png">
+                        {{passenger.surname}} {{passenger.name}}
+                        <button class="button button-invisible" ng-click="takeOnBoard(passenger.objectId)" ng-disabled="!!enRoute || enRouteArrived" ng-if="fromWizard">
+                            <i class="icon ion-ios-checkmark"></i>
+                        </button>
+                    </ion-item>
+                </ion-scroll>
+            </div>
         </div>
-        <div ng-if="fromWizard">
-            <h4>A bordo</h4>
-            <ion-list>
+        <div class="on-board-panel" ng-if="fromWizard && mergedOnBoard.length > 0">
+            <div class="row on-board-panel-title">
+                <h4 class="row on-board-panel-title">A BORDO</h4>
+            </div>
+            <!--<ion-list>
                 <ion-item class="item-button-right" ng-repeat="passengerId in onBoard" ng-click="showChildDetails(getChild(passengerId))">
                     {{getChild(passengerId).surname}} {{getChild(passengerId).name}}
                 </ion-item>
@@ -51,7 +97,25 @@
                         <i class="icon ion-minus"></i>
                     </button>
                 </ion-item>
-            </ion-list>
+            </ion-list>-->
+            <ion-scroll direction="y">
+            <div class="row route-row" ng-repeat="onBoardRow in mergedOnBoard">
+<!--                <div class="col col-33 route-on-board" ng-repeat="passengerId in onBoard" ng-click="showChildDetails(getChild(passengerId))">
+                    <div class="route-on-board-content">{{getChild(passengerId).surname}} {{getChild(passengerId).name}}</div>
+                </div>-->
+                <div class="col col-33 route-on-board" ng-repeat="passengerId in onBoardRow" ng-click="showChildDetails(getChild(passengerId.id))">
+                    <div class="route-on-board-inner">
+                    <div class="route-on-board-content">{{getChild(passengerId.id).surname}} {{getChild(passengerId.id).name}}</div>
+                    <button class="button button-trasparent right-top" ng-click="dropOff(passengerId.id)" ng-if="passengerId.tmp" ng-disabled="!!enRoute || enRouteArrived">
+                        <i class="icon ion-minus-circled"></i>
+                    </button>
+                    <div class="on-board right-top" ng-if="getChild(passengerId.id).wsnId">
+                        <img ng-src="img/rt_it.png"></i>
+                    </div>
+                    </div>
+                </div>
+            </div>
+            </ion-scroll>
         </div>
     </ion-content>
 </ion-view>

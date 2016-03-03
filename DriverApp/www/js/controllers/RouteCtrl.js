@@ -115,6 +115,7 @@ angular.module('driverapp.controllers.route', [])
                 });
                 $scope.onBoard = $scope.onBoard.concat($scope.onBoardTemp);
                 $scope.onBoardTemp = [];
+                $scope.mergedOnBoard = $scope.getMergedOnBoard();
 
                 // Riparti
                 if ($scope.enRoutePos == 0) {
@@ -196,6 +197,7 @@ angular.module('driverapp.controllers.route', [])
         if ($scope.onBoardTemp.indexOf(passengerId) === -1) {
             $scope.onBoardTemp.push(passengerId);
         }
+        $scope.mergedOnBoard = $scope.getMergedOnBoard();
     };
 
     $scope.dropOff = function (passengerId) {
@@ -203,6 +205,7 @@ angular.module('driverapp.controllers.route', [])
         if (index !== -1) {
             $scope.onBoardTemp.splice(index, 1);
         }
+        $scope.mergedOnBoard = $scope.getMergedOnBoard();
     };
 
     $scope.toBeTaken = [];
@@ -265,4 +268,69 @@ angular.module('driverapp.controllers.route', [])
             okType: 'button'
         });
     };
+
+    /*
+     * Merge lists method: used to merge the two lists (onBoard and onBoardTmp) and generate a matrix with rows of 3 cols
+     */
+    $scope.getMergedOnBoard = function(){
+        var onBoardMerged = [];
+        var onBoardMatrix = [];
+        var cols = 3;
+        for(var i = 0; i < $scope.onBoard.length; i++){
+            var tmpData = {
+                id: $scope.onBoard[i],
+                tmp: false
+            };
+            onBoardMerged.push(tmpData);
+        }
+        for(var i = 0; i < $scope.onBoardTemp.length; i++){
+            var tmpData = {
+                id: $scope.onBoardTemp[i],
+                tmp: true
+            };
+            if($scope.isNewValue(onBoardMerged,tmpData)){
+                onBoardMerged.push(tmpData);
+            }
+        }
+        // here I have to convert in matrix
+        for(var i = 0; i < onBoardMerged.length; i+=cols){
+            var rowArr = [];
+            var actualCols = (i + cols);
+            if((actualCols) <= onBoardMerged.length){
+                for(var c = 0; c < cols; c++){
+                    rowArr.push(onBoardMerged[i+c]);
+                }
+            } else {
+                for(var c = i; c < onBoardMerged.length; c++){
+                    rowArr.push(onBoardMerged[c]);
+                }
+            }
+            onBoardMatrix.push(rowArr);
+        }
+        //return onBoardMerged;
+        return onBoardMatrix;
+    }
+
+    /*
+     * Check lists method: used to check if a value is already present in a list or not
+     */
+    $scope.isNewValue = function(arr, val){
+        var present = false;
+        for(var i = 0; i < arr.length && !present; i++){
+            if(arr[i] == val){
+                present = true;
+            }
+        }
+        return !present;
+    }
+
+    $scope.isRoutePanelOpen = false;    // initial state of the route panel (closed)
+    $scope.openRouteView = function(){
+        $scope.isRoutePanelOpen = true;
+    }
+
+    $scope.closeRouteView = function(){
+        $scope.isRoutePanelOpen= false;
+    }
+
 });
