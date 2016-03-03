@@ -24,7 +24,8 @@
     {
       "locator": "https://github.com/apache/cordova-plugin-geolocation.git",
       "id": "cordova-plugin-geolocation"
-    }
+    },
+    "cordova-plugin-x-toast"
   ],
   "cordovaPlatforms": [
     "android"

@@ -3,6 +3,11 @@ angular.module('driverapp.services.wsn', [])
 .factory('WSNSrv', function ($rootScope, $q) {
     var wsnService = {};
 
+    wsnService.NODESTATE_NODEID = 'nodeID';
+    wsnService.NODESTATE_STATE = 'state';
+    wsnService.NODESTATE_LASTSEEN = 'lastSeen';
+    wsnService.NODESTATE_LASTSTATECHANGE = 'lastStateChange';
+
     wsnService.STATE_CONNECTED_TO_CLIMB_MASTER = 'fbk.climblogger.ClimbService.STATE_CONNECTED_TO_CLIMB_MASTER';
     wsnService.STATE_DISCONNECTED_FROM_CLIMB_MASTER = 'fbk.climblogger.ClimbService.STATE_DISCONNECTED_FROM_CLIMB_MASTER';
     wsnService.STATE_CHECKEDIN_CHILD = 'fbk.climblogger.ClimbService.STATE_CHECKEDIN_CHILD';
@@ -10,7 +15,7 @@ angular.module('driverapp.services.wsn', [])
 
     wsnService.STATUS_NEW = 'NEW';
     wsnService.STATUS_BOARDED_ALREADY = 'BOARDED_ALREADY';
-
+    wsnService.STATUS_OUT_OF_RANGE = 'OUT_OF_RANGE';
 
     wsnService.init = function () {
         var deferred = $q.defer();
@@ -109,14 +114,16 @@ angular.module('driverapp.services.wsn', [])
             window.DriverAppPlugin.getNetworkState(
                 function (networkState) {
                     var ns = angular.copy(wsnService.networkState);
+
                     networkState.forEach(function (nodeState) {
-                        ns[nodeState.nodeID].timestamp = nodeState['lastSeen'];
                         if (ns[nodeState.nodeID].status == '') {
                             ns[nodeState.nodeID].status = wsnService.STATUS_NEW;
                         }
-                    });
-                    wsnService.networkState = ns;
 
+                        ns[nodeState.nodeID].timestamp = nodeState[wsnService.NODESTATE_LASTSEEN];
+                    });
+
+                    wsnService.networkState = ns;
                     deferred.resolve(networkState);
                 },
                 function (reason) {
@@ -172,12 +179,12 @@ angular.module('driverapp.services.wsn', [])
      */
     wsnService.networkState = {};
 
-    wsnService.updateNodeList = function (nodes, type) {
+    wsnService.updateNodeList = function (nodes, type, reset) {
         if (!type || !nodes) {
             return;
         }
 
-        var nl = angular.copy(wsnService.networkState);
+        var nl = reset == true ? {} : angular.copy(wsnService.networkState);
         var changed = false;
         nodes.forEach(function (node) {
             if (!!node.wsnId && !nl[node.wsnId]) {
@@ -202,7 +209,7 @@ angular.module('driverapp.services.wsn', [])
         var wsnIds = [];
 
         Object.keys(wsnService.networkState).forEach(function (nodeId) {
-            if (wsnService.networkState[nodeId].type === 'child') {
+            if (wsnService.networkState[nodeId].type === type) {
                 wsnIds.push(nodeId);
             }
         });

@@ -81,7 +81,7 @@ extern uint32_t ti_sysbios_family_arm_m3_Hwi_resetVectors;
 /*
  *  ======== main ========
  */
-int main(){
+ int main(){
   PIN_init(BoardGpioInitTable);
 
 #ifndef POWER_SAVING

@@ -27,6 +27,7 @@ angular.module('driverapp.controllers.route', [])
             $scope.route = $stateParams['route'];
 
             aesInstance = AESrv.startInstance($scope.route.objectId);
+            WSNSrv.updateNodeList(StorageSrv.getChildren(), 'child', true);
 
             if (!!$stateParams['driver']) {
                 $scope.driver = $stateParams['driver'];
@@ -44,23 +45,46 @@ angular.module('driverapp.controllers.route', [])
                 function () {
                     return WSNSrv.networkState;
                 },
-                function (ns, oldNs) {
-                    if (Utils.fastCompareObjects(ns, oldNs)) {
-                        return;
-                    }
+                function (newNs, oldNs) {
+                    var ns = angular.copy(newNs);
+                    var somethingChanged = false;
 
-                    console.log('[RouteCtrl] networkState changed');
                     Object.keys(ns).forEach(function (nodeId) {
-                        //if (WSNSrv.isNodeByType(nodeId, 'child') && ns[nodeId].timestamp != -1 && oldNs[nodeId].timestamp == -1) {
-                        if (WSNSrv.isNodeByType(nodeId, 'child') && (ns[nodeId].status == WSNSrv.STATUS_NEW)) {
-                            var child = $scope.isChildOfThisStop(nodeId);
-                            if (child !== null) {
-                                $scope.takeOnBoard(child.objectId);
-                                ns[nodeId].status = WSNSrv.STATUS_BOARDED_ALREADY;
+                        if (WSNSrv.isNodeByType(nodeId, 'child')) {
+                            if (ns[nodeId].status == WSNSrv.STATUS_NEW) {
+                                var child = $scope.isChildOfThisStop(nodeId);
+                                if (child !== null) {
+                                    $scope.takeOnBoard(child.objectId);
+                                    ns[nodeId].status = WSNSrv.STATUS_BOARDED_ALREADY;
+                                    somethingChanged = true;
+                                }
+                            }
+
+                            if ($scope.isOnBoard(ns[nodeId].object.objectId)) {
+                                var overTimeout = (moment().valueOf() - ns[nodeId].timestamp) > Config.NODESTATE_TIMEOUT;
+
+                                if (overTimeout && ns[nodeId].status !== WSNSrv.STATUS_OUT_OF_RANGE) {
+                                    ns[nodeId].status = WSNSrv.STATUS_OUT_OF_RANGE;
+                                    somethingChanged = true;
+                                    AESrv.nodeOutOfRange(nodeId, ns[nodeId].timestamp);
+                                    var errorString = 'Attenzione! ';
+                                    errorString += ns[nodeId].object.surname + ' ' + ns[nodeId].object.name + ' (' + nodeId + ') fuori portata!';
+                                    console.log('nodeOutOfRange: ' + nodeId + ' (last seen ', + ns[nodeId].timestamp + ')');
+                                    Utils.toast(errorString, 5000, 'center');
+                                } else if (!overTimeout && ns[nodeId].status === WSNSrv.STATUS_OUT_OF_RANGE) {
+                                    ns[nodeId].status = WSNSrv.STATUS_BOARDED_ALREADY;
+                                    somethingChanged = true;
+                                    console.log('nodeBackInRange: ' + nodeId);
+                                }
                             }
                         }
                     });
-                });
+
+                    if (somethingChanged) {
+                        WSNSrv.networkState = ns;
+                    }
+                }
+            );
         }
     } else {
         if (!!$stateParams['route']) {
@@ -109,6 +133,8 @@ angular.module('driverapp.controllers.route', [])
             $scope.enRoute = !$scope.enRoute;
 
             if ($scope.enRoute) {
+                $scope.sel.stop = $scope.stops[$scope.enRoutePos];
+
                 // NODE_CHECKIN
                 $scope.onBoardTemp.forEach(function (passengerId) {
                     AESrv.nodeCheckin($scope.getChild(passengerId));
@@ -124,7 +150,7 @@ angular.module('driverapp.controllers.route', [])
 
                     GeoSrv.startWatchingPosition(function (position) {
                         AESrv.driverPosition($scope.driver, position.coords.latitude, position.coords.longitude);
-                    }, null, Config.getGPSDelay());
+                    }, null, Config.GPS_DELAY);
                 }
             } else {
                 // Fermati
@@ -216,6 +242,13 @@ angular.module('driverapp.controllers.route', [])
         } else if (!child.checked && tbtIndex !== -1) {
             $scope.toBeTaken.splice(tbtIndex, 1);
         }
+    };
+
+    $scope.isOnBoard = function (childId) {
+        if ($scope.onBoard.indexOf(childId) != -1 || $scope.onBoardTemp.indexOf(childId) != -1) {
+            return true;
+        }
+        return false;
     };
 
     /*

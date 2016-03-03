@@ -537,6 +537,10 @@ static bStatus_t climbProfile_WriteAttrCB(uint16_t connHandle,
         {
 
            VOID memcpy( pAttr->pValue, pValue, len ); //VERIFICARE!!!!
+           uint8 i;
+           for(i = len; i < CLIMBPROFILE_CHAR2_LEN;i++){ //azzera il resto della caratteristica
+        	   pAttr->pValue[i] = 0;
+           }
 
            notifyApp = CLIMBPROFILE_CHAR2;	//TODO: in some way the len parameter needs to be passed to app!
 

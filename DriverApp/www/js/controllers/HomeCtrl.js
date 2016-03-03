@@ -9,14 +9,14 @@ angular.module('driverapp.controllers.home', [])
     $rootScope.loadAllBySchool = function (schoolId) {
         var deferred = $q.defer();
 
-        APISrv.getRoutesBySchool(schoolId, moment().format(Config.getDateFormat())).then(
+        APISrv.getRoutesBySchool(schoolId, moment().format(Config.DATE_FORMAT)).then(
             function (routes) {
                 StorageSrv.saveRoutes(routes).then(function (routes) {
                     APISrv.getVolunteersBySchool(schoolId).then(
                         function (volunteers) {
                             StorageSrv.saveVolunteers(volunteers).then(function (volunteers) {
-                                var dateFrom = moment().format(Config.getDateFormat());
-                                var dateTo = moment().format(Config.getDateFormat());
+                                var dateFrom = moment().format(Config.DATE_FORMAT);
+                                var dateTo = moment().format(Config.DATE_FORMAT);
                                 // FIXME remove hardcoded dates!
                                 dateFrom = '2016-02-22';
                                 dateTo = '2016-02-24';

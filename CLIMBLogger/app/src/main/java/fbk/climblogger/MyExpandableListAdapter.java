@@ -106,9 +106,10 @@ public class MyExpandableListAdapter extends BaseExpandableListAdapter {
 
             // set the check state of this position's checkbox based on the
             // boolean value of getChecked[position]
-            if(mChildPosition < getChecked.length) {
+
+            if(getChildrenCount(groupPosition) == getChecked.length) {
                 childViewHolder.mCheckBox.setChecked(getChecked[mChildPosition]); //throw index out of bounds
-            }else{ //tentativo
+            }else{ //tentativo....quando il numero di child cambia rigenera il vettore
                 getChecked = new boolean[getChildrenCount(mGroupPosition)];
 
                 // add getChecked[] to the mChildCheckStates hashmap using mGroupPosition as the key

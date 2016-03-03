@@ -195,7 +195,9 @@
                                 description = "Node ID: 0x" + String.format("%02X",scanResponseData[0]) + "\nState: ON BOARD";
                             } else if (scanResponseData[1] == 3) { //ALERT
                                 description = "Node ID: 0x" + String.format("%02X",scanResponseData[0]) + "\nState: ALERT";
-                            } else if (scanResponseData[1] == 3) { //ERROR
+                            } else if (scanResponseData[1] == 4) { //GOING TO SLEEP
+                                description = "Node ID: 0x" + String.format("%02X", scanResponseData[0]) + "\nState: GOING TO SLEEP";
+                            }else if (scanResponseData[1] == 5) { //ERROR
                                 description = "Node ID: 0x" + String.format("%02X",scanResponseData[0]) + "\nState: ERROR";
                             } else { //INVALID STATE
                                 description = "Node ID: 0x" + String.format("%02X",scanResponseData[0]) + "\nState: INVALID STATE";
@@ -222,7 +224,9 @@
                                     description = "Node ID: 0x" + String.format("%02X", tempNode.getNodeID()[0]) + ", State: ON BOARD, RSSI: " + tempNode.getNodeRssi();
                                 } else if (tempNode.getNodeState()  == 3) { //ALERT
                                     description = "Node ID: 0x" + String.format("%02X", tempNode.getNodeID()[0]) + ", State: ALERT, RSSI: " + tempNode.getNodeRssi();
-                                } else if (tempNode.getNodeState()  == 3) { //ERROR
+                                } else if (tempNode.getNodeState()  == 4) { //GOING TO SLEEP
+                                    description = "Node ID: 0x" + String.format("%02X", tempNode.getNodeID()[0]) + ", State: GOING TO SLEEP, RSSI: " + tempNode.getNodeRssi();
+                                } else if (tempNode.getNodeState()  == 5) { //ERROR
                                     description = "Node ID: 0x" + String.format("%02X", tempNode.getNodeID()[0]) + ", State: ERROR, RSSI: " + tempNode.getNodeRssi();
                                 } else { //INVALID STATE
                                     description = "Node ID: 0x" + String.format("%02X", tempNode.getNodeID()[0]) + ", State: INVALID STATE, RSSI: " + tempNode.getNodeRssi();

@@ -9,7 +9,7 @@ angular.module('driverapp.services.api', [])
     APIService.getSchools = function () {
         var deferred = $q.defer();
 
-        $http.get(Config.getServerURL() + '/school/' + Config.getOwnerId(), Config.getHTTPConfig())
+        $http.get(Config.SERVER_URL + '/school/' + Config.OWNER_ID, Config.HTTP_CONFIG)
 
         .then(
             function (response) {
@@ -31,7 +31,7 @@ angular.module('driverapp.services.api', [])
             return deferred.promise;
         }
 
-        $http.get(Config.getServerURL() + '/route/' + Config.getOwnerId() + '/' + routeId, Config.getHTTPConfig())
+        $http.get(Config.SERVER_URL + '/route/' + Config.OWNER_ID + '/' + routeId, Config.HTTP_CONFIG)
 
         .then(
             function (response) {
@@ -54,14 +54,14 @@ angular.module('driverapp.services.api', [])
             return deferred.promise;
         }
 
-        var httpConfigWithParams = angular.copy(Config.getHTTPConfig());
+        var httpConfigWithParams = angular.copy(Config.HTTP_CONFIG);
         httpConfigWithParams.params = {};
 
         if (Utils.isValidDate(date)) {
             httpConfigWithParams.params['date'] = date;
         }
 
-        $http.get(Config.getServerURL() + '/route/' + Config.getOwnerId() + '/school/' + schoolId, Config.getHTTPConfig())
+        $http.get(Config.SERVER_URL + '/route/' + Config.OWNER_ID + '/school/' + schoolId, Config.HTTP_CONFIG)
 
         .then(
             function (response) {
@@ -83,7 +83,7 @@ angular.module('driverapp.services.api', [])
             return deferred.promise;
         }
 
-        $http.get(Config.getServerURL() + '/stop/' + Config.getOwnerId() + '/' + routeId, Config.getHTTPConfig())
+        $http.get(Config.SERVER_URL + '/stop/' + Config.OWNER_ID + '/' + routeId, Config.HTTP_CONFIG)
 
         .then(
             function (response) {
@@ -105,7 +105,7 @@ angular.module('driverapp.services.api', [])
             return deferred.promise;
         }
 
-        $http.get(Config.getServerURL() + '/child/' + Config.getOwnerId() + '/' + schoolId, Config.getHTTPConfig())
+        $http.get(Config.SERVER_URL + '/child/' + Config.OWNER_ID + '/' + schoolId, Config.HTTP_CONFIG)
 
         .then(
             function (response) {
@@ -130,12 +130,12 @@ angular.module('driverapp.services.api', [])
             return deferred.promise;
         }
 
-        var httpConfigWithParams = angular.copy(Config.getHTTPConfig());
+        var httpConfigWithParams = angular.copy(Config.HTTP_CONFIG);
         httpConfigWithParams.params = {
             'classRoom': classRoom
         };
 
-        $http.get(Config.getServerURL() + '/child/' + Config.getOwnerId() + '/' + schoolId + '/classroom', httpConfigWithParams)
+        $http.get(Config.SERVER_URL + '/child/' + Config.OWNER_ID + '/' + schoolId + '/classroom', httpConfigWithParams)
 
         .then(
             function (response) {
@@ -152,7 +152,7 @@ angular.module('driverapp.services.api', [])
     APIService.getAnchors = function () {
         var deferred = $q.defer();
 
-        $http.get(Config.getServerURL() + '/anchor/' + Config.getOwnerId(), Config.getHTTPConfig())
+        $http.get(Config.SERVER_URL + '/anchor/' + Config.OWNER_ID, Config.HTTP_CONFIG)
 
         .then(
             function (response) {
@@ -174,7 +174,7 @@ angular.module('driverapp.services.api', [])
             return deferred.promise;
         }
 
-        $http.get(Config.getServerURL() + '/volunteer/' + Config.getOwnerId() + '/' + schoolId, Config.getHTTPConfig())
+        $http.get(Config.SERVER_URL + '/volunteer/' + Config.OWNER_ID + '/' + schoolId, Config.HTTP_CONFIG)
 
         .then(
             function (response) {
@@ -199,13 +199,13 @@ angular.module('driverapp.services.api', [])
             return deferred.promise;
         }
 
-        var httpConfigWithParams = angular.copy(Config.getHTTPConfig());
+        var httpConfigWithParams = angular.copy(Config.HTTP_CONFIG);
         httpConfigWithParams.params = {
             'dateFrom': dateFrom,
             'dateTo': dateTo
         };
 
-        $http.get(Config.getServerURL() + '/volunteercal/' + Config.getOwnerId() + '/' + schoolId, httpConfigWithParams)
+        $http.get(Config.SERVER_URL + '/volunteercal/' + Config.OWNER_ID + '/' + schoolId, httpConfigWithParams)
 
         .then(
             function (response) {
@@ -233,13 +233,13 @@ angular.module('driverapp.services.api', [])
             return deferred.promise;
         }
 
-        var httpConfigWithParams = angular.copy(Config.getHTTPConfig());
+        var httpConfigWithParams = angular.copy(Config.HTTP_CONFIG);
         httpConfigWithParams.params = {
             'dateFrom': dateFrom,
             'dateTo': dateTo
         };
 
-        $http.get(Config.getServerURL() + '/volunteercal/' + Config.getOwnerId() + '/' + schoolId + '/' + volunteerId, httpConfigWithParams)
+        $http.get(Config.SERVER_URL + '/volunteercal/' + Config.OWNER_ID + '/' + schoolId + '/' + volunteerId, httpConfigWithParams)
 
         .then(
             function (response) {
@@ -260,7 +260,7 @@ angular.module('driverapp.services.api', [])
             deferred.reject('Invalid events');
         }
 
-        $http.post(Config.getEventsServerURL() + '/event/' + Config.getOwnerId(), events, Config.getHTTPConfig())
+        $http.post(Config.EVENTS_SERVER_URL + '/event/' + Config.OWNER_ID, events, Config.HTTP_CONFIG)
 
         .then(
             function (response) {

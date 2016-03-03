@@ -102,7 +102,6 @@ public class DriverAppPlugin extends CordovaPlugin {
 			}
 
 			boolean done = mClimbService.setNodeList(nodeList);
-			Log.w(LOG_TAG, "setNodeList: " + done);
 
 			if (done) {
 				callbackContext.success("" + done);
@@ -229,16 +228,18 @@ public class DriverAppPlugin extends CordovaPlugin {
 	 * Utils
 	 */
 	private JSONObject nodeState2json(NodeState node) {
-		JSONObject jsonObject = new JSONObject();
+		JSONObject jsonObject = null;
+
 		try {
+			jsonObject = new JSONObject();
 			jsonObject.put("nodeID", node.nodeID);
 			jsonObject.put("state", node.state);
 			jsonObject.put("lastSeen", node.lastSeen);
 			jsonObject.put("lastStateChange", node.lastStateChange);
-			return jsonObject;
 		} catch (JSONException e) {
 			Log.w(LOG_TAG, "nodeState2json: " + e.getMessage());
-			return null;
 		}
+
+		return jsonObject;
 	}
 }

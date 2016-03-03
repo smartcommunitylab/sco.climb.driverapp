@@ -1,6 +1,6 @@
 <ion-view view-title="{{route.name}}">
     <ion-nav-buttons side="right">
-        <button class="button icon ion-person-stalker route-title-button" ng-click="openModal()" ng-disabled="!!enRoute || enRouteArrived" ng-if="fromWizard && !enRoute && enRoutePos==0"></button>
+        <button class="button icon ion-person-add" ng-click="openModal()" ng-disabled="stops.indexOf(sel.stop) != enRoutePos || !!enRoute || enRouteArrived" ng-if="fromWizard"></button>
     </ion-nav-buttons>
     <ion-content class="route-view" scroll="false" ><!-- class="padding-top  padding-horizontal" ng-class="{'has-subheader': fromWizard}" -->
         <button class="button btn-enroute" ng-class="{'button-route-balanced': !enRoute, 'button-route-assertive': !!enRoute, 'button-route-outline': !enRoute && !!stops[enRoutePos].school}" ng-click="toggleEnRoute()" ng-if="fromWizard">
@@ -82,6 +82,17 @@
                     </ion-item>
                 </ion-scroll>
             </div>
+<!--=======
+            <h4>Bambini</h4>
+            <ion-list>
+                <ion-item class="item-button-right" ng-repeat="passenger in sel.stop.passengers" ng-if="(onBoard.indexOf(passenger.objectId) === -1) && (onBoardTemp.indexOf(passenger.objectId) === -1)" ng-click="showChildDetails(passenger)">
+                    {{passenger.surname}} {{passenger.name}}
+                    <button class="button" ng-click="takeOnBoard(passenger.objectId)" ng-disabled="stops.indexOf(sel.stop) != enRoutePos || !!enRoute || enRouteArrived" ng-if="fromWizard">
+                        <i class="icon ion-plus"></i>
+                    </button>
+                </ion-item>
+            </ion-list>
+>>>>>>> origin/master-->
         </div>
         <div class="on-board-panel" ng-if="fromWizard && mergedOnBoard.length > 0">
             <div class="row on-board-panel-title">
@@ -100,9 +111,6 @@
             </ion-list>-->
             <ion-scroll direction="y">
             <div class="row route-row" ng-repeat="onBoardRow in mergedOnBoard">
-<!--                <div class="col col-33 route-on-board" ng-repeat="passengerId in onBoard" ng-click="showChildDetails(getChild(passengerId))">
-                    <div class="route-on-board-content">{{getChild(passengerId).surname}} {{getChild(passengerId).name}}</div>
-                </div>-->
                 <div class="col col-33 route-on-board" ng-repeat="passengerId in onBoardRow" ng-click="showChildDetails(getChild(passengerId.id))">
                     <div class="route-on-board-inner">
                     <div class="route-on-board-content">{{getChild(passengerId.id).surname}} {{getChild(passengerId.id).name}}</div>
