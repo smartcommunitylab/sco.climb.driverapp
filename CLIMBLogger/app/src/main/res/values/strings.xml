@@ -1,4 +1,11 @@
 <resources>
     <string name="app_name">CLIMB Logger</string>
     <string name="action_settings">Settings</string>
+
+    <string-array name="Node_states">
+        <item>BY_MYSELF</item>
+        <item>CHECKING</item>
+        <item>ON_BOARD</item>
+        <item>GOING_TO_SLEEP</item>
+    </string-array>
 </resources>

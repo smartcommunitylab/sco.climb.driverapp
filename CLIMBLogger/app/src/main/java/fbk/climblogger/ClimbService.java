@@ -338,7 +338,33 @@ public class ClimbService extends Service {
             }
         }
 
-    public boolean SendCheckInAllCmd() {
+//    public boolean SendCheckInAllCmd() {
+//        if (mBluetoothAdapter != null) {
+//
+//            if (mBluetoothGatt == null) {
+//                Toast.makeText(appContext,
+//                        "Master NOT CONNECTED!",
+//                        Toast.LENGTH_SHORT).show();
+//                return false;
+//            }
+//
+//            if(mPICOCharacteristic != null) {
+//                byte[] gattData = {(byte) 0xFF, (byte) 0x01,(byte) 0x02};
+//                String tempString = "Checking_in_all_nodes";
+//                insertTag(tempString);
+//                mPICOCharacteristic.setValue(gattData);
+//                mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
+//                return true;
+//            }else{
+//                Log.w(TAG, "mPICOCharacteristic not already discovered?");
+//                return false;
+//            }
+//
+//        }
+//        return false;
+//    }
+
+    public boolean SendBroadcastStateChange(int stateToSend){
         if (mBluetoothAdapter != null) {
 
             if (mBluetoothGatt == null) {
@@ -349,34 +375,21 @@ public class ClimbService extends Service {
             }
 
             if(mPICOCharacteristic != null) {
-                byte[] gattData = {(byte) 0xFF, (byte) 0x01,(byte) 0x02};
-                String tempString = "Checking_in_all_nodes";
-                insertTag(tempString);
-                mPICOCharacteristic.setValue(gattData);
-                mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
-                return true;
-            }else{
-                Log.w(TAG, "mPICOCharacteristic not already discovered?");
-                return false;
-            }
-
-        }
-        return false;
-    }
-
-    public boolean SendCheckOutAllCmd(){
-        if (mBluetoothAdapter != null) {
-
-            if (mBluetoothGatt == null) {
-                Toast.makeText(appContext,
-                        "Master NOT CONNECTED!",
-                        Toast.LENGTH_SHORT).show();
-                return false;
-            }
-
-            if(mPICOCharacteristic != null) {
-                byte[] gattData = {(byte) 0xFF,(byte) 0x01, (byte) 0x00};
-                String tempString = "Checking_out_all_nodes";
+                byte[] gattData = {(byte) 0xFF,(byte) 0x01, (byte) stateToSend};
+                String tempString;
+                if(stateToSend == 0x00) {
+                    tempString = "Setting_ByMyself_state_with_broadcast_command";
+                }else if(stateToSend == 0x01) {
+                    tempString = "Setting_Checking_state_with_broadcast_command";
+                }else if(stateToSend == 0x02) {
+                    tempString = "Setting_OnBoard_state_with_broadcast_command";
+                }else if(stateToSend == 0x03) {
+                    tempString = "Setting_Alert_state_with_broadcast_command";
+                }else if(stateToSend == 0x04) {
+                    tempString = "Setting_GoingToSleep_with_broadcast_command";
+                }else{
+                    tempString = "Setting_state:_"+stateToSend+"_with_broadcast_command";
+                }
                 insertTag(tempString);
                 mPICOCharacteristic.setValue(gattData);
                 mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
@@ -543,10 +556,16 @@ public class ClimbService extends Service {
                     temp_gattData[gattDataIndex++] = monitoredChild.getNodeID()[0];
                     temp_gattData[gattDataIndex++] = (byte)newState;
                     String tempString;
-                    if(newState == 0x02) {
-                        tempString = "Accepting_node_" + monitoredChild.getNodeID()[0];
-                    }else if(newState == 0x00){
-                        tempString = "Checking_out_node_" + monitoredChild.getNodeID()[0];
+                    if(newState == 0x00) {
+                        tempString = "Setting_ByMyself_state_on_node_" + monitoredChild.getNodeID()[0];
+                    }else if(newState == 0x01) {
+                        tempString = "Setting_Checking_state_on_node_" + monitoredChild.getNodeID()[0];
+                    }else if(newState == 0x02) {
+                        tempString = "Setting_OnBoard_state_on_node_" + monitoredChild.getNodeID()[0];
+                    }else if(newState == 0x03) {
+                        tempString = "Setting_Alert_state_on_node_" + monitoredChild.getNodeID()[0];
+                    }else if(newState == 0x04) {
+                        tempString = "Setting_GoingToSleep_state_on_node_" + monitoredChild.getNodeID()[0];
                     }else{
                         tempString = "Setting_state:_"+newState+"_to_node_" + monitoredChild.getNodeID()[0];
                     }
@@ -805,9 +824,9 @@ public class ClimbService extends Service {
                 Log.d(TAG, "Found device is already in database and it is at index: " + index);
                 updateGATTMetadata(index, characteristic.getValue(), nowMillis);
                 if(nodeList != null){
-                    if(!nodeList.isEmpty()) {
-                        checkNodeStates(index);
-                    }
+//                    if(!nodeList.isEmpty()) {
+//                        checkNodeStates(index);
+//                    }
                 }
 
             } else {
@@ -1168,7 +1187,7 @@ public class ClimbService extends Service {
                         }
                         childNode.setTimedOut(true); //se al prossimo controllo è ancora true significa che non è mai stato visto nell'ultimo periodo, quindi eliminalo
                     }
-                    if(childNode.getNodeState() == 0 || childNode.getNodeState() == 1) { //Se il nodo è in BY MYSELF o CHECKING controllalo e semmai rimuovilo semplicemente dalla lista
+                    if(childNode.getNodeState() == 0 || childNode.getNodeState() == 1 || childNode.getNodeState() == 4) { //Se il nodo è in BY MYSELF o CHECKING controllalo e semmai rimuovilo semplicemente dalla lista
                         //long millisSinceLastScan = nowMillis - childNode.getLastContactMillis();
                         if (childNode.getTimedOut()) {
                             timedOutCounter++;

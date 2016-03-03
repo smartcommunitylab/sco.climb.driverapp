@@ -31,6 +31,7 @@ import android.widget.EditText;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
@@ -46,8 +47,9 @@ import java.util.Locale;
 public class ScanActivity extends Activity {
 
     private final static String TAG = "ScanActivity_GIOVA";
-    private Button mStartButton,mStopButton,mTagButton,mCheckInAllButton,mCheckOutAllButton, mScheduleWUButton;//,mReleaseCmdButton;
+    private Button mStartButton,mStopButton,mTagButton,mCheckInAllButton,mSendCmdButton, mScheduleWUButton;//,mReleaseCmdButton;
     private CheckBox mBroadcastCheckBox, mSelectAllCheckbox;
+    private Spinner mStatesSpinner;
     private Vibrator mVibrator;
     private int index = 0;
 
@@ -241,55 +243,61 @@ public class ScanActivity extends Activity {
         }
     };
 
-    View.OnClickListener ckInAllButtonHandler = new View.OnClickListener(){
+//    View.OnClickListener ckInAllButtonHandler = new View.OnClickListener(){
+//        public void onClick(View v) {
+//
+//            if (mBroadcastCheckBox.isChecked()) {
+//                if ((SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
+//                    if (mClimbService != null) {
+//                        if (mClimbService.SendCheckInAllCmd()) {
+//                            mVibrator.vibrate(ConfigVals.vibrationTimeout);
+//                            lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
+//                        } else {
+//                            Log.w(TAG, "Check in all not sent!");
+//                            log("Check in all not sent!");
+//                        }
+//                    } else {
+//                        Log.w(TAG, "Check in all not sent!");
+//                        log("Check in all not sent!");
+//                    }
+//                } else {
+//                    String alertString = "Wait a little";
+//                    Toast.makeText(getApplicationContext(),
+//                            alertString,
+//                            Toast.LENGTH_LONG).show();
+//                }
+//            }else{ //not broadcast a message
+//                if(expandableListAdapter != null) {
+//                    boolean[] childCheckStates = expandableListAdapter.getNodeCheckState(0);
+//                    if(mClimbService.setNewStateToCheckedNodes(0x02,childCheckStates,0)){
+//                        mVibrator.vibrate(ConfigVals.vibrationTimeout);
+//                    }else {
+//                        Log.w(TAG, "Check in not sent!");
+//                    }
+//                }else {
+//                    Log.w(TAG, "expandableListAdapter == null!!");
+//                }
+//            }
+//        }
+//    };
+    View.OnClickListener sendCmdButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
 
             if (mBroadcastCheckBox.isChecked()) {
                 if ((SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
                     if (mClimbService != null) {
-                        if (mClimbService.SendCheckInAllCmd()) {
-                            mVibrator.vibrate(ConfigVals.vibrationTimeout);
-                            lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
-                        } else {
-                            Log.w(TAG, "Check in all not sent!");
-                            log("Check in all not sent!");
-                        }
-                    } else {
-                        Log.w(TAG, "Check in all not sent!");
-                        log("Check in all not sent!");
-                    }
-                } else {
-                    String alertString = "Wait a little";
-                    Toast.makeText(getApplicationContext(),
-                            alertString,
-                            Toast.LENGTH_LONG).show();
-                }
-            }else{ //not broadcast a message
-                if(expandableListAdapter != null) {
-                    boolean[] childCheckStates = expandableListAdapter.getNodeCheckState(0);
-                    if(mClimbService.setNewStateToCheckedNodes(0x02,childCheckStates,0)){
-                        mVibrator.vibrate(ConfigVals.vibrationTimeout);
-                    }else {
-                        Log.w(TAG, "Check in not sent!");
-                    }
-                }else {
-                    Log.w(TAG, "expandableListAdapter == null!!");
-                }
-            }
-        }
-    };
-    View.OnClickListener ckOutAllButtonHandler = new View.OnClickListener(){
-        public void onClick(View v) {
-
-            if (mBroadcastCheckBox.isChecked()) {
-                if ((SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
-                    if (mClimbService != null) {
-                        if (mClimbService.SendCheckOutAllCmd()) {
-                            mVibrator.vibrate(ConfigVals.vibrationTimeout);
-                            lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
-                        } else {
-                            Log.w(TAG, "Check out all not sent!");
-                            log("Check out all not sent!");
+                        String selectedState_S = mStatesSpinner.getSelectedItem().toString();
+                        int selectedState_i = stateString2int(selectedState_S);
+                        if(selectedState_i < 5) { //allow only transitions to valid states
+                            if (mClimbService.SendBroadcastStateChange(selectedState_i)) {
+                                mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                                lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
+                            } else {
+                                Log.w(TAG, "Check out all not sent!");
+                                log("Check out all not sent!");
+                            }
+                        }else{
+                            Log.w(TAG, "Wrong state selected: " + selectedState_i);
                         }
                     } else {
                         Log.w(TAG, "Check out all not sent!");
@@ -305,10 +313,16 @@ public class ScanActivity extends Activity {
             }else{ //not broadcast a messages
                 if(expandableListAdapter != null) {
                     boolean[] childCheckStates = expandableListAdapter.getNodeCheckState(0);
-                    if(mClimbService.setNewStateToCheckedNodes(0x00, childCheckStates,0)){
-                        mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                    String selectedState_S = mStatesSpinner.getSelectedItem().toString();
+                    int selectedState_i = stateString2int(selectedState_S);
+                    if(selectedState_i < 5){ //allow only transitions to valid states
+                        if(mClimbService.setNewStateToCheckedNodes(selectedState_i, childCheckStates,0)){
+                            mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                        }else{
+                            Log.i(TAG, "Check out not sent!");
+                        }
                     }else{
-                        Log.i(TAG, "Check out not sent!");
+                        Log.w(TAG, "Wrong state selected: " + selectedState_i);
                     }
                 }else {
                     Log.w(TAG, "expandableListAdapter == null!!");
@@ -324,44 +338,8 @@ public class ScanActivity extends Activity {
             DialogFragment newFragment = new DatePickerFragment();
             newFragment.show(getFragmentManager(), "datePicker");
 
-/*            if( (SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
-                if (mClimbService != null) {
-                    if (mClimbService.ScheduleWakeUpCmd()) {
-                        mVibrator.vibrate(ConfigVals.vibrationTimeout);
-                        lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
-                    } else {
-                        Log.i(TAG, "schedule wake up not sent!");
-                        log("schedule wake up not sent!");
-                    }
-                } else {
-                    Log.i(TAG, "schedule wake up not sent!");
-                    log("schedule wake up not sent!");
-                }
-            }else{
-                String alertString = "Wait a little";
-                Toast.makeText(getApplicationContext(),
-                        alertString,
-                        Toast.LENGTH_LONG).show();
-            }*/
         }
     };
-
-    View.OnClickListener selectAllCheckboxHandler = new View.OnClickListener(){
-        public void onClick(View v) {
-
-            mVibrator.vibrate(ConfigVals.vibrationTimeout);
-
-            if(expandableListAdapter != null) {
-                boolean nodeCheckState[] = expandableListAdapter.getNodeCheckState(0);
-                boolean checked = mSelectAllCheckbox.isChecked();
-                for (int i = 0; i < nodeCheckState.length; i++) {
-                    nodeCheckState[i] = checked;
-                }
-                expandableListAdapter.notifyDataSetChanged();
-            }
-        }
-    };
-
     public void setWakeUpDate(int year, int month, int day){
         wakeUP_year = year;
         wakeUP_month = month;
@@ -419,6 +397,24 @@ public class ScanActivity extends Activity {
         }
 
     }
+
+    View.OnClickListener selectAllCheckboxHandler = new View.OnClickListener(){
+        public void onClick(View v) {
+
+            mVibrator.vibrate(ConfigVals.vibrationTimeout);
+
+            if(expandableListAdapter != null) {
+                boolean nodeCheckState[] = expandableListAdapter.getNodeCheckState(0);
+                boolean checked = mSelectAllCheckbox.isChecked();
+                for (int i = 0; i < nodeCheckState.length; i++) {
+                    nodeCheckState[i] = checked;
+                }
+                expandableListAdapter.notifyDataSetChanged();
+            }
+        }
+    };
+
+
 
 /*    View.OnClickListener releaseCmdButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
@@ -490,11 +486,11 @@ public class ScanActivity extends Activity {
         mTagButton = (Button) findViewById(R.id.buttonTag);
         mTagButton.setOnClickListener(tagButtonHandler);
 
-        mCheckInAllButton = (Button) findViewById(R.id.buttonCheckInAll);
-        mCheckInAllButton.setOnClickListener(ckInAllButtonHandler);
+        //mCheckInAllButton = (Button) findViewById(R.id.buttonCheckInAll);
+        //mCheckInAllButton.setOnClickListener(ckInAllButtonHandler);
 
-        mCheckOutAllButton = (Button) findViewById(R.id.buttonCheckOutAll);
-        mCheckOutAllButton.setOnClickListener(ckOutAllButtonHandler);
+        mSendCmdButton = (Button) findViewById(R.id.sendCmd);
+        mSendCmdButton.setOnClickListener(sendCmdButtonHandler);
 
         mScheduleWUButton = (Button) findViewById(R.id.scheduleWakeUpAll);
         mScheduleWUButton.setOnClickListener(scheduleWUButtonHandler);
@@ -503,6 +499,14 @@ public class ScanActivity extends Activity {
         mSelectAllCheckbox.setOnClickListener(selectAllCheckboxHandler);
 
         mBroadcastCheckBox = (CheckBox) findViewById(R.id.broadcastCheckBox);
+
+        mStatesSpinner = (Spinner) findViewById(R.id.statesSpinner);
+        // Create an ArrayAdapter using the string array and a default spinner layout
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.Node_states, R.layout.spinner_item);
+        // Specify the layout to use when the list of choices appears
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // Apply the adapter to the spinner
+        mStatesSpinner.setAdapter(adapter);
 
        // mReleaseCmdButton = (Button) findViewById(R.id.test);
         //mReleaseCmdButton.setOnClickListener(releaseCmdButtonHandler);
@@ -611,6 +615,20 @@ public class ScanActivity extends Activity {
             }
         }
 
+    }
+
+    private int stateString2int(String stateString){
+        if(stateString.equals("BY_MYSELF")){
+            return 0;
+        }else if(stateString.equals("CHECKING")){
+            return 1;
+        }else if(stateString.equals("ON_BOARD")){
+            return 2;
+        }else if(stateString.equals("GOING_TO_SLEEP")){
+            return 4;
+        }else{
+            return 6;
+        }
     }
 
     private void log(final String txt) {

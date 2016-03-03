@@ -152,7 +152,7 @@
 
 
 
-                <Button
+<!--                <Button
                     android:id="@+id/buttonCheckInAll"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -164,7 +164,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="check out"
-                    android:textSize="12dp" />
+                    android:textSize="12dp" />-->
+                <Spinner
+                    android:layout_width="105dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/statesSpinner"
+                    android:textColor="#d5d6d6"
+                    android:textSize="12sp"/>
 
                 <CheckBox
                     android:layout_width="wrap_content"
@@ -174,6 +180,14 @@
                     android:buttonTint="#d5d6d6"
                     android:textColor="#d5d6d6"
                     android:textSize="12dp"/>
+
+                <Button
+                android:id="@+id/sendCmd"
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:text="Send"
+                android:textSize="12dp" />
+
             </LinearLayout>
             <View
                 android:layout_width="1dp"
