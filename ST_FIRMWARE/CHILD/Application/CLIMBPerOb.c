@@ -127,13 +127,15 @@
 #define DEFAULT_CONN_PAUSE_PERIPHERAL         10
 
 // Scan interval value in 0.625ms ticks
-#define SCAN_INTERVAL 						  640//320
+#define SCAN_INTERVAL 						  320
 
 // scan window value in 0.625ms ticks
-#define SCAN_WINDOW							  640//320
+#define SCAN_WINDOW							  320
 
 // Scan duration in ms
-#define DEFAULT_SCAN_DURATION                 2000//10000 //Tempo di durata di una scansione,
+#define DEFAULT_SCAN_DURATION                 1250//10000 //Tempo di durata di una scansione,
+
+#define PRE_ADV_TIMEOUT				  DEFAULT_ADVERTISING_INTERVAL*0.625-5
 
 // Whether to report all contacts or only the first for each device
 #define FILTER_ADV_REPORTS					  FALSE
@@ -160,6 +162,7 @@
 #define CONNECTABLE_TIMEOUT_MSEC					1000*60
 #define WAKEUP_DEFAULT_TIMEOUT_SEC				60*60*24//1000*60*60
 #define GOTOSLEEP_DEFAULT_TIMEOUT_SEC			60*60//1000*60*60
+#define GOING_TO_SLEEP_DELAY_AFTER_REQUEST_MSEC 1000*30
 
 #define NODE_ID								  { 0x02  }
 
@@ -201,7 +204,7 @@
 #define EPOCH_EVT							0x0200
 #define WAKEUP_TIMEOUT_EVT					0x0400
 #define GOTOSLEEP_TIMEOUT_EVT				0x0800
-#define RESTART_SCAN_EVT					0x1000
+#define PRE_ADV_EVT					0x1000
 /*********************************************************************
  * TYPEDEFS
  */
@@ -211,6 +214,7 @@ typedef enum ChildClimbNodeStateType_t {
 	CHECKING,
 	ON_BOARD,
 	ALERT,
+	GOING_TO_SLEEP,
 	ERROR,
 	INVALID_STATE
 } ChildClimbNodeStateType_t;
@@ -275,7 +279,7 @@ static Clock_Struct connectableTimeoutClock;
 static Clock_Struct wakeUpClock;
 static Clock_Struct goToSleepClock;
 
-static Clock_Struct scanRestartClock;
+static Clock_Struct preAdvClock;
 #ifdef WORKAROUND
 static Clock_Struct epochClock;
 #endif
@@ -377,11 +381,13 @@ static uint8 adv_counter = 0;
 static uint8 myIDArray[] = {0x00};//NODE_ID;
 static uint8 broadcastID[] = { 0xFF };
 
-static uint8 readyToGoSleeping = 0;
+//static uint8 readyToGoSleeping = 0;
 
 static uint32 batteryLev = 0;
 
 static uint32 wakeUpTimeout_sec_global;
+
+static uint8 scanning = FALSE;
 /*********************************************************************
  * LOCAL FUNCTIONS
  */
@@ -426,6 +432,7 @@ static void Climb_periodicTask();
 #ifdef WORKAROUND
 static void Climb_epochStartHandler();
 #endif
+static void Climb_preAdvEvtHandler();
 static void Climb_goToSleepHandler();
 static void Climb_wakeUpHandler();
 static void Climb_setWakeUpClock(uint32 wakeUpTimeout_sec_local);
@@ -563,8 +570,8 @@ static void SimpleBLEPeripheral_init(void) {
 	Util_constructClock(&goToSleepClock, Climb_clockHandler,
 	GOTOSLEEP_DEFAULT_TIMEOUT_SEC*1000, 0, false, GOTOSLEEP_TIMEOUT_EVT);
 
-	Util_constructClock(&scanRestartClock, Climb_clockHandler,
-	DEFAULT_SCAN_DURATION, 0, false, RESTART_SCAN_EVT);
+	Util_constructClock(&preAdvClock, Climb_clockHandler,
+	PRE_ADV_TIMEOUT, 0, false, PRE_ADV_EVT);
 
 #ifdef WORKAROUND
 	Util_constructClock(&epochClock, Climb_clockHandler,
@@ -821,10 +828,11 @@ static void SimpleBLEPeripheral_taskFxn(UArg a0, UArg a1)
 		Climb_wakeUpHandler();
 	}
 
-	if (events & RESTART_SCAN_EVT) {
-		events &= ~RESTART_SCAN_EVT;
+	if (events & PRE_ADV_EVT) {
+		events &= ~PRE_ADV_EVT;
 
-		GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE, DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
+		Climb_preAdvEvtHandler();
+
 
 	}
 
@@ -1233,17 +1241,7 @@ static void BLE_ConnectionEventHandler(void)
  */
 static void BLE_AdvertiseEventHandler(void) {
 
-#ifdef CLIMB_DEBUG
-	adv_counter++; //non era incrementato....
-
-	if ((adv_counter - 1) % 60 == 0) {
-		batteryLev = AONBatMonBatteryVoltageGet();
-		batteryLev = (batteryLev * 125) >> 5;
-	}
-
-	Climb_updateMyBroadcastedState(nodeState); //update adv data every adv event to update adv_counter value. Since the argument is nodeState this function call doesn't modify the actual state of this node
-#endif
-
+	Util_startClock(&preAdvClock);
 
 #ifdef WORKAROUND
 	uint8 adv_active = 0;
@@ -1392,11 +1390,15 @@ static void SimpleBLEObserver_processRoleEvent(gapObserverRoleEvent_t *pEvent) {
 
 	case GAP_DEVICE_DISCOVERY_EVENT:
 #ifndef WORKAROUND
-		if(beaconActive){
+
+		scanning = FALSE;
+
+
+
 			//GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE,DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
-			Util_startClock(&scanRestartClock);
+			//Util_startClock(&preAdvClock);
 			CLIMB_FlashLed(Board_LED2);
-		}
+
 #endif
 		break;
 	case GAP_ADV_DATA_UPDATE_DONE_EVENT:
@@ -1642,74 +1644,82 @@ static uint8 Climb_checkNodeState(gapDeviceInfoEvent_t *gapDeviceInfoEvent_a) {
 	ChildClimbNodeStateType_t broadcastedState;
 
 	//OBTAIN broadcastedState and check where the message is from (myMaster or not)
-	if( nodeState == CHECKING || nodeState == ON_BOARD || nodeState == ALERT ){
-		if (memcomp(gapDeviceInfoEvent_a->addr, myMasterAddr,	B_ADDR_LEN) == 0){ //sto analizzando un adv del MIO master
+	if (nodeState == CHECKING || nodeState == ON_BOARD || nodeState == ALERT) {
+		if (memcomp(gapDeviceInfoEvent_a->addr, myMasterAddr, B_ADDR_LEN) == 0) { //sto analizzando un adv del MIO master
 			broadcastedState = Climb_findMyBroadcastedState(gapDeviceInfoEvent_a);
-		}else{	//sto analizzando l'adv di un altro master,
+		} else {	//sto analizzando l'adv di un altro master,
 			return 0;
 		}
-	}else{ //se sono in by myself cerca in tutti i master visibili (il primo master che mi farà fare il checking diventerà il MIO master)
+	} else { //se sono in by myself cerca in tutti i master visibili (il primo master che mi farà fare il checking diventerà il MIO master)
 		broadcastedState = Climb_findMyBroadcastedState(gapDeviceInfoEvent_a);
 	}
 
 	//VERIFY STATE TRANSITIONS
 	//if( broadcastedState != nodeState || broadcastedState == INVALID_STATE){
-		uint8 i;
-		switch (broadcastedState) {
-		case BY_MYSELF: //CHECK OUT
-			//if (nodeState == ON_BOARD || nodeState == CHECKING) { //il checkout è possibile da qualsiasi stato
-			for (i = 0; i < B_ADDR_LEN; i++) { //resetta l'indirizzo del nodo master
-				myMasterAddr[i] = 0;
-			}
-
-			if (nodeState == ON_BOARD || nodeState == ALERT) { //il passaggio da ON_BOARD o (ALERT) a BY_MYSELF triggera lo spegnimento del nodo
-				Util_restartClock(&goToSleepClock, 20000); //schedula lo spegnimento automatico
-				readyToGoSleeping = 1;
-			}
-			//}
-			break;
-		case CHECKING:
-			if (nodeState == BY_MYSELF) {
-				if (readyToGoSleeping == 0) {
-					memcpy(myMasterAddr, gapDeviceInfoEvent_a->addr, B_ADDR_LEN); //salva l'indirizzo del nodo master
-				} else { //se il master sta cercando di fare un check in subito dopo il check out non permetterlo!
-					//broadcastedState = nodeState;
-					return 0;
-				}
-			}else{ //se il master sta cercando di mettere il nodo in checking ma questo non era in by myself scarta la richiesta
-				//broadcastedState = nodeState;
-				return 0;
-			}
-			break;
-
-		case ON_BOARD:
-			if (nodeState == CHECKING || nodeState == ALERT) { //il passaggio in ON BOARD è permesso solo dagli stati checking e alert
-
-			}else{ //se il master sta cercando di mettere il nodo in checking ma questo non era in by myself scarta la richiesta
-				//broadcastedState = nodeState;
-				return 0;
-			}
-			break;
-
-		case ALERT:
-			return 0;
-			//break;
-
-		case INVALID_STATE://check to see if there is a broadcast message in this packet
-			if (nodeState == BY_MYSELF) { //broadcast message can be received only if I have a myMaster Node
-				//broadcastedState = nodeState;
-				return 0;
-			} else {
-				Climb_decodeBroadcastedMessage(gapDeviceInfoEvent_a);
-				return 0;
-			}
-			//break;
-
-		default:
-			return 0;
-			//break;
+	uint8 i;
+	switch (broadcastedState) {
+	case BY_MYSELF: //CHECK OUT
+		//if (nodeState == ON_BOARD || nodeState == CHECKING) { //il checkout è possibile da qualsiasi stato
+		for (i = 0; i < B_ADDR_LEN; i++) { //resetta l'indirizzo del nodo master
+			myMasterAddr[i] = 0;
 		}
+		if(nodeState == GOING_TO_SLEEP){
+			Util_restartClock(&goToSleepClock, GOTOSLEEP_DEFAULT_TIMEOUT_SEC*1000);
+		}
+		//if (nodeState == ON_BOARD || nodeState == ALERT) { //il passaggio da ON_BOARD o (ALERT) a BY_MYSELF triggera lo spegnimento del nodo
+			//Util_restartClock(&goToSleepClock, 20000); //schedula lo spegnimento automatico
+			//readyToGoSleeping = 1;
+		//}
+		//}
+		break;
+	case CHECKING:
+		if (nodeState == BY_MYSELF) {
+			//if (readyToGoSleeping == 0) {
+			memcpy(myMasterAddr, gapDeviceInfoEvent_a->addr, B_ADDR_LEN); //salva l'indirizzo del nodo master
 
+		} else { //se il master sta cercando di mettere il nodo in checking ma questo non era in by myself scarta la richiesta
+				 //broadcastedState = nodeState;
+			return 0;
+		}
+		break;
+
+	case ON_BOARD:
+		if (nodeState == CHECKING || nodeState == ALERT) { //il passaggio in ON BOARD è permesso solo dagli stati checking e alert
+
+		} else { //se il master sta cercando di mettere il nodo in checking ma questo non era in by myself scarta la richiesta
+				 //broadcastedState = nodeState;
+			return 0;
+		}
+		break;
+
+	case ALERT:
+		return 0;
+		//break;
+
+	case GOING_TO_SLEEP:
+		if (nodeState == ON_BOARD || nodeState == CHECKING) { //il passaggio da ON_BOARD o (ALERT) a GOING_TO_SLEEP triggera lo spegnimento del nodo
+			Util_restartClock(&goToSleepClock, GOING_TO_SLEEP_DELAY_AFTER_REQUEST_MSEC); //schedula lo spegnimento automatico
+			//readyToGoSleeping = 1;
+		} else {
+			//broadcastedState = nodeState;
+			return 0;
+		}
+		break;
+
+	case INVALID_STATE:				//check to see if there is a broadcast message in this packet
+		if (nodeState == BY_MYSELF) { //broadcast message can be received only if I have a myMaster Node
+			//broadcastedState = nodeState;
+			return 0;
+		} else {
+			Climb_decodeBroadcastedMessage(gapDeviceInfoEvent_a);
+			return 0;
+		}
+		//break;
+
+	default:
+		return 0;
+		//break;
+	}
 
 //		if(nodeState == BY_MYSELF && broadcastedState == CHECKING){ //ho trovato il master (pedibus driver) di oggi. se readyToGoSleeping è diverso da 0 significa che ho gia fatto un checkout, quindi non devo tornare ON_BOARD
 //			if(readyToGoSleeping == 0){
@@ -1730,12 +1740,12 @@ static uint8 Climb_checkNodeState(gapDeviceInfoEvent_t *gapDeviceInfoEvent_a) {
 //		}
 
 #ifndef CLIMB_DEBUG
-		Climb_updateMyBroadcastedState(broadcastedState);
+	Climb_updateMyBroadcastedState(broadcastedState);
 #else	//quando il sistema è in modalità debug si aggiorna solo la variabile nodeState, la funzione Climb_updateMyBroadcastedState che aggiorna anche l'adv verrà chiamata dalla adv_event_handler
-		nodeState = broadcastedState;
+	nodeState = broadcastedState;
 #endif
 
-		return 1;
+	return 1;
 	//}
 	//return 0;
 }
@@ -2137,6 +2147,27 @@ static void Climb_epochStartHandler(){
 	}
 }
 #endif
+
+static void Climb_preAdvEvtHandler(){
+
+#ifdef CLIMB_DEBUG
+	adv_counter++;
+
+	if ((adv_counter - 1) % 60 == 0) {
+		batteryLev = AONBatMonBatteryVoltageGet();
+		batteryLev = (batteryLev * 125) >> 5;
+	}
+
+	Climb_updateMyBroadcastedState(nodeState); //update adv data every adv event to update adv_counter value. Since the argument is nodeState this function call doesn't modify the actual state of this node
+#endif
+
+	if(!scanning){
+		if(beaconActive){
+			GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE, DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
+			scanning = TRUE;
+		}
+	}
+}
 /*********************************************************************
  * @fn      Climb_goToSleepHandler
  *
@@ -2302,7 +2333,7 @@ static void CLIMB_handleKeys(uint8 keys) {
 static void startNode() {
 
 	if (beaconActive != 1) {
-		readyToGoSleeping = 0;
+		//readyToGoSleeping = 0;
 
 		uint8 adv_active = 1;
 		uint8 status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED, sizeof(uint8_t), &adv_active);
@@ -2329,6 +2360,7 @@ static void startNode() {
 static void stopNode() {
 	beaconActive = 0;
 	GAPObserverRole_CancelDiscovery();
+	scanning = FALSE;
 	uint8 adv_active = 0;
 	uint8 status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED, sizeof(uint8_t), &adv_active);
 
