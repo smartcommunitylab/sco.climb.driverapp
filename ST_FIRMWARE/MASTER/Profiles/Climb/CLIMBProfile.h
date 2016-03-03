@@ -68,8 +68,8 @@ extern "C"
 #define CLIMBPROFILE_SERVICE               0x00000001
 
 // Length of Characteristic 1 in bytes
-#define CLIMBPROFILE_CHAR1_LEN           101//20
-#define CLIMBPROFILE_CHAR2_LEN           101//20
+#define CLIMBPROFILE_CHAR1_LEN           MAX_PDU_SIZE-7//101//20
+#define CLIMBPROFILE_CHAR2_LEN           MAX_PDU_SIZE-7//101//20
 /*********************************************************************
  * TYPEDEFS
  */
