@@ -47,12 +47,12 @@ angular.module('driverapp.services.wsn', [])
                     if (response.action === wsnService.STATE_CONNECTED_TO_CLIMB_MASTER) {
                         if (response.errorMsg === null || response.errorMsg === undefined) {
                             console.log('### Yippee-ki-yay! Welcome, Master! ###');
+                            $rootScope.masterError = false;
                             wsnService.setNodeList(wsnService.getNodeListByType('child'));
-                            wsnService.intervalGetNetworkState = $interval(function () {
-                                wsnService.getNetworkState();
-                            }, Config.NETWORKSTATE_DELAY);
+                            wsnService.startNetworkStateInterval();
                         } else {
                             console.log('/// Master connection timeout! ///');
+                            $rootScope.masterError = true;
                             Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
                         }
                     } else if (response.action === wsnService.STATE_DISCONNECTED_FROM_CLIMB_MASTER) {
@@ -92,9 +92,7 @@ angular.module('driverapp.services.wsn', [])
         if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
             window.DriverAppPlugin.getMasters(
                 function (response) {
-                    if (!!wsnService.intervalGetNetworkState) {
-                        $interval.cancel(wsnService.intervalGetNetworkState);
-                    }
+                    wnsService.stopNetworkState();
                     deferred.resolve(response);
                 },
                 function (reason) {
@@ -133,10 +131,12 @@ angular.module('driverapp.services.wsn', [])
             window.DriverAppPlugin.connectMaster(
                 masterId,
                 function (procedureStarted) {
+                    $rootScope.masterError = false;
                     console.log('connectMaster: ' + procedureStarted);
                     deferred.resolve(procedureStarted);
                 },
                 function (reason) {
+                    $rootScope.masterError = true;
                     console.log('connectMaster: ' + reason);
                     deferred.reject(reason);
                 }
@@ -196,6 +196,30 @@ angular.module('driverapp.services.wsn', [])
         return deferred.promise;
     };
 
+    wsnService.startNetworkStateInterval = function () {
+        var deferred = $q.defer();
+        if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+            if (!wsnService.intervalGetNetworkState) {
+                wsnService.intervalGetNetworkState = $interval(function () {
+                    wsnService.getNetworkState();
+                }, Config.NETWORKSTATE_DELAY);
+            }
+        }
+        return deferred.promise;
+    };
+
+    wsnService.stopNetworkStateInterval = function () {
+        var deferred = $q.defer();
+        if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+            if (!!wsnService.intervalGetNetworkState) {
+                if ($interval.cancel(wsnService.intervalGetNetworkState)) {
+                    wsnService.intervalGetNetworkState = null;
+                }
+            }
+        }
+        return deferred.promise;
+    };
+
     wsnService.checkinChild = function (childId) {
         var deferred = $q.defer();
 
@@ -223,7 +247,7 @@ angular.module('driverapp.services.wsn', [])
             window.DriverAppPlugin.checkinChildren(
                 childrenIds,
                 function (procedureStarted) {
-                    console.log('checkinChildern: ' + procedureStarted  + ' (' + childrenIds + ')');
+                    console.log('checkinChildern: ' + procedureStarted + ' (' + childrenIds + ')');
                     deferred.resolve(procedureStarted);
                 },
                 function (reason) {

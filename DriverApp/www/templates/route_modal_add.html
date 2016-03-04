@@ -1,13 +1,13 @@
 <ion-modal-view>
     <ion-header-bar>
         <button class="button" ng-click="closeModal()">Annulla</button>
-        <h1 class="title">Aggiungi passeggero</h1>
+        <h1 class="title">Aggiungi passeggeri</h1>
         <button class="button" ng-click="closeModal()" ng-disabled="toBeTaken.length == 0">Aggiungi</button>
     </ion-header-bar>
     <ion-content>
         <ion-list>
-            <ion-checkbox ng-repeat="child in children" ng-if="onBoard.indexOf(child.objectId) === -1" ng-model="child.checked" ng-change="setToBeTaken(child)">
-                {{child.name}}
+            <ion-checkbox class="checkbox-dapp" ng-repeat="child in children" ng-if="onBoard.indexOf(child.objectId) === -1" ng-model="child.checked" ng-change="setToBeTaken(child)">
+                {{child.surname}} {{child.name}}
             </ion-checkbox>
         </ion-list>
     </ion-content>

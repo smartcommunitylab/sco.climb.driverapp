@@ -52,6 +52,11 @@ angular.module('driverapp.controllers.route', [])
                     Object.keys(ns).forEach(function (nodeId) {
                         if (WSNSrv.isNodeByType(nodeId, 'child')) {
                             if (ns[nodeId].status == WSNSrv.STATUS_NEW) {
+                                // new node?
+                                if (oldNs[nodeId].status == '') {
+                                    AESrv.nodeInRange(nodeId, ns[nodeId].timestamp);
+                                }
+
                                 var child = $scope.isChildOfThisStop(nodeId);
                                 if (child !== null) {
                                     $scope.takeOnBoard(child.objectId);
@@ -66,7 +71,7 @@ angular.module('driverapp.controllers.route', [])
                                 if (overTimeout && ns[nodeId].status !== WSNSrv.STATUS_OUT_OF_RANGE) {
                                     ns[nodeId].status = WSNSrv.STATUS_OUT_OF_RANGE;
                                     somethingChanged = true;
-                                    AESrv.nodeOutOfRange(nodeId, ns[nodeId].timestamp);
+                                    AESrv.nodeOutOfRange(ns[nodeId].object, ns[nodeId].timestamp);
                                     var errorString = 'Attenzione! ';
                                     errorString += ns[nodeId].object.surname + ' ' + ns[nodeId].object.name + ' (' + nodeId + ') fuori portata!';
                                     console.log('nodeOutOfRange: ' + nodeId + ' (last seen ', +ns[nodeId].timestamp + ')');
@@ -74,7 +79,10 @@ angular.module('driverapp.controllers.route', [])
                                 } else if (!overTimeout && ns[nodeId].status === WSNSrv.STATUS_OUT_OF_RANGE) {
                                     ns[nodeId].status = WSNSrv.STATUS_BOARDED_ALREADY;
                                     somethingChanged = true;
+                                    AESrv.nodeInRange(ns[nodeId].object);
                                     console.log('nodeBackInRange: ' + nodeId);
+                                    var toastString = ns[nodeId].object.surname + ' ' + ns[nodeId].object.name + ' (' + nodeId + ') di nuovo in portata!';
+                                    Utils.toast(toastString, 5000, 'center');
                                 }
                             }
                         }
@@ -111,19 +119,19 @@ angular.module('driverapp.controllers.route', [])
         }
     );
 
-/*
-    $scope.checkStopPosition = function(position){
-       if(position == $scope.stops[0].position){
-           return "-first";
-       } else {
-           if(position == $scope.stops[$scope.stops.length-1].position){
-               return "-last";
+    /*
+        $scope.checkStopPosition = function(position){
+           if(position == $scope.stops[0].position){
+               return "-first";
            } else {
-               return "";
+               if(position == $scope.stops[$scope.stops.length-1].position){
+                   return "-last";
+               } else {
+                   return "";
+               }
            }
-       }
-    };
-*/
+        };
+    */
 
     $scope.toggleEnRoute = function () {
         $ionicScrollDelegate.scrollTop(true);
@@ -170,10 +178,13 @@ angular.module('driverapp.controllers.route', [])
                 // Arriva
                 $scope.onBoard.forEach(function (passengerId) {
                     var child = $scope.getChild(passengerId);
-                    AESrv.nodeAtDestination(child);
-                    AESrv.nodeCheckout(child);
-                    if (!!child.wsnId) {
+                    if (!!child.wsnId && !!WSNSrv.networkState[child.wsnId] && WSNSrv.networkState[child.wsnId].status == WSNSrv.STATUS_BOARDED_ALREADY) {
+                        AESrv.nodeAtDestination(child);
+                        AESrv.nodeCheckout(child);
                         WSNSrv.checkoutChild(child.wsnId);
+                    } else if (!child.wsnId) {
+                        AESrv.nodeAtDestination(child);
+                        AESrv.nodeCheckout(child);
                     }
                 });
                 AESrv.endRoute($scope.stops[$scope.enRoutePos]);
@@ -295,6 +306,8 @@ angular.module('driverapp.controllers.route', [])
             $scope.getChild(childId).checked = false;
         });
         $scope.toBeTaken = [];
+
+        $scope.mergedOnBoard = $scope.getMergedOnBoard();
     });
 
     // Execute action on remove modal
@@ -315,36 +328,36 @@ angular.module('driverapp.controllers.route', [])
     /*
      * Merge lists method: used to merge the two lists (onBoard and onBoardTmp) and generate a matrix with rows of 3 cols
      */
-    $scope.getMergedOnBoard = function(){
+    $scope.getMergedOnBoard = function () {
         var onBoardMerged = [];
         var onBoardMatrix = [];
         var cols = 3;
-        for(var i = 0; i < $scope.onBoard.length; i++){
+        for (var i = 0; i < $scope.onBoard.length; i++) {
             var tmpData = {
                 id: $scope.onBoard[i],
                 tmp: false
             };
             onBoardMerged.push(tmpData);
         }
-        for(var i = 0; i < $scope.onBoardTemp.length; i++){
+        for (var i = 0; i < $scope.onBoardTemp.length; i++) {
             var tmpData = {
                 id: $scope.onBoardTemp[i],
                 tmp: true
             };
-            if($scope.isNewValue(onBoardMerged,tmpData)){
+            if ($scope.isNewValue(onBoardMerged, tmpData)) {
                 onBoardMerged.push(tmpData);
             }
         }
         // here I have to convert in matrix
-        for(var i = 0; i < onBoardMerged.length; i+=cols){
+        for (var i = 0; i < onBoardMerged.length; i += cols) {
             var rowArr = [];
             var actualCols = (i + cols);
-            if((actualCols) <= onBoardMerged.length){
-                for(var c = 0; c < cols; c++){
-                    rowArr.push(onBoardMerged[i+c]);
+            if ((actualCols) <= onBoardMerged.length) {
+                for (var c = 0; c < cols; c++) {
+                    rowArr.push(onBoardMerged[i + c]);
                 }
             } else {
-                for(var c = i; c < onBoardMerged.length; c++){
+                for (var c = i; c < onBoardMerged.length; c++) {
                     rowArr.push(onBoardMerged[c]);
                 }
             }
@@ -357,36 +370,39 @@ angular.module('driverapp.controllers.route', [])
     /*
      * Check lists method: used to check if a value is already present in a list or not
      */
-    $scope.isNewValue = function(arr, val){
+    $scope.isNewValue = function (arr, val) {
         var present = false;
-        for(var i = 0; i < arr.length && !present; i++){
-            if(arr[i] == val){
+        for (var i = 0; i < arr.length && !present; i++) {
+            if (arr[i] == val) {
                 present = true;
             }
         }
         return !present;
     }
 
-    $scope.isRoutePanelOpen = false;    // initial state of the route panel (closed)
-    $scope.openRouteView = function(){
+    $scope.isRoutePanelOpen = false; // initial state of the route panel (closed)
+    $scope.openRouteView = function () {
         $scope.isRoutePanelOpen = true;
     }
 
-    $scope.closeRouteView = function(){
-        $scope.isRoutePanelOpen= false;
+    $scope.closeRouteView = function () {
+        $scope.isRoutePanelOpen = false;
     }
 
     $scope.selectDriverPopup = function(rt, driv, help) {
         $scope.volunteers = $scope.getDriverAndVolunteers(StorageSrv.getVolunteers(), driv, help);
         var driverPopup = $ionicPopup.show({
             templateUrl: 'templates/route_popup_driver.html',
-            title: 'Accompagnatori<br/>' + rt.name,
-            /*subTitle: rt.name,*/
+            cssClass: 'route-volunteers',
+            title: 'ACCOMPAGNATORI',
+            subTitle: rt.name,
             scope: $scope,
             buttons: [{
-                text: 'Annulla',
+                text: 'CHIUDI',
+                type: 'button-default',
             },{
-                text: 'OK',
+                text: 'SALVA',
+                type: 'button-positive',
                 onTap: function(e) {
                     $scope.selectDrivers($scope.volunteers);
                 }

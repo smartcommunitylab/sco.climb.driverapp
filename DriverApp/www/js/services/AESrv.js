@@ -2,6 +2,7 @@ angular.module('driverapp.services.ae', [])
 
 .factory('AESrv', function ($q, $interval, Config, Utils, StorageSrv, APISrv) {
     var AE = {
+        NODE_IN_RANGE: 101,
         NODE_CHECKIN: 102,
         NODE_CHECKOUT: 103,
         NODE_AT_DESTINATION: 104,
@@ -203,15 +204,32 @@ angular.module('driverapp.services.ae', [])
         return events;
     };
 
-    /* node out of range */
-    aeService.nodeOutOfRange = function (wsnId, lastCheck) {
+    /* node in range */
+    aeService.nodeInRange = function (passenger) {
         var event = {
             routeId: aeInstance.routeId,
-            wsnNodeId: wsnId.wsnId,
-            eventType: AE.NODE_OUT_OF_RANGE,
-            timestamp: lastCheck,
+            wsnNodeId: passenger.wsnId,
+            eventType: AE.NODE_IN_RANGE,
+            timestamp: moment().valueOf(),
             payload: {
-                'wsnId': wsnId
+                'passengerId': passenger.objectId
+            }
+        };
+
+        aeInstance.events.push(event);
+        return event;
+    };
+
+    /* node out of range */
+    aeService.nodeOutOfRange = function (passenger, lastCheck) {
+        var event = {
+            routeId: aeInstance.routeId,
+            wsnNodeId: passenger.wsnId,
+            eventType: AE.NODE_OUT_OF_RANGE,
+            timestamp: moment().valueOf(),
+            payload: {
+                'passengerId': passenger.objectId,
+                'lastCheck': lastCheck
             }
         };
 

@@ -1,5 +1,5 @@
-<ion-list>
-    <ion-checkbox ng-repeat="volunteer in volunteers | orderBy : ['ordered','name']" ng-model="volunteer.checked">
+<ion-list class="route-volunteer-list">
+    <ion-checkbox class="checkbox-dapp" ng-repeat="volunteer in volunteers | orderBy : ['ordered','name']" ng-model="volunteer.checked">
         {{volunteer.name}}
     </ion-checkbox>
 </ion-list>

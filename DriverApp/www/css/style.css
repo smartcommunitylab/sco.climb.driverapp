@@ -1,6 +1,43 @@
 /* CLIMB Driver App style */
 
 .dapp-theme {}
+.dapp-theme .warning {
+    color: #ff0000;
+}
+/* Components */
+
+.dapp-theme .button.button-dapp {
+    border-color: transparent;
+    background-color: #f29100;
+    color: #fff;
+}
+.dapp-theme .button.button-dapp.button-clear {
+    border-color: transparent;
+    background: none;
+    box-shadow: none;
+    color: #f29100;
+}
+.dapp-theme .button.button-dapp.button-outline {
+    border-color: #f29100;
+    background: transparent;
+    color: #f29100;
+}
+.dapp-theme .button.button-dapp.button-outline.active,
+.dapp-theme .button.button-dapp.button-outline.activated {
+    background-color: #f29100;
+    box-shadow: none;
+    color: #fff;
+}
+.dapp-theme .checkbox-dapp input:before,
+.dapp-theme .checkbox-dapp .checkbox-icon:before {
+    background: transparent;
+    border-color: #f29100;
+}
+.dapp-theme .checkbox-dapp input:checked:before,
+.dapp-theme .checkbox-dapp input:checked + .checkbox-icon:before {
+    background: #f29100;
+    border-color: #f29100;
+}
 .dapp-theme .btn-enroute {
     width: 27%;
     position: absolute;
@@ -12,13 +49,15 @@
     max-height: 38px;
     font-size: 15px;
 }
+
+/* Menu Bar */
+
 .dapp-theme .dapp-menu .bar {
     color: #fff;
     background-color: #438699;
 }
-.dapp-theme .dapp-menu .button-clear {
+.dapp-theme .dapp-menu .bar .button-dapp.button-clear {
     color: #fff;
-    background-color: #438699;
 }
 
 /* Wizard */
@@ -73,25 +112,8 @@
     visibility: hidden;
 }
 
-/* Components */
-.dapp-theme .button.button-dapp {
-    border-color: transparent;
-    background-color: #F29100;
-    color: #FFFFFF;
-}
-.dapp-theme .button.button-dapp.button-outline {
-    border-color: #F29100;
-    background-color: transparent;
-    color: #F29100;
-}
-.dapp-theme .button.button-dapp.button-clear {
-    border-color: transparent;
-    background: none;
-    box-shadow: none;
-    color: #F29100;
-}
-
 /* Route components */
+
 .dapp-theme .button-route-balanced {
     border-color: #439981;
     background-color: #439981;
@@ -138,13 +160,13 @@
     max-height: 60px;
     min-height: 50px;
     width:100%;
-    display:block !important;
-    overflow-y:scroll !important;
+    display: block !important;
+    overflow-y: scroll !important;
     overflow-x: hidden !important;
 }
 .dapp-theme .listwrapper-expanded {
     max-height: auto;
-    width:100%;
+    width: 100%;
 }
 .dapp-theme .line-background {
     background-image: url("../img/rt_verticalline.png");
@@ -289,8 +311,35 @@
     max-width: 20px;
     max-height: 50px;
 }
+.dapp-theme .route-volunteers .popup {
+    background-color: #fff;
+    min-width: 90%;
+}
+.dapp-theme .route-volunteers .popup-head {
+    min-height: 60px;
+    border-bottom-width: 0px;
+}
+.dapp-theme .route-volunteers .popup-title {
+    font-size: 16px;
+    color: #438699;
+}
+.dapp-theme .route-volunteers .popup-sub-title {
+    font-size: 15px;
+}
+.dapp-theme .route-volunteers .popup-buttons .button.button-positive {
+    color: #fff;
+    background-color: #438699;
+}
+.dapp-theme .route-volunteers .popup-buttons .button.button-default {
+    color: #fff;
+    background-color: #B0BEC5;
+}
+.dapp-theme .route-volunteer-list .item {
+    border-width: 0px;
+}
 
 /* Test parte route */
+
 #route-open-button-div {
     height: 25px;
     width: 100%;
@@ -305,12 +354,12 @@
     width: 100%;
 }
 .route-open-button-inner {
-    width:100px;
-    height:100px;
+    width: 100px;
+    height: 100px;
     background-color: #C6DAE0;
     border-radius: 50px;
     text-align: center;
-    padding-top:75px;
+    padding-top: 75px;
     margin: auto;
     color: #438699;
 }
@@ -328,18 +377,16 @@
     width: 100%;
 }
 .route-button-inner {
-    width:100px;
-    height:100px;
+    width: 100px;
+    height: 100px;
     background-color: #C6DAE0;
     border-radius: 50px;
     text-align: center;
-    padding-top:0px;
+    padding-top: 0px;
     margin: auto;
     color: #438699;
 }
-
 .route-driver {
     height: 300px;
     overflow-y: scroll;
 }
-

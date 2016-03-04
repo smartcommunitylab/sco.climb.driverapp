@@ -7,9 +7,10 @@ angular.module('driverapp.services.config', [])
     config.EVENTS_SERVER_URL = CONF.EVENTS_SERVER_URL;
     config.OWNER_ID = CONF.OWNER_ID;
     config.X_ACCESS_TOKEN = CONF.X_ACCESS_TOKEN;
-    config.GPS_DELAY = CONF.GPS_DELAY;
-    config.NETWORKSTATE_DELAY = CONF.NETWORKSTATE_DELAY;
-    config.NODESTATE_TIMEOUT = CONF.NODESTATE_TIMEOUT;
+
+    config.GPS_DELAY = 5000;
+    config.NETWORKSTATE_DELAY = 3000;
+    config.NODESTATE_TIMEOUT = 6000;
 
     config.HTTP_CONFIG = {
         timeout: 5000,
