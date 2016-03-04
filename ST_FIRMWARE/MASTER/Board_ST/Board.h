@@ -220,6 +220,8 @@ typedef enum CC2650_UdmaName {
     CC2650_UDMACOUNT
 } CC2650_UdmaName;
 
+
+
 #ifdef __cplusplus
 }
 #endif

@@ -170,6 +170,7 @@ angular.module('driverapp.controllers.route', [])
                 // Arriva
                 $scope.onBoard.forEach(function (passengerId) {
                     var child = $scope.getChild(passengerId);
+                    AESrv.nodeAtDestination(child);
                     AESrv.nodeCheckout(child);
                     if (!!child.wsnId) {
                         WSNSrv.checkoutChild(child.wsnId);

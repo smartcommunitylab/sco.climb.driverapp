@@ -114,7 +114,7 @@ static CONST gattAttrType_t climbProfileService = { ATT_BT_UUID_SIZE, ClimbProfi
 static uint8 climbProfileChar1Props = GATT_PROP_NOTIFY | GATT_PROP_READ;// | GATT_PROP_WRITE;
 
 // Characteristic 1 Value
-static uint8 climbProfileChar1[CLIMBPROFILE_CHAR1_LEN]; //FORSE SI PUo' EVITARE DI ALLORARE SPAZIO QUA
+static uint8 climbProfileChar1[20];//CLIMBPROFILE_CHAR1_LEN]; //FORSE SI PUo' EVITARE DI ALLORARE SPAZIO QUA
 
 // Simple Profile Characteristic 1 User Description
 static uint8 climbProfileChar1UserDesp[5] = "CIPO";
@@ -322,7 +322,7 @@ bStatus_t ClimbProfile_SetParameter(uint8 param, uint8 len, void *value) {
 	case CLIMBPROFILE_CHAR1: //NO CHECK ON CCCD IS PERFORMED!!!
 
 		if (len <= CLIMBPROFILE_CHAR1_LEN) {
-			VOID memcpy(climbProfileChar1, value, len); //save locally
+			//VOID memcpy(climbProfileChar1, value, len); //save locally
 
 			attHandleValueNoti_t noti;
 			bStatus_t status = SUCCESS;
