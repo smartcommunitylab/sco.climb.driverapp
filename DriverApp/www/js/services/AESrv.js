@@ -4,7 +4,7 @@ angular.module('driverapp.services.ae', [])
     var AE = {
         NODE_CHECKIN: 102,
         NODE_CHECKOUT: 103,
-        //NODE_AT_DESTINATION: 104,
+        NODE_AT_DESTINATION: 104,
         NODE_OUT_OF_RANGE: 105,
         STOP_REACHED: 202,
         SET_DRIVER: 301,
@@ -100,6 +100,21 @@ angular.module('driverapp.services.ae', [])
             }
         };
 
+        aeInstance.events.push(event);
+        return event;
+    };
+
+    /* node at destination */
+    aeService.nodeAtDestination = function (passenger) {
+        var event = {
+            routeId: aeInstance.routeId,
+            wsnNodeId: passenger.wsnId,
+            eventType: AE.NODE_AT_DESTINATION,
+            timestamp: moment().valueOf(),
+            payload: {
+                'passengerId': passenger.objectId
+            }
+        };
         aeInstance.events.push(event);
         return event;
     };
