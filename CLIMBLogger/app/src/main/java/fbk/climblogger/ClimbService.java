@@ -43,6 +43,13 @@ import java.util.UUID;
 
 public class ClimbService extends Service implements ClimbServiceInterface, ClimbNodeTimeout, MonitoredClimbNodeTimeout {
 
+    public final static String ACTION_DATALOG_ACTIVE ="fbk.climblogger.ClimbService.ACTION_DATALOG_ACTIVE";
+    public final static String ACTION_DATALOG_INACTIVE ="fbk.climblogger.ClimbService.ACTION_DATALOG_INACTIVE";
+
+    public final static String EXTRA_STRING ="fbk.climblogger.ClimbService.EXTRA_STRING";
+    public final static String EXTRA_INT_ARRAY ="fbk.climblogger.ClimbService.EXTRA_INT_ARRAY";
+    public final static String EXTRA_BYTE_ARRAY ="fbk.climblogger.ClimbService.EXTRA_BYTE_ARRAY";
+
     private BluetoothDevice  mBTDevice = null;
     private BluetoothGattService mBTService = null;
     private BluetoothGattCharacteristic mCIPOCharacteristic = null, mPICOCharacteristic = null;
