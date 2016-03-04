@@ -81,6 +81,11 @@
 #include "sensor_mpu9250.h"
 #include "sensor_opt3001.h"
 #include "sensor_tmp007.h"
+
+#ifdef HEAPMGR_METRICS
+#include "ICall.h"
+#endif
+
 #ifdef FEATURE_LCD
 #include "devpk_lcd.h"
 #include <stdio.h>
@@ -241,6 +246,7 @@ typedef struct listNode {
 	struct listNode *next;
 } listNode_t;
 
+
 /*********************************************************************
  * LOCAL VARIABLES
  */
@@ -384,7 +390,9 @@ static void Climb_nodeTimeoutCheck();
 static listNode_t* Climb_removeNode(listNode_t* nodeToRemove, listNode_t* previousNode);
 static void Climb_periodicTask();
 #ifdef PRINTF_ENABLED
+#ifndef HEAPMGR_METRICS
 static void Climb_printfNodeInfo(gapDeviceInfoEvent_t *gapDeviceInfoEvent );
+#endif
 #endif
 #ifdef WORKAROUND
 static void Climb_epochStartHandler();
@@ -406,7 +414,11 @@ static void displayInit(void);
 ////GENERIC SUPPORT FUNCTIONS
 static uint8_t SimpleBLEPeripheral_enqueueMsg(uint8_t event, uint8_t state, uint8_t *pData);
 static void Climb_clockHandler(UArg arg);
+
+
 static uint8 memcomp(uint8 * str1, uint8 * str2, uint8 len);
+
+static void plotHeapMetrics();
 
 /*********************************************************************
  * PROFILE CALLBACKS
@@ -654,6 +666,9 @@ static void SimpleBLEPeripheral_init(void) {
 
 	GAPRole_RegisterAppCBs(&gapRoleUpdateConnParam_CB);
 
+#ifdef PRINTF_ENABLED
+	System_printf("I'm working!\n\n");
+#endif
 }
 
 /*********************************************************************
@@ -753,6 +768,7 @@ static void SimpleBLEPeripheral_taskFxn(UArg a0, UArg a1) {
 
 			isBroadcastMessageValid = FALSE;
 		}
+
 #ifdef WORKAROUND
 		if (events & EPOCH_EVT) {
 			events &= ~EPOCH_EVT;
@@ -1078,7 +1094,7 @@ static void SimpleBLEPeripheral_freeAttRsp(uint8_t status) {
 static void BLE_ConnectionEventHandler(void) {
 
 	if(ready){
-		Climb_contactsCheckSendThroughGATT();
+		Climb_contactsCheckSendThroughGATT(); //move this to "preConnectionEvt"
 	}
 
 	// See if there's a pending ATT Response to be transmitted
@@ -1274,7 +1290,6 @@ static void Climb_contactsCheckSendThroughGATT(void) {
 			}
 			gattUpdateReq = FALSE;
 		}
-
 		ICall_free(childrenNodesData);
 	} else { //childrenNodesData not allocated
 		PIN_setOutputValue(hGpioPin, Board_LED1, Board_LED_ON);
@@ -1489,7 +1504,9 @@ static void Climb_processRoleEvent(gapObserverRoleEvent_t *pEvent) {
 				if (nodeType == CLIMB_CHILD_NODE) {
 					//Climb_contactsCheckSendThroughGATT();
 #ifdef PRINTF_ENABLED
+#ifndef HEAPMGR_METRICS
 					Climb_printfNodeInfo(&pEvent->deviceInfo);
+#endif
 #endif
 				}
 
@@ -1577,7 +1594,7 @@ static ClimbNodeType_t isClimbNode(gapDeviceInfoEvent_t *gapDeviceInfoEvent_a) {
  */
 static void Climb_addNodeDeviceInfo(gapDeviceInfoEvent_t *gapDeviceInfoEvent, ClimbNodeType_t nodeType) {
 
-	if (nodeType == CLIMB_CHILD_NODE && Climb_isMyChild(gapDeviceInfoEvent->pEvtData[ADV_PKT_ID_OFFSET])) {
+	if (nodeType == CLIMB_CHILD_NODE){// && Climb_isMyChild(gapDeviceInfoEvent->pEvtData[ADV_PKT_ID_OFFSET])) {
 
 		listNode_t* node_position = Climb_findNodeByDevice(gapDeviceInfoEvent, nodeType);
 
@@ -1591,7 +1608,12 @@ static void Climb_addNodeDeviceInfo(gapDeviceInfoEvent_t *gapDeviceInfoEvent, Cl
 			Climb_updateNodeMetadata(gapDeviceInfoEvent, node_position);
 		}
 
+
+
+	}else if(nodeType == CLIMB_MASTER_NODE){ //do anything???
+
 	}
+
 	return;
 }
 
@@ -1953,9 +1975,13 @@ static listNode_t* Climb_removeNode(listNode_t* nodeToRemove, listNode_t* previo
  */
 static void Climb_periodicTask() {
 	Climb_nodeTimeoutCheck();
+
+	plotHeapMetrics();
+
 }
 
 #ifdef PRINTF_ENABLED
+#ifndef HEAPMGR_METRICS
 static void Climb_printfNodeInfo(gapDeviceInfoEvent_t *gapDeviceInfoEvent ){
 	static uint8 usbPktsCounter = 0;
 	uint32 nowTicks = Clock_getTicks();
@@ -1966,6 +1992,7 @@ static void Climb_printfNodeInfo(gapDeviceInfoEvent_t *gapDeviceInfoEvent ){
 	//System_printf(" CLIMBD ADV %02x %02x%02x%02x\n",usbPktsCounter++, gapDeviceInfoEvent->pEvtData[12] ,gapDeviceInfoEvent->pEvtData[30] );
 
 }
+#endif
 #endif
 #ifdef WORKAROUND
 /*********************************************************************
@@ -2256,6 +2283,7 @@ static void Climb_clockHandler(UArg arg) {
 	Semaphore_post(sem);
 }
 
+
 /*********************************************************************
  * @fn      memcomp
  *
@@ -2273,6 +2301,27 @@ static uint8 memcomp(uint8 * str1, uint8 * str2, uint8 len) { //come memcmp (ma 
 		}
 	}
 	return 0;
+}
+
+
+static void plotHeapMetrics(){
+#ifdef  HEAPMGR_METRICS
+#ifdef PRINTF_ENABLED
+	System_printf("Metrics:\n");
+#endif
+	uint16_t pBlkMax[1];
+	uint16_t pBlkCnt[1];
+	uint16_t pBlkFree[1];
+	uint16_t pMemAlo[1];
+	uint16_t pMemMax[1];
+	uint16_t pMemUb[1];
+	uint16_t pFailAm[1];
+	ICall_heapGetMetrics(pBlkMax, pBlkCnt,pBlkFree,pMemAlo,pMemMax,pMemUb,pFailAm);
+
+#ifdef PRINTF_ENABLED
+	System_printf("max cnt of all blocks ever seen at once: %d\ncurrent cnt of all blocks: %d\ncurrent cnt of free blocks: %d\ncurrent total memory allocated: %d\nmax total memory ever allocated at once: %d\nupper bound of memory usage: %d\namount of failed malloc calls: %d\n\n\n", pBlkMax[0], pBlkCnt[0], pBlkFree[0],pMemAlo[0], pMemMax[0], pMemUb[0],pFailAm[0] );
+#endif
+#endif
 }
 /*********************************************************************
  *********************************************************************/

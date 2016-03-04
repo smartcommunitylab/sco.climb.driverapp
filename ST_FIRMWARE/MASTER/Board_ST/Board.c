@@ -54,6 +54,11 @@
 #include <ti/drivers/PIN.h>
 #include "Board.h"
 
+/* Include drivers */
+#include <ti/drivers/UART.h>
+#include <ti/drivers/uart/UARTCC26XX.h>
+
+
 /*
  *  ========================= IO driver initialization =========================
  *  From main, PIN_init(BoardGpioInitTable) should be called to setup safe
@@ -98,9 +103,6 @@ PIN_Config BoardGpioInitTable[] = {
 #pragma DATA_SECTION(uartCC26XXHWAttrs, ".const:uartCC26XXHWAttrs")
 #endif
 
-/* Include drivers */
-#include <ti/drivers/UART.h>
-#include <ti/drivers/uart/UARTCC26XX.h>
 
 /* UART objects */
 UARTCC26XX_Object uartCC26XXObjects[CC2650_UARTCOUNT];
@@ -279,3 +281,4 @@ const CryptoCC26XX_Config CryptoCC26XX_config[] = {
     {&cryptoCC26XXObjects[0], &cryptoCC26XXHWAttrs[0]},
     {NULL, NULL}
 };
+
