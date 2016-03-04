@@ -70,7 +70,7 @@
                     <!--<ion-scroll>-->
                     <div class="wiz-scroll-panel">
                     <ion-list scroll="true" >
-                        <ion-checkbox ng-repeat="volunteer in volunteers" ng-if="volunteer !== wizard.driver" ng-model="volunteer.checked">
+                        <ion-checkbox class="checkbox-dapp" ng-repeat="volunteer in volunteers" ng-if="volunteer !== wizard.driver" ng-model="volunteer.checked">
                             {{volunteer.name}}
                         </ion-checkbox>
                     </ion-list>

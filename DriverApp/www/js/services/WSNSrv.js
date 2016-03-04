@@ -47,12 +47,14 @@ angular.module('driverapp.services.wsn', [])
                     if (response.action === wsnService.STATE_CONNECTED_TO_CLIMB_MASTER) {
                         if (response.errorMsg === null || response.errorMsg === undefined) {
                             console.log('### Yippee-ki-yay! Welcome, Master! ###');
+                            $rootScope.masterError = false;
                             wsnService.setNodeList(wsnService.getNodeListByType('child'));
                             wsnService.intervalGetNetworkState = $interval(function () {
                                 wsnService.getNetworkState();
                             }, Config.NETWORKSTATE_DELAY);
                         } else {
                             console.log('/// Master connection timeout! ///');
+                            $rootScope.masterError = true;
                             Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
                         }
                     } else if (response.action === wsnService.STATE_DISCONNECTED_FROM_CLIMB_MASTER) {
@@ -133,10 +135,12 @@ angular.module('driverapp.services.wsn', [])
             window.DriverAppPlugin.connectMaster(
                 masterId,
                 function (procedureStarted) {
+                    $rootScope.masterError = false;
                     console.log('connectMaster: ' + procedureStarted);
                     deferred.resolve(procedureStarted);
                 },
                 function (reason) {
+                    $rootScope.masterError = true;
                     console.log('connectMaster: ' + reason);
                     deferred.reject(reason);
                 }

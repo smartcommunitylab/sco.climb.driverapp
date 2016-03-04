@@ -42,6 +42,10 @@ angular.module('driverapp', [
                 function (reason) {}
             );
 
+            $rootScope.exitApp = function () {
+                ionic.Platform.exitApp();
+            };
+
             /*
              * WSN Functions!
              */
@@ -70,6 +74,13 @@ angular.module('driverapp', [
             $rootScope.WSNSrvGetNetworkState = function () {
                 WSNSrv.getNetworkState().then(
                     function (networkState) {},
+                    function (reason) {}
+                );
+            };
+
+            $rootScope.WSNSrvCheckMaster = function (masterId) {
+                WSNSrv.connectMaster(masterId).then(
+                    function (procedureStarted) {},
                     function (reason) {}
                 );
             };
