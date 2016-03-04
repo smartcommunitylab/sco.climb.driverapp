@@ -1027,7 +1027,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     @Override
     public void climbNodeTimedout(ClimbNode node) {
         nodeList.remove(node);
-        broadcastUpdate(ACTION_DEVICE_REMOVED_FROM_LIST);
+        broadcastUpdate(ACTION_DEVICE_REMOVED_FROM_LIST, node.getNodeID());
         Log.d(TAG, "Timeout: node removed with index: " + nodeList.indexOf(node));
     }
 
@@ -1074,7 +1074,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 isMaster, this, this);
                                 //nowMillis);
         nodeList.add(newNode);
-        broadcastUpdate(ACTION_DEVICE_ADDED_TO_LIST);
+        broadcastUpdate(ACTION_DEVICE_ADDED_TO_LIST, newNode.getNodeID());
         Log.d(TAG, "Node added with index: " + nodeList.indexOf(newNode));
         return true;
     }
