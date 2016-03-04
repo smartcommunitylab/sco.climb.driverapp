@@ -570,7 +570,12 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 };
                 mHandler.postDelayed(connectMasterCB, ConfigVals.CONNECT_TIMEOUT);
             } else {
-                return false;
+                if (connectMasterCB == null) {
+                    broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, master, true, "Already connected"); //TODO: we are fireing the intent before returning true. Possible race condition?
+                    return true; //already connected
+                } else { //connection in progress, do not accept another one
+                    return false;
+                }
             }
         } else {
             return false;
