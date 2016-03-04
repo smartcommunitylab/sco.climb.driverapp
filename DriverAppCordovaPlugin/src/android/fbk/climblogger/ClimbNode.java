@@ -140,9 +140,9 @@
             }
 
             public MonitoredClimbNode getChildByID(String id) {
-                for(int i = 0; i < onBoardChildrenList.size(); i++){
-                    if( onBoardChildrenList.get(i).getNodeIDString().equals(id) ){
-                        return onBoardChildrenList.get(i);
+                for(MonitoredClimbNode n : onBoardChildrenList){
+                    if( n.getNodeIDString().equals(id) ){
+                        return n;
                     }
                 }
 
@@ -257,8 +257,7 @@
                     } else if (bleDevice.getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {
 
                         if (connectionState) {
-                            for (int i = 0; i < onBoardChildrenList.size(); i++) {
-                                MonitoredClimbNode tempNode = onBoardChildrenList.get(i);
+                            for (MonitoredClimbNode tempNode : onBoardChildrenList) {
                                 description = "Node ID: " + tempNode.getNodeIDString();
                                 description += "\nState: " + stateToString(tempNode.getNodeState());
                                 neighbourList.add(description);

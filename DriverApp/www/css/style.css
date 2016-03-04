@@ -4,6 +4,7 @@
 .dapp-theme .warning {
     color: #ff0000;
 }
+
 /* Components */
 
 .dapp-theme .button.button-dapp {
@@ -37,16 +38,6 @@
 .dapp-theme .checkbox-dapp input:checked + .checkbox-icon:before {
     background: #f29100;
     border-color: #f29100;
-}
-.dapp-theme .btn-enroute {
-    width: 27%;
-    position: absolute;
-    left: 70%;
-    margin-top: 2px;
-    z-index: 1000;
-    box-shadow: 2px 5px 1px #888888;
-    min-height: 30px;
-    max-height: 38px;
 }
 
 /* Menu Bar */
@@ -113,27 +104,31 @@
 
 /* Route components */
 
-.dapp-theme .button-route-balanced {
-    border-color: #439981;
-    background-color: #439981;
-    color: #FFFFFF;
+.dapp-theme .button.button-enroute {
+    width: 27%;
+    position: absolute;
+    left: 70%;
+    margin-top: 2px;
+    z-index: 1000;
+    box-shadow: 2px 5px 1px #888888;
+    min-height: 30px;
+    max-height: 38px;
 }
-.dapp-theme .button-route-assertive {
+.dapp-theme .button.button-enroute.still {
+    border-color: transparent;
+    background-color: #439981;
+    color: #fff;
+}
+.dapp-theme .button.button-enroute.moving {
     border-color: #E53935;
     background-color: #E53935;
-    color: #FFFFFF;
+    color: #fff;
 }
-.dapp-theme .button-route-outline {
+.dapp-theme .button.button-enroute.finished {
     border-color: #439981;
     background-color: transparent;
     color: #439981;
     box-shadow: none;
-}
-.dapp-theme .button.button-invisible {
-    border-color: transparent;
-    background-color: #ffffff;
-    color: #f29100;
-    padding-top: 10px;
 }
 .dapp-theme .button.button-passenger {
     border-color: transparent;
@@ -247,9 +242,11 @@
     bottom: 5px;
     left: 5px;
 }
-.dapp-theme .item.route-passenger {
-    padding-top: 25px;
-    min-height: 70px;
+.dapp-theme .item.item-route-passenger {
+    line-height: 45px;
+}
+.dapp-theme .item.item-route-passenger .button {
+    padding-top: 15px;
 }
 .dapp-theme .route-row {
     padding: 1px;

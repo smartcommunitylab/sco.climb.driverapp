@@ -54,7 +54,7 @@ angular.module('driverapp.controllers.route', [])
                             if (ns[nodeId].status == WSNSrv.STATUS_NEW) {
                                 // new node?
                                 if (oldNs[nodeId].status == '') {
-                                    AESrv.nodeInRange(nodeId, ns[nodeId].timestamp);
+                                    AESrv.nodeInRange(ns[nodeId].object);
                                 }
 
                                 var child = $scope.isChildOfThisStop(nodeId);

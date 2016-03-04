@@ -43,6 +43,13 @@ import java.util.UUID;
 
 public class ClimbService extends Service implements ClimbServiceInterface, ClimbNodeTimeout, MonitoredClimbNodeTimeout {
 
+    public final static String ACTION_DATALOG_ACTIVE ="fbk.climblogger.ClimbService.ACTION_DATALOG_ACTIVE";
+    public final static String ACTION_DATALOG_INACTIVE ="fbk.climblogger.ClimbService.ACTION_DATALOG_INACTIVE";
+
+    public final static String EXTRA_STRING ="fbk.climblogger.ClimbService.EXTRA_STRING";
+    public final static String EXTRA_INT_ARRAY ="fbk.climblogger.ClimbService.EXTRA_INT_ARRAY";
+    public final static String EXTRA_BYTE_ARRAY ="fbk.climblogger.ClimbService.EXTRA_BYTE_ARRAY";
+
     private BluetoothDevice  mBTDevice = null;
     private BluetoothGattService mBTService = null;
     private BluetoothGattCharacteristic mCIPOCharacteristic = null, mPICOCharacteristic = null;
@@ -161,7 +168,13 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.i(TAG, "ClimbService Stopped.");
+        if (mBluetoothGatt != null) {
+            mBluetoothGatt.disconnect();
+            mBluetoothGatt.close();
+            mBluetoothGatt = null;
+        }
+
+            Log.i(TAG, "ClimbService Stopped.");
 
     }
 
@@ -546,15 +559,23 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                     String id = master;
                     @Override
                     public void run() {
-                        mBluetoothGatt.disconnect(); //be consistent, do not try anymore
-                        //mBluetoothGatt = null; //TODO: handled by BluetoothGattCallback?
+                        if (mBluetoothGatt != null) {
+                            mBluetoothGatt.disconnect(); //be consistent, do not try anymore
+                            mBluetoothGatt.close(); //HTC one with android 5.0.2 is not calling the callback after disconnect. Needs to close here
+                            mBluetoothGatt = null;
+                        }
                         Log.i(TAG, "Connect to " + master + " failed: timeout.");
                         broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, id, false, "Connect timed out");
                     }
                 };
                 mHandler.postDelayed(connectMasterCB, ConfigVals.CONNECT_TIMEOUT);
             } else {
-                return false;
+                if (connectMasterCB == null) {
+                    broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, master, true, "Already connected"); //TODO: we are fireing the intent before returning true. Possible race condition?
+                    return true; //already connected
+                } else { //connection in progress, do not accept another one
+                    return false;
+                }
             }
         } else {
             return false;
@@ -776,8 +797,10 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                     connectMasterCB = null;
                 }
                 //mBluetoothGatt.disconnect();
-                mBluetoothGatt.close();
-                mBluetoothGatt = null;
+                if (mBluetoothGatt != null) {
+                    mBluetoothGatt.close();
+                    mBluetoothGatt = null;
+                }
                 mBTDevice = null;
                 mBTService = null;
                 mCIPOCharacteristic = null;
@@ -1027,7 +1050,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     @Override
     public void climbNodeTimedout(ClimbNode node) {
         nodeList.remove(node);
-        broadcastUpdate(ACTION_DEVICE_REMOVED_FROM_LIST);
+        broadcastUpdate(ACTION_DEVICE_REMOVED_FROM_LIST, node.getNodeID());
         Log.d(TAG, "Timeout: node removed with index: " + nodeList.indexOf(node));
     }
 
@@ -1074,7 +1097,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 isMaster, this, this);
                                 //nowMillis);
         nodeList.add(newNode);
-        broadcastUpdate(ACTION_DEVICE_ADDED_TO_LIST);
+        broadcastUpdate(ACTION_DEVICE_ADDED_TO_LIST, newNode.getNodeID());
         Log.d(TAG, "Node added with index: " + nodeList.indexOf(newNode));
         return true;
     }

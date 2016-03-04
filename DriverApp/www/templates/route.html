@@ -1,10 +1,10 @@
 <ion-view view-title="{{route.name}}">
     <ion-nav-buttons side="right">
-        <button class="button icon ion-person-stalker route-title-button" ng-click="openModal()" ng-disabled="!!enRoute || enRouteArrived" ng-if="fromWizard && !enRoute && enRoutePos==0"></button>
+        <button class="button icon ion-person-stalker route-title-button" ng-click="openModal()" ng-if="fromWizard && !enRoute && enRoutePos == 0"></button>
     </ion-nav-buttons>
     <ion-content class="route-view" scroll="false">
         <!-- class="padding-top  padding-horizontal" ng-class="{'has-subheader': fromWizard}" -->
-        <button class="button btn-enroute" ng-class="{'button-route-balanced': !enRoute, 'button-route-assertive': !!enRoute, 'button-route-outline': !enRoute && !!stops[enRoutePos].school}" ng-click="toggleEnRoute()" ng-if="fromWizard">
+        <button class="button button-enroute" ng-class="{'still': !enRoute, 'moving': !!enRoute, 'finished': !enRoute && !!stops[enRoutePos].school}" ng-click="toggleEnRoute()" ng-if="fromWizard">
             <span ng-if="!enRoute && !!stops[enRoutePos].start">Parti</span>
             <span ng-if="!!enRoute && !stops[enRoutePos + 1].school">Fermati</span>
             <span ng-if="!enRoute && !stops[enRoutePos].start && !stops[enRoutePos].school">Riparti</span>
@@ -76,10 +76,10 @@
                 </ion-list>-->
                 <ion-scroll scroll-height class="passenger-list">
                     <!-- wsnId -->
-                    <ion-item class="item item-avatar item-button-right route-passenger" ng-repeat="passenger in sel.stop.passengers" ng-if="(onBoard.indexOf(passenger.objectId) === -1) && (onBoardTemp.indexOf(passenger.objectId) === -1)" ng-click="showChildDetails(passenger)">
+                    <ion-item class="item item-avatar item-button-right item-route-passenger" ng-repeat="passenger in sel.stop.passengers" ng-if="(onBoard.indexOf(passenger.objectId) === -1) && (onBoardTemp.indexOf(passenger.objectId) === -1)" ng-click="showChildDetails(passenger)">
                         <img ng-if="!passenger.wsnId" src="img/rt_placeholder_child.png">
                         <img ng-if="passenger.wsnId" src="img/rt_placeholder_child_it.png"> {{passenger.surname}} {{passenger.name}}
-                        <button class="button button-invisible" ng-click="takeOnBoard(passenger.objectId)" ng-disabled="!!enRoute || sel.stop !== stops[enRoutePos] || enRouteArrived" ng-if="fromWizard">
+                        <button class="button button-dapp button-clear" ng-click="takeOnBoard(passenger.objectId)" ng-disabled="!!enRoute || sel.stop !== stops[enRoutePos] || enRouteArrived" ng-if="fromWizard">
                             <i class="icon ion-ios-checkmark"></i>
                         </button>
                     </ion-item>
