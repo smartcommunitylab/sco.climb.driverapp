@@ -168,7 +168,13 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.i(TAG, "ClimbService Stopped.");
+        if (mBluetoothGatt != null) {
+            mBluetoothGatt.disconnect();
+            mBluetoothGatt.close();
+            mBluetoothGatt = null;
+        }
+
+            Log.i(TAG, "ClimbService Stopped.");
 
     }
 
