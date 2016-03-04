@@ -559,8 +559,11 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                     String id = master;
                     @Override
                     public void run() {
-                        mBluetoothGatt.disconnect(); //be consistent, do not try anymore
-                        //mBluetoothGatt = null; //TODO: handled by BluetoothGattCallback?
+                        if (mBluetoothGatt != null) {
+                            mBluetoothGatt.disconnect(); //be consistent, do not try anymore
+                            mBluetoothGatt.close(); //HTC one with android 5.0.2 is not calling the callback after disconnect. Needs to close here
+                            mBluetoothGatt = null;
+                        }
                         Log.i(TAG, "Connect to " + master + " failed: timeout.");
                         broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, id, false, "Connect timed out");
                     }
@@ -789,8 +792,10 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                     connectMasterCB = null;
                 }
                 //mBluetoothGatt.disconnect();
-                mBluetoothGatt.close();
-                mBluetoothGatt = null;
+                if (mBluetoothGatt != null) {
+                    mBluetoothGatt.close();
+                    mBluetoothGatt = null;
+                }
                 mBTDevice = null;
                 mBTService = null;
                 mCIPOCharacteristic = null;
