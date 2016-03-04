@@ -165,14 +165,15 @@ public class ScanActivity extends Activity {
             expandableListAdapter = new MyExpandableListAdapter(mContext, climbNodeList, expandableListDetail);
             expandableListView.setAdapter(expandableListAdapter); // climbNodeList dovrà contenere i nomi dei dispositivi direttamente visibili dallo smartphone
             expandableListAdapter.notifyDataSetChanged();
-/*
-            //crea un adapter per gestire la listView
-            adapter = new ArrayAdapter<ListView>(mContext, android.R.layout.simple_list_item_1, android.R.id.text1,climbNodeList);
 
-            // Assign adapter to ListView
-            listView.setAdapter(adapter);
-            adapter.notifyDataSetChanged();
-*/
+            //not working, it should expand the master list if the screen is tilted, for suggestions see http://stackoverflow.com/questions/14879207/expand-group-row-programmatically-in-expandable-list
+//            if(!climbNodeList.isEmpty()){
+//                ClimbNode node = climbNodeList.get(0);
+//                if(node.isMasterNode() && node.getConnectionState()){
+//                    //expandableListView.expandGroup(0);
+//                }
+//            }
+
             Log.i(TAG, "Service connected!");
         }
 
@@ -293,15 +294,15 @@ public class ScanActivity extends Activity {
                                 mVibrator.vibrate(ConfigVals.vibrationTimeout);
                                 lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
                             } else {
-                                Log.w(TAG, "Check out all not sent!");
-                                log("Check out all not sent!");
+                                Log.w(TAG, "Cmd not sent!");
+                                log("Cmd not sent!");
                             }
                         }else{
                             Log.w(TAG, "Wrong state selected: " + selectedState_i);
                         }
                     } else {
-                        Log.w(TAG, "Check out all not sent!");
-                        log("Check out all not sent!");
+                        Log.w(TAG, "Cmd not sent!");
+                        log("Cmd not sent!");
                     }
 
                 }else{
@@ -319,7 +320,7 @@ public class ScanActivity extends Activity {
                         if(mClimbService.setNewStateToCheckedNodes(selectedState_i, childCheckStates,0)){
                             mVibrator.vibrate(ConfigVals.vibrationTimeout);
                         }else{
-                            Log.i(TAG, "Check out not sent!");
+                            Log.i(TAG, "Cmd not sent!");
                         }
                     }else{
                         Log.w(TAG, "Wrong state selected: " + selectedState_i);

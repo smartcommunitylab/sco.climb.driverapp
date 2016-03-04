@@ -42,7 +42,6 @@
             </div>-->
         </div>
         <div id="route-open-button-div">
-            <!-- ng-if="!isRoutePanelOpen" -->
             <div class="route-open-button-container">
                 <div ng-if="!isRoutePanelOpen" class="route-open-button-inner" ng-click="openRouteView()">
                     <i ng-click="openRouteView()" class="icon ion-chevron-down"></i>
@@ -85,7 +84,7 @@
                     </ion-item>
                 </ion-scroll>
             </div>
-            <!--=======
+            <!--
             <h4>Bambini</h4>
             <ion-list>
                 <ion-item class="item-button-right" ng-repeat="passenger in sel.stop.passengers" ng-if="(onBoard.indexOf(passenger.objectId) === -1) && (onBoardTemp.indexOf(passenger.objectId) === -1)" ng-click="showChildDetails(passenger)">
@@ -95,7 +94,7 @@
                     </button>
                 </ion-item>
             </ion-list>
->>>>>>> origin/master-->
+-->
         </div>
         <div class="on-board-panel" ng-if="fromWizard && mergedOnBoard.length > 0">
             <div class="row on-board-panel-title">

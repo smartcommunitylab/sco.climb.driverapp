@@ -155,7 +155,8 @@
     min-height: 50px;
     width: 100%;
     display: block !important;
-    overflow: scroll !important;
+    overflow-y: scroll !important;
+    overflow-x: hidden !important;
 }
 .dapp-theme .listwrapper-expanded {
     max-height: auto;
@@ -306,6 +307,32 @@
     max-width: 20px;
     max-height: 50px;
 }
+.dapp-theme .route-volunteers .popup {
+    background-color: #fff;
+    min-width: 90%;
+}
+.dapp-theme .route-volunteers .popup-head {
+    min-height: 60px;
+    border-bottom-width: 0px;
+}
+.dapp-theme .route-volunteers .popup-title {
+    font-size: 16px;
+    color: #438699;
+}
+.dapp-theme .route-volunteers .popup-sub-title {
+    font-size: 15px;
+}
+.dapp-theme .route-volunteers .popup-buttons .button.button-positive {
+    color: #fff;
+    background-color: #438699;
+}
+.dapp-theme .route-volunteers .popup-buttons .button.button-default {
+    color: #fff;
+    background-color: #B0BEC5;
+}
+.dapp-theme .route-volunteer-list .item {
+    border-width: 0px;
+}
 
 /* Test parte route */
 
@@ -354,4 +381,8 @@
     padding-top: 0px;
     margin: auto;
     color: #438699;
+}
+.route-driver {
+    height: 300px;
+    overflow-y: scroll;
 }

@@ -58,6 +58,15 @@
 #include <ti/drivers/UART.h>
 #include <ti/drivers/uart/UARTCC26XX.h>
 
+/* timer drivers */
+#include <ti/drivers/PWM2.h>
+#include <ti/drivers/pwm/PWMCC26XX.h>
+#include <ti/drivers/timer/GPTimerCC26XX.h>
+
+#include <ti/sysbios/family/arm/cc26xx/PowerCC2650.h>
+#include <inc/hw_ints.h>
+
+
 
 /*
  *  ========================= IO driver initialization =========================
@@ -282,3 +291,70 @@ const CryptoCC26XX_Config CryptoCC26XX_config[] = {
     {NULL, NULL}
 };
 
+
+
+/*
+ *  ========================== Timer begin =======================================
+*/
+
+
+// GPTimer hardware attributes, one per timer unit (Timer 0A, 0B, 1A, 1B..)
+const GPTimerCC26XX_HWAttrs gptimerCC26xxHWAttrs[CC2650_GPTIMERUNITSCOUNT] = {
+    {.baseAddr = GPT0_BASE, .intNum = INT_TIMER0A, .intPriority = (~0), .powerMngrId = PERIPH_GPT0, .pinMux = GPT_PIN_0A, },
+    {.baseAddr = GPT0_BASE, .intNum = INT_TIMER0B, .intPriority = (~0), .powerMngrId = PERIPH_GPT0, .pinMux = GPT_PIN_0B, },
+//  {.baseAddr = GPT1_BASE, .intNum = INT_TIMER1A, .intPriority = (~0), .powerMngrId = PERIPH_GPT1, .pinMux = GPT_PIN_1A, },
+//  {.baseAddr = GPT1_BASE, .intNum = INT_TIMER1B, .intPriority = (~0), .powerMngrId = PERIPH_GPT1, .pinMux = GPT_PIN_1B, },
+//  {.baseAddr = GPT2_BASE, .intNum = INT_TIMER2A, .intPriority = (~0), .powerMngrId = PERIPH_GPT2, .pinMux = GPT_PIN_2A, },
+//  {.baseAddr = GPT2_BASE, .intNum = INT_TIMER2B, .intPriority = (~0), .powerMngrId = PERIPH_GPT2, .pinMux = GPT_PIN_2B, },
+//  {.baseAddr = GPT3_BASE, .intNum = INT_TIMER3A, .intPriority = (~0), .powerMngrId = PERIPH_GPT3, .pinMux = GPT_PIN_3A, },
+//  {.baseAddr = GPT3_BASE, .intNum = INT_TIMER3B, .intPriority = (~0), .powerMngrId = PERIPH_GPT3, .pinMux = GPT_PIN_3B, },
+};
+
+// GPTimer objects, one per full-width timer (A+B) (Timer 0, Timer 1..)
+GPTimerCC26XX_Object gptimerCC26XXObjects[CC2650_GPTIMERCOUNT];
+
+// GPTimer configuration (used as GPTimer_Handle by driver and application)
+const GPTimerCC26XX_Config GPTimerCC26XX_config[CC2650_GPTIMERUNITSCOUNT] = {
+    { &gptimerCC26XXObjects[0], &gptimerCC26xxHWAttrs[0], GPT_A},
+    { &gptimerCC26XXObjects[0], &gptimerCC26xxHWAttrs[1], GPT_B},
+//  { &gptimerCC26XXObjects[1], &gptimerCC26xxHWAttrs[2], GPT_A},
+//  { &gptimerCC26XXObjects[1], &gptimerCC26xxHWAttrs[3], GPT_B},
+//  { &gptimerCC26XXObjects[2], &gptimerCC26xxHWAttrs[4], GPT_A},
+//  { &gptimerCC26XXObjects[2], &gptimerCC26xxHWAttrs[5], GPT_B},
+//  { &gptimerCC26XXObjects[3], &gptimerCC26xxHWAttrs[6], GPT_A},
+//  { &gptimerCC26XXObjects[3], &gptimerCC26xxHWAttrs[7], GPT_B},
+};
+
+// PWM configuration, one per PWM output
+PWMCC26XX_HwAttrs pwmCC26xxHWAttrs[CC2650_PWMCOUNT] = {
+    { .pwmPin = Board_PWMPIN0, .gpTimerUnit = CC2650_GPTIMER0A } ,
+    { .pwmPin = Board_PWMPIN1, .gpTimerUnit = CC2650_GPTIMER0B } ,
+//  { .pwmPin = Board_PWMPIN2, .gpTimerUnit = CC2650_GPTIMER1A } ,
+//  { .pwmPin = Board_PWMPIN3, .gpTimerUnit = CC2650_GPTIMER1B } ,
+//  { .pwmPin = Board_PWMPIN4, .gpTimerUnit = CC2650_GPTIMER2A } ,
+//  { .pwmPin = Board_PWMPIN5, .gpTimerUnit = CC2650_GPTIMER2B } ,
+//  { .pwmPin = Board_PWMPIN6, .gpTimerUnit = CC2650_GPTIMER3A } ,
+//  { .pwmPin = Board_PWMPIN7, .gpTimerUnit = CC2650_GPTIMER3B } ,
+};
+
+// PWM object, one per PWM output
+PWMCC26XX_Object pwmCC26xxObjects[CC2650_PWMCOUNT];
+
+
+extern const PWM_FxnTable PWMCC26XX_fxnTable;
+//PWM configuration (used as PWM_Handle by driver and application)
+const PWM_Config PWM_config[CC2650_PWMCOUNT+1] = {
+  { &PWMCC26XX_fxnTable, &pwmCC26xxObjects[0], &pwmCC26xxHWAttrs[0] },
+  { &PWMCC26XX_fxnTable, &pwmCC26xxObjects[1], &pwmCC26xxHWAttrs[1] },
+//  { &PWMCC26XX_fxnTable, &pwmCC26xxObjects[2], &pwmCC26xxHWAttrs[2] },
+//  { &PWMCC26XX_fxnTable, &pwmCC26xxObjects[3], &pwmCC26xxHWAttrs[3] },
+//  { &PWMCC26XX_fxnTable, &pwmCC26xxObjects[4], &pwmCC26xxHWAttrs[4] },
+//  { &PWMCC26XX_fxnTable, &pwmCC26xxObjects[5], &pwmCC26xxHWAttrs[5] },
+//  { &PWMCC26XX_fxnTable, &pwmCC26xxObjects[6], &pwmCC26xxHWAttrs[6] },
+//  { &PWMCC26XX_fxnTable, &pwmCC26xxObjects[7], &pwmCC26xxHWAttrs[7] },
+  { NULL,               NULL,                 NULL                 }
+};
+
+/*
+ *  ========================== Timer end =========================================
+*/
