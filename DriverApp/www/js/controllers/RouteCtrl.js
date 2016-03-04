@@ -375,4 +375,36 @@ angular.module('driverapp.controllers.route', [])
         $scope.isRoutePanelOpen= false;
     }
 
+    $scope.selectDriverPopup = function (rt) {
+        $scope.volunteers = StorageSrv.getVolunteers();
+        var driverPopup = $ionicPopup.show({
+            templateUrl: 'templates/route_popup_driver.html',
+            title: 'Accompagnatori<br/>' + rt.name,
+            /*subTitle: rt.name,*/
+            scope: $scope,
+            buttons: [{
+                text: 'Annulla',
+            },{
+                text: 'OK',
+                onTap: function(e) {
+                    $scope.selectDrivers($scope.volunteers);
+                }
+            }]
+        });
+
+        $scope.selectDrivers = function (volunteers) {
+            $scope.selectedVolunteers = [];
+            for(var i = 0; i < volunteers.length; i++){
+                if(volunteers[i].checked){
+                    $scope.selectedVolunteers.push(volunteers[i]);
+                }
+            }
+            driverPopup.close();
+        };
+    };
+
+    $scope.getVolunteersFromLine = function(route){
+
+    };
+
 });

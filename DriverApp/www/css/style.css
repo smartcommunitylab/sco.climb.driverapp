@@ -10,6 +10,7 @@
     box-shadow: 2px 5px 1px #888888;
     min-height: 30px;
     max-height: 38px;
+    font-size: 15px;
 }
 .dapp-theme .dapp-menu {
     color: #fff;
@@ -138,7 +139,8 @@
     min-height: 50px;
     width:100%;
     display:block !important;
-    overflow:scroll !important;
+    overflow-y:scroll !important;
+    overflow-x: hidden !important;
 }
 .dapp-theme .listwrapper-expanded {
     max-height: auto;
@@ -334,5 +336,10 @@
     padding-top:0px;
     margin: auto;
     color: #438699;
+}
+
+.route-driver {
+    height: 300px;
+    overflow-y: scroll;
 }
 

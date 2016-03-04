@@ -1,6 +1,6 @@
 <ion-view view-title="{{route.name}}">
     <ion-nav-buttons side="right">
-         <button class="button icon ion-person-stalker route-title-button" ng-click="openModal()" ng-disabled="!!enRoute || enRouteArrived" ng-if="fromWizard && !enRoute && enRoutePos==0"></button>
+         <button class="button icon ion-person-stalker route-title-button" ng-click="selectDriverPopup(route)" ng-disabled="!!enRoute || enRouteArrived" ></button><!-- ng-if="fromWizard && !enRoute && enRoutePos==0" -->
     </ion-nav-buttons>
     <ion-content class="route-view" scroll="false" ><!-- class="padding-top  padding-horizontal" ng-class="{'has-subheader': fromWizard}" -->
         <button class="button btn-enroute" ng-class="{'button-route-balanced': !enRoute, 'button-route-assertive': !!enRoute, 'button-route-outline': !enRoute && !!stops[enRoutePos].school}" ng-click="toggleEnRoute()" ng-if="fromWizard">
@@ -18,8 +18,6 @@
                     <img ng-if="stop.position > sel.stop.position" src="img/rt_poi_outline.png">
                     </div>
                     <div class="text-background">
-                    <!-- 'ion-record': stop.position <= sel.stop.position, 'ion-android-radio-button-off': stop.position > sel.stop.position , -->
-                    <!--<i class="icon" ng-class="{'line-background-first': stop.position==1, 'line-background-last': stop.position==stops.length, 'line-background': stop.position > 1 && stop.position < stops.length}"></i>-->
                     {{stop.name}}
                     </div>
                 </ion-item>
@@ -40,7 +38,7 @@
                 </div>
             </div>-->
         </div>
-        <div id="route-open-button-div"><!-- ng-if="!isRoutePanelOpen" -->
+        <div id="route-open-button-div">
             <div class="route-open-button-container">
                 <div ng-if="!isRoutePanelOpen" class="route-open-button-inner" ng-click="openRouteView()">
                     <i ng-click="openRouteView()" class="icon ion-chevron-down"></i>
@@ -82,17 +80,6 @@
                     </ion-item>
                 </ion-scroll>
             </div>
-<!--=======
-            <h4>Bambini</h4>
-            <ion-list>
-                <ion-item class="item-button-right" ng-repeat="passenger in sel.stop.passengers" ng-if="(onBoard.indexOf(passenger.objectId) === -1) && (onBoardTemp.indexOf(passenger.objectId) === -1)" ng-click="showChildDetails(passenger)">
-                    {{passenger.surname}} {{passenger.name}}
-                    <button class="button" ng-click="takeOnBoard(passenger.objectId)" ng-disabled="stops.indexOf(sel.stop) != enRoutePos || !!enRoute || enRouteArrived" ng-if="fromWizard">
-                        <i class="icon ion-plus"></i>
-                    </button>
-                </ion-item>
-            </ion-list>
->>>>>>> origin/master-->
         </div>
         <div class="on-board-panel" ng-if="fromWizard && mergedOnBoard.length > 0">
             <div class="row on-board-panel-title">
