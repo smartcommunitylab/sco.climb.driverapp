@@ -141,10 +141,11 @@ angular.module('driverapp.controllers.wizard', [])
             if ($scope.wizard.driver.wsnId !== null && $scope.wizard.driver.wsnId.length > 0) {
                 WSNSrv.connectMaster($scope.wizard.driver.wsnId).then(
                     function (procedureStarted) {
-                        console.log('connectMaster: ' + procedureStarted + ' (request sent)');
+                        console.log('connectMaster: ' + procedureStarted);
                     },
                     function (reason) {
-                        console.log(reason);
+                        Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
+                        console.log('connectMaster: ' + reason);
                     }
                 );
             }

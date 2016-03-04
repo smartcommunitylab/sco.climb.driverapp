@@ -70,7 +70,11 @@ public class DriverAppPlugin extends CordovaPlugin {
 				String masterId = data.getString(0);
 				boolean procedureStarted = mClimbService.connectMaster(masterId);
 				Log.w(LOG_TAG, "connectMaster: " + procedureStarted + " (" + masterId + ")");
-				callbackContext.success("" + procedureStarted);
+				if (procedureStarted) {
+					callbackContext.success(String.valueOf(procedureStarted));
+				} else {
+					callbackContext.error(String.valueOf(procedureStarted));
+				}
 				return true;
 			}
 		}
@@ -157,7 +161,11 @@ public class DriverAppPlugin extends CordovaPlugin {
 				String childId = data.getString(0);
 				boolean procedureStarted = mClimbService.checkinChild(childId);
 				Log.w(LOG_TAG, "checkinChild: " + procedureStarted + " (" + childId + ")");
-				callbackContext.success("" + procedureStarted);
+				if (procedureStarted) {
+					callbackContext.success(String.valueOf(procedureStarted));
+				} else {
+					callbackContext.error(String.valueOf(procedureStarted));
+				}
 				return true;
 			}
 		}
@@ -171,7 +179,11 @@ public class DriverAppPlugin extends CordovaPlugin {
 				}
 				boolean procedureStarted = mClimbService.checkinChildren(childrenIds);
 				Log.w(LOG_TAG, "checkinChildren: " + procedureStarted + " (" + childrenIds + ")");
-				callbackContext.success("" + procedureStarted);
+				if (procedureStarted) {
+					callbackContext.success(String.valueOf(procedureStarted));
+				} else {
+					callbackContext.error(String.valueOf(procedureStarted));
+				}
 				return true;
 			}
 		}
@@ -181,7 +193,11 @@ public class DriverAppPlugin extends CordovaPlugin {
 				String childId = data.getString(0);
 				boolean procedureStarted = mClimbService.checkoutChild(childId);
 				Log.w(LOG_TAG, "checkoutChild: " + procedureStarted + " (" + childId + ")");
-				callbackContext.success("" + procedureStarted);
+				if (procedureStarted) {
+					callbackContext.success(String.valueOf(procedureStarted));
+				} else {
+					callbackContext.error(String.valueOf(procedureStarted));
+				}
 				return true;
 			}
 		}
@@ -195,7 +211,11 @@ public class DriverAppPlugin extends CordovaPlugin {
 				}
 				boolean procedureStarted = mClimbService.checkoutChildren(childrenIds);
 				Log.w(LOG_TAG, "checkoutChildren: " + procedureStarted + " (" + childrenIds + ")");
-				callbackContext.success("" + procedureStarted);
+				if (procedureStarted) {
+					callbackContext.success(String.valueOf(procedureStarted));
+				} else {
+					callbackContext.error(String.valueOf(procedureStarted));
+				}
 				return true;
 			}
 		}
