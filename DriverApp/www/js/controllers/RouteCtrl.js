@@ -376,8 +376,8 @@ angular.module('driverapp.controllers.route', [])
         $scope.isRoutePanelOpen= false;
     }
 
-    $scope.selectDriverPopup = function (rt) {
-        $scope.volunteers = StorageSrv.getVolunteers();
+    $scope.selectDriverPopup = function(rt, driv, help) {
+        $scope.volunteers = $scope.getDriverAndVolunteers(StorageSrv.getVolunteers(), driv, help);
         var driverPopup = $ionicPopup.show({
             templateUrl: 'templates/route_popup_driver.html',
             title: 'Accompagnatori<br/>' + rt.name,
@@ -400,12 +400,41 @@ angular.module('driverapp.controllers.route', [])
                     $scope.selectedVolunteers.push(volunteers[i]);
                 }
             }
+            $scope.helpers = $scope.selectedVolunteers;     // here I align the helpers
             driverPopup.close();
         };
     };
 
-    $scope.getVolunteersFromLine = function(route){
-
+    $scope.getDriverAndVolunteers = function(all, driv, help){
+        var drv = null;
+        var hlps = [];
+        for(var i = 0; i < all.length; i++){
+            if(all[i].objectId == driv.objectId){
+                drv = driv;
+                drv.checked = true;
+                all.splice(i, 1);   // remove from arr
+                if(i > 0){
+                    i-=1;   // move i to back
+                }
+            }
+            for(var h = 0; h < help.length; h++){
+                if(all[i].objectId == help[h].objectId){
+                    var hlp = help[h];
+                    hlp.checked = true;
+                    hlp.ordered = 0;    // used only in list ordering
+                    hlps.push(hlp);
+                    all.splice(i, 1);   // remove from arr
+                    if(i > 0){
+                        i -=1;  // move i to back;
+                    }
+                }
+            }
+        }
+        for(var i = 0; i < hlps.length; i++){
+            all.splice(0, 0,hlps[i]);
+        }
+        //all.splice(0, 0,drv); // add the driver
+        return all;
     };
 
 });
