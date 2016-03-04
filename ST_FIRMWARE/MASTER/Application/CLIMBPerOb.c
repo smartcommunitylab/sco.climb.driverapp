@@ -82,6 +82,10 @@
 #include "sensor_opt3001.h"
 #include "sensor_tmp007.h"
 
+#include <ti/drivers/timer/GPTimerCC26XX.h>
+#include <xdc/runtime/Types.h>
+#include <ti/sysbios/BIOS.h>
+
 #ifdef HEAPMGR_METRICS
 #include "ICall.h"
 #endif
@@ -201,6 +205,7 @@
 #define RESET_BROADCAST_CMD_EVT				0x0100
 #define EPOCH_EVT							0x0400
 #define PRE_ADV_EVT					0x1000
+#define WATCHDOG_EVT				0x2000
 /*********************************************************************
  * TYPEDEFS
  */
@@ -347,6 +352,10 @@ static uint8 mtu_size = 23;
 static uint8 ready = FALSE;
 
 static uint8 scanning = FALSE;
+
+GPTimerCC26XX_Handle hTimer;
+
+static uint8 unclearedWatchdogEvents = 0;
 /*********************************************************************
  * LOCAL FUNCTIONS
  */
@@ -410,14 +419,15 @@ static void destroyMasterNodeList();
 #ifdef FEATURE_LCD
 static void displayInit(void);
 #endif
+static void watchdogTimerInit();
+static void timerCallback(GPTimerCC26XX_Handle handle, GPTimerCC26XX_IntMask interruptMask);
+
 
 ////GENERIC SUPPORT FUNCTIONS
 static uint8_t SimpleBLEPeripheral_enqueueMsg(uint8_t event, uint8_t state, uint8_t *pData);
 static void Climb_clockHandler(UArg arg);
 
-
 static uint8 memcomp(uint8 * str1, uint8 * str2, uint8 len);
-
 static void plotHeapMetrics();
 
 /*********************************************************************
@@ -666,6 +676,8 @@ static void SimpleBLEPeripheral_init(void) {
 
 	GAPRole_RegisterAppCBs(&gapRoleUpdateConnParam_CB);
 
+	watchdogTimerInit();
+
 #ifdef PRINTF_ENABLED
 	System_printf("I'm working!\n\n");
 #endif
@@ -767,6 +779,13 @@ static void SimpleBLEPeripheral_taskFxn(UArg a0, UArg a1) {
 			events &= ~RESET_BROADCAST_CMD_EVT;
 
 			isBroadcastMessageValid = FALSE;
+		}
+
+		if (events & WATCHDOG_EVT) {
+
+			unclearedWatchdogEvents = 0;
+			events &= ~WATCHDOG_EVT;
+
 		}
 
 #ifdef WORKAROUND
@@ -1700,6 +1719,7 @@ static listNode_t* Climb_addNode(gapDeviceInfoEvent_t *gapDeviceInfoEvent, Climb
 	new_Node_Ptr->device.rssi = gapDeviceInfoEvent->rssi;
 	new_Node_Ptr->next = NULL; //il nuovo nodo finirà in coda
 	new_Node_Ptr->device.lastContactTicks = Clock_getTicks();
+//TODO: store only the firsts 2 bytes of adv data
 	memcpy(new_Node_Ptr->device.advData, gapDeviceInfoEvent->pEvtData, gapDeviceInfoEvent->dataLen);
 	memcpy(new_Node_Ptr->device.devRec.addr, gapDeviceInfoEvent->addr, B_ADDR_LEN);
 	new_Node_Ptr->device.stateToImpose = (ChildClimbNodeStateType_t) new_Node_Ptr->device.advData[ADV_PKT_STATE_OFFSET];
@@ -2112,6 +2132,8 @@ static void CLIMB_handleKeys(uint8 keys) {
 static void startNode() {
 	if (beaconActive != 1) {
 
+		GPTimerCC26XX_start(hTimer);
+
 		uint8 adv_active = 1;
 		uint8 status = GAPRole_SetParameter(GAPROLE_ADVERT_ENABLED, sizeof(uint8_t), &adv_active);
 
@@ -2141,6 +2163,9 @@ static void startNode() {
  * @return  none
  */
 static void stopNode() {
+
+	GPTimerCC26XX_stop(hTimer);
+
 	beaconActive = 0;
 	GAPObserverRole_CancelDiscovery();
 	scanning = FALSE;
@@ -2240,6 +2265,52 @@ static void displayInit(void) {
 }
 #endif
 
+static void watchdogTimerInit(){
+	GPTimerCC26XX_Params params;
+	GPTimerCC26XX_Params_init(&params);
+	params.width          = GPT_CONFIG_32BIT;
+	params.mode           = GPT_MODE_PERIODIC_UP;
+	params.debugStallMode = GPTimerCC26XX_DEBUG_STALL_OFF;
+	hTimer = GPTimerCC26XX_open(CC2650_GPTIMER0A, &params);
+	if(hTimer == NULL) {
+	    //Log_error0("Failed to open GPTimer");
+	    //Task_exit();
+	}
+
+	Types_FreqHz  freq;
+	BIOS_getCpuFreq(&freq);
+	GPTimerCC26XX_Value loadVal = freq.lo / 1 - 1; //47999999
+	GPTimerCC26XX_setLoadValue(hTimer, loadVal);
+	GPTimerCC26XX_registerInterrupt(hTimer, timerCallback, GPT_INT_TIMEOUT);
+
+}
+
+static void timerCallback(GPTimerCC26XX_Handle handle, GPTimerCC26XX_IntMask interruptMask) {
+
+	switch (unclearedWatchdogEvents) {
+	case 0:
+	case 1:
+		events |= WATCHDOG_EVT;
+		Semaphore_post(sem);
+		break;
+	case 2:
+		//resetApplication?
+		break;
+	default:
+		HAL_SYSTEM_RESET();
+		//or
+		//HCI_EXT_ResetSystemCmd(HCI_EXT_RESET_SYSTEM_HARD);
+
+
+		break;
+	}
+
+	unclearedWatchdogEvents++;
+}
+
+
+
+
 /*********************************************************************
  * @fn      SimpleBLEPeripheral_enqueueMsg
  *
@@ -2282,6 +2353,7 @@ static void Climb_clockHandler(UArg arg) {
 	// Wake up the application.
 	Semaphore_post(sem);
 }
+
 
 
 /*********************************************************************
