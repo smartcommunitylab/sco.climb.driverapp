@@ -19,9 +19,9 @@ public class ConfigVals {
     static Calendar rightNow = Calendar.getInstance(tz);// .getInstance();*/
     public static String folderName = root.getAbsolutePath()+	"/CLIMB_log_data/"+rightNow.get(Calendar.DAY_OF_MONTH)+"_"+ (rightNow.get(Calendar.MONTH) + 1) +"_"+ rightNow.get(Calendar.YEAR) +"/";
 
-    static final int NODE_TIMEOUT = 4000;
+    static final int NODE_TIMEOUT = 2500;
 
-    static final long MAX_WAKE_UP_DELAY_SEC = 259200;
+    static final long MAX_WAKE_UP_DELAY_SEC = 864000; //864000 secondi = 10 giorni
 
     static final int vibrationTimeout = 15;
 
