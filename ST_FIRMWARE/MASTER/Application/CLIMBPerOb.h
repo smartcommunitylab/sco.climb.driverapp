@@ -40,6 +40,7 @@
 #ifndef SIMPLEBLEPERIPHERAL_H
 #define SIMPLEBLEPERIPHERAL_H
 
+
 #ifdef __cplusplus
 extern "C"
 {
