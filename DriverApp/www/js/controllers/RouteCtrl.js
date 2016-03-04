@@ -71,7 +71,7 @@ angular.module('driverapp.controllers.route', [])
                                 if (overTimeout && ns[nodeId].status !== WSNSrv.STATUS_OUT_OF_RANGE) {
                                     ns[nodeId].status = WSNSrv.STATUS_OUT_OF_RANGE;
                                     somethingChanged = true;
-                                    AESrv.nodeOutOfRange(nodeId, ns[nodeId].timestamp);
+                                    AESrv.nodeOutOfRange(ns[nodeId].object, ns[nodeId].timestamp);
                                     var errorString = 'Attenzione! ';
                                     errorString += ns[nodeId].object.surname + ' ' + ns[nodeId].object.name + ' (' + nodeId + ') fuori portata!';
                                     console.log('nodeOutOfRange: ' + nodeId + ' (last seen ', +ns[nodeId].timestamp + ')');
@@ -79,7 +79,7 @@ angular.module('driverapp.controllers.route', [])
                                 } else if (!overTimeout && ns[nodeId].status === WSNSrv.STATUS_OUT_OF_RANGE) {
                                     ns[nodeId].status = WSNSrv.STATUS_BOARDED_ALREADY;
                                     somethingChanged = true;
-                                    AESrv.nodeInRange(nodeId, ns[nodeId].timestamp);
+                                    AESrv.nodeInRange(ns[nodeId].object);
                                     console.log('nodeBackInRange: ' + nodeId);
                                     var toastString = ns[nodeId].object.surname + ' ' + ns[nodeId].object.name + ' (' + nodeId + ') di nuovo in portata!';
                                     Utils.toast(toastString, 5000, 'center');
@@ -178,10 +178,13 @@ angular.module('driverapp.controllers.route', [])
                 // Arriva
                 $scope.onBoard.forEach(function (passengerId) {
                     var child = $scope.getChild(passengerId);
-                    AESrv.nodeAtDestination(child);
-                    AESrv.nodeCheckout(child);
-                    if (!!child.wsnId) {
+                    if (!!child.wsnId && !!WSNSrv.networkState[child.wsnId] && WSNSrv.networkState[child.wsnId].status == WSNSrv.STATUS_BOARDED_ALREADY) {
+                        AESrv.nodeAtDestination(child);
+                        AESrv.nodeCheckout(child);
                         WSNSrv.checkoutChild(child.wsnId);
+                    } else if (!child.wsnId) {
+                        AESrv.nodeAtDestination(child);
+                        AESrv.nodeCheckout(child);
                     }
                 });
                 AESrv.endRoute($scope.stops[$scope.enRoutePos]);
@@ -303,6 +306,8 @@ angular.module('driverapp.controllers.route', [])
             $scope.getChild(childId).checked = false;
         });
         $scope.toBeTaken = [];
+
+        $scope.mergedOnBoard = $scope.getMergedOnBoard();
     });
 
     // Execute action on remove modal

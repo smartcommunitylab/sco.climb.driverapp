@@ -47,12 +47,12 @@
                 <ion-item nav-clear ng-click="WSNSrvGetNetworkState()">
                     GET NETWORK STATE
                 </ion-item>-->
-                <ion-item nav-clear ng-click="WSNSrvCheckMaster('B0:B4:48:BD:8C:02')">
+                <ion-item nav-clear ng-click="WSNSrvCheckMaster()">
                     <span ng-class="{'warning': masterError == true}">CHECK MASTER</span>
                 </ion-item>
-                <ion-item nav-clear ng-click="exitApp()">
+                <!--<ion-item nav-clear ng-click="exitApp()">
                     KILL APP
-                </ion-item>
+                </ion-item>-->
             </ion-list>
         </ion-content>
     </ion-side-menu>

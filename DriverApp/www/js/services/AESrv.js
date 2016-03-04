@@ -205,14 +205,14 @@ angular.module('driverapp.services.ae', [])
     };
 
     /* node in range */
-    aeService.nodeInRange = function (wsnId, lastCheck) {
+    aeService.nodeInRange = function (passenger) {
         var event = {
             routeId: aeInstance.routeId,
-            wsnNodeId: wsnId.wsnId,
+            wsnNodeId: passenger.wsnId,
             eventType: AE.NODE_IN_RANGE,
-            timestamp: lastCheck,
+            timestamp: moment().valueOf(),
             payload: {
-                'wsnId': wsnId
+                'passengerId': passenger.objectId
             }
         };
 
@@ -221,14 +221,15 @@ angular.module('driverapp.services.ae', [])
     };
 
     /* node out of range */
-    aeService.nodeOutOfRange = function (wsnId, lastCheck) {
+    aeService.nodeOutOfRange = function (passenger, lastCheck) {
         var event = {
             routeId: aeInstance.routeId,
-            wsnNodeId: wsnId.wsnId,
+            wsnNodeId: passenger.wsnId,
             eventType: AE.NODE_OUT_OF_RANGE,
-            timestamp: lastCheck,
+            timestamp: moment().valueOf(),
             payload: {
-                'wsnId': wsnId
+                'passengerId': passenger.objectId,
+                'lastCheck': lastCheck
             }
         };
 

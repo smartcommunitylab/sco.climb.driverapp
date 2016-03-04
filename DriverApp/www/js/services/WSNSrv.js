@@ -49,9 +49,7 @@ angular.module('driverapp.services.wsn', [])
                             console.log('### Yippee-ki-yay! Welcome, Master! ###');
                             $rootScope.masterError = false;
                             wsnService.setNodeList(wsnService.getNodeListByType('child'));
-                            wsnService.intervalGetNetworkState = $interval(function () {
-                                wsnService.getNetworkState();
-                            }, Config.NETWORKSTATE_DELAY);
+                            wsnService.startNetworkStateInterval();
                         } else {
                             console.log('/// Master connection timeout! ///');
                             $rootScope.masterError = true;
@@ -94,9 +92,7 @@ angular.module('driverapp.services.wsn', [])
         if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
             window.DriverAppPlugin.getMasters(
                 function (response) {
-                    if (!!wsnService.intervalGetNetworkState) {
-                        $interval.cancel(wsnService.intervalGetNetworkState);
-                    }
+                    wnsService.stopNetworkState();
                     deferred.resolve(response);
                 },
                 function (reason) {
@@ -200,6 +196,30 @@ angular.module('driverapp.services.wsn', [])
         return deferred.promise;
     };
 
+    wsnService.startNetworkStateInterval = function () {
+        var deferred = $q.defer();
+        if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+            if (!wsnService.intervalGetNetworkState) {
+                wsnService.intervalGetNetworkState = $interval(function () {
+                    wsnService.getNetworkState();
+                }, Config.NETWORKSTATE_DELAY);
+            }
+        }
+        return deferred.promise;
+    };
+
+    wsnService.stopNetworkStateInterval = function () {
+        var deferred = $q.defer();
+        if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+            if (!!wsnService.intervalGetNetworkState) {
+                if ($interval.cancel(wsnService.intervalGetNetworkState)) {
+                    wsnService.intervalGetNetworkState = null;
+                }
+            }
+        }
+        return deferred.promise;
+    };
+
     wsnService.checkinChild = function (childId) {
         var deferred = $q.defer();
 
@@ -227,7 +247,7 @@ angular.module('driverapp.services.wsn', [])
             window.DriverAppPlugin.checkinChildren(
                 childrenIds,
                 function (procedureStarted) {
-                    console.log('checkinChildern: ' + procedureStarted  + ' (' + childrenIds + ')');
+                    console.log('checkinChildern: ' + procedureStarted + ' (' + childrenIds + ')');
                     deferred.resolve(procedureStarted);
                 },
                 function (reason) {

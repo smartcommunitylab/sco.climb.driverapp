@@ -78,8 +78,8 @@ angular.module('driverapp', [
                 );
             };
 
-            $rootScope.WSNSrvCheckMaster = function (masterId) {
-                WSNSrv.connectMaster(masterId).then(
+            $rootScope.WSNSrvCheckMaster = function () {
+                WSNSrv.connectMaster(CONF.DEV_MASTER).then(
                     function (procedureStarted) {},
                     function (reason) {}
                 );
