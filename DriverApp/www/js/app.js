@@ -16,19 +16,38 @@ angular.module('driverapp', [
     'driverapp.controllers.volunteers'
 ])
 
-.run(function ($ionicPlatform, $rootScope, Config, Utils, WSNSrv) {
+.run(function ($ionicPlatform, $rootScope, $ionicPopup, Config, Utils, WSNSrv) {
     $ionicPlatform.ready(function () {
         // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
         // for form inputs)
         if (window.cordova && window.cordova.plugins.Keyboard) {
             cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
             cordova.plugins.Keyboard.disableScroll(true);
-
         }
 
         if (window.StatusBar) {
             // org.apache.cordova.statusbar required
             StatusBar.styleDefault();
+        }
+
+        /*
+         * Check Internet connection
+         */
+        if (window.Connection) {
+            if (navigator.connection.type == Connection.NONE) {
+                Utils.loaded();
+
+                $ionicPopup.alert({
+                    title: 'Nessuna connessione',
+                    template: 'L\'applicazione non può funzionare se il terminale non è connesso a Internet',
+                    okText: 'Chiudi',
+                    okType: 'button-dapp'
+                })
+
+                .then(function (result) {
+                    ionic.Platform.exitApp();
+                });
+            }
         }
 
         if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {

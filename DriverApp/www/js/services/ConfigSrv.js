@@ -9,11 +9,11 @@ angular.module('driverapp.services.config', [])
     config.X_ACCESS_TOKEN = CONF.X_ACCESS_TOKEN;
 
     config.GPS_DELAY = 5000;
-    config.NETWORKSTATE_DELAY = 3000;
-    config.NODESTATE_TIMEOUT = 6000;
+    config.NETWORKSTATE_DELAY = 2000;
+    config.NODESTATE_TIMEOUT = 10000;
 
     config.HTTP_CONFIG = {
-        timeout: 5000,
+        timeout: 10000,
         headers: {
             'Content-Type': 'application/json',
             'X-ACCESS-TOKEN': config.X_ACCESS_TOKEN
