@@ -89,11 +89,19 @@ public class ScanActivity extends Activity {
                 }else{
                     updateDetailsExpandableListDetails();
                 }
+
+                boolean nodeCheckState[] = expandableListAdapter.getNodeCheckState(0);
+                if(nodeCheckState != null) {
+
+                    nodeCheckState[climbNodeList.size()-1] =  mSelectAllCheckbox.isChecked();
+                    expandableListAdapter.notifyDataSetChanged();
+                }
                 expandableListAdapter.notifyDataSetChanged();
                 log("ACTION_DEVICE_ADDED_TO_LIST broadcast received");
 
             } else if (ClimbService.ACTION_DEVICE_REMOVED_FROM_LIST.equals(action)) {
 
+                updateDetailsExpandableListDetails();
                 expandableListAdapter.notifyDataSetChanged();
                 log("ACTION_DEVICE_REMOVED_FROM_LIST broadcast received");
 
@@ -126,6 +134,7 @@ public class ScanActivity extends Activity {
                     "DISCONNECTED FROM GATT!",
                     Toast.LENGTH_SHORT).show();
                 log("DISCONNECTED FROM GATT!");
+                updateDetailsExpandableListDetails();
                 expandableListAdapter.notifyDataSetChanged();
 
             }
@@ -284,53 +293,62 @@ public class ScanActivity extends Activity {
     View.OnClickListener sendCmdButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
 
-            if (mBroadcastCheckBox.isChecked()) {
-                if ((SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
-                    if (mClimbService != null) {
-                        String selectedState_S = mStatesSpinner.getSelectedItem().toString();
-                        int selectedState_i = stateString2int(selectedState_S);
-                        if(selectedState_i < 5) { //allow only transitions to valid states
-                            if (mClimbService.SendBroadcastStateChange(selectedState_i)) {
-                                mVibrator.vibrate(ConfigVals.vibrationTimeout);
-                                lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
+            if (climbNodeList != null && !climbNodeList.isEmpty()){
+                if (mBroadcastCheckBox.isChecked()) {
+                    if ((SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
+                        if (mClimbService != null) {
+                            String selectedState_S = mStatesSpinner.getSelectedItem().toString();
+                            int selectedState_i = stateString2int(selectedState_S);
+                            if (selectedState_i < 5) { //allow only transitions to valid states
+                                if (mClimbService.SendBroadcastStateChange(selectedState_i)) {
+                                    mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                                    lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
+                                } else {
+                                    Log.w(TAG, "Cmd not sent!");
+                                    log("Cmd not sent!");
+                                }
                             } else {
-                                Log.w(TAG, "Cmd not sent!");
-                                log("Cmd not sent!");
+                                Log.w(TAG, "Wrong state selected: " + selectedState_i);
                             }
-                        }else{
-                            Log.w(TAG, "Wrong state selected: " + selectedState_i);
+                        } else {
+                            Log.w(TAG, "Cmd not sent!");
+                            log("Cmd not sent!");
+                        }
+
+                    } else {
+                        String alertString = "Wait a little";
+                        Toast.makeText(getApplicationContext(),
+                                alertString,
+                                Toast.LENGTH_LONG).show();
+                    }
+                } else { //not broadcast a messages
+                    if (expandableListAdapter != null) {
+                        boolean[] childCheckStates = expandableListAdapter.getNodeCheckState(0);
+                        if (childCheckStates != null) {
+
+                            String selectedState_S = mStatesSpinner.getSelectedItem().toString();
+                            int selectedState_i = stateString2int(selectedState_S);
+                            if (selectedState_i < 5) { //allow only transitions to valid states
+                                if (mClimbService.setNewStateToCheckedNodes(selectedState_i, childCheckStates, 0)) {
+                                    mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                                } else {
+                                    Log.i(TAG, "Cmd not sent!");
+                                }
+                            } else {
+                                Log.w(TAG, "Wrong state selected: " + selectedState_i);
+                            }
                         }
                     } else {
-                        Log.w(TAG, "Cmd not sent!");
-                        log("Cmd not sent!");
+                        Log.w(TAG, "expandableListAdapter == null!!");
                     }
-
-                }else{
-                    String alertString = "Wait a little";
-                    Toast.makeText(getApplicationContext(),
-                            alertString,
-                            Toast.LENGTH_LONG).show();
                 }
-            }else{ //not broadcast a messages
-                if(expandableListAdapter != null) {
-                    boolean[] childCheckStates = expandableListAdapter.getNodeCheckState(0);
-                    String selectedState_S = mStatesSpinner.getSelectedItem().toString();
-                    int selectedState_i = stateString2int(selectedState_S);
-                    if(selectedState_i < 5){ //allow only transitions to valid states
-                        if(mClimbService.setNewStateToCheckedNodes(selectedState_i, childCheckStates,0)){
-                            mVibrator.vibrate(ConfigVals.vibrationTimeout);
-                        }else{
-                            Log.i(TAG, "Cmd not sent!");
-                        }
-                    }else{
-                        Log.w(TAG, "Wrong state selected: " + selectedState_i);
-                    }
-                }else {
-                    Log.w(TAG, "expandableListAdapter == null!!");
-                }
+            }else{
+                Toast.makeText(mContext,
+                        "Master NOT CONNECTED!",
+                        Toast.LENGTH_SHORT).show();
             }
         }
-    };
+};
     View.OnClickListener scheduleWUButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
 
@@ -406,11 +424,13 @@ public class ScanActivity extends Activity {
 
             if(expandableListAdapter != null) {
                 boolean nodeCheckState[] = expandableListAdapter.getNodeCheckState(0);
-                boolean checked = mSelectAllCheckbox.isChecked();
-                for (int i = 0; i < nodeCheckState.length; i++) {
-                    nodeCheckState[i] = checked;
+                if(nodeCheckState != null) {
+                    boolean checked = mSelectAllCheckbox.isChecked();
+                    for (int i = 0; i < nodeCheckState.length; i++) {
+                        nodeCheckState[i] = checked;
+                    }
+                    expandableListAdapter.notifyDataSetChanged();
                 }
-                expandableListAdapter.notifyDataSetChanged();
             }
         }
     };
