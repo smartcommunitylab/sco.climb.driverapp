@@ -232,6 +232,7 @@
                     case 2: return "ON BOARD";
                     case 3: return "ALERT";
                     case 4: return "ERROR";
+                    case 5: return "GOING TO SLEEP";
                     default: return "INVALID STATE";
                 }
             }
