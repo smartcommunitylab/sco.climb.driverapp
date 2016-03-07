@@ -1,6 +1,6 @@
 angular.module('driverapp.controllers.wizard', [])
 
-.controller('WizardCtrl', function ($scope, $rootScope, $state, $ionicPopup, $ionicHistory, $ionicSlideBoxDelegate, $timeout, Config, Utils, StorageSrv, APISrv, WSNSrv) {
+.controller('WizardCtrl', function ($scope, $rootScope, $state, $ionicPopup, $ionicHistory, $ionicSlideBoxDelegate, $timeout, $filter, Config, Utils, StorageSrv, APISrv, WSNSrv) {
     $scope.swiperOptions = Config.WIZARD_SLIDER_OPTIONS;
 
     $scope.schools = [];
@@ -101,7 +101,7 @@ angular.module('driverapp.controllers.wizard', [])
              * sort volunteers only if route exists but not a driver
              */
             var route = $scope.wizard.route;
-            var sortedVolunteers = StorageSrv.getVolunteers();
+            var sortedVolunteers = $filter('orderBy')(StorageSrv.getVolunteers(), ['checked', 'name']);
             // TODO sort using calendars
             for (var j = 0; j < calendars.length; j++) {
                 var cal = calendars[j]
@@ -137,12 +137,21 @@ angular.module('driverapp.controllers.wizard', [])
                 }
             }
             $scope.volunteers = sortedVolunteers;
+
+            // FIXME dev only!!!
+            $scope.wizard.driver = $scope.volunteers[0];
+            // FIXME /dev only!!!
+
         } else if (wizardIndex == 2) {
+            // FIXME dev only!!!
+            $scope.wizard.driver.wsnId = CONF.DEV_MASTER;
+
             if ($scope.wizard.driver.wsnId !== null && $scope.wizard.driver.wsnId.length > 0) {
                 WSNSrv.connectMaster($scope.wizard.driver.wsnId).then(
                     function (procedureStarted) {},
                     function (reason) {
-                        Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
+                        // TODO toast for failure
+                        //Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
                     }
                 );
             }

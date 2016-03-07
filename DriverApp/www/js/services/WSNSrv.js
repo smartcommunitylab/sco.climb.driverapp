@@ -53,11 +53,13 @@ angular.module('driverapp.services.wsn', [])
                         } else {
                             console.log('/// Master connection timeout! ///');
                             $rootScope.masterError = true;
-                            Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
+                            // TODO toast for failure
+                            //Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
                         }
                     } else if (response.action === wsnService.STATE_DISCONNECTED_FROM_CLIMB_MASTER) {
                         console.log('=== Where is my Master?!? ===');
-                        Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
+                        // TODO toast for failure
+                        //Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
                     }
                     /*
                     else if (response.action === wsnService.STATE_CHECKEDIN_CHILD) {

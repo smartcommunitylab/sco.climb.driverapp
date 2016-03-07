@@ -22,6 +22,7 @@
                 <ion-item nav-clear menu-close href="#/app/home">
                     Home
                 </ion-item>
+                <!-- TODO remove this entry from meny -->
                 <ion-item nav-clear menu-close href="#/app/wizard">
                     Wizard
                 </ion-item>
@@ -48,7 +49,7 @@
                     GET NETWORK STATE
                 </ion-item>-->
                 <ion-item nav-clear ng-click="WSNSrvCheckMaster()">
-                    <span ng-class="{'warning': masterError == true}">CHECK MASTER</span>
+                    <span ng-class="{'warning': masterError == true}">Diagnostica</span>
                 </ion-item>
                 <ion-item nav-clear ng-click="exitApp()">
                     Chiudi l'app

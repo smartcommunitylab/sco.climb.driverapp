@@ -30,6 +30,23 @@ angular.module('driverapp', [
             StatusBar.styleDefault();
         }
 
+        $rootScope.exitApp = function () {
+            $ionicPopup.confirm({
+                title: 'Chiusura app',
+                template: 'Vuoi veramente uscire?',
+                cancelText: 'No',
+                cancelType: 'button-stable',
+                okText: 'Si',
+                okType: 'button-energized'
+            })
+
+            .then(function (result) {
+                if (result) {
+                    ionic.Platform.exitApp();
+                }
+            });
+        };
+
         /*
          * Check Internet connection
          */
@@ -60,10 +77,6 @@ angular.module('driverapp', [
                 function (response) {},
                 function (reason) {}
             );
-
-            $rootScope.exitApp = function () {
-                ionic.Platform.exitApp();
-            };
 
             /*
              * WSN Functions!

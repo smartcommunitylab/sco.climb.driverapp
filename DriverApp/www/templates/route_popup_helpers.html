@@ -1,0 +1,6 @@
+<ion-list class="route-volunteer-list">
+    <!-- | orderBy : ['ordered', 'name'] -->
+    <ion-checkbox class="checkbox-dapp" ng-repeat="volunteer in volunteers" ng-model="volunteer.checked" ng-if="volunteer.objectId !== driver.objectId" ng-disabled="volunteer.disabled">
+        {{volunteer.name}}
+    </ion-checkbox>
+</ion-list>

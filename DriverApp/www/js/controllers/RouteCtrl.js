@@ -1,12 +1,13 @@
 angular.module('driverapp.controllers.route', [])
 
-.controller('RouteCtrl', function ($scope, $rootScope, $stateParams, $ionicHistory, $ionicNavBarDelegate, $ionicPopup, $ionicModal, $interval, $ionicScrollDelegate, Config, Utils, StorageSrv, GeoSrv, AESrv, APISrv, WSNSrv) {
+.controller('RouteCtrl', function ($scope, $rootScope, $stateParams, $ionicHistory, $ionicNavBarDelegate, $ionicPopup, $ionicModal, $interval, $ionicScrollDelegate, $filter, Config, Utils, StorageSrv, GeoSrv, AESrv, APISrv, WSNSrv) {
     $scope.fromWizard = false;
     var aesInstance = {};
 
     $scope.children = null;
     $scope.driver = null;
-    $scope.helpers = null;
+    $scope.helpers = [];
+    $scope.helpersTemp = [];
 
     $scope.route = {};
     $scope.stops = [];
@@ -35,10 +36,10 @@ angular.module('driverapp.controllers.route', [])
             }
 
             if (!!$stateParams['helpers']) {
-                $scope.helpers = $stateParams['helpers'];
-                $scope.helpers.forEach(function (helper) {
+                $scope.helpersTemp = $stateParams['helpers'];
+                /*$scope.helpers.forEach(function (helper) {
                     AESrv.setHelper(helper);
-                });
+                });*/
             }
 
             $scope.$watch(
@@ -75,14 +76,16 @@ angular.module('driverapp.controllers.route', [])
                                     var errorString = 'Attenzione! ';
                                     errorString += ns[nodeId].object.surname + ' ' + ns[nodeId].object.name + ' (' + nodeId + ') fuori portata!';
                                     console.log('nodeOutOfRange: ' + nodeId + ' (last seen ', +ns[nodeId].timestamp + ')');
-                                    Utils.toast(errorString, 5000, 'center');
+                                    // TODO toast for failure
+                                    //Utils.toast(errorString, 5000, 'center');
                                 } else if (!overTimeout && ns[nodeId].status === WSNSrv.STATUS_OUT_OF_RANGE) {
                                     ns[nodeId].status = WSNSrv.STATUS_BOARDED_ALREADY;
                                     somethingChanged = true;
                                     AESrv.nodeInRange(ns[nodeId].object);
                                     console.log('nodeBackInRange: ' + nodeId);
                                     var toastString = ns[nodeId].object.surname + ' ' + ns[nodeId].object.name + ' (' + nodeId + ') di nuovo in portata!';
-                                    Utils.toast(toastString, 5000, 'center');
+                                    // TODO toast for failure
+                                    //Utils.toast(toastString, 5000, 'center');
                                 }
                             }
                         }
@@ -157,6 +160,12 @@ angular.module('driverapp.controllers.route', [])
                 $scope.mergedOnBoard = $scope.getMergedOnBoard();
 
                 // Riparti
+                $scope.helpersTemp.forEach(function (helper) {
+                    AESrv.setHelper(helper);
+                });
+                $scope.helpers = angular.copy($scope.helpersTemp);
+                $scope.helpersTemp = [];
+
                 if ($scope.enRoutePos == 0) {
                     // Parti
                     AESrv.startRoute($scope.stops[$scope.enRoutePos]);
@@ -178,13 +187,11 @@ angular.module('driverapp.controllers.route', [])
                 // Arriva
                 $scope.onBoard.forEach(function (passengerId) {
                     var child = $scope.getChild(passengerId);
+                    AESrv.nodeAtDestination(child);
+                    AESrv.nodeCheckout(child);
+
                     if (!!child.wsnId && !!WSNSrv.networkState[child.wsnId] && WSNSrv.networkState[child.wsnId].status == WSNSrv.STATUS_BOARDED_ALREADY) {
-                        AESrv.nodeAtDestination(child);
-                        AESrv.nodeCheckout(child);
                         WSNSrv.checkoutChild(child.wsnId);
-                    } else if (!child.wsnId) {
-                        AESrv.nodeAtDestination(child);
-                        AESrv.nodeCheckout(child);
                     }
                 });
                 AESrv.endRoute($scope.stops[$scope.enRoutePos]);
@@ -389,68 +396,95 @@ angular.module('driverapp.controllers.route', [])
         $scope.isRoutePanelOpen = false;
     }
 
-    $scope.selectDriverPopup = function(rt, driv, help) {
-        $scope.volunteers = $scope.getDriverAndVolunteers(StorageSrv.getVolunteers(), driv, help);
-        var driverPopup = $ionicPopup.show({
-            templateUrl: 'templates/route_popup_driver.html',
+    $scope.selectHelpersPopup = function () {
+        //$scope.volunteers = $scope.getDriverAndVolunteers(StorageSrv.getVolunteers(), $scope.helpers, $scope.helpersTemp);
+        $scope.volunteers = $filter('orderBy')(StorageSrv.getVolunteers(), ['checked', 'name']);
+        var hs = $scope.helpers.concat($scope.helpersTemp);
+
+        var oldHelpersIds = [];
+        $scope.helpers.forEach(function (h) {
+           oldHelpersIds.push(h.objectId);
+        });
+
+        var counter = 0;
+        hs.forEach(function (h) {
+            for (var i = 0; i < $scope.volunteers.length; i++) {
+                if ($scope.volunteers[i].objectId == h.objectId) {
+                    $scope.volunteers[i].checked = true;
+                    if (oldHelpersIds.indexOf($scope.volunteers[i].objectId) != -1) {
+                        $scope.volunteers[i].disabled = true;
+                    }
+                    Utils.moveInArray($scope.volunteers, i, counter);
+                    //console.log('Helper ' + $scope.volunteers[counter].name + ' moved to position ' + counter);
+                    counter++;
+                    i = $scope.volunteers.length;
+                }
+            }
+        });
+
+        var helpersPopup = $ionicPopup.show({
+            templateUrl: 'templates/route_popup_helpers.html',
             cssClass: 'route-volunteers',
             title: 'ACCOMPAGNATORI',
-            subTitle: rt.name,
+            subTitle: $scope.route.name,
             scope: $scope,
             buttons: [{
                 text: 'CHIUDI',
-                type: 'button-default',
-            },{
+                type: 'button-stable',
+            }, {
                 text: 'SALVA',
                 type: 'button-positive',
-                onTap: function(e) {
-                    $scope.selectDrivers($scope.volunteers);
+                onTap: function (e) {
+                    $scope.selectHelpers($scope.volunteers);
                 }
             }]
         });
 
-        $scope.selectDrivers = function (volunteers) {
-            $scope.selectedVolunteers = [];
-            for(var i = 0; i < volunteers.length; i++){
-                if(volunteers[i].checked){
-                    $scope.selectedVolunteers.push(volunteers[i]);
+        $scope.selectHelpers = function (volunteers) {
+            $scope.helpersTemp = [];
+            for (var i = 0; i < volunteers.length; i++) {
+                if (volunteers[i].checked && !volunteers[i].disabled) {
+                    $scope.helpersTemp.push(volunteers[i]);
                 }
             }
-            $scope.helpers = $scope.selectedVolunteers;     // here I align the helpers
-            driverPopup.close();
+            //$scope.helpers = $scope.helpersTemp; // here I align the helpers
+            helpersPopup.close();
         };
     };
 
-    $scope.getDriverAndVolunteers = function(all, driv, help){
-        var drv = null;
+    /*$scope.getDriverAndVolunteers = function (all, help, helptemp) {
         var hlps = [];
-        for(var i = 0; i < all.length; i++){
-            if(all[i].objectId == driv.objectId){
-                drv = driv;
-                drv.checked = true;
-                all.splice(i, 1);   // remove from arr
-                if(i > 0){
-                    i-=1;   // move i to back
-                }
-            }
-            for(var h = 0; h < help.length; h++){
-                if(all[i].objectId == help[h].objectId){
+        for (var i = 0; i < all.length; i++) {
+            for (var h = 0; h < help.length; h++) {
+                if (all[i].objectId == help[h].objectId) {
                     var hlp = help[h];
                     hlp.checked = true;
-                    hlp.ordered = 0;    // used only in list ordering
+                    hlp.ordered = 0; // used only in list ordering
                     hlps.push(hlp);
-                    all.splice(i, 1);   // remove from arr
-                    if(i > 0){
-                        i -=1;  // move i to back;
+                    all.splice(i, 1); // remove from arr
+                    if (i > 0) {
+                        i -= 1; // move i to back;
+                    }
+                }
+            }
+            for (var h = 0; h < helptemp.length; h++) {
+                if (all[i].objectId == helptemp[h].objectId) {
+                    var hlp = helptemp[h];
+                    hlp.checked = true;
+                    hlp.ordered = 0; // used only in list ordering
+                    hlps.push(hlp);
+                    all.splice(i, 1); // remove from arr
+                    if (i > 0) {
+                        i -= 1; // move i to back;
                     }
                 }
             }
         }
-        for(var i = 0; i < hlps.length; i++){
-            all.splice(0, 0,hlps[i]);
+        for (var i = 0; i < hlps.length; i++) {
+            all.splice(0, 0, hlps[i]);
         }
         //all.splice(0, 0,drv); // add the driver
         return all;
-    };
+    };*/
 
 });
