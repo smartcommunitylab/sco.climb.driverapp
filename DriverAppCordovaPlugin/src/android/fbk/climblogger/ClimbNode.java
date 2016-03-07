@@ -184,7 +184,7 @@
 
             private boolean isAllowedChild(byte[] nodeID) {
                 for (String s : allowedChildrenList) {
-                    if (scanResponseData.equals(String.format("%02X", nodeID[0]))) {
+                    if (s.equals(String.format("%02X", nodeID[0]))) {
                         return true;
                     }
                 }
