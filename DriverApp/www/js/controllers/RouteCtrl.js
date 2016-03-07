@@ -317,9 +317,12 @@ angular.module('driverapp.controllers.route', [])
      * Child details popup
      */
     $scope.showChildDetails = function (child) {
+        $scope.phone = (!!child.parentName ? child.parentName + ': ' + child.phone : child.phone);
         var detailsPopup = $ionicPopup.alert({
             title: child.surname + ' ' + child.name,
-            template: (!!child.parentName ? child.parentName + ': ' + child.phone : child.phone),
+            //template: (!!child.parentName ? child.parentName + ': ' + child.phone : child.phone),
+            templateUrl: 'templates/phone_popup_person.html',
+            scope: $scope,
             okText: 'OK',
             okType: 'button'
         });

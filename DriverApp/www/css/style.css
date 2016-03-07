@@ -333,6 +333,84 @@
 .dapp-theme .route-volunteer-list .item {
     border-width: 0px;
 }
+.dapp-theme .card.card-routes {
+    margin: 15px 0 15px 0;
+}
+.dapp-theme .item.item-routes {
+    background-color: #f2f2f2;
+    font-size: 14px;
+    font-weight: bold;
+    border-width: 0px;
+    padding: 5px 5px 5px 15px;
+}
+.dapp-theme .item.item-divider.item-routes.title {
+    font-size: 22px;
+    padding-top: 15px;
+    padding-bottom: 2px;
+}
+.dapp-theme .item.item-divider.item-routes {
+    padding-bottom: 10px;
+    padding-top: 0px;
+}
+.dapp-theme .passenger-img {
+    width: 35px;
+    height: 35px;
+}
+.dapp-theme .icon-line-passenger {
+    font-size: 45px;
+}
+.dapp-theme .color-bus.blue {
+    color: #3f51b5;
+}
+.dapp-theme .color-bus.red {
+    color: #E53935;
+}
+.dapp-theme .color-bus.green {
+    color: #439981;
+}
+.dapp-theme .color-bus.yellow {
+    color: yellow;
+}
+.dapp-theme .color-bus.violet {
+    color: violet;
+}
+.dapp-theme .routes-padding {
+    padding-top: 0px;
+}
+.dapp-theme .item-text-image-right {
+    position: absolute;
+    bottom: 20px;
+    left: 55px;
+}
+
+/* Volunteers */
+.dapp-theme .item.item-volunteers {
+    background-color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    border-width: 0px;
+}
+.dapp-theme .button-volunteers.button {
+    background-color: #fff;
+    color: #f29100;
+}
+
+/* Person phone number pupup details */
+.dapp-theme .item-details-phone {
+    background-color: #f2f2f2;
+    border-width: 0px;
+}
+.dapp-theme .item-details-phone i {
+    color: #f29100;
+}
+.dapp-theme .popup-buttons .button {
+    color: #fff;
+    background-color: #B0BEC5;
+}
+
+.dapp-theme .person-pupup-phone {
+    background-color: #f2f2f2;
+}
 
 /* Test parte route */
 
