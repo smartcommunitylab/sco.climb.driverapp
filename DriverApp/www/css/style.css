@@ -6,38 +6,89 @@
 }
 
 /* Components */
-
-.dapp-theme .button.button-dapp {
+.dapp-theme .button.button-stable {
+    border-color: transparent;
+    background-color: #b0bec5;
+    color: #fff;
+}
+.dapp-theme .button.button-stable.button-clear {
+    border-color: transparent;
+    background: none;
+    box-shadow: none;
+    color: #b0bec5;
+}
+.dapp-theme .button.button-stable.button-outline {
+    border-color: #b0bec5;
+    background: transparent;
+    color: #b0bec5;
+}
+.dapp-theme .button.button-stable.button-outline.active,
+.dapp-theme .button.button-stable.button-outline.activated {
+    background-color: #b0bec5;
+    box-shadow: none;
+    color: #fff;
+}
+.dapp-theme .button.button-positive {
+    border-color: transparent;
+    background-color: #438699;
+    color: #fff;
+}
+.dapp-theme .button.button-positive.button-clear {
+    border-color: transparent;
+    background: none;
+    box-shadow: none;
+    color: #438699;
+}
+.dapp-theme .button.button-positive.button-outline {
+    border-color: #438699;
+    background: transparent;
+    color: #438699;
+}
+.dapp-theme .button.button-positive.button-outline.active,
+.dapp-theme .button.button-positive.button-outline.activated {
+    background-color: #438699;
+    box-shadow: none;
+    color: #fff;
+}
+.dapp-theme .button.button-energized {
     border-color: transparent;
     background-color: #f29100;
     color: #fff;
 }
-.dapp-theme .button.button-dapp.button-clear {
+.dapp-theme .button.button-energized.button-clear {
     border-color: transparent;
     background: none;
     box-shadow: none;
     color: #f29100;
 }
-.dapp-theme .button.button-dapp.button-outline {
+.dapp-theme .button.button-energized.button-outline {
     border-color: #f29100;
     background: transparent;
     color: #f29100;
 }
-.dapp-theme .button.button-dapp.button-outline.active,
-.dapp-theme .button.button-dapp.button-outline.activated {
+.dapp-theme .button.button-energized.button-outline.active,
+.dapp-theme .button.button-energized.button-outline.activated {
     background-color: #f29100;
     box-shadow: none;
     color: #fff;
 }
-.dapp-theme .checkbox-dapp input:before,
-.dapp-theme .checkbox-dapp .checkbox-icon:before {
+.dapp-theme .checkbox input:before,
+.dapp-theme .checkbox .checkbox-icon:before {
     background: transparent;
     border-color: #f29100;
 }
-.dapp-theme .checkbox-dapp input:checked:before,
-.dapp-theme .checkbox-dapp input:checked + .checkbox-icon:before {
+.dapp-theme .checkbox input:checked:before,
+.dapp-theme .checkbox input:checked + .checkbox-icon:before {
     background: #f29100;
     border-color: #f29100;
+}
+.dapp-theme .checkbox input:disabled:checked:before,
+.dapp-theme .checkbox input:disabled:checked + .checkbox-icon:before {
+    background: #b0bec5;
+}
+.dapp-theme .checkbox input:disabled:before,
+.dapp-theme .checkbox input:disabled + .checkbox-icon:before {
+    border-color: #b0bec5;
 }
 
 /* Menu Bar */
@@ -392,6 +443,7 @@
 }
 
 /* Volunteers */
+
 .dapp-theme .item.item-volunteers {
     background-color: #fff;
     font-size: 14px;
@@ -404,6 +456,7 @@
 }
 
 /* Person phone number pupup details */
+
 .dapp-theme .item-details-phone {
     background-color: #f2f2f2;
     border-width: 0px;
@@ -411,11 +464,6 @@
 .dapp-theme .item-details-phone i {
     color: #f29100;
 }
-.dapp-theme .popup-buttons .button {
-    color: #fff;
-    background-color: #B0BEC5;
-}
-
 .dapp-theme .person-pupup-phone {
     background-color: #f2f2f2;
 }

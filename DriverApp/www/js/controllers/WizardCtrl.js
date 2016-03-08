@@ -37,7 +37,6 @@ angular.module('driverapp.controllers.wizard', [])
 
     $scope.schools = [StorageSrv.getSchool()];
 
-    // FIXME dev
     if ($scope.schools !== null && $scope.schools.length == 1) {
         $scope.wizard.school = $scope.schools[0];
     }
@@ -53,6 +52,7 @@ angular.module('driverapp.controllers.wizard', [])
             scope: $scope,
             buttons: [{
                 text: 'Annulla',
+                type: 'button-stable'
             }]
         });
 
@@ -70,6 +70,7 @@ angular.module('driverapp.controllers.wizard', [])
             scope: $scope,
             buttons: [{
                 text: 'Annulla',
+                type: 'button-stable'
             }]
         });
 
@@ -86,6 +87,7 @@ angular.module('driverapp.controllers.wizard', [])
             scope: $scope,
             buttons: [{
                 text: 'Annulla',
+                type: 'button-stable'
             }]
         });
 
@@ -137,11 +139,6 @@ angular.module('driverapp.controllers.wizard', [])
                 }
             }
             $scope.volunteers = sortedVolunteers;
-
-            // FIXME dev only!!!
-            $scope.wizard.driver = $scope.volunteers[0];
-            // FIXME /dev only!!!
-
         } else if (wizardIndex == 2) {
             // FIXME dev only!!!
             $scope.wizard.driver.wsnId = CONF.DEV_MASTER;

@@ -58,7 +58,7 @@ angular.module('driverapp', [
                     title: 'Nessuna connessione',
                     template: 'L\'applicazione non può funzionare se il terminale non è connesso a Internet',
                     okText: 'Chiudi',
-                    okType: 'button-dapp'
+                    okType: 'button-energized'
                 })
 
                 .then(function (result) {
