@@ -374,7 +374,7 @@ static uint8 unclearedWatchdogEvents = 0;
 
 static uint16 connectionHandle = 0;
 
-static uint32 wakeUpTimeout_sec_global;
+static uint32 wakeUpTimeout_sec_global = 0;
 
 static uint8 onBoardChildren = 0; //not to be used in critical context, updated on Climb_contactsCheckSendThroughGATT
 /*********************************************************************
@@ -1915,7 +1915,7 @@ static void Climb_advertisedStatesCheck(void) {
 				advUpdateReq = TRUE;
 			}
 
-			if(node->device.state == ON_BOARD){
+			if(actualNodeState == ON_BOARD){
 				onBoardChildren++;
 			}
 
@@ -1955,6 +1955,7 @@ static void Climb_nodeTimeoutCheck() {
 					//do nothing, app will trigger the alert!!
 				case ALERT:
 					//do nothing
+					targetNode->device.state = ALERT;
 					previousNode = targetNode;
 					targetNode = targetNode->next; //passa al nodo sucessivo
 					break;
@@ -2159,8 +2160,8 @@ static void Climb_wakeUpHandler(){
 		wakeUpTimeout_sec_global = wakeUpTimeout_sec_global - MAX_ALLOWED_TIMER_DURATION_SEC;
 	}else{
 		//randomizza nell'intorno +/-1 secondo rispetto al valore prestabilito
-		float randDelay_msec = 2000 * ((float) Util_GetTRNG()) / 4294967296;
-		Util_restartClock(&wakeUpClock, wakeUpTimeout_sec_global*1000 - 1000 + randDelay_msec);
+		//float randDelay_msec = 2000 * ((float) Util_GetTRNG()) / 4294967296;
+		Util_restartClock(&wakeUpClock, wakeUpTimeout_sec_global*1000);
 		wakeUpTimeout_sec_global = 0; //reset this so that when the device wakes up, it knows that there is no need to restart timer but it is the actual time to wake up the device
 	}
 
