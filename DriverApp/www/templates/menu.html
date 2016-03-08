@@ -19,18 +19,31 @@
         -->
         <ion-content>
             <ion-list>
+                <ion-item ng-if="getDriverName()" menu-close class="item item-avatar menu-head-item">
+                    <img ng-src="img/rt_placeholder_child.png">
+                    <h2>{{driverName}}</h2>
+                </ion-item>
                 <!--<ion-item nav-clear menu-close href="#/app/home">
                     Home
                 </ion-item>-->
                 <!-- TODO remove this entry from meny -->
                 <ion-item nav-clear menu-close href="#/app/wizard">
-                    Wizard
+                    <i class="icon ion-home"></i>
+                    <div class="menu-link-wrapper">
+                        Wizard
+                    </div>
                 </ion-item>
                 <ion-item nav-clear menu-close href="#/app/routes">
-                    Pedibus
+                    <i class="icon ion-android-walk"></i>
+                    <div class="menu-link-wrapper">
+                        Pedibus
+                    </div>
                 </ion-item>
                 <ion-item nav-clear menu-close href="#/app/volunteers">
-                    Volontari
+                    <i class="icon ion-android-call"></i>
+                    <div class="menu-link-wrapper">
+                        Volontari
+                    </div>
                 </ion-item>
                 <!-- FIXME dev only! -->
                 <!--<ion-item nav-clear ng-click="WSNSrvGetMasters()">
@@ -48,11 +61,17 @@
                 <ion-item nav-clear ng-click="WSNSrvGetNetworkState()">
                     GET NETWORK STATE
                 </ion-item>-->
-                <ion-item nav-clear ng-click="WSNSrvCheckMaster()">
-                    <span ng-class="{'warning': masterError == true}">Diagnostica</span>
+                <ion-item nav-clear menu-close href ng-click="WSNSrvCheckMaster()">
+                    <i class="icon ion-alert-circled"></i>
+                    <div class="menu-link-wrapper">
+                        <span ng-class="{'warning': masterError == true}">Diagnostica</span>
+                    </div>
                 </ion-item>
-                <ion-item nav-clear ng-click="exitApp()">
-                    Chiudi l'app
+                <ion-item nav-clear menu-close href ng-click="exitApp()">
+                    <i class="icon ion-log-out"></i>
+                    <div class="menu-link-wrapper">
+                        Chiudi l'app
+                    </div>
                 </ion-item>
             </ion-list>
         </ion-content>

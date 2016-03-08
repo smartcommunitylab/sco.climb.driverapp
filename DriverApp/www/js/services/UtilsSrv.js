@@ -2,6 +2,7 @@ angular.module('driverapp.services.utils', [])
 
 .factory('Utils', function ($rootScope, $filter, $timeout, $ionicPopup, $ionicLoading, $interval, Config) {
     var Utils = {};
+    this.drivername = "";
 
     Utils.isValidDate = function (dateString) {
         return moment(dateString, Config.DATE_FORMAT, true).isValid();
@@ -67,6 +68,15 @@ angular.module('driverapp.services.utils', [])
     Utils.loaded = function () {
         $ionicLoading.hide();
     };
+
+    Utils.setMenuDriverTitle = function (drivername) {
+        //driver_names = drivername.split(' ');
+        this.drivername = drivername;//driver_names[1];
+    }
+
+    Utils.getMenuDriverTitle = function () {
+        return this.drivername;
+    }
 
     return Utils;
 });

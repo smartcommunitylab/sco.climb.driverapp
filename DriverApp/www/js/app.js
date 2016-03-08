@@ -43,6 +43,7 @@ angular.module('driverapp', [
             .then(function (result) {
                 if (result) {
                     ionic.Platform.exitApp();
+                    Utils.setMenuDriverTitle(null); // clear driver name in menu
                 }
             });
         };

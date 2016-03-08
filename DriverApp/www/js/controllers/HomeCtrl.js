@@ -77,6 +77,11 @@ angular.module('driverapp.controllers.home', [])
             }
         );
     });
+
+    $scope.getDriverName = function() {
+        $scope.driverName = Utils.getMenuDriverTitle();
+        return $scope.driverName;
+    }
 })
 
 .controller('HomeCtrl', function ($scope, Utils, StorageSrv, APISrv) {
