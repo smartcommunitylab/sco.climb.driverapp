@@ -149,9 +149,20 @@ angular.module('driverapp.services.ae', [])
         };
 
         aeInstance.events.push(event);
+
         StorageSrv.saveEAs(aeInstance.events).then(
             function (eas) {
-                APISrv.addEvents(eas);
+                Utils.loading();
+                APISrv.addEvents(eas).then(
+                    function(response) {
+                        Utils.loaded();
+                        console.log('Events successfully uploaded on the server.');
+                    },
+                    function(reason) {
+                        Utils.loaded();
+                        console.log('Error uploading events on the server!');
+                    }
+                );
             }
         );
 

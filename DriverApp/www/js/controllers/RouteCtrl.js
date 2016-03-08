@@ -293,7 +293,10 @@ angular.module('driverapp.controllers.route', [])
         $scope.modal.show();
     };
 
-    $scope.closeModal = function () {
+    $scope.closeModal = function (ok) {
+        if (!ok) {
+            $scope.modal.forgetChanges = true;
+        }
         $scope.modal.hide();
     };
 
@@ -304,7 +307,7 @@ angular.module('driverapp.controllers.route', [])
 
     // Execute action on hide modal
     $scope.$on('modal.hidden', function () {
-        if ($scope.toBeTaken.length > 0) {
+        if (!$scope.modal.forgetChanges && $scope.toBeTaken.length > 0) {
             $scope.onBoardTemp = $scope.onBoardTemp.concat($scope.toBeTaken);
         }
 
@@ -313,6 +316,7 @@ angular.module('driverapp.controllers.route', [])
             $scope.getChild(childId).checked = false;
         });
         $scope.toBeTaken = [];
+        $scope.modal.forgetChanges = false;
 
         $scope.mergedOnBoard = $scope.getMergedOnBoard();
     });
@@ -408,7 +412,7 @@ angular.module('driverapp.controllers.route', [])
 
         var oldHelpersIds = [];
         $scope.helpers.forEach(function (h) {
-           oldHelpersIds.push(h.objectId);
+            oldHelpersIds.push(h.objectId);
         });
 
         var counter = 0;
