@@ -90,13 +90,14 @@ public class ScanActivity extends Activity {
                     updateDetailsExpandableListDetails();
                 }
 
-                boolean nodeCheckState[] = expandableListAdapter.getNodeCheckState(0);
-                if(nodeCheckState != null) {
-
-                    nodeCheckState[climbNodeList.size()-1] =  mSelectAllCheckbox.isChecked();
-                    expandableListAdapter.notifyDataSetChanged();
-                }
-                expandableListAdapter.notifyDataSetChanged();
+//                boolean nodeCheckState[] = expandableListAdapter.getNodeCheckState(0);
+//                expandableListAdapter.notifyDataSetChanged();
+//                if(nodeCheckState != null) {
+//                    for(int i = 0; i < nodeCheckState.length; i++) {
+//                        nodeCheckState[i] = mSelectAllCheckbox.isChecked();
+//                    }
+//                }
+//                expandableListAdapter.notifyDataSetChanged();
                 log("ACTION_DEVICE_ADDED_TO_LIST broadcast received");
 
             } else if (ClimbService.ACTION_DEVICE_REMOVED_FROM_LIST.equals(action)) {
