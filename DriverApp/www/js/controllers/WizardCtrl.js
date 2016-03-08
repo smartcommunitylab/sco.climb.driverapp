@@ -162,6 +162,7 @@ angular.module('driverapp.controllers.wizard', [])
                 $scope.wizard.helpers.push(vol);
             }
         });
+        Utils.setMenuDriverTitle($scope.wizard.driver.name);
 
         $ionicHistory.nextViewOptions({
             historyRoot: true
