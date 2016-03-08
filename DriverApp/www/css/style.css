@@ -6,6 +6,28 @@
 }
 
 /* Components */
+.dapp-theme .button.button-light {
+    border-color: transparent;
+    background-color: #f2f2f2;
+    color: #f29100;
+}
+.dapp-theme .button.button-light.button-clear {
+    border-color: transparent;
+    background: none;
+    box-shadow: none;
+    color: #f2f2f2;
+}
+.dapp-theme .button.button-light.button-outline {
+    border-color: #f2f2f2;
+    background: transparent;
+    color: #f2f2f2;
+}
+.dapp-theme .button.button-light.button-outline.active,
+.dapp-theme .button.button-light.button-outline.activated {
+    background-color: #f2f2f2;
+    box-shadow: none;
+    color: #f29100;
+}
 .dapp-theme .button.button-stable {
     border-color: transparent;
     background-color: #b0bec5;
@@ -101,11 +123,14 @@
 .dapp-theme .dapp-menu .menu .list .item-complex .item-content{
     background-color: transparent;
 }
-.dapp-theme .dapp-menu .bar {
+/*.dapp-theme .dapp-menu .bar {
+=======*/
+
+.dapp-theme .bar.bar-header.bar-positive {
     color: #fff;
     background-color: #438699;
 }
-.dapp-theme .dapp-menu .bar .button-dapp.button-clear {
+.dapp-theme .bar.bar-header.bar-positive .button.button-clear {
     color: #fff;
 }
 
@@ -142,9 +167,6 @@
 .dapp-theme .dapp-wizard ion-item.item-select-dapp i.icon {
     float: right;
 }
-.dapp-theme .dapp-wizard .button.button-dapp {
-    text-transform: uppercase;
-}
 .dapp-theme .dapp-wizard .buttonbar .button {
     text-transform: uppercase;
 }
@@ -166,10 +188,11 @@
 .dapp-theme .button.button-enroute {
     width: 27%;
     position: absolute;
-    left: 70%;
+    /*left: 70%;*/
+    right: 3%;
     margin-top: 2px;
     z-index: 1000;
-    box-shadow: 2px 5px 1px #888888;
+    box-shadow: 2px 3px 1px #888888;
     min-height: 30px;
     max-height: 38px;
 }
@@ -179,8 +202,8 @@
     color: #fff;
 }
 .dapp-theme .button.button-enroute.moving {
-    border-color: #E53935;
-    background-color: #E53935;
+    border-color: #e53935;
+    background-color: #e53935;
     color: #fff;
 }
 .dapp-theme .button.button-enroute.finished {
@@ -190,13 +213,10 @@
     box-shadow: none;
 }
 .dapp-theme .button.button-passenger {
-    border-color: transparent;
-    background-color: #f2f2f2;
-    color: #f29100;
-    box-shadow: 2px 5px 1px #888888;
+    box-shadow: 2px 3px 1px #888888;
     position: absolute;
     top: auto;
-    right: 5px;
+    right: 3%;
     height: 40px;
     min-height: 35px;
 }
