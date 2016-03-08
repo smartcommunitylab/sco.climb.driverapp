@@ -20,17 +20,17 @@
         <ion-content>
             <ion-list>
                 <ion-item nav-clear menu-close href="#/app/home">
-                    Home
+                    <i class="icon ion-home"></i> Home
                 </ion-item>
                 <!-- TODO remove this entry from meny -->
                 <ion-item nav-clear menu-close href="#/app/wizard">
-                    Wizard
+                    <i class="icon ion-home"></i> Wizard
                 </ion-item>
                 <ion-item nav-clear menu-close href="#/app/routes">
-                    Pedibus
+                    <i class="icon ion-android-walk"></i> Pedibus
                 </ion-item>
                 <ion-item nav-clear menu-close href="#/app/volunteers">
-                    Volontari
+                    <i class="icon ion-android-call"></i> Volontari
                 </ion-item>
                 <!-- FIXME dev only! -->
                 <!--<ion-item nav-clear ng-click="WSNSrvGetMasters()">
@@ -49,10 +49,10 @@
                     GET NETWORK STATE
                 </ion-item>-->
                 <ion-item nav-clear ng-click="WSNSrvCheckMaster()">
-                    <span ng-class="{'warning': masterError == true}">Diagnostica</span>
+                    <i class="icon ion-alert-circled"></i> <span ng-class="{'warning': masterError == true}">Diagnostica</span>
                 </ion-item>
                 <ion-item nav-clear ng-click="exitApp()">
-                    Chiudi l'app
+                    <i class="icon ion-log-out"></i> Chiudi l'app
                 </ion-item>
             </ion-list>
         </ion-content>

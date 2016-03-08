@@ -41,7 +41,15 @@
 }
 
 /* Menu Bar */
-
+.dapp-theme .dapp-menu .menu,
+.dapp-theme .dapp-menu .menu .list .item,
+.dapp-theme .dapp-menu .menu .list .item-complex {
+    color: #438699;
+    background-color: #C6DAE0;
+}
+.dapp-theme .dapp-menu .menu .list .item-complex .item-content{
+    background-color: transparent;
+}
 .dapp-theme .dapp-menu .bar {
     color: #fff;
     background-color: #438699;
