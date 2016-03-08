@@ -163,7 +163,7 @@ angular.module('driverapp.controllers.route', [])
                 $scope.helpersTemp.forEach(function (helper) {
                     AESrv.setHelper(helper);
                 });
-                $scope.helpers = angular.copy($scope.helpersTemp);
+                $scope.helpers = $scope.helpers.concat($scope.helpersTemp);
                 $scope.helpersTemp = [];
 
                 if ($scope.enRoutePos == 0) {
@@ -402,6 +402,8 @@ angular.module('driverapp.controllers.route', [])
     $scope.selectHelpersPopup = function () {
         //$scope.volunteers = $scope.getDriverAndVolunteers(StorageSrv.getVolunteers(), $scope.helpers, $scope.helpersTemp);
         $scope.volunteers = $filter('orderBy')(StorageSrv.getVolunteers(), ['checked', 'name']);
+        $scope.helpers = $filter('orderBy')($scope.helpers, ['checked', 'name']);
+        $scope.helpersTemp = $filter('orderBy')($scope.helpersTemp, ['checked', 'name']);
         var hs = $scope.helpers.concat($scope.helpersTemp);
 
         var oldHelpersIds = [];

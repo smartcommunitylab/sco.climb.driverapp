@@ -174,8 +174,10 @@ angular.module('driverapp.services.wsn', [])
         if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
             window.DriverAppPlugin.getNetworkState(
                 function (networkState) {
+                    var nsIds = [];
                     var ns = angular.copy(wsnService.networkState);
                     networkState.forEach(function (nodeState) {
+                        nsIds.push(nodeState.nodeID);
                         if (!!ns[nodeState.nodeID]) {
                             if (ns[nodeState.nodeID].status == '') {
                                 ns[nodeState.nodeID].status = wsnService.STATUS_NEW;
@@ -185,7 +187,7 @@ angular.module('driverapp.services.wsn', [])
                     });
                     wsnService.networkState = ns;
 
-                    console.log('getNetworkState: ' + networkState);
+                    console.log('getNetworkState: ' + nsIds);
                     deferred.resolve(networkState);
                 },
                 function (reason) {
