@@ -684,8 +684,8 @@ public class ClimbService extends Service {
                     }
                 }else if(result.getDevice().getName().equals(ConfigVals.CLIMB_CHILD_DEVICE_NAME)){ //check battery!!!
                     byte[] scanResponseData = result.getScanRecord().getManufacturerSpecificData(TEXAS_INSTRUMENTS_MANUFACTER_ID);
-                    if (scanResponseData.length > 17) {
-                        int batteryVoltage_mV =  (  ((((int) scanResponseData[16]) << 24) >>> 24)<<8) + ( (((int) scanResponseData[17]) << 24) >>> 24 );
+                    if (scanResponseData.length >= 5) {
+                        int batteryVoltage_mV =  (  ((((int) scanResponseData[scanResponseData.length-3]) << 24) >>> 24)<<8) + ( (((int) scanResponseData[scanResponseData.length-2]) << 24) >>> 24 );
                         if (batteryVoltage_mV < 2000){
                             Toast.makeText(appContext,
                                     "Battery low on node: 0x" + String.format("%02X",scanResponseData[0]),
