@@ -655,12 +655,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         if(monitoredChild != null){
             byte[] gattData = checkinCommand(monitoredChild);
             if (gattData != null) {
-                mPICOCharacteristic.setValue(gattData);
-                if (! mBluetoothGatt.writeCharacteristic(mPICOCharacteristic)) {
-                    Log.e(TAG, "Can't send state change message for " + child);
-                    return false;
-                }
-                return true;
+                return sendPICOCharacteristic(gattData);
             } //TODO: error
         } //TODO: error
         return false;
@@ -692,12 +687,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 ret = false;
             }
         }
-        if (gattData != null) {
-            mPICOCharacteristic.setValue(gattData);
-            if (! mBluetoothGatt.writeCharacteristic(mPICOCharacteristic)) {
-                Log.e(TAG, "Can't send state change message for " + children);
-                ret = false;
-            }
+        if (p > 0) {
+            ret = sendPICOCharacteristic(Arrays.copyOf(gattData,p));
         }
         return ret;
     }
