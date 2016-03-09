@@ -21,7 +21,7 @@ angular.module('driverapp.controllers.volunteers', [])
      */
     $scope.showVolunteerDetails = function (volunteer) {
         if (!!volunteer.phone) {
-            $scope.volunteerPhone = volunteer.phone;
+            $scope.phone = volunteer.phone;
             var detailsPopup = $ionicPopup.alert({
                 title: volunteer.name,
                 templateUrl: 'templates/phone_popup_person.html', //volunteer.phone,

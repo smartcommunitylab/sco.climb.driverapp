@@ -37,11 +37,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.TimeZone;
 import java.util.UUID;
 
-public class ClimbService extends Service implements ClimbServiceInterface, ClimbNodeTimeout, MonitoredClimbNodeTimeout {
+public class ClimbService extends Service implements ClimbServiceInterface, ClimbNode.ClimbNodeTimeout, MonitoredClimbNode.MonitoredClimbNodeTimeout {
 
     public final static String ACTION_DATALOG_ACTIVE ="fbk.climblogger.ClimbService.ACTION_DATALOG_ACTIVE";
     public final static String ACTION_DATALOG_INACTIVE ="fbk.climblogger.ClimbService.ACTION_DATALOG_INACTIVE";
@@ -78,6 +80,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     private BufferedWriter mBufferedWriter = null;
     private boolean logEnabled;
 
+    private int used_mtu = 23;
     private Context appContext = null;
 
     private Handler mHandler = null;
@@ -614,6 +617,38 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         }
     }
 
+    private byte[] checkinCommand(MonitoredClimbNode monitoredChild){
+        byte[] clickedChildID = monitoredChild.getNodeID();
+        byte clickedChildState = monitoredChild.getNodeState();
+        byte[] gattData = null;
+
+        if(clickedChildState == 1) { //se lo stato è CHECKING
+            if (!monitoredChild.setImposedState((byte) 2, this, ConfigVals.MON_NODE_TIMEOUT)) {
+                Log.i(TAG, "Cannot change state of child " + monitoredChild.getNodeIDString() + ": another change is in progress");
+            } else {
+                Log.i(TAG, "Checking in child " + monitoredChild.getNodeIDString());
+                String tempString = "Accepting_node_" + clickedChildID[0];
+                insertTag(tempString);
+                gattData = new byte[]{clickedChildID[0], 2}; //assegna lo stato ON_BAORD
+            }
+        }
+
+        return gattData;
+    }
+
+    private LinkedList<byte[]> PICOCharacteristicSendQueue = new LinkedList<>();
+
+    private boolean sendPICOCharacteristic(byte[] m) {
+        mPICOCharacteristic.setValue(m);
+        if (! mBluetoothGatt.writeCharacteristic(mPICOCharacteristic)) {
+            Log.i(TAG, "send: queuing message");
+            return PICOCharacteristicSendQueue.add(m.clone()); //clone to be on the safe side. Might not be needed.
+        } else {
+            Log.i(TAG, "send: sent");
+        }
+        return true;
+    }
+
     public boolean checkinChild(String child) {
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
@@ -621,33 +656,44 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         }
         MonitoredClimbNode monitoredChild = master.getChildByID(child);
         if(monitoredChild != null){
-            byte[] clickedChildID = monitoredChild.getNodeID();
-            byte clickedChildState = monitoredChild.getNodeState();
-
-            if(clickedChildState == 1){ //se lo stato è CHECKING
-                if (! monitoredChild.setImposedState((byte) 2)){
-                    Log.i(TAG, "Cannot change state of child " + monitoredChild.getNodeIDString() + ": another change is in progress");
-                    return false; //cannot set state, another change is in progress
-                }
-                Log.i(TAG, "Checking in child " + monitoredChild.getNodeIDString());
-                byte[] gattData = {clickedChildID[0],  2}; //assegna lo stato ON_BAORD e invia tutto al gatt
-                String tempString = "Acceptiong_node_"+clickedChildID[0];
-                insertTag(tempString);
-                mPICOCharacteristic.setValue(gattData);
-                mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
-                return true;
+            byte[] gattData = checkinCommand(monitoredChild);
+            if (gattData != null) {
+                return sendPICOCharacteristic(gattData);
             } //TODO: error
         } //TODO: error
         return false;
     }
 
     public boolean checkinChildren(String[] children) {
+        ClimbNode master = nodeListGetConnectedMaster();
+        if (master == null) {
+            return false; //TODO: exception?
+        }
+
+        boolean ret = true;
+        byte[] gattData = new byte[used_mtu-4]; //TODO: verify -4 in specs
+        int p = 0;
+
         for (String child : children) {
-            if (! checkinChild(child)) {
-                return false;
+            MonitoredClimbNode monitoredChild = master.getChildByID(child);
+            if (monitoredChild != null) {
+                byte[] gattDataFrag = checkinCommand(monitoredChild);
+                if (gattDataFrag != null) {
+                    if (gattData.length - p >= gattDataFrag.length) {
+                        System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
+                        p += gattDataFrag.length;
+                    } else {
+                        ret = false;
+                    }
+                }
+            } else {
+                ret = false;
             }
         }
-        return true;
+        if (p > 0) {
+            ret = sendPICOCharacteristic(Arrays.copyOf(gattData,p));
+        }
+        return ret;
     }
 
     public boolean checkoutChild(String child) {
@@ -665,8 +711,9 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 byte[] gattData = {clickedChildID[0],  0}; //assegna lo stato BY_MYSELF e invia tutto al gatt
                 String tempString = "Checking_out_node_"+clickedChildID[0];
                 insertTag(tempString);
-                mPICOCharacteristic.setValue(gattData);
-                mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
+                if (! sendPICOCharacteristic(gattData)) {
+                    Log.e(TAG, "Can't send state change message for " +clickedChildID[0]);
+                };
             } //TODO: error?
         } else {
             return false; //child not found
@@ -774,8 +821,10 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTED;
                 Log.i(TAG, "Connected to GATT server.");
                 // Attempts to discover services after successful connection.
-                Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
+
                 insertTag("Connected_to_GATT");
+                mBluetoothGatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
+                mBluetoothGatt.requestMtu(256);
 
                 //callback is called only after onServicesDiscovered()+getClimbService()
 
@@ -805,6 +854,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 mBTService = null;
                 mCIPOCharacteristic = null;
                 mPICOCharacteristic = null;
+                used_mtu = 23;
                 insertTag("Disconnected_from_GATT");
             }else if (newState == BluetoothProfile.STATE_CONNECTING) {
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTING;
@@ -903,10 +953,31 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         }
 
         @Override
+        public void onCharacteristicWrite(BluetoothGatt gatt,
+                                          BluetoothGattCharacteristic characteristic, int status) {
+            if(status != BluetoothGatt.GATT_SUCCESS){
+                Log.e(TAG, "onCharacteristicWrite: failed with status " + status);
+            } else {
+                Log.i(TAG, "onCharacteristicWrite: success " + status);
+                //if there are queued writes do them here
+                if (! PICOCharacteristicSendQueue.isEmpty()) {
+                    mPICOCharacteristic.setValue(PICOCharacteristicSendQueue.element());
+                    if (mBluetoothGatt.writeCharacteristic(mPICOCharacteristic)) {
+                        Log.i(TAG, "onCharacteristicWrite: sent queued message");
+                        PICOCharacteristicSendQueue.remove();
+                    } else {
+                        Log.i(TAG, "onCharacteristicWrite: can't send queued message");
+                    }
+                }
+            }
+        }
+
+        @Override
         public void onMtuChanged (BluetoothGatt gatt, int mtu, int status){
-
+            Log.i(TAG, "MTU changed. MTU = "+mtu);
+            Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
             if(status == 0){
-
+                used_mtu = mtu;
                 return;
             }
             return;
@@ -1026,47 +1097,60 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
        // return false;
     }
 
-    private boolean updateGATTMetadata(int recordIndex, byte[] cipo_data, long nowMillis){
+    private boolean updateGATTMetadata(int recordIndex, byte[] cipo_data, long nowMillis) {
 
 //TODO: L'rssi viene letto tramite un'altra callback, quindi per ora non ne tengo conto (in ClimbNode.updateGATTMetadata l'rssi non viene toccato)
-                List<byte[]> toChecking = nodeList.get(recordIndex).updateGATTMetadata(0, cipo_data, nowMillis);
+        List<byte[]> toChecking = nodeList.get(recordIndex).updateGATTMetadata(0, cipo_data, nowMillis);
 
-                //broadcastUpdate(ACTION_METADATA_CHANGED, EXTRA_INT_ARRAY, new int[]{recordIndex}); //questa allega  al broadcast l'indice che è cambiato, per ora non serve
-                broadcastUpdate(ACTION_METADATA_CHANGED);
+        //broadcastUpdate(ACTION_METADATA_CHANGED, EXTRA_INT_ARRAY, new int[]{recordIndex}); //questa allega  al broadcast l'indice che è cambiato, per ora non serve
+        broadcastUpdate(ACTION_METADATA_CHANGED);
 
-                // TODO: move this code down to ClimbNode
-                for (byte[] nodeID : toChecking) {
-                    Log.i(TAG, "Allowing child " + nodeID[0]);
-                    byte[] gattData = {nodeID[0],  1}; //assegna lo stato CHECKING e invia tutto al gatt
-                    String tempString = "Allowing_node_"+nodeID[0];
-                    insertTag(tempString);
-                    mPICOCharacteristic.setValue(gattData);
-                    mBluetoothGatt.writeCharacteristic(mPICOCharacteristic); //TODO: write batched
-                }
+        // TODO: move this code down to ClimbNode
+        byte[] gattData = new byte[used_mtu - 4]; //TODO: verify -4 in specs
+        int p = 0;
 
-                return true;
+        for (byte[] nodeID : toChecking) {
+            Log.i(TAG, "Allowing child " + nodeID[0]);
+            byte[] gattDataFrag = {nodeID[0], 1}; //assegna lo stato CHECKING e invia tutto al gatt
+            if (gattData.length - p >= gattDataFrag.length) {
+                System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
+                p += gattDataFrag.length;
+            } else {
+                break;
+            }
+            String tempString = "Allowing_node_" + nodeID[0];
+            insertTag(tempString);
+        }
+
+        if (p > 0) {
+            if (! sendPICOCharacteristic(Arrays.copyOf(gattData,p))) {
+                Log.e(TAG, "Can't send state change message");
+            }
+        }
+
+        return true;
     }
 
     @Override
     public void climbNodeTimedout(ClimbNode node) {
         nodeList.remove(node);
         broadcastUpdate(ACTION_DEVICE_REMOVED_FROM_LIST, node.getNodeID());
-        Log.d(TAG, "Timeout: node removed with index: " + nodeList.indexOf(node));
+        Log.i(TAG, "Timeout: node removed with index: " + nodeList.indexOf(node));
     }
 
     @Override
     public void monitoredClimbNodeChangeTimedout(MonitoredClimbNode node, byte imposedState, byte state) {
         switch (imposedState) {
             case 1:
-                broadcastUpdate(STATE_CHECKEDOUT_CHILD); //TODO: add param: failed
-                Log.d(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
+                broadcastUpdate(STATE_CHECKEDOUT_CHILD, node.getNodeIDString(), false, "checkout failed: timeout"); //TODO: add param: failed
+                Log.w(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
                 break;
             case 2:
-                broadcastUpdate(STATE_CHECKEDIN_CHILD); //TODO: add param: failed
-                Log.d(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
+                broadcastUpdate(STATE_CHECKEDIN_CHILD, node.getNodeIDString(), false, "checkin failed: timeout"); //TODO: add param: failed
+                Log.w(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
                 break;
             default:
-                Log.d(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
+                Log.w(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
         }
     }
 
@@ -1074,11 +1158,11 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     public void monitoredClimbNodeChangeSuccess(MonitoredClimbNode node, byte state) {
         switch (state) {
             case 1:
-                broadcastUpdate(STATE_CHECKEDOUT_CHILD); //TODO: add param: success
+                broadcastUpdate(STATE_CHECKEDOUT_CHILD, node.getNodeIDString(), true, ""); //TODO: add param: success
                 Log.d(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
                 break;
             case 2:
-                broadcastUpdate(STATE_CHECKEDIN_CHILD); //TODO: add param: success
+                broadcastUpdate(STATE_CHECKEDIN_CHILD, node.getNodeIDString(), true, ""); //TODO: add param: success
                 Log.d(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
                 break;
             default:

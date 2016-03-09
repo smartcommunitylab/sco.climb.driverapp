@@ -8,12 +8,13 @@ import java.util.Arrays;
  * Created by user on 24/11/2015.
  */
 
-interface MonitoredClimbNodeTimeout {
-    public void monitoredClimbNodeChangeSuccess(MonitoredClimbNode node, byte state);
-    public void monitoredClimbNodeChangeTimedout(MonitoredClimbNode node, byte imposedState, byte state);
-}
 
 public class MonitoredClimbNode{
+
+    interface MonitoredClimbNodeTimeout {
+        public void monitoredClimbNodeChangeSuccess(MonitoredClimbNode node, byte state);
+        public void monitoredClimbNodeChangeTimedout(MonitoredClimbNode node, byte imposedState, byte state);
+    }
 
     private byte[] nodeID = {};
 
@@ -27,14 +28,13 @@ public class MonitoredClimbNode{
     private Runnable timedoutTimer = null;
     private Handler mHandler = null;
 
-    public MonitoredClimbNode(byte[] newNodeID, byte newNodeState, byte newRSSI, long newLastContactMillis, MonitoredClimbNodeTimeout cb, Handler handler){
+    public MonitoredClimbNode(byte[] newNodeID, byte newNodeState, byte newRSSI, long newLastContactMillis, Handler handler){
         nodeID = newNodeID;
         nodeState = newNodeState;
         timedOut = false;
         RSSI = newRSSI;
         lastContactMillis = newLastContactMillis;
         lastStateChangeMillis = lastContactMillis;
-        timedoutCallback = cb;
         //mHandler = new Handler(); // cannot create handler when this one is called from GATT
         mHandler = handler;
     }
@@ -78,11 +78,6 @@ public class MonitoredClimbNode{
         nodeState = newState;
     }
 
-    private void timedout() {
-        (timedoutCallback).monitoredClimbNodeChangeTimedout(this, imposedState, nodeState);
-        timedoutTimer = null;
-    }
-
     public void setNodeState(byte newState, long newLastContactMillis){
         if (timedoutTimer != null) {
             if (newState == imposedState) {
@@ -99,19 +94,28 @@ public class MonitoredClimbNode{
         lastContactMillis = newLastContactMillis;
     }
 
-    public boolean setImposedState(byte newImposedState) {
+
+    /*
+     * Set imposed state. If a callback is provided, it will be called when the state changes to the imposed state, or after
+     * a timeout. If a callback is not provided, imposed state only stores the data.
+     */
+    public boolean setImposedState(byte newImposedState, final MonitoredClimbNodeTimeout cb, int tout) {
         if (timedoutTimer != null) {
             return false; //another state change is in progress
             //mHandler.removeCallbacks(timedoutTimer);
         }
+        timedoutCallback = cb;
 
-        timedoutTimer = new Runnable() {
-            @Override
-            public void run() {
-                timedout();
-            }
-        };
-        mHandler.postDelayed(timedoutTimer, ConfigVals.MON_NODE_TIMEOUT);
+        if (cb != null) {
+            timedoutTimer = new Runnable() {
+                @Override
+                public void run() {
+                    (cb).monitoredClimbNodeChangeTimedout(MonitoredClimbNode.this, imposedState, nodeState);
+                    timedoutTimer = null;
+                }
+            };
+            mHandler.postDelayed(timedoutTimer, tout);
+        }
         imposedState = newImposedState;
         return true;
     }

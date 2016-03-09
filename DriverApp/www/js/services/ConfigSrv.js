@@ -23,5 +23,7 @@ angular.module('driverapp.services.config', [])
     config.DATE_FORMAT = 'YYYY-MM-DD';
     config.WIZARD_SLIDER_OPTIONS = {};
 
+    config.LOGFILE_PATH = '/ClimbDriverApp/aelog.txt';
+
     return config;
 });

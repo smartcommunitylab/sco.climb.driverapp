@@ -4,14 +4,14 @@
     </ion-nav-buttons>
     <ion-content class="route-view" scroll="false">
         <!-- class="padding-top  padding-horizontal" ng-class="{'has-subheader': fromWizard}" -->
-        <button class="button button-enroute" ng-class="{'still': !enRoute, 'moving': !!enRoute, 'finished': !enRoute && !!stops[enRoutePos].school}" ng-click="toggleEnRoute()" ng-if="fromWizard">
-            <span ng-if="!enRoute && !!stops[enRoutePos].start">Parti</span>
-            <span ng-if="!!enRoute && !stops[enRoutePos + 1].school">Fermati</span>
-            <span ng-if="!enRoute && !stops[enRoutePos].start && !stops[enRoutePos].school">Riparti</span>
-            <span ng-if="!!enRoute && !!stops[enRoutePos + 1].school">Arriva</span>
-            <span ng-if="!enRoute && !!stops[enRoutePos].school">Arrivato</span>
-        </button>
         <div id="route-button-div" class="listwrapper-expanded" ng-class="{'listwrapper-expanded': isRoutePanelOpen, 'listwrapper-reduced':!isRoutePanelOpen}">
+            <button class="button button-enroute" ng-class="{'still': !enRoute, 'moving': !!enRoute, 'finished': !enRoute && !!stops[enRoutePos].school}" ng-click="toggleEnRoute()" ng-if="fromWizard">
+                <span ng-if="!enRoute && !!stops[enRoutePos].start">Parti</span>
+                <span ng-if="!!enRoute && !stops[enRoutePos + 1].school">Fermati</span>
+                <span ng-if="!enRoute && !stops[enRoutePos].start && !stops[enRoutePos].school">Riparti</span>
+                <span ng-if="!!enRoute && !!stops[enRoutePos + 1].school">Arriva</span>
+                <span ng-if="!enRoute && !!stops[enRoutePos].school">Arrivato</span>
+            </button>
             <ion-list ng-if="isRoutePanelOpen">
                 <ion-item class="item routeitem" ng-repeat="stop in stops" ng-click="getChildrenForStop(stop)" ng-disabled="!!enRoute">
                     <div ng-class="{'line-background-first': stop.position==1, 'line-background-last': stop.position==stops.length, 'line-background': stop.position > 1 && stop.position < stops.length}">
@@ -73,7 +73,7 @@
                         </button>
                     </ion-item>
                 </ion-list>-->
-                <ion-scroll scroll-height ng-class="{'passenger-list': !mergedOnBoard || mergedOnBoard.length == 0, 'passenger-list-resized': mergedOnBoard.length > 0 && mergedOnBoard.length < 4 , 'passenger-list-resized-xs': mergedOnBoard.length > 3}">
+                <ion-scroll delegate-handle="passengersHandle" scroll-height ng-class="{'passenger-list': (!mergedOnBoard || mergedOnBoard.length == 0), 'passenger-list-resized': mergedOnBoard.length == 1, 'passenger-list-resized-xs': mergedOnBoard.length > 1}">
                     <!-- wsnId -->
                     <ion-item class="item item-avatar item-button-right item-route-passenger" ng-repeat="passenger in sel.stop.passengers | orderBy : ['surname', 'name']" ng-if="(onBoard.indexOf(passenger.objectId) === -1) && (onBoardTemp.indexOf(passenger.objectId) === -1)" ng-click="showChildDetails(passenger)">
                         <img ng-if="!passenger.wsnId" src="img/rt_placeholder_child.png">
@@ -98,7 +98,7 @@
         </div>
     </ion-content>
     <ion-footer-bar ng-if="fromWizard && mergedOnBoard.length > 0">
-    <div class="on-board-panel">
+        <div class="on-board-panel">
             <div class="row on-board-panel-title">
                 <h4 class="row on-board-panel-title">A BORDO</h4>
             </div>

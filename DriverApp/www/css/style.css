@@ -159,9 +159,10 @@
     max-height: 60px;
 }
 /*.dapp-theme .dapp-menu .bar */
-.dapp-theme .bar.bar-header.bar-positive {
+.dapp-theme .bar.bar-positive {
     color: #fff;
     background-color: #438699;
+    border-color: #438699;
 }
 .dapp-theme .bar.bar-header.bar-positive .button.button-clear {
     color: #fff;
@@ -220,7 +221,7 @@
 
 .dapp-theme .button.button-enroute {
     width: 27%;
-    position: absolute;
+    position: fixed;
     /*left: 70%;*/
     right: 3%;
     margin-top: 2px;
@@ -384,17 +385,17 @@
     color: #438699;
 }
 .dapp-theme .passenger-list {
-    height: 400px;
+    height: 440px;
     overflow-y: scroll;
     overflow-x: hidden;
 }
 .dapp-theme .passenger-list-resized {
-    height: 100px;
+    height: 280px;
     overflow-y: scroll;
     overflow-x: hidden;
 }
 .dapp-theme .passenger-list-resized-xs {
-    height: 100px;
+    height: 180px;
     overflow-y: scroll;
     overflow-x: hidden;
 }
@@ -406,7 +407,7 @@
     background-color: #fff;
 }
 .dapp-theme .on-board-panel .scroll-view {
-    height: 200px;
+    max-height: 210px;
     overflow-y: auto;
     overflow-x: hidden;
 }

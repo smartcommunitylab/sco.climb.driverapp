@@ -3,6 +3,7 @@ angular.module('driverapp', [
     'ionic.wizard',
     'ngCordova',
     'driverapp.services.config',
+    'driverapp.services.log',
     'driverapp.services.utils',
     'driverapp.services.storage',
     'driverapp.services.wsn',

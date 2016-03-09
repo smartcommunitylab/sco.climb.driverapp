@@ -1,6 +1,7 @@
 angular.module('driverapp.controllers.home', [])
 
 .controller('AppCtrl', function ($scope, $rootScope, $ionicPlatform, $q, $ionicModal, Config, StorageSrv, APISrv, WSNSrv, Utils) {
+    $rootScope.pedibusEnabled = true;
     /*
      * FIXME dev purpose only!
      */

@@ -1,6 +1,6 @@
 angular.module('driverapp.services.ae', [])
 
-.factory('AESrv', function ($q, $interval, Config, Utils, StorageSrv, APISrv) {
+.factory('AESrv', function ($q, $interval, Config, Utils, StorageSrv, LogSrv, APISrv) {
     var AE = {
         NODE_IN_RANGE: 101,
         NODE_CHECKIN: 102,
@@ -70,6 +70,7 @@ angular.module('driverapp.services.ae', [])
 
         aeInstance.driver = volunteer;
         aeInstance.events.push(event);
+        LogSrv.log(JSON.stringify(event));
         return event;
     };
 
@@ -86,6 +87,7 @@ angular.module('driverapp.services.ae', [])
         };
 
         aeInstance.events.push(event);
+        LogSrv.log(JSON.stringify(event));
         return event;
     };
 
@@ -102,6 +104,7 @@ angular.module('driverapp.services.ae', [])
         };
 
         aeInstance.events.push(event);
+        LogSrv.log(JSON.stringify(event));
         return event;
     };
 
@@ -117,6 +120,7 @@ angular.module('driverapp.services.ae', [])
             }
         };
         aeInstance.events.push(event);
+        LogSrv.log(JSON.stringify(event));
         return event;
     };
 
@@ -133,6 +137,7 @@ angular.module('driverapp.services.ae', [])
         };
 
         aeInstance.events.push(event);
+        LogSrv.log(JSON.stringify(event));
         return event;
     };
 
@@ -149,6 +154,7 @@ angular.module('driverapp.services.ae', [])
         };
 
         aeInstance.events.push(event);
+        LogSrv.log(JSON.stringify(event));
 
         StorageSrv.saveEAs(aeInstance.events).then(
             function (eas) {
@@ -181,6 +187,7 @@ angular.module('driverapp.services.ae', [])
             }
         };
         aeInstance.events.push(event);
+        LogSrv.log(JSON.stringify(event));
         return event;
     };
 
@@ -204,6 +211,7 @@ angular.module('driverapp.services.ae', [])
             }
         };
         aeInstance.events.push(event);
+        LogSrv.log(JSON.stringify(event));
         return event;
     };
 
@@ -228,6 +236,7 @@ angular.module('driverapp.services.ae', [])
         };
 
         aeInstance.events.push(event);
+        LogSrv.log(JSON.stringify(event));
         return event;
     };
 
@@ -245,6 +254,7 @@ angular.module('driverapp.services.ae', [])
         };
 
         aeInstance.events.push(event);
+        LogSrv.log(JSON.stringify(event));
         return event;
     };
 
@@ -263,6 +273,7 @@ angular.module('driverapp.services.ae', [])
         };
 
         aeInstance.events.push(event);
+        LogSrv.log(JSON.stringify(event));
         return event;
     };
 

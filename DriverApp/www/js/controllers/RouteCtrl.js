@@ -4,6 +4,8 @@ angular.module('driverapp.controllers.route', [])
     $scope.fromWizard = false;
     $rootScope.pedibusEnabled = true;
 
+    var passengersScrollDelegate = $ionicScrollDelegate.$getByHandle('passengersHandle');
+
     var aesInstance = {};
 
     $scope.children = null;
@@ -162,6 +164,7 @@ angular.module('driverapp.controllers.route', [])
                 $scope.onBoard = $scope.onBoard.concat($scope.onBoardTemp);
                 $scope.onBoardTemp = [];
                 $scope.mergedOnBoard = $scope.getMergedOnBoard();
+                passengersScrollDelegate.resize();
 
                 // Riparti
                 $scope.helpersTemp.forEach(function (helper) {
@@ -258,6 +261,7 @@ angular.module('driverapp.controllers.route', [])
             $scope.onBoardTemp.push(passengerId);
         }
         $scope.mergedOnBoard = $scope.getMergedOnBoard();
+        passengersScrollDelegate.resize();
     };
 
     $scope.dropOff = function (passengerId) {
@@ -266,6 +270,7 @@ angular.module('driverapp.controllers.route', [])
             $scope.onBoardTemp.splice(index, 1);
         }
         $scope.mergedOnBoard = $scope.getMergedOnBoard();
+        passengersScrollDelegate.resize();
     };
 
     $scope.toBeTaken = [];
@@ -325,6 +330,7 @@ angular.module('driverapp.controllers.route', [])
         $scope.modal.forgetChanges = false;
 
         $scope.mergedOnBoard = $scope.getMergedOnBoard();
+        passengersScrollDelegate.resize();
     });
 
     // Execute action on remove modal
@@ -385,7 +391,7 @@ angular.module('driverapp.controllers.route', [])
         }
         //return onBoardMerged;
         return onBoardMatrix;
-    }
+    };
 
     /*
      * Check lists method: used to check if a value is already present in a list or not
