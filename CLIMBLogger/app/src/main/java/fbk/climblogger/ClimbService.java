@@ -1116,11 +1116,11 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     public void monitoredClimbNodeChangeTimedout(MonitoredClimbNode node, byte imposedState, byte state) {
         switch (imposedState) {
             case 1:
-                broadcastUpdate(STATE_CHECKEDOUT_CHILD); //TODO: add param: failed
+                broadcastUpdate(STATE_CHECKEDOUT_CHILD, node.getNodeIDString(), false, "checkout failed: timeout"); //TODO: add param: failed
                 Log.w(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
                 break;
             case 2:
-                broadcastUpdate(STATE_CHECKEDIN_CHILD); //TODO: add param: failed
+                broadcastUpdate(STATE_CHECKEDIN_CHILD, node.getNodeIDString(), false, "checkin failed: timeout"); //TODO: add param: failed
                 Log.w(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
                 break;
             default:
@@ -1132,11 +1132,11 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     public void monitoredClimbNodeChangeSuccess(MonitoredClimbNode node, byte state) {
         switch (state) {
             case 1:
-                broadcastUpdate(STATE_CHECKEDOUT_CHILD); //TODO: add param: success
+                broadcastUpdate(STATE_CHECKEDOUT_CHILD, node.getNodeIDString(), true, ""); //TODO: add param: success
                 Log.d(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
                 break;
             case 2:
-                broadcastUpdate(STATE_CHECKEDIN_CHILD); //TODO: add param: success
+                broadcastUpdate(STATE_CHECKEDIN_CHILD, node.getNodeIDString(), true, ""); //TODO: add param: success
                 Log.d(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
                 break;
             default:
