@@ -1121,8 +1121,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         }
 
         if (p > 0) {
-            mPICOCharacteristic.setValue(Arrays.copyOf(gattData,p));
-            if (!mBluetoothGatt.writeCharacteristic(mPICOCharacteristic)) {
+            if (! sendPICOCharacteristic(Arrays.copyOf(gattData,p))) {
                 Log.e(TAG, "Can't send state change message");
             }
         }
