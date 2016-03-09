@@ -1082,27 +1082,39 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
        // return false;
     }
 
-    private boolean updateGATTMetadata(int recordIndex, byte[] cipo_data, long nowMillis){
+    private boolean updateGATTMetadata(int recordIndex, byte[] cipo_data, long nowMillis) {
 
 //TODO: L'rssi viene letto tramite un'altra callback, quindi per ora non ne tengo conto (in ClimbNode.updateGATTMetadata l'rssi non viene toccato)
-                List<byte[]> toChecking = nodeList.get(recordIndex).updateGATTMetadata(0, cipo_data, nowMillis);
+        List<byte[]> toChecking = nodeList.get(recordIndex).updateGATTMetadata(0, cipo_data, nowMillis);
 
-                //broadcastUpdate(ACTION_METADATA_CHANGED, EXTRA_INT_ARRAY, new int[]{recordIndex}); //questa allega  al broadcast l'indice che è cambiato, per ora non serve
-                broadcastUpdate(ACTION_METADATA_CHANGED);
+        //broadcastUpdate(ACTION_METADATA_CHANGED, EXTRA_INT_ARRAY, new int[]{recordIndex}); //questa allega  al broadcast l'indice che è cambiato, per ora non serve
+        broadcastUpdate(ACTION_METADATA_CHANGED);
 
-                // TODO: move this code down to ClimbNode
-                for (byte[] nodeID : toChecking) {
-                    Log.i(TAG, "Allowing child " + nodeID[0]);
-                    byte[] gattData = {nodeID[0],  1}; //assegna lo stato CHECKING e invia tutto al gatt
-                    String tempString = "Allowing_node_"+nodeID[0];
-                    insertTag(tempString);
-                    mPICOCharacteristic.setValue(gattData);
-                    if (! mBluetoothGatt.writeCharacteristic(mPICOCharacteristic)) {
-                        Log.e(TAG, "Can't send state change message for " + nodeID[0]);
-                    }; //TODO: write batched
-                }
+        // TODO: move this code down to ClimbNode
+        byte[] gattData = new byte[used_mtu - 4]; //TODO: verify -4 in specs
+        int p = 0;
 
-                return true;
+        for (byte[] nodeID : toChecking) {
+            Log.i(TAG, "Allowing child " + nodeID[0]);
+            byte[] gattDataFrag = {nodeID[0], 1}; //assegna lo stato CHECKING e invia tutto al gatt
+            if (gattData.length - p >= gattDataFrag.length) {
+                System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
+                p += gattDataFrag.length;
+            } else {
+                break;
+            }
+            String tempString = "Allowing_node_" + nodeID[0];
+            insertTag(tempString);
+        }
+
+        if (p > 0) {
+            mPICOCharacteristic.setValue(Arrays.copyOf(gattData,p));
+            if (!mBluetoothGatt.writeCharacteristic(mPICOCharacteristic)) {
+                Log.e(TAG, "Can't send state change message");
+            }
+        }
+
+        return true;
     }
 
     @Override
