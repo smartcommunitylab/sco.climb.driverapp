@@ -245,7 +245,7 @@
 
                     if (bleDevice.getName().equals(ConfigVals.CLIMB_CHILD_DEVICE_NAME)) {
                         if (scanResponseData != null && scanResponseData.length > 1){
-                            description = "Node ID: 0x" + String.format("%02X",scanResponseData[0]) +"\nState: " + stateToString(scanResponseData[1]);
+                            description = "Node ID (0x):" + String.format("%02X",scanResponseData[0]) +"\nState: " + stateToString(scanResponseData[1]);
                         }
 
                         if (scanResponseData.length > 17) {
@@ -259,7 +259,7 @@
 
                         if (connectionState) {
                             for (MonitoredClimbNode tempNode : onBoardChildrenList) {
-                                description = "Node ID: " + tempNode.getNodeIDString();
+                                description = "Node ID (0x): " + tempNode.getNodeIDString();
                                 description += "\nState: " + stateToString(tempNode.getNodeState());
                                 neighbourList.add(description);
                             }
