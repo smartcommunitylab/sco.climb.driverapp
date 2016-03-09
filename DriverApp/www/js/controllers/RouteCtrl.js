@@ -2,6 +2,8 @@ angular.module('driverapp.controllers.route', [])
 
 .controller('RouteCtrl', function ($scope, $rootScope, $stateParams, $ionicHistory, $ionicNavBarDelegate, $ionicPopup, $ionicModal, $interval, $ionicScrollDelegate, $filter, Config, Utils, StorageSrv, GeoSrv, AESrv, APISrv, WSNSrv) {
     $scope.fromWizard = false;
+    $rootScope.pedibusEnabled = true;
+
     var aesInstance = {};
 
     $scope.children = null;
@@ -24,6 +26,8 @@ angular.module('driverapp.controllers.route', [])
     }
 
     if ($scope.fromWizard) {
+        $rootScope.pedibusEnabled = false;
+
         if (!!$stateParams['route']) {
             $scope.route = $stateParams['route'];
 
@@ -197,6 +201,8 @@ angular.module('driverapp.controllers.route', [])
                 AESrv.endRoute($scope.stops[$scope.enRoutePos]);
                 GeoSrv.stopWatchingPosition();
                 $scope.enRouteArrived = true;
+
+                $rootScope.pedibusEnabled = true;
             }
         }
     };

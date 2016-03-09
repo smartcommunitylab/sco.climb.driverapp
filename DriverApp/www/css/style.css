@@ -2,7 +2,10 @@
 
 .dapp-theme {}
 .dapp-theme .warning {
-    color: #ff0000;
+    color: #ff0000 !important;
+}
+.dapp-theme .disabled {
+    color: #b0bec5 !important;
 }
 
 /* Components */
