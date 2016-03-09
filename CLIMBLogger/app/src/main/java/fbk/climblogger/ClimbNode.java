@@ -248,8 +248,8 @@
                             description = "Node ID (0x):" + String.format("%02X",scanResponseData[0]) +"\nState: " + stateToString(scanResponseData[1]);
                         }
 
-                        if (scanResponseData.length > 17) {
-                            description = description + "\nBattery Voltage = " + String.format("%d", (  ((((int) scanResponseData[16]) << 24) >>> 24)<<8) + ( (((int) scanResponseData[17]) << 24) >>> 24 ) ) + " mV";
+                        if (scanResponseData.length > 4) {
+                            description = description + "\nBattery Voltage = " + String.format("%d", (  ((((int) scanResponseData[scanResponseData.length-3]) << 24) >>> 24)<<8) + ( (((int) scanResponseData[scanResponseData.length-2]) << 24) >>> 24 ) ) + " mV";
                         }
 
                         neighbourList.add(description);
