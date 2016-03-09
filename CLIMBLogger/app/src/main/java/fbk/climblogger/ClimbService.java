@@ -916,6 +916,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                                           BluetoothGattCharacteristic characteristic, int status) {
             if(status != BluetoothGatt.GATT_SUCCESS){
                 Log.e(TAG, "onCharacteristicWrite: failed with status " + status);
+            } else {
+                Log.i(TAG, "onCharacteristicWrite: success " + status);
             }
         }
 
@@ -1071,7 +1073,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     public void climbNodeTimedout(ClimbNode node) {
         nodeList.remove(node);
         broadcastUpdate(ACTION_DEVICE_REMOVED_FROM_LIST, node.getNodeID());
-        Log.d(TAG, "Timeout: node removed with index: " + nodeList.indexOf(node));
+        Log.i(TAG, "Timeout: node removed with index: " + nodeList.indexOf(node));
     }
 
     @Override
@@ -1079,14 +1081,14 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         switch (imposedState) {
             case 1:
                 broadcastUpdate(STATE_CHECKEDOUT_CHILD); //TODO: add param: failed
-                Log.d(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
+                Log.w(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
                 break;
             case 2:
                 broadcastUpdate(STATE_CHECKEDIN_CHILD); //TODO: add param: failed
-                Log.d(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
+                Log.w(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
                 break;
             default:
-                Log.d(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
+                Log.w(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
         }
     }
 
