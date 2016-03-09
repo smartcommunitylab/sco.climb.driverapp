@@ -634,7 +634,10 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 String tempString = "Acceptiong_node_"+clickedChildID[0];
                 insertTag(tempString);
                 mPICOCharacteristic.setValue(gattData);
-                mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
+                if (! mBluetoothGatt.writeCharacteristic(mPICOCharacteristic)) {
+                    Log.e(TAG, "Can't send state change message for " +clickedChildID[0]);
+                    return false;
+                }
                 return true;
             } //TODO: error
         } //TODO: error
@@ -666,7 +669,9 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 String tempString = "Checking_out_node_"+clickedChildID[0];
                 insertTag(tempString);
                 mPICOCharacteristic.setValue(gattData);
-                mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
+                if (! mBluetoothGatt.writeCharacteristic(mPICOCharacteristic)) {
+                    Log.e(TAG, "Can't send state change message for " +clickedChildID[0]);
+                };
             } //TODO: error?
         } else {
             return false; //child not found
@@ -903,6 +908,14 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         }
 
         @Override
+        public void onCharacteristicWrite(BluetoothGatt gatt,
+                                          BluetoothGattCharacteristic characteristic, int status) {
+            if(status != BluetoothGatt.GATT_SUCCESS){
+                Log.e(TAG, "onCharacteristicWrite: failed with status " + status);
+            }
+        }
+
+        @Override
         public void onMtuChanged (BluetoothGatt gatt, int mtu, int status){
 
             if(status == 0){
@@ -1041,7 +1054,9 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                     String tempString = "Allowing_node_"+nodeID[0];
                     insertTag(tempString);
                     mPICOCharacteristic.setValue(gattData);
-                    mBluetoothGatt.writeCharacteristic(mPICOCharacteristic); //TODO: write batched
+                    if (! mBluetoothGatt.writeCharacteristic(mPICOCharacteristic)) {
+                        Log.e(TAG, "Can't send state change message for " + nodeID[0]);
+                    }; //TODO: write batched
                 }
 
                 return true;
