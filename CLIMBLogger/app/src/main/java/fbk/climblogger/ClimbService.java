@@ -615,6 +615,25 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         }
     }
 
+    private byte[] checkinCommand(MonitoredClimbNode monitoredChild){
+        byte[] clickedChildID = monitoredChild.getNodeID();
+        byte clickedChildState = monitoredChild.getNodeState();
+        byte[] gattData = null;
+
+        if(clickedChildState == 1) { //se lo stato è CHECKING
+            if (!monitoredChild.setImposedState((byte) 2)) {
+                Log.i(TAG, "Cannot change state of child " + monitoredChild.getNodeIDString() + ": another change is in progress");
+            } else {
+                Log.i(TAG, "Checking in child " + monitoredChild.getNodeIDString());
+                String tempString = "Accepting_node_" + clickedChildID[0];
+                insertTag(tempString);
+                gattData = new byte[]{clickedChildID[0], 2}; //assegna lo stato ON_BAORD
+            }
+        }
+
+        return gattData;
+    }
+
     public boolean checkinChild(String child) {
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
@@ -622,21 +641,11 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         }
         MonitoredClimbNode monitoredChild = master.getChildByID(child);
         if(monitoredChild != null){
-            byte[] clickedChildID = monitoredChild.getNodeID();
-            byte clickedChildState = monitoredChild.getNodeState();
-
-            if(clickedChildState == 1){ //se lo stato è CHECKING
-                if (! monitoredChild.setImposedState((byte) 2)){
-                    Log.i(TAG, "Cannot change state of child " + monitoredChild.getNodeIDString() + ": another change is in progress");
-                    return false; //cannot set state, another change is in progress
-                }
-                Log.i(TAG, "Checking in child " + monitoredChild.getNodeIDString());
-                byte[] gattData = {clickedChildID[0],  2}; //assegna lo stato ON_BAORD e invia tutto al gatt
-                String tempString = "Accepting_node_"+clickedChildID[0];
-                insertTag(tempString);
+            byte[] gattData = checkinCommand(monitoredChild);
+            if (gattData != null) {
                 mPICOCharacteristic.setValue(gattData);
                 if (! mBluetoothGatt.writeCharacteristic(mPICOCharacteristic)) {
-                    Log.e(TAG, "Can't send state change message for " +clickedChildID[0]);
+                    Log.e(TAG, "Can't send state change message for " + child);
                     return false;
                 }
                 return true;
@@ -646,12 +655,39 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public boolean checkinChildren(String[] children) {
+        ClimbNode master = nodeListGetConnectedMaster();
+        if (master == null) {
+            return false; //TODO: exception?
+        }
+
+        boolean ret = true;
+        byte[] gattData = new byte[used_mtu-4]; //TODO: verify -4 in specs
+        int p = 0;
+
         for (String child : children) {
-            if (! checkinChild(child)) {
-                return false;
+            MonitoredClimbNode monitoredChild = master.getChildByID(child);
+            if (monitoredChild != null) {
+                byte[] gattDataFrag = checkinCommand(monitoredChild);
+                if (gattDataFrag != null) {
+                    if (gattData.length - p >= gattDataFrag.length) {
+                        System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
+                        p += gattDataFrag.length;
+                    } else {
+                        ret = false;
+                    }
+                }
+            } else {
+                ret = false;
             }
         }
-        return true;
+        if (gattData != null) {
+            mPICOCharacteristic.setValue(gattData);
+            if (! mBluetoothGatt.writeCharacteristic(mPICOCharacteristic)) {
+                Log.e(TAG, "Can't send state change message for " + children);
+                ret = false;
+            }
+        }
+        return ret;
     }
 
     public boolean checkoutChild(String child) {
