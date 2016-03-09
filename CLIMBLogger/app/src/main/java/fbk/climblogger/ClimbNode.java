@@ -214,7 +214,7 @@
                                 }
                             }
                             if (n == null) {
-                                onBoardChildrenList.add(new MonitoredClimbNode(tempNodeID, state, rssi, millisNow, timedoutCallback2, mHandler));
+                                onBoardChildrenList.add(new MonitoredClimbNode(tempNodeID, state, rssi, millisNow, mHandler));
                             } else {
                                 n.setNodeState(state, millisNow);
                                 n.setNodeRssi(rssi);
