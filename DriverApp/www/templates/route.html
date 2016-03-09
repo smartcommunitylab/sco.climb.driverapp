@@ -75,7 +75,7 @@
                 </ion-list>-->
                 <ion-scroll scroll-height class="passenger-list">
                     <!-- wsnId -->
-                    <ion-item class="item item-avatar item-button-right item-route-passenger" ng-repeat="passenger in sel.stop.passengers" ng-if="(onBoard.indexOf(passenger.objectId) === -1) && (onBoardTemp.indexOf(passenger.objectId) === -1)" ng-click="showChildDetails(passenger)">
+                    <ion-item class="item item-avatar item-button-right item-route-passenger" ng-repeat="passenger in sel.stop.passengers | orderBy : ['surname', 'name']" ng-if="(onBoard.indexOf(passenger.objectId) === -1) && (onBoardTemp.indexOf(passenger.objectId) === -1)" ng-click="showChildDetails(passenger)">
                         <img ng-if="!passenger.wsnId" src="img/rt_placeholder_child.png">
                         <img ng-if="passenger.wsnId" src="img/rt_placeholder_child_it.png"> {{passenger.surname}} {{passenger.name}}
                         <button class="button button-energized button-clear" ng-click="takeOnBoard(passenger.objectId)" ng-disabled="!!enRoute || sel.stop !== stops[enRoutePos] || enRouteArrived" ng-if="fromWizard">
