@@ -8,12 +8,13 @@ import java.util.Arrays;
  * Created by user on 24/11/2015.
  */
 
-interface MonitoredClimbNodeTimeout {
-    public void monitoredClimbNodeChangeSuccess(MonitoredClimbNode node, byte state);
-    public void monitoredClimbNodeChangeTimedout(MonitoredClimbNode node, byte imposedState, byte state);
-}
 
 public class MonitoredClimbNode{
+
+    interface MonitoredClimbNodeTimeout {
+        public void monitoredClimbNodeChangeSuccess(MonitoredClimbNode node, byte state);
+        public void monitoredClimbNodeChangeTimedout(MonitoredClimbNode node, byte imposedState, byte state);
+    }
 
     private byte[] nodeID = {};
 

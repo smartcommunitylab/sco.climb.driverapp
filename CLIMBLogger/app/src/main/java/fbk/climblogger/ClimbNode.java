@@ -15,11 +15,11 @@
          * Created by user on 05/10/2015.
          */
 
-        interface ClimbNodeTimeout {
-            public void climbNodeTimedout(ClimbNode node);
-        }
-
         public class ClimbNode {
+
+            interface ClimbNodeTimeout {
+                public void climbNodeTimedout(ClimbNode node);
+            }
 
             private BluetoothDevice bleDevice;
             private byte rssi;
@@ -33,13 +33,13 @@
             private boolean connectionState = false;
             private boolean isMasterNode = false;
             private ClimbNodeTimeout timedoutCallback = null;
-            private MonitoredClimbNodeTimeout timedoutCallback2 = null;
+            private MonitoredClimbNode.MonitoredClimbNodeTimeout timedoutCallback2 = null;
             private Runnable timedoutTimer = null;
             private Handler mHandler = null;
             private boolean driveTransitionToChecking = true;
 
 
-            public ClimbNode(BluetoothDevice dev, byte initRssi, byte[] newScanResponse, boolean masterNode, ClimbNodeTimeout cb, MonitoredClimbNodeTimeout cb2) {//SparseArray<byte[]> newScanResponse){
+            public ClimbNode(BluetoothDevice dev, byte initRssi, byte[] newScanResponse, boolean masterNode, ClimbNodeTimeout cb, MonitoredClimbNode.MonitoredClimbNodeTimeout cb2) {//SparseArray<byte[]> newScanResponse){
 
                 bleDevice = dev;
                 rssi = initRssi;

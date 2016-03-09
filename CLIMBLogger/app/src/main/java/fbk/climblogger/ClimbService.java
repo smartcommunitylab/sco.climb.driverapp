@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
 
-public class ClimbService extends Service implements ClimbServiceInterface, ClimbNodeTimeout, MonitoredClimbNodeTimeout {
+public class ClimbService extends Service implements ClimbServiceInterface, ClimbNode.ClimbNodeTimeout, MonitoredClimbNode.MonitoredClimbNodeTimeout {
 
     public final static String ACTION_DATALOG_ACTIVE ="fbk.climblogger.ClimbService.ACTION_DATALOG_ACTIVE";
     public final static String ACTION_DATALOG_INACTIVE ="fbk.climblogger.ClimbService.ACTION_DATALOG_INACTIVE";
