@@ -382,7 +382,17 @@
 }
 .dapp-theme .passenger-list {
     height: 400px;
-    overflow-y: auto;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+.dapp-theme .passenger-list-resized {
+    height: 100px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+.dapp-theme .passenger-list-resized-xs {
+    height: 100px;
+    overflow-y: scroll;
     overflow-x: hidden;
 }
 .dapp-theme .on-board-panel {
@@ -393,7 +403,7 @@
     background-color: #fff;
 }
 .dapp-theme .on-board-panel .scroll-view {
-    max-height: 200px;
+    height: 200px;
     overflow-y: auto;
     overflow-x: hidden;
 }
