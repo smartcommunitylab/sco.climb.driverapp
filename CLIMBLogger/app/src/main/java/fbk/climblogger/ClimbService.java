@@ -37,7 +37,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -634,6 +636,16 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         return gattData;
     }
 
+    private LinkedList<byte[]> PICOCharacteristicSendQueue = new LinkedList<>();
+
+    private boolean sendPICOCharacteristic(byte[] m) {
+        mPICOCharacteristic.setValue(m);
+        if (! mBluetoothGatt.writeCharacteristic(mPICOCharacteristic)) {
+            return PICOCharacteristicSendQueue.add(m.clone()); //clone to be on the safe side. Might not be needed.
+        }
+        return true;
+    }
+
     public boolean checkinChild(String child) {
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
@@ -954,6 +966,16 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 Log.e(TAG, "onCharacteristicWrite: failed with status " + status);
             } else {
                 Log.i(TAG, "onCharacteristicWrite: success " + status);
+                //if there are queued writes do them here
+                if (! PICOCharacteristicSendQueue.isEmpty()) {
+                    mPICOCharacteristic.setValue(PICOCharacteristicSendQueue.element());
+                    if (mBluetoothGatt.writeCharacteristic(mPICOCharacteristic)) {
+                        Log.i(TAG, "onCharacteristicWrite: sent queued message");
+                        PICOCharacteristicSendQueue.remove();
+                    } else {
+                        Log.i(TAG, "onCharacteristicWrite: can't send queued message");
+                    }
+                }
             }
         }
 
