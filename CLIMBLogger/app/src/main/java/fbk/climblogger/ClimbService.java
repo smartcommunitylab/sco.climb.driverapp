@@ -631,7 +631,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 }
                 Log.i(TAG, "Checking in child " + monitoredChild.getNodeIDString());
                 byte[] gattData = {clickedChildID[0],  2}; //assegna lo stato ON_BAORD e invia tutto al gatt
-                String tempString = "Acceptiong_node_"+clickedChildID[0];
+                String tempString = "Accepting_node_"+clickedChildID[0];
                 insertTag(tempString);
                 mPICOCharacteristic.setValue(gattData);
                 if (! mBluetoothGatt.writeCharacteristic(mPICOCharacteristic)) {
