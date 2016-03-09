@@ -708,8 +708,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 byte[] gattData = {clickedChildID[0],  0}; //assegna lo stato BY_MYSELF e invia tutto al gatt
                 String tempString = "Checking_out_node_"+clickedChildID[0];
                 insertTag(tempString);
-                mPICOCharacteristic.setValue(gattData);
-                if (! mBluetoothGatt.writeCharacteristic(mPICOCharacteristic)) {
+                if (! sendPICOCharacteristic(gattData)) {
                     Log.e(TAG, "Can't send state change message for " +clickedChildID[0]);
                 };
             } //TODO: error?
