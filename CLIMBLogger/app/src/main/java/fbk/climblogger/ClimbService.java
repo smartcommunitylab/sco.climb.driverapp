@@ -1173,7 +1173,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     @Override
     public void monitoredClimbNodeChangeTimedout(MonitoredClimbNode node, byte imposedState, byte state) {
         switch (imposedState) {
-            case 1:
+            case 0:
                 broadcastUpdate(STATE_CHECKEDOUT_CHILD, node.getNodeIDString(), false, "checkout failed: timeout"); //TODO: add param: failed
                 Log.w(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
                 break;
@@ -1189,7 +1189,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     @Override
     public void monitoredClimbNodeChangeSuccess(MonitoredClimbNode node, byte state) {
         switch (state) {
-            case 1:
+            case 0:
                 broadcastUpdate(STATE_CHECKEDOUT_CHILD, node.getNodeIDString(), true, ""); //TODO: add param: success
                 Log.d(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
                 break;
