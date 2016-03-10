@@ -134,8 +134,34 @@ public class ScanActivity extends Activity {
                 }else{
 
                 }
+            } else if (ClimbService.STATE_CHECKEDIN_CHILD.equals(action)) {
+                if(intent.hasExtra(ClimbService.INTENT_EXTRA_ID))   {
+                        String nodeID = intent.getStringExtra(ClimbService.INTENT_EXTRA_ID);
+                        boolean success = intent.getBooleanExtra(ClimbService.INTENT_EXTRA_SUCCESS, true);
+                        String msg = intent.getStringExtra(ClimbService.INTENT_EXTRA_MSG);
+                        String alertString = "CHECKIN " + nodeID + " " + success + " " + msg;
+                        Toast.makeText(getApplicationContext(),
+                                alertString,
+                                Toast.LENGTH_LONG).show();
 
+                        log( alertString );
+                    }else{
 
+                    }
+            } else if (ClimbService.STATE_CHECKEDOUT_CHILD.equals(action)) {
+                if(intent.hasExtra(ClimbService.INTENT_EXTRA_ID))   {
+                    String nodeID = intent.getStringExtra(ClimbService.INTENT_EXTRA_ID);
+                    boolean success = intent.getBooleanExtra(ClimbService.INTENT_EXTRA_SUCCESS, true);
+                    String msg = intent.getStringExtra(ClimbService.INTENT_EXTRA_MSG);
+                    String alertString = "CHECKOUT " + nodeID + " " + success + " " + msg;
+                    Toast.makeText(getApplicationContext(),
+                            alertString,
+                            Toast.LENGTH_LONG).show();
+
+                    log( alertString );
+                }else{
+
+                }
             }
         }
     };
@@ -581,6 +607,8 @@ public class ScanActivity extends Activity {
         intentFilter.addAction(ClimbService.STATE_DISCONNECTED_FROM_CLIMB_MASTER);
         intentFilter.addAction(ClimbService.ACTION_DEVICE_REMOVED_FROM_LIST);
         intentFilter.addAction(ClimbService.ACTION_NODE_ALERT);
+        intentFilter.addAction(ClimbService.STATE_CHECKEDIN_CHILD);
+        intentFilter.addAction(ClimbService.STATE_CHECKEDOUT_CHILD);
         return intentFilter;
     }
 
