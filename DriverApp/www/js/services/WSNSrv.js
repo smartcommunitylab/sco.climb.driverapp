@@ -94,7 +94,7 @@ angular.module('driverapp.services.wsn', [])
         if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
             window.DriverAppPlugin.getMasters(
                 function (response) {
-                    wnsService.stopNetworkState();
+                    wsnService.stopNetworkStateInterval();
                     deferred.resolve(response);
                 },
                 function (reason) {

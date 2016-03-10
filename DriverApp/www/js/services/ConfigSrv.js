@@ -11,6 +11,7 @@ angular.module('driverapp.services.config', [])
     config.GPS_DELAY = 5000;
     config.NETWORKSTATE_DELAY = 2000;
     config.NODESTATE_TIMEOUT = 10000;
+    config.AUTOFINISH_DELAY = 1800000; // 30 mins
 
     config.HTTP_CONFIG = {
         timeout: 10000,

@@ -1,6 +1,6 @@
 angular.module('driverapp.controllers.route', [])
 
-.controller('RouteCtrl', function ($scope, $rootScope, $stateParams, $ionicHistory, $ionicNavBarDelegate, $ionicPopup, $ionicModal, $interval, $ionicScrollDelegate, $filter, Config, Utils, StorageSrv, GeoSrv, AESrv, APISrv, WSNSrv) {
+.controller('RouteCtrl', function ($scope, $rootScope, $stateParams, $ionicHistory, $ionicNavBarDelegate, $ionicPopup, $ionicModal, $interval, $ionicScrollDelegate, $filter, $timeout, Config, Utils, StorageSrv, GeoSrv, AESrv, APISrv, WSNSrv) {
     $scope.fromWizard = false;
     $rootScope.pedibusEnabled = true;
 
@@ -173,6 +173,20 @@ angular.module('driverapp.controllers.route', [])
                 $scope.helpers = $scope.helpers.concat($scope.helpersTemp);
                 $scope.helpersTemp = [];
 
+                // Penultima fermata
+                if (!$scope.stops[$scope.enRoutePos + 2]) {
+                    console.log('Automatic "Arrive" timeout started!');
+                    $timeout(function () {
+                        // Arriva in maniera automatica
+                        if (!$scope.enRouteArrived) {
+                            $scope.toggleEnRoute();
+                            console.log('Automatically arrived!');
+                        } else {
+                            console.log('Automatic "Arrive" not necessary');
+                        }
+                    }, Config.AUTOFINISH_DELAY);
+                }
+
                 if ($scope.enRoutePos == 0) {
                     // Parti
                     AESrv.startRoute($scope.stops[$scope.enRoutePos]);
@@ -201,10 +215,13 @@ angular.module('driverapp.controllers.route', [])
                         WSNSrv.checkoutChild(child.wsnId);
                     }
                 });
-                AESrv.endRoute($scope.stops[$scope.enRoutePos]);
-                GeoSrv.stopWatchingPosition();
-                $scope.enRouteArrived = true;
 
+                AESrv.endRoute($scope.stops[$scope.enRoutePos]);
+
+                GeoSrv.stopWatchingPosition();
+                WSNSrv.stopListener();
+
+                $scope.enRouteArrived = true;
                 $rootScope.pedibusEnabled = true;
             }
         }

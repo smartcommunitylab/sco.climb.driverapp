@@ -6,7 +6,7 @@
     </ion-header-bar>
     <ion-content>
         <ion-list>
-            <ion-checkbox class="checkbox-dapp" ng-repeat="child in children" ng-if="onBoard.indexOf(child.objectId) === -1 && onBoardTemp.indexOf(child.objectId) === -1" ng-model="child.checked" ng-change="setToBeTaken(child)">
+            <ion-checkbox class="checkbox-dapp" ng-repeat="child in children | orderBy : ['surname', 'name']" ng-if="onBoard.indexOf(child.objectId) === -1 && onBoardTemp.indexOf(child.objectId) === -1" ng-model="child.checked" ng-change="setToBeTaken(child)">
                 {{child.surname}} {{child.name}}
             </ion-checkbox>
         </ion-list>

@@ -539,6 +539,22 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         return nodeStates;
     }
 
+    public String[] getChildren() {
+        ClimbNode master = nodeListGetConnectedMaster();
+        if (master == null) {
+            // TODO
+            return null;
+        }
+        ArrayList<MonitoredClimbNode> children = master.getMonitoredClimbNodeList();
+        String[] ids = new String[children.size()];
+
+        for (int i = 0; i < children.size(); i++){
+            ids[i] = children.get(i).getNodeIDString();
+        }
+
+        return ids;
+    }
+
     public boolean connectMaster(final String master) {
         ClimbNode node = nodeListGet(master);
         if (node != null && node.isMasterNode()) { //do something only if it is a master node
@@ -636,6 +652,25 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         return gattData;
     }
 
+    private byte[] checkoutCommand(MonitoredClimbNode monitoredChild){
+        byte[] clickedChildID = monitoredChild.getNodeID();
+        byte clickedChildState = monitoredChild.getNodeState();
+        byte[] gattData = null;
+
+        if(clickedChildState == 2) { //se lo stato è CHECKING
+            if (!monitoredChild.setImposedState((byte) 0, this, ConfigVals.MON_NODE_TIMEOUT)) {
+                Log.i(TAG, "Cannot change state of child " + monitoredChild.getNodeIDString() + ": another change is in progress");
+            } else {
+                Log.i(TAG, "Checking out child " + monitoredChild.getNodeIDString());
+                String tempString = "Checking_out_node_" + clickedChildID[0];
+                insertTag(tempString);
+                gattData = new byte[]{clickedChildID[0], 0}; //assegna lo stato ON_BAORD
+            }
+        }
+
+        return gattData;
+    }
+
     private LinkedList<byte[]> PICOCharacteristicSendQueue = new LinkedList<>();
 
     private boolean sendPICOCharacteristic(byte[] m) {
@@ -699,42 +734,55 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     public boolean checkoutChild(String child) {
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
-            return false; //TODO: error
+            return false; //TODO: exception?
         }
         MonitoredClimbNode monitoredChild = master.getChildByID(child);
         if(monitoredChild != null){
-            byte[] clickedChildID = monitoredChild.getNodeID();
-            byte clickedChildState = monitoredChild.getNodeState();
-
-            if(clickedChildState == 2) { //se lo stato è ON_BOARD
-                Log.i(TAG, "Checking out child " + monitoredChild.getNodeIDString());
-                byte[] gattData = {clickedChildID[0],  0}; //assegna lo stato BY_MYSELF e invia tutto al gatt
-                String tempString = "Checking_out_node_"+clickedChildID[0];
-                insertTag(tempString);
-                if (! sendPICOCharacteristic(gattData)) {
-                    Log.e(TAG, "Can't send state change message for " +clickedChildID[0]);
-                };
-            } //TODO: error?
-        } else {
-            return false; //child not found
-        }
-        return true;
+            byte[] gattData = checkoutCommand(monitoredChild);
+            if (gattData != null) {
+                return sendPICOCharacteristic(gattData);
+            } //TODO: error
+        } //TODO: error
+        return false;
     }
 
     public boolean checkoutChildren(String[] children) {
+        ClimbNode master = nodeListGetConnectedMaster();
+        if (master == null) {
+            return false; //TODO: exception?
+        }
+
+        boolean ret = true;
+        byte[] gattData = new byte[used_mtu-4]; //TODO: verify -4 in specs
+        int p = 0;
+
         for (String child : children) {
-            if (!checkoutChild(child)) {
-                return false;
+            MonitoredClimbNode monitoredChild = master.getChildByID(child);
+            if (monitoredChild != null) {
+                byte[] gattDataFrag = checkoutCommand(monitoredChild);
+                if (gattDataFrag != null) {
+                    if (gattData.length - p >= gattDataFrag.length) {
+                        System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
+                        p += gattDataFrag.length;
+                    } else {
+                        ret = false;
+                    }
+                }
+            } else {
+                ret = false;
             }
         }
-        return true;
+        if (p > 0) {
+            ret = sendPICOCharacteristic(Arrays.copyOf(gattData,p));
+        }
+        return ret;
     }
 
     //---------------------------------------------------------------------
 
     ScanCallback mScanCallback = new ScanCallback() {
 
-        boolean scanForAll = false;
+        boolean scanForAll = true;
 
         @Override
         public void onBatchScanResults(List<ScanResult> results){
@@ -1110,7 +1158,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         int p = 0;
 
         for (byte[] nodeID : toChecking) {
-            Log.i(TAG, "Allowing child " + nodeID[0]);
+            Log.i(TAG, "Allowing child " + MonitoredClimbNode.nodeID2String(nodeID));
             byte[] gattDataFrag = {nodeID[0], 1}; //assegna lo stato CHECKING e invia tutto al gatt
             if (gattData.length - p >= gattDataFrag.length) {
                 System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
@@ -1118,7 +1166,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             } else {
                 break;
             }
-            String tempString = "Allowing_node_" + nodeID[0];
+            String tempString = "Allowing_node_" + MonitoredClimbNode.nodeID2String(nodeID);
             insertTag(tempString);
         }
 
@@ -1141,7 +1189,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     @Override
     public void monitoredClimbNodeChangeTimedout(MonitoredClimbNode node, byte imposedState, byte state) {
         switch (imposedState) {
-            case 1:
+            case 0:
                 broadcastUpdate(STATE_CHECKEDOUT_CHILD, node.getNodeIDString(), false, "checkout failed: timeout"); //TODO: add param: failed
                 Log.w(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
                 break;
@@ -1157,7 +1205,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     @Override
     public void monitoredClimbNodeChangeSuccess(MonitoredClimbNode node, byte state) {
         switch (state) {
-            case 1:
+            case 0:
                 broadcastUpdate(STATE_CHECKEDOUT_CHILD, node.getNodeIDString(), true, ""); //TODO: add param: success
                 Log.d(TAG, "Timeout: error changing child node state: " + node.getNodeIDString());
                 break;

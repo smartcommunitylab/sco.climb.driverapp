@@ -120,8 +120,8 @@ angular.module('driverapp', [
             .then(function (result) {
                 if (result) {
                     LogSrv.log('--- APPLICATION CLOSED ---');
-                    ionic.Platform.exitApp();
                     Utils.setMenuDriverTitle(null); // clear driver name in menu
+                    ionic.Platform.exitApp();
                 }
             });
         };
