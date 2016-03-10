@@ -6,12 +6,27 @@ angular.module('driverapp.services.log', [])
     logService.init = function () {
         if (!!window.logToFile) {
             window.logToFile.getLogfilePath(
-                function (logfilePath) {},
-                function (err) {
+                function (logfilePath) {
                     window.logToFile.setLogfilePath(
                         Config.LOGFILE_PATH,
-                        function () {},
-                        function (err) {}
+                        function () {
+                            logService.log('+++ APPLICATION STARTED (resumed) +++');
+                        },
+                        function (err) {
+                            console.log('getLogfilePath error: ' + err);
+                        }
+                    );
+                },
+                function (err) {
+                    console.log('getLogfilePath error: ' + err);
+                    window.logToFile.setLogfilePath(
+                        Config.LOGFILE_PATH,
+                        function () {
+                            logService.log('+++ APPLICATION STARTED +++');
+                        },
+                        function (err) {
+                            console.log('getLogfilePath error: ' + err);
+                        }
                     );
                 }
             );
@@ -20,10 +35,10 @@ angular.module('driverapp.services.log', [])
 
     logService.log = function (text, level) {
         if (!level) {
-            level = 'debug';
+            level = 'info';
         }
 
-        if (level != 'debug' || level != 'info' || level != 'warn' | level != 'error' || !text || text.length == 0) {
+        if ((level != 'debug' && level != 'info' && level != 'warn' && level != 'error') || !text || text.length == 0) {
             return;
         }
 
@@ -32,12 +47,12 @@ angular.module('driverapp.services.log', [])
                 function (logfilePath) {
                     window.logToFile[level](text);
                 },
-                function (err) {}
+                function (err) {
+                    console.log('LogToFile failed: ' + err);
+                }
             );
         }
     }
-
-    logService.init();
 
     return logService;
 });
