@@ -73,6 +73,10 @@ angular.module('driverapp.controllers.route', [])
                             }
 
                             if ($scope.isOnBoard(ns[nodeId].object.objectId)) {
+                                if (ns[nodeId].timestamp == -1) {
+                                    return;
+                                }
+
                                 var overTimeout = (moment().valueOf() - ns[nodeId].timestamp) > Config.NODESTATE_TIMEOUT;
 
                                 if (overTimeout && ns[nodeId].status !== WSNSrv.STATUS_OUT_OF_RANGE) {
