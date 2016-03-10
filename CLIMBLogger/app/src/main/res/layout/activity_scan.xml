@@ -137,15 +137,30 @@
                     android:id="@+id/buttonCheckInAll"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="check in"
+                    android:text="checkin\nall"
                     android:textSize="12dp" />
 
                 <Button
                     android:id="@+id/buttonCheckOutAll"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="check out"
+                    android:text="checkout\nall"
                     android:textSize="12dp" />
+
+                <Button
+                    android:id="@+id/buttonCheckInBcast"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="checki\nbcast"
+                    android:textSize="12dp" />
+
+                <Button
+                    android:id="@+id/buttonCheckOutBcast"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="checkout\nbcast"
+                    android:textSize="12dp" />
+
 
                 <Button
                     android:id="@+id/scheduleWakeUpAll"

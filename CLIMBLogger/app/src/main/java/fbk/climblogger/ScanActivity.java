@@ -45,7 +45,7 @@ import java.util.Locale;
 public class ScanActivity extends Activity {
 
     private final static String TAG = "ScanActivity_GIOVA";
-    private Button mStartButton,mStopButton,mTagButton,mCheckInAllButton,mCheckOutAllButton, mScheduleWUButton;//,mReleaseCmdButton;
+    private Button mStartButton,mStopButton,mTagButton,mCheckInAllButton,mCheckOutAllButton,mCheckInBcastButton,mCheckOutBcastButton,mScheduleWUButton;//,mReleaseCmdButton;
     private Vibrator mVibrator;
     private int index = 0;
     private ArrayList<ClimbNode> climbNodeList;
@@ -267,7 +267,7 @@ public class ScanActivity extends Activity {
 
             if( (SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
                 if (mClimbService != null) {
-                    if (mClimbService.SendCheckInAllCmd()) {
+                    if (mClimbService.checkinChildren(mClimbService.getChildren())) {
                         mVibrator.vibrate(ConfigVals.vibrationTimeout);
                         lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
                     } else {
@@ -287,6 +287,55 @@ public class ScanActivity extends Activity {
         }
     };
     View.OnClickListener ckOutAllButtonHandler = new View.OnClickListener(){
+        public void onClick(View v) {
+
+            if ((SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
+                if (mClimbService != null) {
+                    if (mClimbService.checkoutChildren(mClimbService.getChildren())) {
+                        mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                        lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
+                    } else {
+                        Log.i(TAG, "Check out all not sent!");
+                        log("Check out all not sent!");
+                    }
+                } else {
+                    Log.i(TAG, "Check out all not sent!");
+                    log("Check out all not sent!");
+                }
+
+            }else{
+                String alertString = "Wait a little";
+                Toast.makeText(getApplicationContext(),
+                        alertString,
+                        Toast.LENGTH_LONG).show();
+            }
+        }
+    };
+    View.OnClickListener ckInBcastButtonHandler = new View.OnClickListener(){
+        public void onClick(View v) {
+
+            if( (SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
+                if (mClimbService != null) {
+                    if (mClimbService.SendCheckInAllCmd()) {
+                        mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                        lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
+                    } else {
+                        Log.i(TAG, "Check in all not sent!");
+                        log("Check in all not sent!");
+                    }
+                } else {
+                    Log.i(TAG, "Check in all not sent!");
+                    log("Check in all not sent!");
+                }
+            }else{
+                String alertString = "Wait a little";
+                Toast.makeText(getApplicationContext(),
+                        alertString,
+                        Toast.LENGTH_LONG).show();
+            }
+        }
+    };
+    View.OnClickListener ckOutBcastButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
 
             if ((SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
@@ -494,6 +543,12 @@ public class ScanActivity extends Activity {
 
         mCheckOutAllButton = (Button) findViewById(R.id.buttonCheckOutAll);
         mCheckOutAllButton.setOnClickListener(ckOutAllButtonHandler);
+
+        mCheckInBcastButton = (Button) findViewById(R.id.buttonCheckInBcast);
+        mCheckInBcastButton.setOnClickListener(ckInBcastButtonHandler);
+
+        mCheckOutBcastButton = (Button) findViewById(R.id.buttonCheckOutBcast);
+        mCheckOutBcastButton.setOnClickListener(ckOutBcastButtonHandler);
 
         mScheduleWUButton = (Button) findViewById(R.id.scheduleWakeUpAll);
         mScheduleWUButton.setOnClickListener(scheduleWUButtonHandler);
