@@ -636,6 +636,25 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         return gattData;
     }
 
+    private byte[] checkoutCommand(MonitoredClimbNode monitoredChild){
+        byte[] clickedChildID = monitoredChild.getNodeID();
+        byte clickedChildState = monitoredChild.getNodeState();
+        byte[] gattData = null;
+
+        if(clickedChildState == 2) { //se lo stato è CHECKING
+            if (!monitoredChild.setImposedState((byte) 0, this, ConfigVals.MON_NODE_TIMEOUT)) {
+                Log.i(TAG, "Cannot change state of child " + monitoredChild.getNodeIDString() + ": another change is in progress");
+            } else {
+                Log.i(TAG, "Checking out child " + monitoredChild.getNodeIDString());
+                String tempString = "Checking_out_node_" + clickedChildID[0];
+                insertTag(tempString);
+                gattData = new byte[]{clickedChildID[0], 0}; //assegna lo stato ON_BAORD
+            }
+        }
+
+        return gattData;
+    }
+
     private LinkedList<byte[]> PICOCharacteristicSendQueue = new LinkedList<>();
 
     private boolean sendPICOCharacteristic(byte[] m) {
@@ -699,42 +718,55 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     public boolean checkoutChild(String child) {
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
-            return false; //TODO: error
+            return false; //TODO: exception?
         }
         MonitoredClimbNode monitoredChild = master.getChildByID(child);
         if(monitoredChild != null){
-            byte[] clickedChildID = monitoredChild.getNodeID();
-            byte clickedChildState = monitoredChild.getNodeState();
-
-            if(clickedChildState == 2) { //se lo stato è ON_BOARD
-                Log.i(TAG, "Checking out child " + monitoredChild.getNodeIDString());
-                byte[] gattData = {clickedChildID[0],  0}; //assegna lo stato BY_MYSELF e invia tutto al gatt
-                String tempString = "Checking_out_node_"+clickedChildID[0];
-                insertTag(tempString);
-                if (! sendPICOCharacteristic(gattData)) {
-                    Log.e(TAG, "Can't send state change message for " +clickedChildID[0]);
-                };
-            } //TODO: error?
-        } else {
-            return false; //child not found
-        }
-        return true;
+            byte[] gattData = checkoutCommand(monitoredChild);
+            if (gattData != null) {
+                return sendPICOCharacteristic(gattData);
+            } //TODO: error
+        } //TODO: error
+        return false;
     }
 
     public boolean checkoutChildren(String[] children) {
+        ClimbNode master = nodeListGetConnectedMaster();
+        if (master == null) {
+            return false; //TODO: exception?
+        }
+
+        boolean ret = true;
+        byte[] gattData = new byte[used_mtu-4]; //TODO: verify -4 in specs
+        int p = 0;
+
         for (String child : children) {
-            if (!checkoutChild(child)) {
-                return false;
+            MonitoredClimbNode monitoredChild = master.getChildByID(child);
+            if (monitoredChild != null) {
+                byte[] gattDataFrag = checkoutCommand(monitoredChild);
+                if (gattDataFrag != null) {
+                    if (gattData.length - p >= gattDataFrag.length) {
+                        System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
+                        p += gattDataFrag.length;
+                    } else {
+                        ret = false;
+                    }
+                }
+            } else {
+                ret = false;
             }
         }
-        return true;
+        if (p > 0) {
+            ret = sendPICOCharacteristic(Arrays.copyOf(gattData,p));
+        }
+        return ret;
     }
 
     //---------------------------------------------------------------------
 
     ScanCallback mScanCallback = new ScanCallback() {
 
-        boolean scanForAll = false;
+        boolean scanForAll = true;
 
         @Override
         public void onBatchScanResults(List<ScanResult> results){
