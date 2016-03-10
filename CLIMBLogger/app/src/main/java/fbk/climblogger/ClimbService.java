@@ -539,6 +539,22 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         return nodeStates;
     }
 
+    public String[] getChildren() {
+        ClimbNode master = nodeListGetConnectedMaster();
+        if (master == null) {
+            // TODO
+            return null;
+        }
+        ArrayList<MonitoredClimbNode> children = master.getMonitoredClimbNodeList();
+        String[] ids = new String[children.size()];
+
+        for (int i = 0; i < children.size(); i++){
+            ids[i] = children.get(i).getNodeIDString();
+        }
+
+        return ids;
+    }
+
     public boolean connectMaster(final String master) {
         ClimbNode node = nodeListGet(master);
         if (node != null && node.isMasterNode()) { //do something only if it is a master node
