@@ -49,6 +49,7 @@ public class ScanActivity extends Activity {
     private Vibrator mVibrator;
     private int index = 0;
     private ArrayList<ClimbNode> climbNodeList;
+    private List<String> allowedChidren = new ArrayList<>();
     private ArrayAdapter<ListView> adapter;
     private ClimbService mClimbService;
     private Context mContext = null;
@@ -112,6 +113,7 @@ public class ScanActivity extends Activity {
                         Toast.LENGTH_SHORT).show();
                 expandableListAdapter.notifyDataSetChanged();
                 log("Connected with GATT");
+                mClimbService.setNodeList(allowedChidren.toArray(new String[allowedChidren.size()]));
             }else if (ClimbService.STATE_DISCONNECTED_FROM_CLIMB_MASTER.equals(action)) {
                 //climbNodeList.clear();
 
@@ -432,13 +434,33 @@ public class ScanActivity extends Activity {
                                     int groupPosition, int childPosition, long id) {
             //TODO: implement
             ClimbNode clickedNode = climbNodeList.get(groupPosition);
-            MonitoredClimbNode monitoredChild = clickedNode.getMonitoredClimbNodeList().get(childPosition);
-            if (monitoredChild.getNodeState() == 2) {
-                mClimbService.checkoutChild(monitoredChild.getNodeIDString());
-            } else {
-                mClimbService.checkinChild(monitoredChild.getNodeIDString());
+            if (clickedNode.isMasterNode()) {
+                MonitoredClimbNode monitoredChild = clickedNode.getMonitoredClimbNodeList().get(childPosition);
+                String actionString = "";
+                String childID = monitoredChild.getNodeIDString();
+                switch (monitoredChild.getNodeState()) {
+                    case 0:
+                        if (!allowedChidren.contains(childID)) {
+                            allowedChidren.add(childID);
+                        }
+                        mClimbService.setNodeList(allowedChidren.toArray(new String[allowedChidren.size()]));
+                        actionString = "allowing " + childID;
+                        break;
+                    case 1:
+                        mClimbService.checkinChild(childID);
+                        actionString = "checkin " + childID;
+                        break;
+                    case 2:
+                        mClimbService.checkoutChild(childID);
+                        actionString = "checkout " + childID;
+                        break;
+                    default:
+                }
+                mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                Toast.makeText(getApplicationContext(),
+                        actionString,
+                        Toast.LENGTH_LONG).show();
             }
-            mVibrator.vibrate(ConfigVals.vibrationTimeout);
 
             return false;
         }
