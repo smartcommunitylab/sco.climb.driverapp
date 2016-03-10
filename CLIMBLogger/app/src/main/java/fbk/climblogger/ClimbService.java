@@ -1110,7 +1110,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         int p = 0;
 
         for (byte[] nodeID : toChecking) {
-            Log.i(TAG, "Allowing child " + nodeID[0]);
+            Log.i(TAG, "Allowing child " + MonitoredClimbNode.nodeID2String(nodeID));
             byte[] gattDataFrag = {nodeID[0], 1}; //assegna lo stato CHECKING e invia tutto al gatt
             if (gattData.length - p >= gattDataFrag.length) {
                 System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
@@ -1118,7 +1118,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             } else {
                 break;
             }
-            String tempString = "Allowing_node_" + nodeID[0];
+            String tempString = "Allowing_node_" + MonitoredClimbNode.nodeID2String(nodeID);
             insertTag(tempString);
         }
 
