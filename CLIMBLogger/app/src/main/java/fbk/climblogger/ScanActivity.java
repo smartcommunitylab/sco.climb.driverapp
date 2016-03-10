@@ -125,15 +125,15 @@ public class ScanActivity extends Activity {
 
             }
             else if (ClimbService.ACTION_NODE_ALERT.equals(action)) {
-                if(intent.hasExtra(ClimbService.EXTRA_BYTE_ARRAY)){
+                if (intent.hasExtra(ClimbService.EXTRA_BYTE_ARRAY)) {
                     byte[] nodeID = intent.getByteArrayExtra(ClimbService.EXTRA_BYTE_ARRAY);
                     String alertString = "ALERT ON NODE :" + String.format("%02X", nodeID[0]);
                     Toast.makeText(getApplicationContext(),
                             alertString,
                             Toast.LENGTH_LONG).show();
 
-                    log( alertString );
-                }else{
+                    log(alertString);
+                } else {
 
                 }
             } else if (ClimbService.STATE_CHECKEDIN_CHILD.equals(action)) {
