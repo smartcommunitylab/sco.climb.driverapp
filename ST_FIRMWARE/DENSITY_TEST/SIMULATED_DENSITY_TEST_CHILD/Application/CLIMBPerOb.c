@@ -96,7 +96,7 @@
 #ifdef WORKAROUND
 #define DEFAULT_ADVERTISING_INTERVAL          3200
 #else
-#define DEFAULT_ADVERTISING_INTERVAL          1800//1616
+#define DEFAULT_ADVERTISING_INTERVAL          1616//1616
 #endif
 #define EPOCH_PERIOD						  1000
 
@@ -158,8 +158,8 @@
 #define LED_TIMEOUT_MSEC						  	  10
 
 #define CONNECTABLE_TIMEOUT_MSEC					1000*60
-#define WAKEUP_DEFAULT_TIMEOUT_SEC				60*60*24//1000*60*60
-#define GOTOSLEEP_DEFAULT_TIMEOUT_SEC			60*60//1000*60*60
+#define WAKEUP_DEFAULT_TIMEOUT_SEC				10//60*60*24//1000*60*60
+#define GOTOSLEEP_DEFAULT_TIMEOUT_SEC			60*10//60*60//1000*60*60
 
 #define NODE_ID								  { 0x02  }
 
@@ -181,7 +181,7 @@
 #define MAX_ALLOWED_TIMER_DURATION_SEC	      42000 //actual max timer duration 42949.67sec
 
 #define NUMBER_OF_SIMULATED_NODES			 6
-#define STARTING_ID							 (8-1)*NUMBER_OF_SIMULATED_NODES+1
+#define STARTING_ID							 31
 
 // Task configuration
 #define SBP_TASK_PRIORITY                     1
@@ -394,7 +394,7 @@ static uint32 batteryLev = 0;
 
 static uint32 wakeUpTimeout_sec_global;
 
-static uint32 defaultAdvRestartTimeout = 1000/(2*NUMBER_OF_SIMULATED_NODES);
+static uint32 defaultAdvRestartTimeout = ((DEFAULT_ADVERTISING_INTERVAL * 0.625)+5)/(2*NUMBER_OF_SIMULATED_NODES);
 /*********************************************************************
  * LOCAL FUNCTIONS
  */
@@ -707,7 +707,7 @@ static void SimpleBLEPeripheral_init(void) {
 
 	uint8 i = 0;
 	for(i = 0; i < NUMBER_OF_SIMULATED_NODES; i++){
-		fakeIdList[i] = STARTING_ID + i;
+		fakeIdList[i] = (STARTING_ID-1)*NUMBER_OF_SIMULATED_NODES+1 + i;
 	}
 
 	// Start the Device
@@ -725,6 +725,9 @@ static void SimpleBLEPeripheral_init(void) {
 	GATT_RegisterForMsgs(selfEntity);
 
 	HCI_EXT_SetTxPowerCmd(HCI_EXT_TX_POWER_0_DBM);
+
+	float randDelay_msec = defaultAdvRestartTimeout*0.625 * ((float) Util_GetTRNG()) / 4294967296;
+	Util_restartClock(&wakeUpClock, 500 + randDelay_msec);
 }
 
 /*********************************************************************
@@ -837,6 +840,8 @@ static void SimpleBLEPeripheral_taskFxn(UArg a0, UArg a1) {
 					uint8 adv_active = 1;
 					uint8 status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED, sizeof(uint8_t), &adv_active);
 				}
+
+				Util_restartClock(&advRestartClock, defaultAdvRestartTimeout);
 			} else {
 				uint8 adv_active = 0;
 				uint8 status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED, sizeof(uint8_t), &adv_active);
@@ -853,10 +858,13 @@ static void SimpleBLEPeripheral_taskFxn(UArg a0, UArg a1) {
 				GAP_ConfigDeviceAddr(ADDRTYPE_STATIC, tempAddr);
 
 				Climb_updateMyBroadcastedState(nodeState);
+
+				float  randDelay_msec = 10 * ((float) Util_GetTRNG()) / 4294967296;
+				Util_restartClock(&advRestartClock, defaultAdvRestartTimeout-5 + randDelay_msec);
 			}
 
-			float randDelay_msec = 20 * ((float) Util_GetTRNG()) / 4294967296;
-			Util_restartClock(&advRestartClock, defaultAdvRestartTimeout-10 + randDelay_msec);
+
+
 
 		}
 
@@ -1271,6 +1279,8 @@ static void BLE_AdvertiseEventHandler(void) {
 		batteryLev = AONBatMonBatteryVoltageGet();
 		batteryLev = (batteryLev * 125) >> 5;
 	}
+
+	CLIMB_FlashLed(Board_LED2);
 
 	//uint8 adv_active = 0;
 	//uint8 status = GAPRole_SetParameter(GAPROLE_ADV_NONCONN_ENABLED, sizeof(uint8_t), &adv_active);
