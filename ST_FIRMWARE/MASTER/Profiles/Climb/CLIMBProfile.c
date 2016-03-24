@@ -324,24 +324,25 @@ bStatus_t ClimbProfile_SetParameter(uint8 param, uint8 len, void *value) {
 		if (len <= CLIMBPROFILE_CHAR1_LEN) {
 			//VOID memcpy(climbProfileChar1, value, len); //save locally
 
-			attHandleValueNoti_t noti;
-			bStatus_t status = SUCCESS;
-			noti.handle = climbProfileAttrTbl[2].handle;
-			noti.len = (uint16) len;
+			((attHandleValueNoti_t*)value)->handle = climbProfileAttrTbl[2].handle;
+//			attHandleValueNoti_t noti;
+//			//bStatus_t status = SUCCESS;
+//			noti.handle = climbProfileAttrTbl[2].handle;
+//			noti.len = (uint16) len;
+//
+//			noti.pValue = (uint8 *)value;//(uint8 *) GATT_bm_alloc(0, ATT_HANDLE_VALUE_NOTI, GATT_MAX_MTU, (uint16*) (&len));
 
-			noti.pValue = (uint8 *) GATT_bm_alloc(0, ATT_HANDLE_VALUE_NOTI, GATT_MAX_MTU, (uint16*) (&len));
-
-			if (noti.pValue != NULL) //if allocated
-			{
-				VOID memcpy(noti.pValue, value, noti.len);
-				status = GATT_Notification(0, &noti, 0);    //attempt to send
-				if (status != SUCCESS) //if noti not sent
-				{
-					GATT_bm_free((gattMsg_t *) &noti, ATT_HANDLE_VALUE_NOTI);
-				}
-			} else {
-				ret = bleNoResources; //no resources...
-			}
+			//if (noti.pValue != NULL) //if allocated
+			//{
+			//	VOID memcpy(noti.pValue, value, noti.len);
+			ret = GATT_Notification(0, (attHandleValueNoti_t*)value, 0);    //attempt to send
+			//	if (status != SUCCESS) //if noti not sent
+			//	{
+			//		GATT_bm_free((gattMsg_t *) &noti, ATT_HANDLE_VALUE_NOTI);
+			//	}
+			//} else {
+			//	ret = bleNoResources; //no resources...
+			//}
 
 //			climbProfileChar1 = (uint8*) value;
 //

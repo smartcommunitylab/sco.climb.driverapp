@@ -173,10 +173,14 @@
 #define MAX_ALLOWED_TIMER_DURATION_SEC	      42000 //actual max timer duration 42949.67sec
 //#define NODE_ID								  0x01 //per ora non è applicabile ai nodi master
 
-#define NODE_ID_LENGTH						  1
+#define CHILD_NODE_ID_LENGTH				  1
+#define MASTER_NODE_ID_LENGTH				  6
+
+#define MAX_SUPPORTED_CHILD_NODES			  87
+#define MAX_SUPPORTED_MASTER_NODES			  5
 
 #define ADV_PKT_ID_OFFSET					  12
-#define ADV_PKT_STATE_OFFSET				  ADV_PKT_ID_OFFSET + NODE_ID_LENGTH
+#define ADV_PKT_STATE_OFFSET				  ADV_PKT_ID_OFFSET + CHILD_NODE_ID_LENGTH
 
 #define BROADCAST_MSG_TYPE_STATE_UPDATE_CMD	  0x01
 #define BROADCAST_MSG_LENGTH_STATE_UPDATE_CMD 0x02
@@ -250,8 +254,8 @@ typedef struct {
 
 typedef struct {
 	//uint8 addrType;         //!< Address Type: @ref GAP_ADDR_TYPE_DEFINES
-	uint8 addr[B_ADDR_LEN]; //!< Device's Address
-	uint8 id[NODE_ID_LENGTH];
+	//uint8 addr[B_ADDR_LEN]; //!< Device's Address
+	uint8 id[6];
 	ChildClimbNodeStateType_t state;
 	uint32 lastContactTicks;
 	uint8 rssi;
@@ -358,10 +362,13 @@ static uint8 adv_counter = 0;
 static uint8 broadcastID[] = { 0xFF };
 static uint8 zeroID[] = {0x00};
 
-static listNode_t* childListRootPtr = NULL;
-static listNode_t* masterListRootPtr = NULL;
-static listNode_t* adv_startNodePtr = NULL;
-static listNode_t* gatt_startNodePtr = NULL;
+//static listNode_t* childListRootPtr = NULL;
+//static listNode_t* masterListRootPtr = NULL;
+static uint8 adv_startNodeIndex = 0;
+static uint8 gatt_startNodeIndex = 0;
+
+static myGapDevRec_t* childListArray = NULL;
+static myGapDevRec_t* masterListArray = NULL;
 
 static uint8 mtu_size = DEFAULT_MTU_LENGTH;
 static uint8 ready = FALSE;
@@ -377,12 +384,15 @@ static uint16 connectionHandle = 0;
 static uint32 wakeUpTimeout_sec_global = 0;
 
 static uint8 onBoardChildren = 0; //not to be used in critical context, updated on Climb_contactsCheckSendThroughGATT
+
+static uint8 devicesHeardDuringLastScan = 0;
 /*********************************************************************
  * LOCAL FUNCTIONS
  */
 
 ////TASK FUNCTIONS
 static void SimpleBLEPeripheral_init(void);
+static void nodeListInit(void);
 static void SimpleBLEPeripheral_taskFxn(UArg a0, UArg a1);
 
 ////GENERIC BLE STACK SUPPORT FUNCTIONS - EVENTS,MESSAGES ecc
@@ -410,14 +420,14 @@ static void Climb_processRoleEvent(gapObserverRoleEvent_t *pEvent);
 ////CLIMB MANAGEMENT
 static ClimbNodeType_t isClimbNode(gapDeviceInfoEvent_t *gapDeviceInfoEvent_a);
 static void Climb_addNodeDeviceInfo(gapDeviceInfoEvent_t *gapDeviceInfoEvent, ClimbNodeType_t nodeType);
-static listNode_t* Climb_findNodeByDevice(gapDeviceInfoEvent_t *gapDeviceInfoEvent, ClimbNodeType_t nodeType);
-static listNode_t* Climb_findChildNodeById(uint8 *nodeID);
-static listNode_t* Climb_addNode(gapDeviceInfoEvent_t *gapDeviceInfoEvent, ClimbNodeType_t nodeType);
-static void Climb_updateNodeMetadata(gapDeviceInfoEvent_t *gapDeviceInfoEvent, listNode_t* targetNode);
+//static listNode_t* Climb_findNodeByDevice(gapDeviceInfoEvent_t *gapDeviceInfoEvent, ClimbNodeType_t nodeType);
+static uint8 Climb_findNodeById(uint8 *nodeID, ClimbNodeType_t nodeType);
+static uint8 Climb_addNode(gapDeviceInfoEvent_t *gapDeviceInfoEvent, ClimbNodeType_t nodeType);
+static void Climb_updateNodeMetadata(gapDeviceInfoEvent_t *gapDeviceInfoEvent, uint8 index, ClimbNodeType_t nodeType);
 static void Climb_advertisedStatesCheck(void);
 //static uint8 Climb_isMyChild(uint8 nodeID);
 static void Climb_nodeTimeoutCheck();
-static listNode_t* Climb_removeNode(listNode_t* nodeToRemove, listNode_t* previousNode);
+static void Climb_removeNode(uint8 indexToRemove, ClimbNodeType_t nodeType) ;
 static void Climb_periodicTask();
 #ifdef PRINTF_ENABLED
 #ifndef HEAPMGR_METRICS
@@ -452,8 +462,10 @@ static uint8_t SimpleBLEPeripheral_enqueueMsg(uint8_t event, uint8_t state, uint
 static void Climb_clockHandler(UArg arg);
 
 static uint8 memcomp(uint8 * str1, uint8 * str2, uint8 len);
+static uint8 isNonZero(uint8 * str1, uint8 len);
+#ifdef HEAPMGR_METRICS
 static void plotHeapMetrics();
-
+#endif
 /*********************************************************************
  * PROFILE CALLBACKS
  */
@@ -708,6 +720,8 @@ static void SimpleBLEPeripheral_init(void) {
 
 	watchdogTimerInit();
 
+	nodeListInit();
+
 	//automatically start-up the node
 	events |= WAKEUP_TIMEOUT_EVT;
 	Semaphore_post(sem);
@@ -715,6 +729,30 @@ static void SimpleBLEPeripheral_init(void) {
 #ifdef PRINTF_ENABLED
 	System_printf("I'm working!\n\n");
 #endif
+
+}
+
+
+static void nodeListInit(void){
+
+	uint16 arraySize = MAX_SUPPORTED_CHILD_NODES*sizeof(myGapDevRec_t);
+	uint16 i = 0;
+	childListArray = (myGapDevRec_t*) ICall_malloc( arraySize );
+
+	//resetta la memoria
+	for(i = 0; i < arraySize; i++ ){
+		((uint8*)childListArray)[i] = 0;
+	}
+
+
+	arraySize = MAX_SUPPORTED_MASTER_NODES*sizeof(myGapDevRec_t);
+	masterListArray = (myGapDevRec_t*) ICall_malloc( arraySize );
+
+	//resetta la memoria
+	for(i = 0; i < arraySize; i++ ){
+		((uint8*)masterListArray)[i] = 0;
+	}
+
 }
 
 /*********************************************************************
@@ -1313,44 +1351,53 @@ static void Climb_contactsCheckSendThroughGATT(void) {
 	// ATTENZIONE NON USARE L'MTU IMPOSTATO NEI PREPROCESSOR DEFINES MA QUELLO OTTENUTO TRAMITE LE API O GLI EVENTI
 
 	//INVIA I CONTATTI RADIO AVVENUTI NELL'ULTIMO PERIODO TRAMITE GATT
-	uint8* childrenNodesData = (uint8*) ICall_malloc((mtu_size - 3));	//	[mtu_size-3];
+	//uint8 childrenNodesData[mtu_size - 3];
+	//uint8* childrenNodesData = (uint8*) ICall_malloc((mtu_size - 3));
+	uint16 size = mtu_size - 3;
+	uint8* childrenNodesData = (uint8 *) GATT_bm_alloc(0, ATT_HANDLE_VALUE_NOTI, GATT_MAX_MTU, &size );
 	uint8 i = 0;
 	uint8 roundCompleted = FALSE;
 	//	listNode_t* node = childListRootPtr;
 	//	listNode_t* previousNode = NULL;
 	uint8 gattUpdateReq = FALSE;
-	listNode_t* node = gatt_startNodePtr;
+	uint8 nodeArrayIndex = gatt_startNodeIndex;
+
+	attHandleValueNoti_t noti;
+	//noti.handle = climbProfileAttrTbl[2].handle;
+	//noti.len = (uint16) len;
+	noti.pValue = childrenNodesData;	//(uint8 *) GATT_bm_alloc(0, ATT_HANDLE_VALUE_NOTI, GATT_MAX_MTU, (uint16*) (&len));
+
 
 	if (childrenNodesData != NULL) { //if allocated
 		while (i < mtu_size - 5 && roundCompleted == FALSE) {
 
-			if (node != NULL) {
+			if (isNonZero(childListArray[nodeArrayIndex].id, CHILD_NODE_ID_LENGTH)) { //discard empty spaces
 
-				//TODO: IMPORTANTE DA QUANDO SI E' AGGIUNTO IL CHECK CIRCOLARE DEI NODI QUESTA CONDIZIONE node->device.lastContactTicks >= lastGATTCheckTicks NON VA PIU' BENE!!!!!
-
-				if (node->device.contactSentThoughGATT == FALSE) {				// //invia solo i nodi visti dopo l'ultimo check, invia tutti i nodi CLIMBC
-					memcpy(&childrenNodesData[i], node->device.id, NODE_ID_LENGTH); //salva l'id del nodo
-					i += NODE_ID_LENGTH;
-					childrenNodesData[i++] = node->device.state;
+				if (childListArray[nodeArrayIndex].contactSentThoughGATT == FALSE) {				// //invia solo i nodi visti dopo l'ultimo check, invia tutti i nodi CLIMBC
+					memcpy(&childrenNodesData[i], childListArray[nodeArrayIndex].id, CHILD_NODE_ID_LENGTH); //salva l'id del nodo
+					i += CHILD_NODE_ID_LENGTH;
+					childrenNodesData[i++] = childListArray[nodeArrayIndex].state;
 #ifdef INCLUDE_RSSI_IN_GATT_DATA
-					childrenNodesData[i++] = node->device.rssi;
+					childrenNodesData[i++] = childListArray[nodeArrayIndex].rssi;
 #endif
-					node->device.contactSentThoughGATT = TRUE;
+					childListArray[nodeArrayIndex].contactSentThoughGATT = TRUE;
 					gattUpdateReq = TRUE;
 				}
-
-				node = node->next; //passa al nodo sucessivo
-			} else {
-				node = childListRootPtr;
 			}
 
-			if (node == gatt_startNodePtr) {
+			nodeArrayIndex++; //passa al nodo sucessivo
+
+			if (nodeArrayIndex >= MAX_SUPPORTED_CHILD_NODES) {
+				nodeArrayIndex = 0;
+			}
+
+			if (nodeArrayIndex == gatt_startNodeIndex) {
 				roundCompleted = TRUE;
 			}
 		}
-		gatt_startNodePtr = node;
-		//salva il valore di ticks
-		//lastGATTCheckTicks = Clock_getTicks();
+		gatt_startNodeIndex = nodeArrayIndex;
+
+		noti.len = i;
 
 		if (gattUpdateReq) {
 			//azzero i byte successivi
@@ -1358,16 +1405,16 @@ static void Climb_contactsCheckSendThroughGATT(void) {
 			//				childrenNodesData[i++] = 0;
 			//			}
 
-			if (ClimbProfile_SetParameter(CLIMBPROFILE_CHAR1, i, childrenNodesData) != SUCCESS) {
+			if (ClimbProfile_SetParameter(CLIMBPROFILE_CHAR1, i, &noti) != SUCCESS) {
 				PIN_setOutputValue(hGpioPin, Board_LED1, Board_LED_ON);
 				PIN_setOutputValue(hGpioPin, Board_LED2, Board_LED_ON);
+				GATT_bm_free((gattMsg_t *) &noti, ATT_HANDLE_VALUE_NOTI);
 			}
 			gattUpdateReq = FALSE;
+		}else{
+			GATT_bm_free((gattMsg_t *) &noti, ATT_HANDLE_VALUE_NOTI);
 		}
-		ICall_free(childrenNodesData);
-	} else { //childrenNodesData not allocated
-		PIN_setOutputValue(hGpioPin, Board_LED1, Board_LED_ON);
-		PIN_setOutputValue(hGpioPin, Board_LED2, Board_LED_ON);
+		//ICall_free(childrenNodesData);
 	}
 
 }
@@ -1399,31 +1446,35 @@ static void Climb_advertisedStatesUpdate(void) {
 	newChildrenStatesData[11] = 0x00; // Company ID - Fixed
 
 	if (isBroadcastMessageValid == FALSE) {
-		listNode_t* node = adv_startNodePtr;
+		uint8 nodeArrayIndex = adv_startNodeIndex;
 		uint8 roundCompleted = FALSE;
 
 		while (i < 29 && roundCompleted == FALSE) {
 
-			if (node != NULL) {
-				if (node->device.id[0] != 0) { //non considerare l'ID 0x00
-					memcpy(&newChildrenStatesData[i], node->device.id, NODE_ID_LENGTH);
-					i += NODE_ID_LENGTH;
-					newChildrenStatesData[i++] = node->device.stateToImpose;
-				}
-				node = node->next; //passa al nodo sucessivo
-			} else {
-				node = childListRootPtr;
+			if (isNonZero(childListArray[nodeArrayIndex].id, CHILD_NODE_ID_LENGTH)) { //discard empty spaces
+
+				memcpy(&newChildrenStatesData[i], childListArray[nodeArrayIndex].id, CHILD_NODE_ID_LENGTH);
+				i += CHILD_NODE_ID_LENGTH;
+				newChildrenStatesData[i++] = childListArray[nodeArrayIndex].stateToImpose;
+
 			}
 
-			if (node == adv_startNodePtr) {
+			nodeArrayIndex++;
+
+			if(nodeArrayIndex >= MAX_SUPPORTED_CHILD_NODES){
+				nodeArrayIndex = 0;
+			}
+
+			if(nodeArrayIndex == adv_startNodeIndex){
 				roundCompleted = TRUE;
 			}
+
 		}
-		adv_startNodePtr = node;
+		adv_startNodeIndex = nodeArrayIndex;
 
 	} else { //send broadcast msg
-		memcpy(&newChildrenStatesData[i], broadcastID, NODE_ID_LENGTH);
-		i += NODE_ID_LENGTH;
+		memcpy(&newChildrenStatesData[i], broadcastID, CHILD_NODE_ID_LENGTH);
+		i += CHILD_NODE_ID_LENGTH;
 
 		uint8 broadcastMsgType = broadcastMessage[0];
 		switch (broadcastMsgType) {
@@ -1480,31 +1531,31 @@ static void Climb_processCharValueChangeEvt(uint8_t paramID) {
 
 		uint8 i = 0;
 		while (i < CLIMBPROFILE_CHAR2_LEN-4) { //TODO: cambiare CLIMBPROFILE_CHAR2_LEN con la lunghezza effettiva dell'operazione di scrittura, per ora risolto con il break nelle righe successive
-			uint8 nodeID[NODE_ID_LENGTH];
+			uint8 nodeID[CHILD_NODE_ID_LENGTH];
 			uint32 wakeUpTimeout_sec_local;
 
-			memcpy(nodeID, &newValue[i], NODE_ID_LENGTH);
+			memcpy(nodeID, &newValue[i], CHILD_NODE_ID_LENGTH);
 
-			if(memcomp(nodeID, zeroID, NODE_ID_LENGTH) == 0){ //if it find a zero ID stop checking!
+			if(memcomp(nodeID, zeroID, CHILD_NODE_ID_LENGTH) == 0){ //if it find a zero ID stop checking!
 				break;
 			}
 
-			if (memcomp(nodeID, broadcastID, NODE_ID_LENGTH) == 0) { 	//broadcastID found! ONLY ONE BROADCAST MSG PER NOTIFICATION (PER GATT PACKET)
+			if (memcomp(nodeID, broadcastID, CHILD_NODE_ID_LENGTH) == 0) { 	//broadcastID found! ONLY ONE BROADCAST MSG PER NOTIFICATION (PER GATT PACKET)
 
 				isBroadcastMessageValid = TRUE;
-				uint8 broadcastMsgType = newValue[i + NODE_ID_LENGTH];
+				uint8 broadcastMsgType = newValue[i + CHILD_NODE_ID_LENGTH];
 
 				Util_restartClock(&resetBroadcastCmdClock, RESET_BROADCAST_CMD_TIMEOUT);
 
 				switch (broadcastMsgType) {
 				case BROADCAST_MSG_TYPE_STATE_UPDATE_CMD:
-					memcpy(broadcastMessage, &newValue[i + NODE_ID_LENGTH], BROADCAST_MSG_LENGTH_STATE_UPDATE_CMD);
+					memcpy(broadcastMessage, &newValue[i + CHILD_NODE_ID_LENGTH], BROADCAST_MSG_LENGTH_STATE_UPDATE_CMD);
 					//i = i + NODE_ID_LENGTH + BROADCAST_MSG_LENGTH_STATE_UPDATE_CMD;
 					break;
 
 				case BROADCAST_MSG_TYPE_WU_SCHEDULE_CMD:
-					memcpy(broadcastMessage, &newValue[i + NODE_ID_LENGTH], BROADCAST_MSG_LENGTH_WU_SCHEDULE_CMD);
-					wakeUpTimeout_sec_local = ((newValue[i + NODE_ID_LENGTH + 1])<<16) + ((newValue[i + NODE_ID_LENGTH + 2])<<8) + (newValue[i + NODE_ID_LENGTH + 3]);
+					memcpy(broadcastMessage, &newValue[i + CHILD_NODE_ID_LENGTH], BROADCAST_MSG_LENGTH_WU_SCHEDULE_CMD);
+					wakeUpTimeout_sec_local = ((newValue[i + CHILD_NODE_ID_LENGTH + 1])<<16) + ((newValue[i + CHILD_NODE_ID_LENGTH + 2])<<8) + (newValue[i + CHILD_NODE_ID_LENGTH + 3]);
 					Climb_setWakeUpClock( wakeUpTimeout_sec_local );
 					//i = i + NODE_ID_LENGTH + BROADCAST_MSG_LENGTH_WU_SCHEDULE_CMD;
 					break;
@@ -1524,19 +1575,21 @@ static void Climb_processCharValueChangeEvt(uint8_t paramID) {
 
 			} else { //broadcastID not found
 
-				listNode_t *node = Climb_findChildNodeById(nodeID);
-				if (node != NULL) {
-					if (newValue[i + NODE_ID_LENGTH] != node->device.state) {
-						if (newValue[i + NODE_ID_LENGTH] != INVALID_STATE) {
-							node->device.stateToImpose = (ChildClimbNodeStateType_t) newValue[i + NODE_ID_LENGTH]; //the correctness of this will be checked in Climb_advertisedStatesCheck
+				uint8 index = Climb_findNodeById(nodeID, CLIMB_CHILD_NODE);
+				if (index != 255) {
+					if (newValue[i + CHILD_NODE_ID_LENGTH] != childListArray[index].state) {
+						if (newValue[i + CHILD_NODE_ID_LENGTH] != INVALID_STATE) {
+							childListArray[index].stateToImpose = (ChildClimbNodeStateType_t) newValue[i + CHILD_NODE_ID_LENGTH]; //the correctness of this will be checked in Climb_advertisedStatesCheck
 						}
 					}
+				}else{
+					//TODO:ADD THE NODE FROM HERE, SO IF IT IS NOT IN THE LIST THE REQUEST IS NOT DISCARDED
 				}
 
 			}
-			i = i + NODE_ID_LENGTH + 1;
+			i = i + CHILD_NODE_ID_LENGTH + 1;
 		}
-
+		break;
 	}
 	default:
 		// should not reach here!
@@ -1570,6 +1623,9 @@ static void Climb_processRoleEvent(gapObserverRoleEvent_t *pEvent) {
 		break;
 
 	case GAP_DEVICE_INFO_EVENT: {
+
+		devicesHeardDuringLastScan++;
+
 		if (pEvent->deviceInfo.eventType == GAP_ADRPT_ADV_SCAN_IND | //adv data event (Scannable undirected)
 				pEvent->deviceInfo.eventType == GAP_ADRPT_ADV_IND | pEvent->deviceInfo.eventType == GAP_ADRPT_ADV_NONCONN_IND) { //adv data event (Connectable undirected)
 
@@ -1593,12 +1649,24 @@ static void Climb_processRoleEvent(gapObserverRoleEvent_t *pEvent) {
 
 		}
 
+		if (devicesHeardDuringLastScan >= DEFAULT_MAX_SCAN_RES) {
+			if (BLE_connected) {
+				GAPObserverRole_CancelDiscovery();
+				scanning = FALSE;
+				if (!scanning) {
+					uint8 status = GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE, DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
+					scanning = TRUE;
+				}
+			}
+		}
+
 	}
 		break;
 
 	case GAP_DEVICE_DISCOVERY_EVENT:
 
 	{
+		devicesHeardDuringLastScan = 0;
 #ifndef WORKAROUND
 		scanning = FALSE;
 		if (BLE_connected) {
@@ -1669,24 +1737,19 @@ static ClimbNodeType_t isClimbNode(gapDeviceInfoEvent_t *gapDeviceInfoEvent_a) {
  */
 static void Climb_addNodeDeviceInfo(gapDeviceInfoEvent_t *gapDeviceInfoEvent, ClimbNodeType_t nodeType) {
 
-	if (nodeType == CLIMB_CHILD_NODE){// && Climb_isMyChild(gapDeviceInfoEvent->pEvtData[ADV_PKT_ID_OFFSET])) {
+	uint8 node_position = 255;
 
-		listNode_t* node_position = Climb_findNodeByDevice(gapDeviceInfoEvent, nodeType);
+	if(nodeType == CLIMB_CHILD_NODE){
+		node_position = Climb_findNodeById(&gapDeviceInfoEvent->pEvtData[ADV_PKT_ID_OFFSET], nodeType);
+	}else if(CLIMB_MASTER_NODE){
+		node_position = Climb_findNodeById(gapDeviceInfoEvent->addr, nodeType);
+		return; //for now a master don't need to store other master nodes data, this saves some memory....
+	}
 
-		if (node_position == NULL) {	//dispositivo nuovo, aggiungilo!
-			if (Climb_addNode(gapDeviceInfoEvent, nodeType) == NULL) {
-				while (1) {
-					node_position = NULL;
-				}
-			}
-		} else {
-			Climb_updateNodeMetadata(gapDeviceInfoEvent, node_position);
-		}
-
-
-
-	}else if(nodeType == CLIMB_MASTER_NODE){ //do anything???
-
+	if(node_position == 255){	//dispositivo nuovo, aggiungilo!
+		Climb_addNode(gapDeviceInfoEvent,nodeType);
+	}else{
+		Climb_updateNodeMetadata(gapDeviceInfoEvent,node_position,nodeType);
 	}
 
 	return;
@@ -1700,30 +1763,30 @@ static void Climb_addNodeDeviceInfo(gapDeviceInfoEvent_t *gapDeviceInfoEvent, Cl
  * @return  Pointer to node instance that can be used to modify stored data
  */
 
-static listNode_t* Climb_findNodeByDevice(gapDeviceInfoEvent_t *gapDeviceInfoEvent, ClimbNodeType_t nodeType) {
-
-	listNode_t* node = NULL;
-	if (nodeType == CLIMB_CHILD_NODE) {
-		if (childListRootPtr == NULL) {
-			return NULL;
-		}
-		node = childListRootPtr;
-	} else if (nodeType == CLIMB_MASTER_NODE) {
-		if (masterListRootPtr == NULL) {
-			return NULL;
-		}
-		node = masterListRootPtr;
-	}
-
-	while (node != NULL) {
-		if (memcomp(gapDeviceInfoEvent->addr, node->device.addr, B_ADDR_LEN) == 0) {
-			return node; //se trovi il nodo esci e passane il puntatore
-		}
-		node = node->next; //passa al nodo sucessivo
-	}
-
-	return NULL;
-}
+//static listNode_t* Climb_findNodeByDevice(gapDeviceInfoEvent_t *gapDeviceInfoEvent, ClimbNodeType_t nodeType) {
+//
+//	listNode_t* node = NULL;
+//	if (nodeType == CLIMB_CHILD_NODE) {
+//		if (childListRootPtr == NULL) {
+//			return NULL;
+//		}
+//		node = childListRootPtr;
+//	} else if (nodeType == CLIMB_MASTER_NODE) {
+//		if (masterListRootPtr == NULL) {
+//			return NULL;
+//		}
+//		node = masterListRootPtr;
+//	}
+//
+//	while (node != NULL) {
+//		if (memcomp(gapDeviceInfoEvent->addr, node->device.addr, B_ADDR_LEN) == 0) {
+//			return node; //se trovi il nodo esci e passane il puntatore
+//		}
+//		node = node->next; //passa al nodo sucessivo
+//	}
+//
+//	return NULL;
+//}
 
 /*********************************************************************
  * @fn      Climb_findChildNodeById
@@ -1732,24 +1795,26 @@ static listNode_t* Climb_findNodeByDevice(gapDeviceInfoEvent_t *gapDeviceInfoEve
  *
  * @return  none
  */
-static listNode_t* Climb_findChildNodeById(uint8 *nodeID) {
+static uint8 Climb_findNodeById(uint8 *nodeID, ClimbNodeType_t nodeType) {
 
-	listNode_t* node = NULL;
+	uint8 i;
+	if (nodeType == CLIMB_CHILD_NODE) {
 
-	if (childListRootPtr == NULL) {
-		return NULL;
-	}
-	node = childListRootPtr;
-
-	while (node != NULL) {
-		//if (*nodeID == node->device.devRec.addr[0]){//
-		if (memcomp(nodeID, node->device.id, NODE_ID_LENGTH) == 0) {
-			return node; //se trovi il nodo esci e passane il puntatore
+		for (i = 0; i < MAX_SUPPORTED_CHILD_NODES; i++) {
+			if (memcomp(nodeID, childListArray[i].id, CHILD_NODE_ID_LENGTH) == 0) {
+				return i;
+			}
 		}
-		node = node->next; //passa al nodo sucessivo
-	}
 
-	return NULL;
+	} else if (nodeType == CLIMB_MASTER_NODE) {
+		for (i = 0; i < MAX_SUPPORTED_MASTER_NODES; i++) {
+			if (memcomp(nodeID, masterListArray[i].id, MASTER_NODE_ID_LENGTH) == 0) {
+				return i;
+			}
+		}
+
+	}
+	return 255;
 
 }
 
@@ -1760,52 +1825,53 @@ static listNode_t* Climb_findChildNodeById(uint8 *nodeID) {
  *
  * @return  The pointer to the node istance inside the list
  */
-static listNode_t* Climb_addNode(gapDeviceInfoEvent_t *gapDeviceInfoEvent, ClimbNodeType_t nodeType) {
+static uint8 Climb_addNode(gapDeviceInfoEvent_t *gapDeviceInfoEvent, ClimbNodeType_t nodeType) {
 
-	listNode_t* new_Node_Ptr = (listNode_t*) ICall_malloc(sizeof(listNode_t));
-	if (new_Node_Ptr == NULL) {
-		//malloc fail!
-		PIN_setOutputValue(hGpioPin, Board_LED1, Board_LED_ON);
-		PIN_setOutputValue(hGpioPin, Board_LED2, Board_LED_ON);
-		return NULL;
-	}
+	uint8 freePos = 0;
 
-	//inserisci metadata nel nuovo elemtno della lista
-	//new_Node_Ptr->device.advDataLen = gapDeviceInfoEvent->dataLen;
-	new_Node_Ptr->device.rssi = gapDeviceInfoEvent->rssi;
-	new_Node_Ptr->next = NULL; //il nuovo nodo finirà in coda
-	new_Node_Ptr->device.lastContactTicks = Clock_getTicks();
-
-	memcpy(new_Node_Ptr->device.id, &gapDeviceInfoEvent->pEvtData[ADV_PKT_ID_OFFSET], NODE_ID_LENGTH);
-	memcpy(new_Node_Ptr->device.addr, gapDeviceInfoEvent->addr, B_ADDR_LEN);
-	new_Node_Ptr->device.state = (ChildClimbNodeStateType_t) gapDeviceInfoEvent->pEvtData[ADV_PKT_STATE_OFFSET];
-	new_Node_Ptr->device.stateToImpose = (ChildClimbNodeStateType_t) gapDeviceInfoEvent->pEvtData[ADV_PKT_STATE_OFFSET];
-	new_Node_Ptr->device.contactSentThoughGATT = FALSE;
-	//connetti il nuovo elemento della lista in coda
 	if (nodeType == CLIMB_CHILD_NODE) {
-		if (childListRootPtr != NULL) { //il nodo che sto inserendo NON è il primo
-			listNode_t* node = childListRootPtr;
-			while (node->next != NULL) { //cerca l'ultimo nodo
-				node = node->next; //passa al nodo sucessivo
+
+		while( isNonZero(childListArray[freePos].id, CHILD_NODE_ID_LENGTH) ){
+			freePos++;
+
+			if(freePos >= MAX_SUPPORTED_CHILD_NODES){
+				return 255;
 			}
-			node->next = new_Node_Ptr; //aggiorna riferimento del nodo precedente
-		} else {								//sto inserendo il primo nodo
-			childListRootPtr = new_Node_Ptr;								//salva il puntatore al nodo root
+
 		}
-		//childScanRes++;
+
+
+		childListArray[freePos].rssi = gapDeviceInfoEvent->rssi;
+		childListArray[freePos].lastContactTicks = Clock_getTicks();
+
+		memcpy(childListArray[freePos].id, &gapDeviceInfoEvent->pEvtData[ADV_PKT_ID_OFFSET], CHILD_NODE_ID_LENGTH);
+		childListArray[freePos].state = (ChildClimbNodeStateType_t) gapDeviceInfoEvent->pEvtData[ADV_PKT_STATE_OFFSET];
+		childListArray[freePos].stateToImpose = childListArray[freePos].state;
+		childListArray[freePos].contactSentThoughGATT = FALSE;
+
+		return 1;
 	} else if (nodeType == CLIMB_MASTER_NODE) {
-		if (masterListRootPtr != NULL) { //il nodo che sto inserendo NON è il primo
-			listNode_t* node = masterListRootPtr;
-			while (node->next != NULL) { //cerca l'ultimo nodo
-				node = node->next; //passa al nodo sucessivo
+
+		while( isNonZero(masterListArray[freePos].id, MASTER_NODE_ID_LENGTH) ){
+			freePos++;
+
+			if(freePos >= MAX_SUPPORTED_MASTER_NODES){
+				return 255;
 			}
-			node->next = new_Node_Ptr; //aggiorna riferimento del nodo precedente
-		} else {								//sto inserendo il primo nodo
-			masterListRootPtr = new_Node_Ptr;								//salva il puntatore al nodo root
+
 		}
-		//masterScanRes++;
+
+		masterListArray[freePos].rssi = gapDeviceInfoEvent->rssi;
+		masterListArray[freePos].lastContactTicks = Clock_getTicks();
+
+		memcpy(masterListArray[freePos].id, &gapDeviceInfoEvent->pEvtData[ADV_PKT_ID_OFFSET], MASTER_NODE_ID_LENGTH);
+		masterListArray[freePos].state = INVALID_STATE;
+		masterListArray[freePos].stateToImpose = masterListArray[freePos].state;
+		masterListArray[freePos].contactSentThoughGATT = FALSE;
+
+		return 1;
 	}
-	return new_Node_Ptr;
+	return 0;
 
 }
 
@@ -1816,25 +1882,39 @@ static listNode_t* Climb_addNode(gapDeviceInfoEvent_t *gapDeviceInfoEvent, Climb
  *
  * @return  none
  */
-static void Climb_updateNodeMetadata(gapDeviceInfoEvent_t *gapDeviceInfoEvent, listNode_t* targetNode) {
+static void Climb_updateNodeMetadata(gapDeviceInfoEvent_t *gapDeviceInfoEvent, uint8 index, ClimbNodeType_t nodeType) {
 
 	if (gapDeviceInfoEvent->eventType == GAP_ADRPT_ADV_SCAN_IND | gapDeviceInfoEvent->eventType == GAP_ADRPT_ADV_IND | gapDeviceInfoEvent->eventType == GAP_ADRPT_ADV_NONCONN_IND) {//adv data
 
-		//inserisci metadata
-		//targetNode->device.advDataLen = gapDeviceInfoEvent->dataLen;
-		targetNode->device.rssi = gapDeviceInfoEvent->rssi;
-		targetNode->device.lastContactTicks = Clock_getTicks();
-		targetNode->device.contactSentThoughGATT = FALSE;
-		targetNode->device.state = (ChildClimbNodeStateType_t)gapDeviceInfoEvent->pEvtData[ADV_PKT_STATE_OFFSET];
-		memcpy(targetNode->device.id, &gapDeviceInfoEvent->pEvtData[ADV_PKT_ID_OFFSET],NODE_ID_LENGTH);
-		//memcpy(targetNode->device.advData, gapDeviceInfoEvent->pEvtData, gapDeviceInfoEvent->dataLen);
+		if (nodeType == CLIMB_CHILD_NODE) {
+
+			childListArray[index].rssi = gapDeviceInfoEvent->rssi;
+			childListArray[index].lastContactTicks = Clock_getTicks();
+
+			memcpy(childListArray[index].id, &gapDeviceInfoEvent->pEvtData[ADV_PKT_ID_OFFSET], CHILD_NODE_ID_LENGTH);
+			childListArray[index].state = (ChildClimbNodeStateType_t) gapDeviceInfoEvent->pEvtData[ADV_PKT_STATE_OFFSET];
+			childListArray[index].contactSentThoughGATT = FALSE;
+
+			return;
+
+		} else if (nodeType == CLIMB_MASTER_NODE) {
+
+			masterListArray[index].rssi = gapDeviceInfoEvent->rssi;
+			masterListArray[index].lastContactTicks = Clock_getTicks();
+
+			memcpy(masterListArray[index].id, &gapDeviceInfoEvent->pEvtData[ADV_PKT_ID_OFFSET], CHILD_NODE_ID_LENGTH);
+			masterListArray[index].state = INVALID_STATE;
+			masterListArray[index].contactSentThoughGATT = FALSE;
+
+			return;
+
+		}
 
 	} else if (gapDeviceInfoEvent->eventType == GAP_ADRPT_SCAN_RSP) {	//scan response data
 
 	}
 
 	return;
-
 }
 
 /*********************************************************************
@@ -1846,17 +1926,20 @@ static void Climb_updateNodeMetadata(gapDeviceInfoEvent_t *gapDeviceInfoEvent, l
  */
 static void Climb_advertisedStatesCheck(void) {
 	//FA IL CONTROLLO DELLO STATO ATTUALE RISPETTO A QUELLO VOLUTO
-	listNode_t* node = childListRootPtr;
+	//listNode_t* node = childListRootPtr;
 	onBoardChildren = 0;
-	while (node != NULL) {
+	uint8 i = 0;
+	while (i < MAX_SUPPORTED_CHILD_NODES) {
 
-		if (isBroadcastMessageValid == TRUE && broadcastMessage[0] == BROADCAST_MSG_TYPE_STATE_UPDATE_CMD) { //SE IL MESSAGGIO DI BROADCAST E' VALIDO SOVRASCRIVI IL CAMPO stateToImpose su tutti i nodi
+		if ( isNonZero(childListArray[i].id,CHILD_NODE_ID_LENGTH) ) { //discard empty spaces
 
-			if ((ChildClimbNodeStateType_t) broadcastMessage[1] != INVALID_STATE) {
-				node->device.stateToImpose = (ChildClimbNodeStateType_t) broadcastMessage[1];
+			if (isBroadcastMessageValid == TRUE && broadcastMessage[0] == BROADCAST_MSG_TYPE_STATE_UPDATE_CMD) { //SE IL MESSAGGIO DI BROADCAST E' VALIDO SOVRASCRIVI IL CAMPO stateToImpose su tutti i nodi
+
+				if ((ChildClimbNodeStateType_t) broadcastMessage[1] != INVALID_STATE) {
+					childListArray[i].stateToImpose = (ChildClimbNodeStateType_t) broadcastMessage[1];
+				}
+
 			}
-
-		}
 
 //		// se il nodo è BY_MYSELF non ha senso cercare di imporre uno stato inviato come broadcast, quindi si può sovrascrivere
 //		if (node->device.advData[ADV_PKT_STATE_OFFSET] == BY_MYSELF && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
@@ -1865,64 +1948,64 @@ static void Climb_advertisedStatesCheck(void) {
 //
 //		}
 
-		{ //CHECK IF THE REQUESTED STATE CHANGE IS VALID OR NOT
-			ChildClimbNodeStateType_t actualNodeState = node->device.state;//(ChildClimbNodeStateType_t)node->device.advData[ADV_PKT_STATE_OFFSET];
-			switch (node->device.stateToImpose) {
-			case BY_MYSELF:
-				if (actualNodeState == CHECKING || actualNodeState == ON_BOARD || actualNodeState == ALERT || actualNodeState == GOING_TO_SLEEP) { // && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
+			{ //CHECK IF THE REQUESTED STATE CHANGE IS VALID OR NOT
+				ChildClimbNodeStateType_t actualNodeState = childListArray[i].state; //(ChildClimbNodeStateType_t)node->device.advData[ADV_PKT_STATE_OFFSET];
+				switch (childListArray[i].stateToImpose) {
+				case BY_MYSELF:
+					if (actualNodeState == CHECKING || actualNodeState == ON_BOARD || actualNodeState == ALERT || actualNodeState == GOING_TO_SLEEP) { // && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
 					//allowed transition
-				} else {
-					node->device.stateToImpose = actualNodeState; //mantieni lo stato precedente
-				}
-				break;
+					} else {
+						childListArray[i].stateToImpose = actualNodeState; //mantieni lo stato precedente
+					}
+					break;
 
-			case CHECKING:
-				if (actualNodeState == BY_MYSELF){// && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
+				case CHECKING:
+					if (actualNodeState == BY_MYSELF) { // && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
+						//allowed transition
+					} else {
+						childListArray[i].stateToImpose = actualNodeState; //mantieni lo stato precedente
+					}
+					break;
+
+				case ON_BOARD:
+					if ((actualNodeState == CHECKING || actualNodeState == ALERT)) { // && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
+						//allowed transition
+					} else {
+						childListArray[i].stateToImpose = actualNodeState; //mantieni lo stato precedente
+					}
+					break;
+
+				case ALERT:
+					childListArray[i].stateToImpose = ON_BOARD; //don't broadcast ALERT state!
+					break;
+
+				case GOING_TO_SLEEP:
+					if (actualNodeState == CHECKING || actualNodeState == ON_BOARD) { // && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
 					//allowed transition
-				} else {
-					node->device.stateToImpose = actualNodeState; //mantieni lo stato precedente
+					} else {
+						childListArray[i].stateToImpose = actualNodeState; //mantieni lo stato precedente
+					}
+					break;
+
+				case INVALID_STATE:
+					break;
+
+				default:
+					break;
 				}
-				break;
 
-			case ON_BOARD:
-				if ((actualNodeState == CHECKING || actualNodeState == ALERT)){// && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
-					//allowed transition
-				} else {
-					node->device.stateToImpose = actualNodeState; //mantieni lo stato precedente
+				if (actualNodeState != childListArray[i].stateToImpose) {
+					advUpdateReq = TRUE;
 				}
-				break;
 
-			case ALERT:
-				node->device.stateToImpose = ON_BOARD; //don't broadcast ALERT state!
-				break;
-
-			case GOING_TO_SLEEP:
-				if (actualNodeState == CHECKING || actualNodeState == ON_BOARD ) { // && Climb_isMyChild(node->device.advData[ADV_PKT_ID_OFFSET])) {
-					//allowed transition
-				} else {
-					node->device.stateToImpose = actualNodeState; //mantieni lo stato precedente
+				if (actualNodeState == ON_BOARD) {
+					onBoardChildren++;
 				}
-				break;
 
-			case INVALID_STATE:
-				break;
-
-			default:
-				break;
-			}
-
-			if (actualNodeState != node->device.stateToImpose) {
-				advUpdateReq = TRUE;
-			}
-
-			if(actualNodeState == ON_BOARD){
-				onBoardChildren++;
 			}
 
 		}
-
-
-		node = node->next; //passa al nodo sucessivo
+		i++; //passa al nodo sucessivo
 	}
 }
 
@@ -1938,61 +2021,60 @@ static void Climb_nodeTimeoutCheck() {
 
 	uint32 nowTicks = Clock_getTicks();
 
+	uint8 i = 0;
 	//controlla la lista dei child
-	listNode_t* targetNode = childListRootPtr;
-	listNode_t* previousNode = NULL;
-	while (targetNode != NULL) { //NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
+	//listNode_t* targetNode = childListRootPtr;
+	//listNode_t* previousNode = NULL;
+	while (i < MAX_SUPPORTED_CHILD_NODES) { //NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
+		if (isNonZero(childListArray[i].id, CHILD_NODE_ID_LENGTH)) { //discard empty spaces
 
-		if (nowTicks - targetNode->device.lastContactTicks > NODE_TIMEOUT_OS_TICKS) {
-//			if (Climb_isMyChild(targetNode->device.advData[ADV_PKT_ID_OFFSET])) {
-				switch ((ChildClimbNodeStateType_t) targetNode->device.stateToImpose) {
+			if (nowTicks - childListArray[i].lastContactTicks > NODE_TIMEOUT_OS_TICKS) {
+				switch ((ChildClimbNodeStateType_t) childListArray[i].stateToImpose) {
 				case BY_MYSELF:
 				case CHECKING:
-					targetNode = Climb_removeNode(targetNode, previousNode); //rimuovi il nodo
+					Climb_removeNode(i,CLIMB_CHILD_NODE); //rimuovi il nodo
 					break;
 
 				case ON_BOARD:
 					//do nothing, app will trigger the alert!!
 				case ALERT:
 					//do nothing
-					targetNode->device.state = ALERT;
-					previousNode = targetNode;
-					targetNode = targetNode->next; //passa al nodo sucessivo
+					childListArray[i].state = ALERT;
 					break;
 				case GOING_TO_SLEEP:
 					//do nothing
-					targetNode = Climb_removeNode(targetNode, previousNode); //rimuovi il nodo
+					Climb_removeNode(i,CLIMB_CHILD_NODE); //rimuovi il nodo
 					break;
 
 				default:
 					//should not reach here
-					//previousNode = targetNode;
-					targetNode = targetNode->next; //passa al nodo sucessivo
 					break;
 				}
-//			} else { //the child node is not my child
-//				targetNode = Climb_removeNode(targetNode, previousNode); //rimuovi il nodo
-//			}
-		} else { //il nodo non è andato in timeout, scorri la lista
-			previousNode = targetNode;
-			targetNode = targetNode->next; //passa al nodo sucessivo
+			} else { //il nodo non è andato in timeout,
+
+			}
+			//NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
+
 		}
-		//NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
+		i++;
 	}
 
+	i = 0;
 	//controlla la lista dei master
-	targetNode = masterListRootPtr;
-	previousNode = NULL;
-	while (targetNode != NULL) { //NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
+	//targetNode = masterListRootPtr;
+	//previousNode = NULL;
+	while (i < MAX_SUPPORTED_MASTER_NODES) { //NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
+		if (isNonZero(masterListArray[i].id, CHILD_NODE_ID_LENGTH)) { //discard empty spaces
+			if (nowTicks - masterListArray[i].lastContactTicks > NODE_TIMEOUT_OS_TICKS) { //se il timeout è scaduto
+				Climb_removeNode(i,CLIMB_MASTER_NODE); //rimuovi il nodo
+				advUpdateReq = TRUE;
+			} else { //il nodo non è andato in timeout,
 
-		if (nowTicks - targetNode->device.lastContactTicks > NODE_TIMEOUT_OS_TICKS) { //se il timeout è scaduto
-			targetNode = Climb_removeNode(targetNode, previousNode); //rimuovi il nodo
-			advUpdateReq = TRUE;
-		} else { //il nodo non è andato in timeout, scorri la lista
-			previousNode = targetNode;
-			targetNode = targetNode->next; //passa al nodo sucessivo
+			}
+			//NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
 		}
-		//NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
+
+		i++;
 	}
 }
 
@@ -2003,46 +2085,25 @@ static void Climb_nodeTimeoutCheck() {
  *
  * @return  pointer to the next node
  */
-static listNode_t* Climb_removeNode(listNode_t* nodeToRemove, listNode_t* previousNode) {
+static void Climb_removeNode(uint8 indexToRemove, ClimbNodeType_t nodeType) {
 
-	if (nodeToRemove == NULL) {
-		return NULL;
-	}
+	uint8 i = 0;
 
-	if (previousNode == NULL && nodeToRemove != childListRootPtr && nodeToRemove != masterListRootPtr) { //
-		return NULL;
-	}
+	for (i = 0; i < sizeof(myGapDevRec_t); i++) {
 
-	if (nodeToRemove == adv_startNodePtr) {
-		adv_startNodePtr = NULL;
-	}
+		if (nodeType == CLIMB_CHILD_NODE) {
 
-	if (nodeToRemove == gatt_startNodePtr) {
-		gatt_startNodePtr = NULL;
-	}
+			((uint8*) (&childListArray[indexToRemove]))[i] = 0;
 
-	if (nodeToRemove != childListRootPtr && nodeToRemove != masterListRootPtr) { // se il nodo che voglio rimuovere non è il primo vai liscio
-		previousNode->next = nodeToRemove->next;
-		ICall_free(nodeToRemove); //rilascia la memoria
-		return previousNode->next;
-	} else if (nodeToRemove == childListRootPtr) { //voglio rimuovere il primo nodo della lista dei bambini
-		childListRootPtr = nodeToRemove->next; //quindi sostituisco il puntatore root
-		ICall_free(nodeToRemove); //rilascia la memoria
-		if (childListRootPtr == NULL) {
-			return NULL;
-		} else {
-			return childListRootPtr->next;
+		} else if (nodeType == CLIMB_MASTER_NODE) {
+
+			((uint8*) (&masterListArray[indexToRemove]))[i] = 0;
+
 		}
-	} else if (nodeToRemove == masterListRootPtr) { //voglio rimuovere il primo nodo della lista dei master
-		masterListRootPtr = nodeToRemove->next; //quindi sostituisco il puntatore root
-		ICall_free(nodeToRemove); //rilascia la memoria
-		if (masterListRootPtr == NULL) {
-			return NULL;
-		} else {
-			return masterListRootPtr->next;
-		}
+
 	}
-	return NULL;
+
+	return;
 }
 
 /*********************************************************************
@@ -2055,7 +2116,10 @@ static listNode_t* Climb_removeNode(listNode_t* nodeToRemove, listNode_t* previo
 static void Climb_periodicTask() {
 	Climb_nodeTimeoutCheck();
 
+
+#ifdef  HEAPMGR_METRICS
 	plotHeapMetrics();
+#endif
 
 }
 
@@ -2226,12 +2290,12 @@ static void CLIMB_handleKeys(uint8 keys) {
 
 	case RIGHT_SHORT:
 		if (beaconActive != 1) {
-			startNode();
+//			startNode();
+//
+//			Climb_setWakeUpClock(WAKEUP_DEFAULT_TIMEOUT_SEC);
+//			Util_restartClock(&goToSleepClock, GOTOSLEEP_DEFAULT_TIMEOUT_SEC*1000);
 
-			Climb_setWakeUpClock(WAKEUP_DEFAULT_TIMEOUT_SEC);
-			Util_restartClock(&goToSleepClock, GOTOSLEEP_DEFAULT_TIMEOUT_SEC*1000);
-
-
+			HAL_SYSTEM_RESET();
 		}
 		break;
 
@@ -2322,18 +2386,14 @@ static void stopNode() {
 
 	//PIN_setOutputValue(hGpioPin, Board_LED2, Board_LED_OFF);
 
-	listNode_t* node = childListRootPtr;
-	while (node != NULL) { //cicla fino all'ultimo nodo
-		node->device.stateToImpose = BY_MYSELF;
-		node->device.lastContactTicks = 0;
-		node = node->next; //passa al nodo sucessivo
-	}
 //	lastGATTCheckTicks = 1;
 	uint8 zeroArray[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	ClimbProfile_SetParameter(CLIMBPROFILE_CHAR1, 20, zeroArray);
 	Util_stopClock(&periodicClock);
 	destroyChildNodeList();
 	destroyMasterNodeList();
+
+	Climb_advertisedStatesUpdate();
 
 	CLIMB_FlashLed(Board_LED1);
 #ifdef WORKAROUND
@@ -2350,15 +2410,12 @@ static void stopNode() {
  */
 static void destroyChildNodeList() {
 
-
-	listNode_t* targetNode = childListRootPtr;
-	while (targetNode != NULL) { //NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
-
-		Climb_removeNode(targetNode, NULL); //rimuovi il primo nodo
-		targetNode = childListRootPtr;
-		//NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
+	uint16 arraySize = MAX_SUPPORTED_CHILD_NODES*sizeof(myGapDevRec_t);
+	uint16 i = 0;
+	//resetta la memoria
+	for(i = 0; i < arraySize; i++ ){
+		((uint8*)childListArray)[i] = 0;
 	}
-
 }
 /*********************************************************************
  * @fn      destroyMasterNodeList
@@ -2370,15 +2427,13 @@ static void destroyChildNodeList() {
  */
 static void destroyMasterNodeList() {
 
-
-	listNode_t* targetNode = masterListRootPtr;
-
-	while (targetNode != NULL) { //NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
-
-		Climb_removeNode(targetNode, NULL); //rimuovi il nodo
-		targetNode = masterListRootPtr;
-		//NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
+	uint16 arraySize = MAX_SUPPORTED_MASTER_NODES*sizeof(myGapDevRec_t);
+	uint16 i = 0;
+	//resetta la memoria
+	for(i = 0; i < arraySize; i++ ){
+		((uint8*)masterListArray)[i] = 0;
 	}
+
 }
 /*!*****************************************************************************
  *  @fn         Key_callback
@@ -2446,7 +2501,7 @@ static void timerCallback(GPTimerCC26XX_Handle handle, GPTimerCC26XX_IntMask int
 		//resetApplication?
 		break;
 	default:
-		HAL_SYSTEM_RESET();
+		//HAL_SYSTEM_RESET();
 		//or
 		//HCI_EXT_ResetSystemCmd(HCI_EXT_RESET_SYSTEM_HARD);
 
@@ -2524,9 +2579,9 @@ static uint8 memcomp(uint8 * str1, uint8 * str2, uint8 len) { //come memcmp (ma 
 	return 0;
 }
 
-
-static void plotHeapMetrics(){
 #ifdef  HEAPMGR_METRICS
+static void plotHeapMetrics(){
+
 #ifdef PRINTF_ENABLED
 	System_printf("Metrics:\n");
 #endif
@@ -2542,7 +2597,17 @@ static void plotHeapMetrics(){
 #ifdef PRINTF_ENABLED
 	System_printf("max cnt of all blocks ever seen at once: %d\ncurrent cnt of all blocks: %d\ncurrent cnt of free blocks: %d\ncurrent total memory allocated: %d\nmax total memory ever allocated at once: %d\nupper bound of memory usage: %d\namount of failed malloc calls: %d\n\n\n", pBlkMax[0], pBlkCnt[0], pBlkFree[0],pMemAlo[0], pMemMax[0], pMemUb[0],pFailAm[0] );
 #endif
+
+}
 #endif
+static uint8 isNonZero(uint8 * str1, uint8 len) { //ritorna 0 se il vettore è zero, 1 altrimenti
+	uint8 index;
+	for (index = 0; index < len; index++) {
+		if (str1[index] != 0) {
+			return 1;
+		}
+	}
+	return 0;
 }
 /*********************************************************************
  *********************************************************************/
