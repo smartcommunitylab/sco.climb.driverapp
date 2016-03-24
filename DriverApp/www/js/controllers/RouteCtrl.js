@@ -1,7 +1,11 @@
 angular.module('driverapp.controllers.route', [])
 
-.controller('RouteCtrl', function ($scope, $rootScope, $stateParams, $ionicHistory, $ionicNavBarDelegate, $ionicPopup, $ionicModal, $interval, $ionicScrollDelegate, $filter, Config, Utils, StorageSrv, GeoSrv, AESrv, APISrv, WSNSrv) {
+.controller('RouteCtrl', function ($scope, $rootScope, $stateParams, $ionicHistory, $ionicNavBarDelegate, $ionicPopup, $ionicModal, $interval, $ionicScrollDelegate, $filter, $timeout, Config, Utils, StorageSrv, GeoSrv, AESrv, APISrv, WSNSrv) {
     $scope.fromWizard = false;
+    $rootScope.pedibusEnabled = true;
+
+    var passengersScrollDelegate = $ionicScrollDelegate.$getByHandle('passengersHandle');
+
     var aesInstance = {};
 
     $scope.children = null;
@@ -24,6 +28,8 @@ angular.module('driverapp.controllers.route', [])
     }
 
     if ($scope.fromWizard) {
+        $rootScope.pedibusEnabled = false;
+
         if (!!$stateParams['route']) {
             $scope.route = $stateParams['route'];
 
@@ -67,6 +73,10 @@ angular.module('driverapp.controllers.route', [])
                             }
 
                             if ($scope.isOnBoard(ns[nodeId].object.objectId)) {
+                                if (ns[nodeId].timestamp == -1) {
+                                    return;
+                                }
+
                                 var overTimeout = (moment().valueOf() - ns[nodeId].timestamp) > Config.NODESTATE_TIMEOUT;
 
                                 if (overTimeout && ns[nodeId].status !== WSNSrv.STATUS_OUT_OF_RANGE) {
@@ -158,6 +168,7 @@ angular.module('driverapp.controllers.route', [])
                 $scope.onBoard = $scope.onBoard.concat($scope.onBoardTemp);
                 $scope.onBoardTemp = [];
                 $scope.mergedOnBoard = $scope.getMergedOnBoard();
+                passengersScrollDelegate.resize();
 
                 // Riparti
                 $scope.helpersTemp.forEach(function (helper) {
@@ -165,6 +176,20 @@ angular.module('driverapp.controllers.route', [])
                 });
                 $scope.helpers = $scope.helpers.concat($scope.helpersTemp);
                 $scope.helpersTemp = [];
+
+                // Penultima fermata
+                if (!$scope.stops[$scope.enRoutePos + 2]) {
+                    console.log('Automatic "Arrive" timeout started!');
+                    $timeout(function () {
+                        // Arriva in maniera automatica
+                        if (!$scope.enRouteArrived) {
+                            $scope.toggleEnRoute();
+                            console.log('Automatically arrived!');
+                        } else {
+                            console.log('Automatic "Arrive" not necessary');
+                        }
+                    }, Config.AUTOFINISH_DELAY);
+                }
 
                 if ($scope.enRoutePos == 0) {
                     // Parti
@@ -194,9 +219,14 @@ angular.module('driverapp.controllers.route', [])
                         WSNSrv.checkoutChild(child.wsnId);
                     }
                 });
+
                 AESrv.endRoute($scope.stops[$scope.enRoutePos]);
+
                 GeoSrv.stopWatchingPosition();
+                WSNSrv.stopListener();
+
                 $scope.enRouteArrived = true;
+                $rootScope.pedibusEnabled = true;
             }
         }
     };
@@ -252,6 +282,7 @@ angular.module('driverapp.controllers.route', [])
             $scope.onBoardTemp.push(passengerId);
         }
         $scope.mergedOnBoard = $scope.getMergedOnBoard();
+        passengersScrollDelegate.resize();
     };
 
     $scope.dropOff = function (passengerId) {
@@ -260,6 +291,7 @@ angular.module('driverapp.controllers.route', [])
             $scope.onBoardTemp.splice(index, 1);
         }
         $scope.mergedOnBoard = $scope.getMergedOnBoard();
+        passengersScrollDelegate.resize();
     };
 
     $scope.toBeTaken = [];
@@ -319,6 +351,7 @@ angular.module('driverapp.controllers.route', [])
         $scope.modal.forgetChanges = false;
 
         $scope.mergedOnBoard = $scope.getMergedOnBoard();
+        passengersScrollDelegate.resize();
     });
 
     // Execute action on remove modal
@@ -379,7 +412,7 @@ angular.module('driverapp.controllers.route', [])
         }
         //return onBoardMerged;
         return onBoardMatrix;
-    }
+    };
 
     /*
      * Check lists method: used to check if a value is already present in a list or not

@@ -20,13 +20,15 @@ angular.module('driverapp.controllers.volunteers', [])
      * Child details popup
      */
     $scope.showVolunteerDetails = function (volunteer) {
-        $scope.phone = volunteer.phone;
-        var detailsPopup = $ionicPopup.alert({
-            title: volunteer.name,
-            templateUrl: 'templates/phone_popup_person.html', //volunteer.phone,
-            scope: $scope,
-            okText: 'OK',
-            okType: 'button'
-        });
+        if (!!volunteer.phone) {
+            $scope.phone = volunteer.phone;
+            var detailsPopup = $ionicPopup.alert({
+                title: volunteer.name,
+                templateUrl: 'templates/phone_popup_person.html', //volunteer.phone,
+                scope: $scope,
+                okText: 'OK',
+                okType: 'button'
+            });
+        }
     };
 });

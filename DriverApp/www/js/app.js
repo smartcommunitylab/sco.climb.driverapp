@@ -3,6 +3,7 @@ angular.module('driverapp', [
     'ionic.wizard',
     'ngCordova',
     'driverapp.services.config',
+    'driverapp.services.log',
     'driverapp.services.utils',
     'driverapp.services.storage',
     'driverapp.services.wsn',
@@ -16,7 +17,7 @@ angular.module('driverapp', [
     'driverapp.controllers.volunteers'
 ])
 
-.run(function ($ionicPlatform, $rootScope, $ionicPopup, Config, Utils, WSNSrv) {
+.run(function ($ionicPlatform, $rootScope, $ionicPopup, Config, Utils, LogSrv, WSNSrv) {
     $ionicPlatform.ready(function () {
         // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
         // for form inputs)
@@ -30,23 +31,9 @@ angular.module('driverapp', [
             StatusBar.styleDefault();
         }
 
-        $rootScope.exitApp = function () {
-            $ionicPopup.confirm({
-                title: 'Chiusura app',
-                template: 'Vuoi veramente uscire?',
-                cancelText: 'No',
-                cancelType: 'button-stable',
-                okText: 'Si',
-                okType: 'button-energized'
-            })
-
-            .then(function (result) {
-                if (result) {
-                    ionic.Platform.exitApp();
-                    Utils.setMenuDriverTitle(null); // clear driver name in menu
-                }
-            });
-        };
+        if (window.logToFile && ionic.Platform.isAndroid()) {
+            LogSrv.init();
+        }
 
         /*
          * Check Internet connection
@@ -63,6 +50,7 @@ angular.module('driverapp', [
                 })
 
                 .then(function (result) {
+                    LogSrv.log('--- APPLICATION CLOSED ---');
                     ionic.Platform.exitApp();
                 });
             }
@@ -118,6 +106,25 @@ angular.module('driverapp', [
                 );
             };
         }
+
+        $rootScope.exitApp = function () {
+            $ionicPopup.confirm({
+                title: 'Chiusura app',
+                template: 'Vuoi veramente uscire?',
+                cancelText: 'No',
+                cancelType: 'button-stable',
+                okText: 'Si',
+                okType: 'button-energized'
+            })
+
+            .then(function (result) {
+                if (result) {
+                    LogSrv.log('--- APPLICATION CLOSED ---');
+                    Utils.setMenuDriverTitle(null); // clear driver name in menu
+                    ionic.Platform.exitApp();
+                }
+            });
+        };
     });
 })
 

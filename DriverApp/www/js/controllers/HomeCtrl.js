@@ -1,6 +1,7 @@
 angular.module('driverapp.controllers.home', [])
 
-.controller('AppCtrl', function ($scope, $rootScope, $ionicPlatform, $q, Config, StorageSrv, APISrv, WSNSrv, Utils) {
+.controller('AppCtrl', function ($scope, $rootScope, $ionicPlatform, $q, $ionicModal, Config, StorageSrv, APISrv, WSNSrv, Utils) {
+    $rootScope.pedibusEnabled = true;
     /*
      * FIXME dev purpose only!
      */
@@ -81,7 +82,14 @@ angular.module('driverapp.controllers.home', [])
     $scope.getDriverName = function() {
         $scope.driverName = Utils.getMenuDriverTitle();
         return $scope.driverName;
-    }
+    };
+
+    $ionicModal.fromTemplateUrl('templates/app_modal_volunteers.html', {
+        scope: $scope,
+        animation: 'slide-in-up'
+    }).then(function (modal) {
+        $scope.modalVolunteers = modal;
+    });
 })
 
 .controller('HomeCtrl', function ($scope, Utils, StorageSrv, APISrv) {
