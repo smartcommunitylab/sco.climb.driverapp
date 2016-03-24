@@ -1864,7 +1864,7 @@ static uint8 Climb_addNode(gapDeviceInfoEvent_t *gapDeviceInfoEvent, ClimbNodeTy
 		masterListArray[freePos].rssi = gapDeviceInfoEvent->rssi;
 		masterListArray[freePos].lastContactTicks = Clock_getTicks();
 
-		memcpy(masterListArray[freePos].id, &gapDeviceInfoEvent->pEvtData[ADV_PKT_ID_OFFSET], MASTER_NODE_ID_LENGTH);
+		memcpy(masterListArray[freePos].id, &gapDeviceInfoEvent->addr, MASTER_NODE_ID_LENGTH);
 		masterListArray[freePos].state = INVALID_STATE;
 		masterListArray[freePos].stateToImpose = masterListArray[freePos].state;
 		masterListArray[freePos].contactSentThoughGATT = FALSE;
@@ -1902,7 +1902,7 @@ static void Climb_updateNodeMetadata(gapDeviceInfoEvent_t *gapDeviceInfoEvent, u
 			masterListArray[index].rssi = gapDeviceInfoEvent->rssi;
 			masterListArray[index].lastContactTicks = Clock_getTicks();
 
-			memcpy(masterListArray[index].id, &gapDeviceInfoEvent->pEvtData[ADV_PKT_ID_OFFSET], CHILD_NODE_ID_LENGTH);
+			memcpy(masterListArray[index].id, &gapDeviceInfoEvent->addr, MASTER_NODE_ID_LENGTH);
 			masterListArray[index].state = INVALID_STATE;
 			masterListArray[index].contactSentThoughGATT = FALSE;
 
@@ -2059,10 +2059,11 @@ static void Climb_nodeTimeoutCheck() {
 		i++;
 	}
 
-	i = 0;
+
 	//controlla la lista dei master
 	//targetNode = masterListRootPtr;
 	//previousNode = NULL;
+	i = 0;
 	while (i < MAX_SUPPORTED_MASTER_NODES) { //NB: ENSURE targetNode IS UPDATED ANY CYCLE, OTHERWISE IT RUNS IN AN INFINITE LOOP
 		if (isNonZero(masterListArray[i].id, CHILD_NODE_ID_LENGTH)) { //discard empty spaces
 			if (nowTicks - masterListArray[i].lastContactTicks > NODE_TIMEOUT_OS_TICKS) { //se il timeout è scaduto
@@ -2390,10 +2391,6 @@ static void stopNode() {
 	uint8 zeroArray[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	ClimbProfile_SetParameter(CLIMBPROFILE_CHAR1, 20, zeroArray);
 	Util_stopClock(&periodicClock);
-	destroyChildNodeList();
-	destroyMasterNodeList();
-
-	Climb_advertisedStatesUpdate();
 
 	CLIMB_FlashLed(Board_LED1);
 #ifdef WORKAROUND
