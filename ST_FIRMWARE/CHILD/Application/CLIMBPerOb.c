@@ -96,7 +96,7 @@
 #ifdef WORKAROUND
 #define DEFAULT_ADVERTISING_INTERVAL          3200
 #else
-#define DEFAULT_ADVERTISING_INTERVAL          1616
+#define DEFAULT_ADVERTISING_INTERVAL          1600
 #endif
 #define EPOCH_PERIOD						  1000
 
@@ -150,7 +150,7 @@
 #define DEFAULT_DISCOVERY_WHITE_LIST          FALSE
 
 // Maximum number of scan responses to be reported to application
-#define DEFAULT_MAX_SCAN_RES                  30
+#define DEFAULT_MAX_SCAN_RES                  80
 
 // How often to perform periodic event (in msec)
 #define PERIODIC_EVT_PERIOD_MSEC               5000
