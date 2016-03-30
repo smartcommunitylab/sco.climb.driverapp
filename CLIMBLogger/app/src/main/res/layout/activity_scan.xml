@@ -39,33 +39,44 @@
 
             <Button
                 android:id="@+id/buttonStart"
-                android:layout_width="wrap_content"
+                android:layout_width="60dp"
                 android:layout_height="wrap_content"
                 android:text="Start\nScan"
-                android:textSize="12dp" />
+                android:textSize="10dp" />
 
             <Button
                 android:id="@+id/buttonStop"
-                android:layout_width="wrap_content"
+                android:layout_width="60dp"
                 android:layout_height="wrap_content"
                 android:text="Stop\nscan"
-                android:textSize="12dp" />
-            <CheckBox
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:text="LOG"
-                android:id="@+id/logCheckBox"
-                android:checked="true"
-                android:textColor="#a3a3a3"
-                android:textSize="18dp" />
+                android:textSize="10dp" />
+
+                <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="LOG"
+                    android:id="@+id/logCheckBox"
+                    android:checked="true"
+                    android:textColor="#a3a3a3"
+                    android:textSize="12dp" />
+
+
 
             <Button
                 android:id="@+id/buttonTag"
-                android:layout_width="wrap_content"
+                android:layout_width="65dp"
                 android:layout_height="wrap_content"
                 android:text="Insert\nTag"
-                android:textSize="12dp" />
+                android:textSize="10dp" />
 
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="View\nAll"
+                android:id="@+id/viewAllCheckBox"
+                android:checked="true"
+                android:textColor="#a3a3a3"
+                android:textSize="12dp"/>
 
         </LinearLayout>
         <View
@@ -152,19 +163,19 @@
 
 
 
-<!--                <Button
-                    android:id="@+id/buttonCheckInAll"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="check in"
-                    android:textSize="12dp" />
+                <!--                <Button
+                                    android:id="@+id/buttonCheckInAll"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="check in"
+                                    android:textSize="12dp" />
 
-                <Button
-                    android:id="@+id/buttonCheckOutAll"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="check out"
-                    android:textSize="12dp" />-->
+                                <Button
+                                    android:id="@+id/buttonCheckOutAll"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="check out"
+                                    android:textSize="12dp" />-->
                 <Spinner
                     android:layout_width="105dp"
                     android:layout_height="wrap_content"
@@ -182,11 +193,11 @@
                     android:textSize="12dp"/>
 
                 <Button
-                android:id="@+id/sendCmd"
-                android:layout_width="70dp"
-                android:layout_height="wrap_content"
-                android:text="Send"
-                android:textSize="12dp" />
+                    android:id="@+id/sendCmd"
+                    android:layout_width="70dp"
+                    android:layout_height="wrap_content"
+                    android:text="Send"
+                    android:textSize="12dp" />
 
             </LinearLayout>
             <View

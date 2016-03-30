@@ -57,7 +57,7 @@ public class ScanActivity extends Activity {
     private ClimbService mClimbService;
     private Context mContext = null;
     private EditText mConsole = null;
-    private CheckBox logCheckBox = null;
+    private CheckBox logCheckBox = null, mViewAllCheckbox = null;
     private Handler mHandler = null;
     private long lastBroadcastMessageSentMillis = 0;
     private int wakeUP_year = 0, wakeUP_month = 0, wakeUP_day = 0, wakeUP_hour = 0, wakeUP_minute = 0;
@@ -166,6 +166,8 @@ public class ScanActivity extends Activity {
             mClimbService = ((ClimbService.LocalBinder) service).getService();
             mClimbService.setHandler(mHandler);
             mClimbService.setContext(getApplicationContext());
+            mClimbService.setViewAll(mViewAllCheckbox.isChecked());
+
             //IN QUESTO PUNTO RICHIEDI LA LISTA DI DISPOSITIVI INIZIALI PER INSERIRLA NELLA LISTVIEW
             climbNodeList = mClimbService.getNodeList();
             //expandableListTitle = climbNodeList;
@@ -176,13 +178,6 @@ public class ScanActivity extends Activity {
             expandableListView.setAdapter(expandableListAdapter); // climbNodeList dovrà contenere i nomi dei dispositivi direttamente visibili dallo smartphone
             expandableListAdapter.notifyDataSetChanged();
 
-            //not working, it should expand the master list if the screen is tilted, for suggestions see http://stackoverflow.com/questions/14879207/expand-group-row-programmatically-in-expandable-list
-//            if(!climbNodeList.isEmpty()){
-//                ClimbNode node = climbNodeList.get(0);
-//                if(node.isMasterNode() && node.getConnectionState()){
-//                    //expandableListView.expandGroup(0);
-//                }
-//            }
 
             Log.i(TAG, "Service connected!");
         }
@@ -253,6 +248,23 @@ public class ScanActivity extends Activity {
 
         }
     };
+
+    View.OnClickListener viewAllCheckboxHandler = new View.OnClickListener(){
+        public void onClick(View v) {
+
+            if(mClimbService != null){
+                mClimbService.setViewAll(mViewAllCheckbox.isChecked());
+
+                expandableListAdapter.notifyDataSetChanged();
+
+
+            }else{
+                Log.w(TAG, "mClimbService == null");
+            }
+
+        }
+    };
+
 
 //    View.OnClickListener ckInAllButtonHandler = new View.OnClickListener(){
 //        public void onClick(View v) {
@@ -508,6 +520,10 @@ public class ScanActivity extends Activity {
         mTagButton = (Button) findViewById(R.id.buttonTag);
         mTagButton.setOnClickListener(tagButtonHandler);
 
+
+        mViewAllCheckbox = (CheckBox) findViewById(R.id.viewAllCheckBox);
+        mViewAllCheckbox.setOnClickListener(viewAllCheckboxHandler);
+
         //mCheckInAllButton = (Button) findViewById(R.id.buttonCheckInAll);
         //mCheckInAllButton.setOnClickListener(ckInAllButtonHandler);
 
@@ -519,6 +535,7 @@ public class ScanActivity extends Activity {
 
         mSelectAllCheckbox = (CheckBox) findViewById(R.id.selectAllCheckbox);
         mSelectAllCheckbox.setOnClickListener(selectAllCheckboxHandler);
+
 
         mBroadcastCheckBox = (CheckBox) findViewById(R.id.broadcastCheckBox);
 
