@@ -66,7 +66,7 @@
 
 // Task configuration
 #define KEYS_TASK_PRIORITY    2
-#define KEYS_TASK_STACK_SIZE  250 //maybe 200 is enough
+#define KEYS_TASK_STACK_SIZE  200 //maybe 200 is enough
 
 #define KEY_RIGHT_EVT		      0x0001
 #define KEY_LEFT_EVT		      0x0002
