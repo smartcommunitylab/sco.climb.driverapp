@@ -136,6 +136,8 @@
 #define DEFAULT_SCAN_DURATION                 2000//1300//250//1000 //Tempo di durata di una scansione, allo scadere la scansione viene ricominciata
 
 #define PRE_ADV_TIMEOUT				  (DEFAULT_NON_CONNECTABLE_ADVERTISING_INTERVAL*625)/1000-3
+#define PRE_CE_TIMEOUT				  (DEFAULT_DESIRED_MIN_CONN_INTERVAL*1250)/1000-5
+
 
 // Scan interval value in 0.625ms ticks
 #define SCAN_INTERVAL 						  160
@@ -220,6 +222,7 @@
 #define WATCHDOG_EVT						0x2000
 #define WAKEUP_TIMEOUT_EVT					0x4000
 #define GOTOSLEEP_TIMEOUT_EVT				0x8000
+#define PRE_CE_EVT							0x0800
 /*********************************************************************
  * TYPEDEFS
  */
@@ -287,6 +290,7 @@ static Clock_Struct epochClock;
 #endif
 static Clock_Struct resetBroadcastCmdClock;
 static Clock_Struct preAdvClock;
+static Clock_Struct preCEClock;
 static Clock_Struct wakeUpClock;
 static Clock_Struct goToSleepClock;
 
@@ -438,6 +442,7 @@ static void Climb_printfNodeInfo(gapDeviceInfoEvent_t *gapDeviceInfoEvent );
 static void Climb_epochStartHandler();
 #endif
 static void Climb_preAdvEvtHandler();
+static void Climb_preCEEvtHandler();
 static void Climb_goToSleepHandler();
 static void Climb_wakeUpHandler();
 static void Climb_setWakeUpClock(uint32 wakeUpTimeout_sec_local);
@@ -575,6 +580,9 @@ static void SimpleBLEPeripheral_init(void) {
 
 	Util_constructClock(&goToSleepClock, Climb_clockHandler,
 	GOTOSLEEP_DEFAULT_TIMEOUT_SEC*1000, 0, false, GOTOSLEEP_TIMEOUT_EVT);
+
+	Util_constructClock(&preCEClock, Climb_clockHandler,
+			PRE_CE_TIMEOUT, 0, false, PRE_CE_EVT);
 
 #ifdef WORKAROUND
 	Util_constructClock(&epochClock, Climb_clockHandler,
@@ -844,6 +852,12 @@ static void SimpleBLEPeripheral_taskFxn(UArg a0, UArg a1) {
 			events &= ~PRE_ADV_EVT;
 
 			Climb_preAdvEvtHandler();
+
+		}
+		if (events & PRE_CE_EVT) {
+			events &= ~PRE_CE_EVT;
+
+			Climb_preCEEvtHandler();
 
 		}
 		if (events & RESET_BROADCAST_CMD_EVT) {
@@ -1207,7 +1221,7 @@ static void SimpleBLEPeripheral_freeAttRsp(uint8_t status) {
 static void BLE_ConnectionEventHandler(void) {
 
 	if(ready){
-		Climb_contactsCheckSendThroughGATT(); //move this to "preConnectionEvt"
+		Util_startClock(&preCEClock);
 	}
 
 	// See if there's a pending ATT Response to be transmitted
@@ -1331,8 +1345,12 @@ static void Keys_EventCB(keys_Notifications_t notificationType) {
 static void updateConnParam_CB(uint16_t connInterval, uint16_t connSlaveLatency, uint16_t connTimeout){
 
 	if( (connInterval >=  DEFAULT_DESIRED_MIN_CONN_INTERVAL &&  connInterval <=  DEFAULT_DESIRED_MAX_CONN_INTERVAL) && connSlaveLatency==DEFAULT_DESIRED_SLAVE_LATENCY && connTimeout==DEFAULT_DESIRED_CONN_TIMEOUT){
-		ready = TRUE;
+
 	}
+
+	//move outside the if for safety...
+	ready = TRUE;
+	Util_rescheduleClock(&preCEClock, (connInterval * 1250)/1000-10 );
 
 }
 
@@ -2186,6 +2204,10 @@ static void Climb_preAdvEvtHandler(){
 		}
 	}
 }
+
+static void Climb_preCEEvtHandler(){
+	Climb_contactsCheckSendThroughGATT();
+}
 /*********************************************************************
  * @fn      Climb_goToSleepHandler
  *
@@ -2392,6 +2414,11 @@ static void stopNode() {
 	ClimbProfile_SetParameter(CLIMBPROFILE_CHAR1, 20, zeroArray);
 	Util_stopClock(&periodicClock);
 
+	destroyChildNodeList();
+	destroyMasterNodeList();
+
+	Climb_advertisedStatesUpdate();
+
 	CLIMB_FlashLed(Board_LED1);
 #ifdef WORKAROUND
 	Util_stopClock(&epochClock);
@@ -2407,13 +2434,35 @@ static void stopNode() {
  */
 static void destroyChildNodeList() {
 
-	uint16 arraySize = MAX_SUPPORTED_CHILD_NODES*sizeof(myGapDevRec_t);
-	uint16 i = 0;
-	//resetta la memoria
-	for(i = 0; i < arraySize; i++ ){
-		((uint8*)childListArray)[i] = 0;
+	uint8 i;
+	for (i = 0; i < MAX_SUPPORTED_CHILD_NODES; i++) {
+		if (isNonZero(childListArray[i].id, CHILD_NODE_ID_LENGTH)) { //discard empty spaces
+
+			switch ((ChildClimbNodeStateType_t) childListArray[i].stateToImpose) {
+			case BY_MYSELF:
+			case CHECKING:
+				Climb_removeNode(i, CLIMB_CHILD_NODE); //rimuovi il nodo
+				break;
+
+			case ON_BOARD:
+				//do nothing
+			case ALERT:
+				//do nothing
+				break;
+			case GOING_TO_SLEEP:
+				//do nothing
+				Climb_removeNode(i, CLIMB_CHILD_NODE); //rimuovi il nodo
+				break;
+
+			default:
+				//should not reach here
+				break;
+			}
+		}
 	}
+
 }
+
 /*********************************************************************
  * @fn      destroyMasterNodeList
  *
@@ -2424,11 +2473,9 @@ static void destroyChildNodeList() {
  */
 static void destroyMasterNodeList() {
 
-	uint16 arraySize = MAX_SUPPORTED_MASTER_NODES*sizeof(myGapDevRec_t);
-	uint16 i = 0;
-	//resetta la memoria
-	for(i = 0; i < arraySize; i++ ){
-		((uint8*)masterListArray)[i] = 0;
+	uint8 i;
+	for(i = 0; i < MAX_SUPPORTED_MASTER_NODES; i++ ){
+		Climb_removeNode(i, CLIMB_MASTER_NODE);
 	}
 
 }
