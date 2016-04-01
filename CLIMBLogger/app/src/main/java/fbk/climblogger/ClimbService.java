@@ -90,6 +90,8 @@ public class ClimbService extends Service {
     private int used_mtu = 23;
     private int index = 0;
 
+    private boolean viewAll = false;
+
     private Context appContext = null;
 
     private Handler mHandler = null;
@@ -346,6 +348,7 @@ public class ClimbService extends Service {
             }
         }
 
+
 //    public boolean SendCheckInAllCmd() {
 //        if (mBluetoothAdapter != null) {
 //
@@ -468,6 +471,21 @@ public class ClimbService extends Service {
 
     public boolean isMonitoring(){
         return mScanning;
+    }
+
+    public void setViewAll(boolean newValue){
+        viewAll = newValue;
+
+        if(newValue == false){ //remove children from the list
+
+            for(int i = 0; i < nodeList.size(); i++) {
+                if (!nodeList.get(i).isMasterNode()) {
+                    nodeList.remove(i);
+                }
+            }
+
+
+        }
     }
 
     public void onNodeClick(int groupPosition, int childPosition){
@@ -691,6 +709,18 @@ public class ClimbService extends Service {
                                     "Battery low on node: 0x" + String.format("%02X",scanResponseData[0]),
                                     Toast.LENGTH_SHORT).show();
 
+                        }
+                    }
+
+                    if(viewAll){
+                        //POI AVVIA IL PROCESSO PER AGGIORNARE LA UI
+                        int index = isAlreadyInList(result.getDevice());
+                        if (index >= 0) {
+                            Log.d(TAG, "Found device is already in database and it is at index: " + index);
+                            updateScnMetadata(index, result, nowMillis);
+                        } else {
+                            Log.d(TAG, "New device found, adding it to database!");
+                            addToList(result, nowMillis);
                         }
                     }
 

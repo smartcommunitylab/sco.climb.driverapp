@@ -55,7 +55,7 @@
 #include "CLIMBProfile.h"
 #include "bsp_i2c.h"
 
-#ifdef SENSORTAG_HW
+#if defined(SENSORTAG_HW)
 #include "bsp_spi.h"
 #endif // SENSORTAG_HW
 
@@ -66,18 +66,16 @@
 #include "ICallBleAPIMSG.h"
 
 #include "util.h"
-#include "Board.h"
 //#include "board_lcd.h"
 //#include "board_key_ST.h"
-#ifdef SENSORTAG_HW
+#include "Board.h"
 #include "sensor.h"
-#endif
 #include "CLIMBPerOb.h"
 
 #include <ti/drivers/lcd/LCDDogm1286.h>
 #include <xdc/runtime/System.h>
 
-#ifdef SENSORTAG_HW
+#if defined(SENSORTAG_HW)
 #include "sensor_bmp280.h"
 #include "sensor_hdc1000.h"
 #include "sensor_mpu9250.h"
@@ -92,8 +90,8 @@
  * CONSTANTS
  */
 // Advertising interval when device is discoverable (units of 625us, 160=100ms)
-#define DEFAULT_CONNECTABLE_ADVERTISING_INTERVAL          3200
-#define DEFAULT_NON_CONNECTABLE_ADVERTISING_INTERVAL          3200
+#define DEFAULT_CONNECTABLE_ADVERTISING_INTERVAL          400
+#define DEFAULT_NON_CONNECTABLE_ADVERTISING_INTERVAL          800
 
 // Limited discoverable mode advertises for 30.72s, and then stops
 // General discoverable mode advertises indefinitely
@@ -101,11 +99,11 @@
 
 // Minimum connection interval (units of 1.25ms, 80=100ms) if automatic
 // parameter update request is enabled
-#define DEFAULT_DESIRED_MIN_CONN_INTERVAL   	 800
+#define DEFAULT_DESIRED_MIN_CONN_INTERVAL   	 202
 
 // Maximum connection interval (units of 1.25ms, 800=1000ms) if automatic
 // parameter update request is enabled
-#define DEFAULT_DESIRED_MAX_CONN_INTERVAL     800
+#define DEFAULT_DESIRED_MAX_CONN_INTERVAL     202
 
 // Slave latency to use if automatic parameter update request is enabled
 #define DEFAULT_DESIRED_SLAVE_LATENCY         0
@@ -122,15 +120,14 @@
 #define DEFAULT_CONN_PAUSE_PERIPHERAL         10
 
 // Scan duration in ms
-#define DEFAULT_SCAN_DURATION                 1010//10000 //Tempo di durata di una scansione,
+#define DEFAULT_SCAN_DURATION                 900//1000 //Tempo di durata di una scansione, allo scadere la scansione viene ricominciata
 
-#define EPOCH_PERIOD						  1000
-
+#define EPOCH_PERIOD						  3000
 // Scan interval value in 0.625ms ticks
-#define SCAN_INTERVAL 						  320
+#define SCAN_INTERVAL 						  1600
 
 // scan window value in 0.625ms ticks
-#define SCAN_WINDOW							  320
+#define SCAN_WINDOW							  1600
 
 // Whether to report all contacts or only the first for each device
 #define FILTER_ADV_REPORTS					  FALSE
@@ -145,7 +142,7 @@
 #define DEFAULT_DISCOVERY_WHITE_LIST          FALSE
 
 // Maximum number of scan responses to be reported to application
-#define DEFAULT_MAX_SCAN_RES                  30
+#define DEFAULT_MAX_SCAN_RES                  50
 
 // How often to perform periodic event (in msec)
 #define PERIODIC_EVT_PERIOD              	  2000
@@ -268,7 +265,7 @@ Char sbpTaskStack[SBP_TASK_STACK_SIZE];
 
 MasterClimbNodeStateType_t thisNodeState = NOT_CONNECTED;
 
-static uint8 Climb_childNodeName[] = {'C','L','I','M','B','D'}; //CLIMBB are child node used for BATTERY LIFE tests
+static uint8 Climb_childNodeName[] = {'C','L','I','M','B','C'}; //CLIMBB are child node used for BATTERY LIFE tests
 
 
 static uint8 advUpdateReq = FALSE;
@@ -284,7 +281,7 @@ static uint8 defAdvertData[] = {
 		'I',
 		'M',
 		'B',
-		'N',
+		'M',
 		0x02,   // length of this data
 		GAP_ADTYPE_FLAGS,
 		DEFAULT_DISCOVERABLE_MODE | GAP_ADTYPE_FLAGS_BREDR_NOT_SUPPORTED,
@@ -310,7 +307,7 @@ static uint8_t rspTxRetry = 0;
 
 static uint32 lastGATTCheckTicks = 0;
 
-#ifdef SENSORTAG_HW
+#if defined(SENSORTAG_HW)
 // Pins that are actively used by the application
 static PIN_Config SensortagAppPinTable[] =
 {
@@ -323,7 +320,9 @@ static PIN_Config SensortagAppPinTable[] =
 
     PIN_TERMINATE
 };
-#else
+#endif
+
+#if defined(CC2650EM_7ID)
 // Pins that are actively used by the application
 static PIN_Config SensortagAppPinTable[] =
 {
@@ -381,10 +380,10 @@ static void Climb_advertisedStatesCheck(void);
 static void Climb_nodeTimeoutCheck();
 static void Climb_removeNode(listNode_t* targetNode,listNode_t* previousNode);
 static void Climb_periodicTask();
-static void Climb_epochStartHandler();
 #ifdef PRINTF_ENABLED
-static void Climb_printfNodeInfo(listNode_t* node_position );
+static void Climb_printfNodeInfo(gapDeviceInfoEvent_t *gapDeviceInfoEvent );
 #endif
+static void Climb_epochStartHandler();
 
 ////HARDWARE RELATED FUNCTIONS
 static void CLIMB_FlashLed(PIN_Id pinId);
@@ -499,7 +498,6 @@ static void SimpleBLEPeripheral_init(void)
 
   Util_constructClock(&epochClock, Climb_clockHandler,
 	  	  	   	   	  EPOCH_PERIOD, 0, false, EPOCH_EVT);
-
 #ifndef SENSORTAG_HW
 //  Board_openLCD();
 #endif //SENSORTAG_HW
@@ -635,7 +633,7 @@ static void SimpleBLEPeripheral_init(void)
   //SETTING POWER
   HCI_EXT_SetTxPowerCmd(HCI_EXT_TX_POWER_0_DBM);
 
-  System_printf("I am working!\n");
+  //System_printf("I'm working!!");
 
 }
 
@@ -728,7 +726,7 @@ static void SimpleBLEPeripheral_taskFxn(UArg a0, UArg a1) {
 		if (events & EPOCH_EVT) {
 			events &= ~EPOCH_EVT;
 
-			if(beaconActive == 1){
+			if (beaconActive == 1) {
 
 				Climb_epochStartHandler();
 #ifdef ENABLE_ADV
@@ -1143,6 +1141,10 @@ static void BLE_AdvertiseEventHandler(void) {
 	status = GAPRole_SetParameter(GAPROLE_ADVERT_ENABLED, sizeof(uint8_t),&adv_active);
 #endif
 
+	uint8 adv_active = 0;
+	uint8 status = GAPRole_SetParameter(GAPROLE_ADVERT_ENABLED, sizeof(uint8_t), &adv_active);
+	GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE, DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
+
 	CLIMB_FlashLed(Board_LED2);
 
 #ifdef PRINTF_ENABLED
@@ -1280,12 +1282,12 @@ static void Climb_advertisedStatesUpdate(void) {
 
 	newChildrenStatesData[0]	= 	0x07,// length of this data
  	newChildrenStatesData[1]	=	GAP_ADTYPE_LOCAL_NAME_COMPLETE,
-	newChildrenStatesData[2] 	= 	defAdvertData[2];
-	newChildrenStatesData[3] 	= 	defAdvertData[3];
-	newChildrenStatesData[4] 	= 	defAdvertData[4];
-	newChildrenStatesData[5]	= 	defAdvertData[5];
-	newChildrenStatesData[6]	= 	defAdvertData[6];
-	newChildrenStatesData[7]	= 	defAdvertData[7];
+	newChildrenStatesData[2]	=	'C';
+	newChildrenStatesData[3]	=	'L';
+	newChildrenStatesData[4]	=	'I';
+	newChildrenStatesData[5]	=	'M';
+	newChildrenStatesData[6]	=	'B';
+	newChildrenStatesData[7]	=	'M';
 
 	newChildrenStatesData[9] = GAP_ADTYPE_MANUFACTURER_SPECIFIC; // manufacturer specific adv data type
 	newChildrenStatesData[10] = 0x0D; // Company ID - Fixed //VERIFICARE SE QUESTA REGOLA VALE ANCHE PER I TAG NON COMPATIBILI CON IBEACON
@@ -1403,8 +1405,7 @@ static void Climb_processRoleEvent(gapObserverRoleEvent_t *pEvent) {
 		sprintf(buf,Util_convertBdAddr2Str(childDevList[0].devRec.addr));
 		devpkLcdText(buf, 1, 5);
 #endif
-		// enable advertise event notification
-		uint8 status = HCI_EXT_AdvEventNoticeCmd(selfEntity, ADVERTISE_EVT);
+
 #ifdef PRINTF_ENABLED
 		//System_printf("\nAdvertise events notification enabled, status : %d\n", status);
 #endif
@@ -1426,7 +1427,10 @@ static void Climb_processRoleEvent(gapObserverRoleEvent_t *pEvent) {
 				Climb_addNodeDeviceInfo(&pEvent->deviceInfo, nodeType);
 
 				if (nodeType == CLIMB_CHILD_NODE){
-					Climb_contactsCheckSendThroughGATT();
+					//Climb_contactsCheckSendThroughGATT();
+#ifdef PRINTF_ENABLED
+					Climb_printfNodeInfo(&pEvent->deviceInfo);
+#endif
 				}
 
 			}else {
@@ -1448,7 +1452,7 @@ static void Climb_processRoleEvent(gapObserverRoleEvent_t *pEvent) {
 
 	{
 		uint8 status = GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE,DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
-
+		PIN_setOutputValue(hGpioPin, Board_LED1, Board_LED_ON);
 
 #ifdef PRINTF_ENABLED
 		//System_printf("\nDevices found in this epoch: %d\n", pEvent->discCmpl.numDevs);
@@ -1537,8 +1541,7 @@ static void Climb_addNodeDeviceInfo( gapDeviceInfoEvent_t *gapDeviceInfoEvent , 
 	listNode_t* node_position = Climb_findNodeByDevice(gapDeviceInfoEvent, nodeType);
 
 	if(node_position == NULL){	//dispositivo nuovo, aggiungilo!
-		node_position = Climb_addNode(gapDeviceInfoEvent,nodeType);
-		if(node_position == NULL){
+		if(Climb_addNode(gapDeviceInfoEvent,nodeType) == NULL){
 			while(1){
 				node_position = NULL;
 			}
@@ -1546,11 +1549,7 @@ static void Climb_addNodeDeviceInfo( gapDeviceInfoEvent_t *gapDeviceInfoEvent , 
 	}else{
 		Climb_updateNodeMetadata(gapDeviceInfoEvent,node_position);
 	}
-#ifdef PRINTF_ENABLED
-	if(nodeType == CLIMB_CHILD_NODE){
-		Climb_printfNodeInfo(node_position);
-	}
-#endif
+
 	Climb_advertisedStatesCheck(); //aggiorna l'adv
 
 	return;
@@ -1839,16 +1838,28 @@ static void Climb_periodicTask(){
 }
 
 #ifdef PRINTF_ENABLED
-static void Climb_printfNodeInfo(listNode_t* node_position ){
+static void Climb_printfNodeInfo(gapDeviceInfoEvent_t *gapDeviceInfoEvent ){
 	static uint8 usbPktsCounter = 0;
 	uint32 nowTicks = Clock_getTicks();
-	System_printf("%d ", nowTicks);
-	System_printf(Util_convertBdAddr2Str(myAddr));
+	uint8 len = gapDeviceInfoEvent->dataLen;
+	uint8 i;
+	System_printf("\n%d ", nowTicks);
 
-	System_printf(" CLIMBD ADV %02x%02x %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x\n",usbPktsCounter++,node_position->device.contactsCounter, node_position->device.advData[12],node_position->device.advData[13],node_position->device.advData[14],node_position->device.advData[15],node_position->device.advData[16],node_position->device.advData[17],node_position->device.advData[18],node_position->device.advData[19],node_position->device.advData[20],node_position->device.advData[21],node_position->device.advData[22],node_position->device.advData[23],node_position->device.advData[24],node_position->device.advData[25],node_position->device.advData[26],node_position->device.advData[27],node_position->device.advData[28],node_position->device.advData[29],node_position->device.advData[30] );
+	//System_printf(Util_convertBdAddr2Str(myAddr));
+	System_printf(Util_convertBdAddr2Str(gapDeviceInfoEvent->addr));
+
+	if(len == 31){
+		System_printf(" CLIMBC ADV %02x %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",usbPktsCounter++, gapDeviceInfoEvent->pEvtData[12],gapDeviceInfoEvent->pEvtData[13],gapDeviceInfoEvent->pEvtData[14],gapDeviceInfoEvent->pEvtData[15],gapDeviceInfoEvent->pEvtData[16],gapDeviceInfoEvent->pEvtData[17],gapDeviceInfoEvent->pEvtData[18],gapDeviceInfoEvent->pEvtData[19],gapDeviceInfoEvent->pEvtData[20],gapDeviceInfoEvent->pEvtData[21],gapDeviceInfoEvent->pEvtData[22],gapDeviceInfoEvent->pEvtData[23],gapDeviceInfoEvent->pEvtData[24],gapDeviceInfoEvent->pEvtData[25],gapDeviceInfoEvent->pEvtData[26],gapDeviceInfoEvent->pEvtData[27],gapDeviceInfoEvent->pEvtData[28],gapDeviceInfoEvent->pEvtData[29],gapDeviceInfoEvent->pEvtData[30] );
+	}else{
+		System_printf(" CLIMBC ADV %02x ",usbPktsCounter++);
+		for(i = 12; i < len; i++){
+			System_printf("%02x",gapDeviceInfoEvent->pEvtData[i]);
+		}
+	}
+	//System_printf(" CLIMBD ADV %02x %02x%02x%02x\n",usbPktsCounter++, gapDeviceInfoEvent->pEvtData[12] ,gapDeviceInfoEvent->pEvtData[30] );
+
 }
 #endif
-
 /*********************************************************************
  * @fn      Climb_epochStartHandler
  *
@@ -1873,6 +1884,7 @@ static void Climb_epochStartHandler(){
 
 	GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE,DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
 }
+
 
 
 
@@ -1907,13 +1919,9 @@ static void CLIMB_handleKeys(uint8 shift, uint8 keys) {
 	if (keys == Board_KEY_RIGHT) {
 		beaconActive = 0;
 		GAPObserverRole_CancelDiscovery();
-#ifdef ENABLE_ADV
 		uint8 adv_active = 0;
 		uint8 status = GAPRole_SetParameter(GAPROLE_ADVERT_ENABLED, sizeof(uint8_t),&adv_active);
 		GAPRole_TerminateConnection();
-#endif
-
-		//PIN_setOutputValue(hGpioPin, Board_LED2, Board_LED_OFF);
 
 		listNode_t* node = childListRootPtr;
 		while (node != NULL) { //cicla fino all'ultimo nodo
@@ -1924,18 +1932,20 @@ static void CLIMB_handleKeys(uint8 shift, uint8 keys) {
 		lastGATTCheckTicks = 1;
 		uint8 zeroArray[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		ClimbProfile_SetParameter(CLIMBPROFILE_CHAR1, 20, zeroArray);
+		PIN_setOutputValue(hGpioPin, Board_LED1, Board_LED_OFF);
 		Util_stopClock(&epochClock);
+
 	}
 	if (keys == Board_KEY_LEFT) {
 		if(beaconActive != 1){
-#ifdef ENABLE_ADV
+
 			uint8 adv_active = 1;
 			uint8 status = GAPRole_SetParameter(GAPROLE_ADVERT_ENABLED, sizeof(uint8_t),&adv_active);
-#endif
-			GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE,DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
+			status = HCI_EXT_AdvEventNoticeCmd(selfEntity, ADVERTISE_EVT);
+			//GAPRole_StartDiscovery(DEFAULT_DISCOVERY_MODE,DEFAULT_DISCOVERY_ACTIVE_SCAN, DEFAULT_DISCOVERY_WHITE_LIST);
 			lastGATTCheckTicks = Clock_getTicks();
-
-			Util_startClock(&epochClock);
+			PIN_setOutputValue(hGpioPin, Board_LED1, Board_LED_ON);
+			//Util_startClock(&epochClock);
 		}
 		beaconActive = 1;
 	}

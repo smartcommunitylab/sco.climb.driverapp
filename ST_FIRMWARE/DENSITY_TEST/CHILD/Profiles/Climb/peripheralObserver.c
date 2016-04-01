@@ -1133,6 +1133,7 @@ static uint8 gapRole_processGAPMsg(gapEventHdr_t *pMsg)
           stateChangeNotify = TRUE;
         }
       }
+      gapEvtNotify = TRUE;
       break;
 
     case GAP_MAKE_DISCOVERABLE_DONE_EVENT:
