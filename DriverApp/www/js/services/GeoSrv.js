@@ -12,7 +12,9 @@ angular.module('driverapp.services.geo', [])
             }
 
             geoInterval = $interval(function () {
-                navigator.geolocation.getCurrentPosition(successCb, errorCb);
+                navigator.geolocation.getCurrentPosition(successCb, errorCb, {
+                    enableHighAccuracy: true
+                });
             }, delay);
         };
         return geoInterval;
