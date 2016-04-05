@@ -1,13 +1,13 @@
 angular.module('driverapp.services.ae', [])
 
-.factory('AESrv', function ($q, $interval, Config, Utils, StorageSrv, LogSrv, APISrv) {
+.factory('AESrv', function ($q, $interval, Config, Utils, StorageSrv, LogSrv, APISrv, GeoSrv) {
     var AE = {
         NODE_IN_RANGE: 101,
         NODE_CHECKIN: 102,
         NODE_CHECKOUT: 103,
         NODE_AT_DESTINATION: 104,
         NODE_OUT_OF_RANGE: 105,
-        STOP_REACHED: 202,
+        STOP_LEAVING: 202,
         SET_DRIVER: 301,
         SET_HELPER: 302,
         DRIVER_POSITION: 303,
@@ -22,7 +22,7 @@ angular.module('driverapp.services.ae', [])
         NODE_CHECKOUT: 'NODE_CHECKOUT',
         NODE_AT_DESTINATION: 'NODE_AT_DESTINATION',
         NODE_OUT_OF_RANGE: 'NODE_OUT_OF_RANGE',
-        STOP_REACHED: 'STOP_REACHED',
+        STOP_LEAVING: 'STOP_LEAVING',
         SET_DRIVER: 'SET_DRIVER',
         SET_HELPER: 'SET_HELPER',
         DRIVER_POSITION: 'DRIVER_POSITION',
@@ -30,6 +30,15 @@ angular.module('driverapp.services.ae', [])
         END_ROUTE: 'END_ROUTE'
     };
     */
+
+    var geolocalizeEvent = function (event) {
+        var position = GeoSrv.getCurrentPosition();
+        if (!!position) {
+            event.payload['latitude'] = position.coords.latitude;
+            event.payload['longitude'] = position.coords.longitude;
+            event.payload['accuracy'] = position.coords.accuracy;
+        }
+    };
 
     var aeService = {};
 
@@ -68,6 +77,7 @@ angular.module('driverapp.services.ae', [])
             }
         };
 
+        geolocalizeEvent(event);
         aeInstance.driver = volunteer;
         aeInstance.events.push(event);
         LogSrv.log(JSON.stringify(event));
@@ -86,23 +96,25 @@ angular.module('driverapp.services.ae', [])
             }
         };
 
+        geolocalizeEvent(event);
         aeInstance.events.push(event);
         LogSrv.log(JSON.stringify(event));
         return event;
     };
 
-    /* stop reached */
-    aeService.stopReached = function (stop) {
+    /* stop leaving */
+    aeService.stopLeaving = function (stop) {
         var event = {
             routeId: aeInstance.routeId,
             wsnNodeId: stop.wsnId,
-            eventType: AE.STOP_REACHED,
+            eventType: AE.STOP_LEAVING,
             timestamp: moment().valueOf(),
             payload: {
                 'stopId': stop.objectId
             }
         };
 
+        geolocalizeEvent(event);
         aeInstance.events.push(event);
         LogSrv.log(JSON.stringify(event));
         return event;
@@ -119,6 +131,8 @@ angular.module('driverapp.services.ae', [])
                 'passengerId': passenger.objectId
             }
         };
+
+        geolocalizeEvent(event);
         aeInstance.events.push(event);
         LogSrv.log(JSON.stringify(event));
         return event;
@@ -136,6 +150,7 @@ angular.module('driverapp.services.ae', [])
             }
         };
 
+        geolocalizeEvent(event);
         aeInstance.events.push(event);
         LogSrv.log(JSON.stringify(event));
         return event;
@@ -153,20 +168,35 @@ angular.module('driverapp.services.ae', [])
             }
         };
 
+        geolocalizeEvent(event);
         aeInstance.events.push(event);
         LogSrv.log(JSON.stringify(event));
+
+        var uploadFile = function () {
+            // TODO files from WSN needed
+            APISrv.uploadLog(Config.LOGFILE_PATH).then(
+                function (r) {
+                    Utils.loaded();
+                    console.log('Log successfully uploaded to the server.');
+                },
+                function (reason) {
+                    Utils.loaded();
+                    console.log('Error uploading log to the server!');
+                }
+            );
+        };
 
         StorageSrv.saveEAs(aeInstance.events).then(
             function (eas) {
                 Utils.loading();
                 APISrv.addEvents(eas).then(
-                    function(response) {
-                        Utils.loaded();
-                        console.log('Events successfully uploaded on the server.');
+                    function (response) {
+                        console.log('Events successfully uploaded to the server.');
+                        uploadFile();
                     },
-                    function(reason) {
-                        Utils.loaded();
-                        console.log('Error uploading events on the server!');
+                    function (reason) {
+                        console.log('Error uploading events to the server!');
+                        uploadFile();
                     }
                 );
             }
@@ -186,6 +216,8 @@ angular.module('driverapp.services.ae', [])
                 'passengerId': passenger.objectId
             }
         };
+
+        geolocalizeEvent(event);
         aeInstance.events.push(event);
         LogSrv.log(JSON.stringify(event));
         return event;
@@ -210,6 +242,8 @@ angular.module('driverapp.services.ae', [])
                 'passengerId': passenger.objectId
             }
         };
+
+        geolocalizeEvent(event);
         aeInstance.events.push(event);
         LogSrv.log(JSON.stringify(event));
         return event;
@@ -235,6 +269,7 @@ angular.module('driverapp.services.ae', [])
             }
         };
 
+        geolocalizeEvent(event);
         aeInstance.events.push(event);
         LogSrv.log(JSON.stringify(event));
         return event;
@@ -253,13 +288,14 @@ angular.module('driverapp.services.ae', [])
             }
         };
 
+        geolocalizeEvent(event);
         aeInstance.events.push(event);
         LogSrv.log(JSON.stringify(event));
         return event;
     };
 
     /* driver position */
-    aeService.driverPosition = function (volunteer, lat, lon) {
+    aeService.driverPosition = function (volunteer, lat, lon, accuracy) {
         var event = {
             routeId: aeInstance.routeId,
             wsnNodeId: volunteer.wsnId,
@@ -268,7 +304,8 @@ angular.module('driverapp.services.ae', [])
             payload: {
                 'volunteerId': volunteer.objectId,
                 'latitude': !!lat ? lat : 0,
-                'longitude': !!lon ? lon : 0
+                'longitude': !!lon ? lon : 0,
+                'accuracy': !!accuracy ? accuracy : 0
             }
         };
 

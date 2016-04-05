@@ -18,9 +18,13 @@ angular.module('driverapp.controllers.route', [])
     $scope.onBoardTemp = [];
     $scope.onBoard = [];
 
-    $scope.enRoute = false;
+    $scope.viewPos = 0;
     $scope.enRoutePos = 0;
     $scope.enRouteArrived = false;
+
+    $scope.sel = {
+        stop: null
+    };
 
     /* INIT */
     if (!!$stateParams['fromWizard']) {
@@ -43,11 +47,25 @@ angular.module('driverapp.controllers.route', [])
 
             if (!!$stateParams['helpers']) {
                 $scope.helpersTemp = $stateParams['helpers'];
-                /*$scope.helpers.forEach(function (helper) {
+                /*
+                $scope.helpers.forEach(function (helper) {
                     AESrv.setHelper(helper);
-                });*/
+                });
+                */
             }
 
+            if ($scope.enRoutePos == 0) {
+                GeoSrv.startWatchingPosition(function (position) {
+                    var lat = position.coords.latitude;
+                    var lon = position.coords.longitude;
+                    var acc = position.coords.accuracy;
+                    AESrv.driverPosition($scope.driver, lat, lon, acc);
+                }, null, Config.GPS_DELAY);
+            }
+
+            /*
+             * WSN watch
+             */
             $scope.$watch(
                 function () {
                     return WSNSrv.networkState;
@@ -115,16 +133,13 @@ angular.module('driverapp.controllers.route', [])
         }
     }
 
+    // populate stops
     APISrv.getStopsByRoute($stateParams['routeId']).then(
         function (stops) {
             $scope.stops = stops;
             // Select the first automatically
             $scope.sel.stop = $scope.stops[0];
             $scope.getChildrenForStop($scope.sel.stop);
-
-            if ($scope.fromWizard) {
-                AESrv.stopReached($scope.sel.stop);
-            }
         },
         function (error) {
             // TODO handle error
@@ -132,82 +147,77 @@ angular.module('driverapp.controllers.route', [])
         }
     );
 
-    /*
-        $scope.checkStopPosition = function(position){
-           if(position == $scope.stops[0].position){
-               return "-first";
-           } else {
-               if(position == $scope.stops[$scope.stops.length-1].position){
-                   return "-last";
-               } else {
-                   return "";
-               }
-           }
-        };
-    */
+    $scope.viewPrevious = function () {
+        if (($scope.viewPos - 1) >= 0) {
+            $scope.viewPos--;
+            $scope.sel.stop = $scope.stops[$scope.viewPos];
+            $scope.getChildrenForStop($scope.sel.stop);
+        }
+    };
 
-    $scope.toggleEnRoute = function () {
+    $scope.viewNext = function () {
+        if (($scope.viewPos + 1) <= $scope.enRoutePos) {
+            $scope.viewPos++;
+            $scope.sel.stop = $scope.stops[$scope.viewPos];
+            $scope.getChildrenForStop($scope.sel.stop);
+        }
+    };
+
+    $scope.goNext = function () {
         $ionicScrollDelegate.scrollTop(true);
 
         // if has next
         if (!!$scope.stops[$scope.enRoutePos + 1]) {
-            $scope.enRoute = !$scope.enRoute;
+            //$scope.enRoute = !$scope.enRoute;
 
-            if ($scope.enRoute) {
-                $scope.sel.stop = $scope.stops[$scope.enRoutePos];
-
-                // NODE_CHECKIN
-                $scope.onBoardTemp.forEach(function (passengerId) {
-                    var child = $scope.getChild(passengerId);
-                    AESrv.nodeCheckin(child);
-                    if (!!child.wsnId) {
-                        WSNSrv.checkinChild(child.wsnId);
+            // first leave
+            if ($scope.enRoutePos == 0) {
+                AESrv.startRoute($scope.stops[$scope.enRoutePos]);
+                // timer for automatic arrive
+                console.log('Automatic "Arrive" timeout started!');
+                $timeout(function () {
+                    // Arriva in maniera automatica
+                    if (!$scope.enRouteArrived) {
+                        $scope.nextStop();
+                        console.log('Automatically arrived!');
+                    } else {
+                        console.log('Automatic "Arrive" not necessary');
                     }
-                });
-
-                $scope.onBoard = $scope.onBoard.concat($scope.onBoardTemp);
-                $scope.onBoardTemp = [];
-                $scope.mergedOnBoard = $scope.getMergedOnBoard();
-                passengersScrollDelegate.resize();
-
-                // Riparti
-                $scope.helpersTemp.forEach(function (helper) {
-                    AESrv.setHelper(helper);
-                });
-                $scope.helpers = $scope.helpers.concat($scope.helpersTemp);
-                $scope.helpersTemp = [];
-
-                // Penultima fermata
-                if (!$scope.stops[$scope.enRoutePos + 2]) {
-                    console.log('Automatic "Arrive" timeout started!');
-                    $timeout(function () {
-                        // Arriva in maniera automatica
-                        if (!$scope.enRouteArrived) {
-                            $scope.toggleEnRoute();
-                            console.log('Automatically arrived!');
-                        } else {
-                            console.log('Automatic "Arrive" not necessary');
-                        }
-                    }, Config.AUTOFINISH_DELAY);
-                }
-
-                if ($scope.enRoutePos == 0) {
-                    // Parti
-                    AESrv.startRoute($scope.stops[$scope.enRoutePos]);
-
-                    GeoSrv.startWatchingPosition(function (position) {
-                        AESrv.driverPosition($scope.driver, position.coords.latitude, position.coords.longitude);
-                    }, null, Config.GPS_DELAY);
-                }
-            } else {
-                // Fermati
-                $scope.enRoutePos++;
-                $scope.sel.stop = $scope.stops[$scope.enRoutePos];
-                AESrv.stopReached($scope.sel.stop);
-                $scope.getChildrenForStop($scope.sel.stop);
+                }, Config.AUTOFINISH_DELAY);
             }
 
-            // if has no next
+            // NODE_CHECKIN
+            /*
+            $scope.onBoardTemp.forEach(function (passengerId) {
+                var child = $scope.getChild(passengerId);
+                AESrv.nodeCheckin(child);
+                if (!!child.wsnId) {
+                    WSNSrv.checkinChild(child.wsnId);
+                }
+            });
+            */
+
+            // update onBoard
+            $scope.onBoard = $scope.onBoard.concat($scope.onBoardTemp);
+            $scope.onBoardTemp = [];
+            $scope.mergedOnBoard = $scope.getMergedOnBoard();
+            passengersScrollDelegate.resize();
+
+            // add new helpers
+            $scope.helpersTemp.forEach(function (helper) {
+                AESrv.setHelper(helper);
+            });
+            $scope.helpers = $scope.helpers.concat($scope.helpersTemp);
+            $scope.helpersTemp = [];
+
+            // move to the next
+            AESrv.stopLeaving($scope.sel.stop);
+            $scope.enRoutePos++;
+            $scope.viewPos++;
+            $scope.sel.stop = $scope.stops[$scope.enRoutePos];
+            $scope.getChildrenForStop($scope.sel.stop);
+
+            // if it's the last
             if (!$scope.stops[$scope.enRoutePos + 1]) {
                 // Arriva
                 $scope.onBoard.forEach(function (passengerId) {
@@ -220,7 +230,7 @@ angular.module('driverapp.controllers.route', [])
                     }
                 });
 
-                AESrv.endRoute($scope.stops[$scope.enRoutePos]);
+                //AESrv.endRoute($scope.stops[$scope.enRoutePos]);
 
                 GeoSrv.stopWatchingPosition();
                 WSNSrv.stopListener();
@@ -229,10 +239,6 @@ angular.module('driverapp.controllers.route', [])
                 $rootScope.pedibusEnabled = true;
             }
         }
-    };
-
-    $scope.sel = {
-        stop: null
     };
 
     $scope.getChild = function (childId) {
@@ -248,7 +254,7 @@ angular.module('driverapp.controllers.route', [])
     };
 
     $scope.getChildrenForStop = function (stop) {
-        $scope.sel.stop = stop;
+        //$scope.sel.stop = stop;
         var passengers = [];
         if ($scope.children == null || $scope.children.length == 0) {
             $scope.children = StorageSrv.getChildren();
@@ -280,7 +286,13 @@ angular.module('driverapp.controllers.route', [])
     $scope.takeOnBoard = function (passengerId) {
         if ($scope.onBoardTemp.indexOf(passengerId) === -1) {
             $scope.onBoardTemp.push(passengerId);
+            var child = $scope.getChild(passengerId);
+            AESrv.nodeCheckin(child);
+            if (!!child.wsnId) {
+                WSNSrv.checkinChild(child.wsnId);
+            }
         }
+
         $scope.mergedOnBoard = $scope.getMergedOnBoard();
         passengersScrollDelegate.resize();
     };
@@ -289,6 +301,8 @@ angular.module('driverapp.controllers.route', [])
         var index = $scope.onBoardTemp.indexOf(passengerId)
         if (index !== -1) {
             $scope.onBoardTemp.splice(index, 1);
+            var child = $scope.getChild(passengerId);
+            AESrv.nodeCheckout(child);
         }
         $scope.mergedOnBoard = $scope.getMergedOnBoard();
         passengersScrollDelegate.resize();
@@ -340,6 +354,18 @@ angular.module('driverapp.controllers.route', [])
     // Execute action on hide modal
     $scope.$on('modal.hidden', function () {
         if (!$scope.modal.forgetChanges && $scope.toBeTaken.length > 0) {
+            var wsnIds = [];
+            $scope.toBeTaken.forEach(function (passengerId) {
+                var child = $scope.getChild(passengerId);
+                AESrv.nodeCheckin(child);
+                if (!!child.wsnId) {
+                    wsnIds.push(child.wsnId);
+                }
+            });
+            if (wsnIds.length > 0) {
+                WSNSrv.checkinChildren(wsnIds);
+            }
+
             $scope.onBoardTemp = $scope.onBoardTemp.concat($scope.toBeTaken);
         }
 
@@ -437,8 +463,31 @@ angular.module('driverapp.controllers.route', [])
     }
 
     $scope.selectHelpersPopup = function () {
-        //$scope.volunteers = $scope.getDriverAndVolunteers(StorageSrv.getVolunteers(), $scope.helpers, $scope.helpersTemp);
-        $scope.volunteers = $filter('orderBy')(StorageSrv.getVolunteers(), ['checked', 'name']);
+        var calendars = StorageSrv.getVolunteersCalendars();
+        var sortedVolunteers = $filter('orderBy')(StorageSrv.getVolunteers(), ['checked', 'name']);
+        // sort using calendars
+        for (var j = 0; j < calendars.length; j++) {
+            var cal = calendars[j]
+            if (cal.schoolId == StorageSrv.getSchoolId() && cal.routeId == $scope.route.objectId) {
+                // helpers
+                if (!!cal.helperList && cal.helperList.length > 0) {
+                    var counter = 0;
+                    cal.helperList.forEach(function (helperId) {
+                        for (var i = 0; i < sortedVolunteers.length; i++) {
+                            if (sortedVolunteers[i].objectId == helperId) {
+                                Utils.moveInArray(sortedVolunteers, i, counter);
+                                //console.log('Helper ' + sortedVolunteers[counter].name + ' moved to position ' + counter);
+                                counter++;
+                                i = sortedVolunteers.length;
+                            }
+                        }
+                    });
+                }
+                j = calendars.length;
+            }
+        }
+        $scope.volunteers = sortedVolunteers;
+
         $scope.helpers = $filter('orderBy')($scope.helpers, ['checked', 'name']);
         $scope.helpersTemp = $filter('orderBy')($scope.helpersTemp, ['checked', 'name']);
         var hs = $scope.helpers.concat($scope.helpersTemp);

@@ -244,7 +244,7 @@ angular.module('driverapp.services.wsn', [])
         return deferred.promise;
     };
 
-    wsnService.checkinChildern = function (childrenIds) {
+    wsnService.checkinChildren = function (childrenIds) {
         var deferred = $q.defer();
 
         if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
@@ -284,7 +284,7 @@ angular.module('driverapp.services.wsn', [])
         return deferred.promise;
     };
 
-    wsnService.checkoutChildern = function (childrenIds) {
+    wsnService.checkoutChildren = function (childrenIds) {
         var deferred = $q.defer();
 
         if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {

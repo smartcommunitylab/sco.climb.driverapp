@@ -27,7 +27,8 @@
     },
     "cordova-plugin-x-toast",
     "org.apache.cordova.network-information",
-    "cordova-plugin-logtofile"
+    "cordova-plugin-logtofile",
+    "cordova-plugin-file-transfer"
   ],
   "cordovaPlatforms": [
     "android"

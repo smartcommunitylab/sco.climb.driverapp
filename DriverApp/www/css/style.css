@@ -1,3 +1,12 @@
+.bar-sub-subheader {
+    top: 88px;
+    display: block;
+    height: 44px;
+}
+.has-sub-subheader {
+    top: 132px;
+}
+
 /* CLIMB Driver App style */
 
 .dapp-theme {}
@@ -9,6 +18,7 @@
 }
 
 /* Components */
+
 .dapp-theme .button.button-light {
     border-color: transparent;
     background-color: #f2f2f2;
@@ -97,6 +107,32 @@
     box-shadow: none;
     color: #fff;
 }
+.dapp-theme .bar.bar-positive {
+    color: #fff;
+    background-color: #438699;
+    border-color: #438699;
+    background-image: none;
+}
+.dapp-theme .bar.bar-calm {
+    background-color: #c6dae0;
+    border-color: #c6dae0;
+    background-image: none;
+}
+.dapp-theme .bar.bar-calm .title {
+    color: #000;
+    text-transform: uppercase;
+    font-size: 1em;
+}
+.dapp-theme .bar.bar-calm .button {
+    text-transform: uppercase;
+}
+.dapp-theme .bar.bar-calm .button.icon {
+    background-color: transparent;
+    color: #f29100;
+}
+.dapp-theme .bar.bar-calm .button.icon::before {
+    font-size: 2.5em;
+}
 .dapp-theme .checkbox input:before,
 .dapp-theme .checkbox .checkbox-icon:before {
     background: transparent;
@@ -120,6 +156,7 @@
 }
 
 /* Menu Bar */
+
 .dapp-theme .dapp-menu .menu,
 .dapp-theme .dapp-menu .menu .list .item-complex {
     color: #438699;
@@ -157,15 +194,6 @@
     top: 20px;
     max-width: 60px;
     max-height: 60px;
-}
-/*.dapp-theme .dapp-menu .bar */
-.dapp-theme .bar.bar-positive {
-    color: #fff;
-    background-color: #438699;
-    border-color: #438699;
-}
-.dapp-theme .bar.bar-header.bar-positive .button.button-clear {
-    color: #fff;
 }
 
 /* Wizard */
@@ -219,6 +247,18 @@
 
 /* Route components */
 
+.dapp-theme .route .bar-subheader .button {
+    text-transform: uppercase;
+}
+.route .bar-stops {
+    text-align: center;
+}
+.dapp-theme .button-go {
+    box-shadow: 2px 3px 1px #888888;
+}
+.dapp-theme .route .button-takeonboard .icon::before {
+    font-size: 2em;
+}
 .dapp-theme .button.button-enroute {
     width: 27%;
     position: fixed;
@@ -254,10 +294,10 @@
     height: 40px;
     min-height: 35px;
 }
-.dapp-theme .button.button-trasparent.right-top {
+.dapp-theme .button.button-trasparent.passenger-remove {
     border-color: transparent;
     background-color: transparent;
-    color: #f29100;
+    color: #e53935;
     padding-top: 10px;
     position: absolute;
     top: -10px;
@@ -370,12 +410,17 @@
     color: #fff;
 }
 .dapp-theme .on-board-panel-title {
-    text-align: center;
     background-color: #438699;
     color: #fff;
+    min-height: 22px;
 }
-.dapp-theme .on-board-panel-title h4 {
-    color: #fff;
+.dapp-theme .on-board-panel-title .name {
+    float: left;
+    margin-left: 10px;
+}
+.dapp-theme .on-board-panel-title .counter {
+    float: right;
+    margin-right: 10px;
 }
 .dapp-theme .passenger-panel-title {
     background-color: #fff;
@@ -418,15 +463,15 @@
     max-width: 45px;
     max-height: 45px;
 }
-.dapp-theme .on-board.right-top {
+.dapp-theme .on-board.has-wsnid {
     background-color: transparent;
     color: #f29100;
     padding-top: 10px;
     position: absolute;
     top: -11px;
-    right: -4px;
+    left: -4px;
 }
-.dapp-theme .on-board.right-top img {
+.dapp-theme .on-board.has-wsnid img {
     max-width: 20px;
     max-height: 50px;
 }

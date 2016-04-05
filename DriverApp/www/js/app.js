@@ -10,6 +10,7 @@ angular.module('driverapp', [
     'driverapp.services.geo',
     'driverapp.services.ae',
     'driverapp.services.api',
+    'driverapp.services.route',
     'driverapp.controllers.home',
     'driverapp.controllers.wizard',
     'driverapp.controllers.routes',
@@ -17,7 +18,7 @@ angular.module('driverapp', [
     'driverapp.controllers.volunteers'
 ])
 
-.run(function ($ionicPlatform, $rootScope, $ionicPopup, Config, Utils, LogSrv, WSNSrv) {
+.run(function ($ionicPlatform, $rootScope, $ionicPopup, Config, Utils, LogSrv, WSNSrv, APISrv) {
     $ionicPlatform.ready(function () {
         // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
         // for form inputs)
@@ -103,6 +104,17 @@ angular.module('driverapp', [
                 WSNSrv.connectMaster(CONF.DEV_MASTER).then(
                     function (procedureStarted) {},
                     function (reason) {}
+                );
+            };
+
+            $rootScope.uploadFile = function () {
+                APISrv.uploadLog(Config.LOGFILE_PATH).then(
+                    function (response) {
+                        console.log(response);
+                    },
+                    function (reason) {
+                        console.log(reason);
+                    }
                 );
             };
         }

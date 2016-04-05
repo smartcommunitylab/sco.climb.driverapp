@@ -274,5 +274,45 @@ angular.module('driverapp.services.api', [])
         return deferred.promise;
     };
 
+    APIService.uploadLog = function (fileURL) {
+        var deferred = $q.defer();
+
+        if (!!cordova && !!cordova.file) {
+            if (!fileURL || fileURL.length === 0) {
+                deferred.reject('Invalid fileURL');
+            }
+
+            fileURL = cordova.file.externalRootDirectory + fileURL;
+
+            var options = new FileUploadOptions();
+            options.fileKey = 'file';
+            options.fileName = fileURL.substr(fileURL.lastIndexOf('/') + 1);
+            options.mimeType = 'text/plain';
+            options.headers = {
+                'X-ACCESS-TOKEN': Config.X_ACCESS_TOKEN
+            };
+            options.params = {
+                name: options.fileName
+            };
+
+            var serverURL = Config.EVENTS_SERVER_URL + '/log/upload/' + Config.OWNER_ID;
+
+            var ft = new FileTransfer();
+            ft.upload(
+                fileURL,
+                encodeURI(serverURL),
+                function (r) {
+                    deferred.resolve(r.response);
+                },
+                function (error) {
+                    deferred.reject(error);
+                },
+                options
+            );
+        }
+
+        return deferred.promise;
+    };
+
     return APIService;
 });
