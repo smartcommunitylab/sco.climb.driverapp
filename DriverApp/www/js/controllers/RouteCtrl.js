@@ -133,16 +133,20 @@ angular.module('driverapp.controllers.route', [])
         }
     }
 
-    // populate stops
+    /*
+     * populate stops
+     */
+    Utils.loading();
     APISrv.getStopsByRoute($stateParams['routeId']).then(
         function (stops) {
             $scope.stops = stops;
             // Select the first automatically
             $scope.sel.stop = $scope.stops[0];
             $scope.getChildrenForStop($scope.sel.stop);
+            Utils.loaded();
         },
         function (error) {
-            // TODO handle error
+            Utils.loaded();
             console.log(error);
         }
     );
@@ -216,28 +220,37 @@ angular.module('driverapp.controllers.route', [])
             $scope.viewPos++;
             $scope.sel.stop = $scope.stops[$scope.enRoutePos];
             $scope.getChildrenForStop($scope.sel.stop);
+        } else {
+            // Arriva
+            $ionicPopup.confirm({
+                title: 'INVIA DATI',
+                template: 'Cliccando su INVIA i dati verranno mandati al server e, per questa sessione, non potrai più modificare lo stato dei passeggeri. Confermi di aver concluso la corsa del pedibus e di voler inviare i dati?',
+                cssClass: 'route-popup',
+                cancelText: 'Annulla',
+                cancelType: 'button-stable',
+                okText: 'INVIA',
+                okType: 'button-positive'
+            }).then(function (ok) {
+                if (ok) {
+                    $scope.onBoard.forEach(function (passengerId) {
+                        var child = $scope.getChild(passengerId);
+                        AESrv.nodeAtDestination(child);
+                        AESrv.nodeCheckout(child);
 
-            // if it's the last
-            if (!$scope.stops[$scope.enRoutePos + 1]) {
-                // Arriva
-                $scope.onBoard.forEach(function (passengerId) {
-                    var child = $scope.getChild(passengerId);
-                    AESrv.nodeAtDestination(child);
-                    AESrv.nodeCheckout(child);
+                        if (!!child.wsnId && !!WSNSrv.networkState[child.wsnId] && WSNSrv.networkState[child.wsnId].status == WSNSrv.STATUS_BOARDED_ALREADY) {
+                            WSNSrv.checkoutChild(child.wsnId);
+                        }
+                    });
 
-                    if (!!child.wsnId && !!WSNSrv.networkState[child.wsnId] && WSNSrv.networkState[child.wsnId].status == WSNSrv.STATUS_BOARDED_ALREADY) {
-                        WSNSrv.checkoutChild(child.wsnId);
-                    }
-                });
+                    AESrv.endRoute($scope.stops[$scope.enRoutePos]);
 
-                //AESrv.endRoute($scope.stops[$scope.enRoutePos]);
+                    GeoSrv.stopWatchingPosition();
+                    WSNSrv.stopListener();
 
-                GeoSrv.stopWatchingPosition();
-                WSNSrv.stopListener();
-
-                $scope.enRouteArrived = true;
-                $rootScope.pedibusEnabled = true;
-            }
+                    $scope.enRouteArrived = true;
+                    $rootScope.pedibusEnabled = true;
+                }
+            });
         }
     };
 
@@ -326,62 +339,63 @@ angular.module('driverapp.controllers.route', [])
     };
 
     /*
-     * "Add others" Modal
+     * "Add others" Popup
      */
-    $ionicModal.fromTemplateUrl('templates/route_modal_add.html', {
-        scope: $scope,
-        animation: 'slide-in-up'
-    }).then(function (modal) {
-        $scope.modal = modal;
-    });
+    $scope.selectChildrenPopup = function () {
+        var childrenPopup = $ionicPopup.show({
+            templateUrl: 'templates/route_popup_children.html',
+            cssClass: 'route-popup',
+            title: 'BAMBINI',
+            subTitle: $scope.route.name,
+            scope: $scope,
+            buttons: [
+                {
+                    text: 'CHIUDI',
+                    type: 'button-stable',
+                    onTap: function () {
+                        // reset
+                        $scope.toBeTaken.forEach(function (childId) {
+                            $scope.getChild(childId).checked = false;
+                        });
+                        $scope.toBeTaken = [];
 
-    $scope.openModal = function () {
-        $scope.modal.show();
-    };
+                        $scope.mergedOnBoard = $scope.getMergedOnBoard();
+                        passengersScrollDelegate.resize();
+                    }
+                },
+                {
+                    text: 'SALVA',
+                    type: 'button-positive',
+                    onTap: function (e) {
+                        if ($scope.toBeTaken.length > 0) {
+                            var wsnIds = [];
+                            $scope.toBeTaken.forEach(function (passengerId) {
+                                var child = $scope.getChild(passengerId);
+                                AESrv.nodeCheckin(child);
+                                if (!!child.wsnId) {
+                                    wsnIds.push(child.wsnId);
+                                }
+                            });
+                            if (wsnIds.length > 0) {
+                                WSNSrv.checkinChildren(wsnIds);
+                            }
 
-    $scope.closeModal = function (ok) {
-        if (!ok) {
-            $scope.modal.forgetChanges = true;
-        }
-        $scope.modal.hide();
-    };
+                            $scope.onBoardTemp = $scope.onBoardTemp.concat($scope.toBeTaken);
+                        }
 
-    //Cleanup the modal when we're done with it!
-    $scope.$on('$destroy', function () {
-        $scope.modal.remove();
-    });
+                        // reset
+                        $scope.toBeTaken.forEach(function (childId) {
+                            $scope.getChild(childId).checked = false;
+                        });
+                        $scope.toBeTaken = [];
 
-    // Execute action on hide modal
-    $scope.$on('modal.hidden', function () {
-        if (!$scope.modal.forgetChanges && $scope.toBeTaken.length > 0) {
-            var wsnIds = [];
-            $scope.toBeTaken.forEach(function (passengerId) {
-                var child = $scope.getChild(passengerId);
-                AESrv.nodeCheckin(child);
-                if (!!child.wsnId) {
-                    wsnIds.push(child.wsnId);
+                        $scope.mergedOnBoard = $scope.getMergedOnBoard();
+                        passengersScrollDelegate.resize();
+                    }
                 }
-            });
-            if (wsnIds.length > 0) {
-                WSNSrv.checkinChildren(wsnIds);
-            }
-
-            $scope.onBoardTemp = $scope.onBoardTemp.concat($scope.toBeTaken);
-        }
-
-        // reset
-        $scope.toBeTaken.forEach(function (childId) {
-            $scope.getChild(childId).checked = false;
+            ]
         });
-        $scope.toBeTaken = [];
-        $scope.modal.forgetChanges = false;
-
-        $scope.mergedOnBoard = $scope.getMergedOnBoard();
-        passengersScrollDelegate.resize();
-    });
-
-    // Execute action on remove modal
-    $scope.$on('modal.removed', function () {});
+    };
 
     /*
      * Child details popup
@@ -506,7 +520,7 @@ angular.module('driverapp.controllers.route', [])
                         $scope.volunteers[i].disabled = true;
                     }
                     Utils.moveInArray($scope.volunteers, i, counter);
-                    //console.log('Helper ' + $scope.volunteers[counter].name + ' moved to position ' + counter);
+                    //console.log('Helper ' + $scope.volunteers[countesendDataPopupr].name + ' moved to position ' + counter);
                     counter++;
                     i = $scope.volunteers.length;
                 }
@@ -515,7 +529,7 @@ angular.module('driverapp.controllers.route', [])
 
         var helpersPopup = $ionicPopup.show({
             templateUrl: 'templates/route_popup_helpers.html',
-            cssClass: 'route-volunteers',
+            cssClass: 'route-popup',
             title: 'ACCOMPAGNATORI',
             subTitle: $scope.route.name,
             scope: $scope,
@@ -542,40 +556,4 @@ angular.module('driverapp.controllers.route', [])
             helpersPopup.close();
         };
     };
-
-    /*$scope.getDriverAndVolunteers = function (all, help, helptemp) {
-        var hlps = [];
-        for (var i = 0; i < all.length; i++) {
-            for (var h = 0; h < help.length; h++) {
-                if (all[i].objectId == help[h].objectId) {
-                    var hlp = help[h];
-                    hlp.checked = true;
-                    hlp.ordered = 0; // used only in list ordering
-                    hlps.push(hlp);
-                    all.splice(i, 1); // remove from arr
-                    if (i > 0) {
-                        i -= 1; // move i to back;
-                    }
-                }
-            }
-            for (var h = 0; h < helptemp.length; h++) {
-                if (all[i].objectId == helptemp[h].objectId) {
-                    var hlp = helptemp[h];
-                    hlp.checked = true;
-                    hlp.ordered = 0; // used only in list ordering
-                    hlps.push(hlp);
-                    all.splice(i, 1); // remove from arr
-                    if (i > 0) {
-                        i -= 1; // move i to back;
-                    }
-                }
-            }
-        }
-        for (var i = 0; i < hlps.length; i++) {
-            all.splice(0, 0, hlps[i]);
-        }
-        //all.splice(0, 0,drv); // add the driver
-        return all;
-    };*/
-
 });

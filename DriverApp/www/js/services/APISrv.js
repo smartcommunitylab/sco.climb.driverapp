@@ -277,7 +277,7 @@ angular.module('driverapp.services.api', [])
     APIService.uploadLog = function (fileURL) {
         var deferred = $q.defer();
 
-        if (!!cordova && !!cordova.file) {
+        if (ionic.Platform.isWebView()) {
             if (!fileURL || fileURL.length === 0) {
                 deferred.reject('Invalid fileURL');
             }
@@ -309,6 +309,8 @@ angular.module('driverapp.services.api', [])
                 },
                 options
             );
+        } else {
+            deferred.reject('cordova is not defined');
         }
 
         return deferred.promise;

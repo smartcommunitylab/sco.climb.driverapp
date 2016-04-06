@@ -177,11 +177,11 @@ angular.module('driverapp.services.ae', [])
             APISrv.uploadLog(Config.LOGFILE_PATH).then(
                 function (r) {
                     Utils.loaded();
-                    console.log('Log successfully uploaded to the server.');
+                    console.log('[Log] Successfully uploaded to the server.');
                 },
                 function (reason) {
                     Utils.loaded();
-                    console.log('Error uploading log to the server!');
+                    console.log('[Log] Error uploading to the server!');
                 }
             );
         };
@@ -191,11 +191,11 @@ angular.module('driverapp.services.ae', [])
                 Utils.loading();
                 APISrv.addEvents(eas).then(
                     function (response) {
-                        console.log('Events successfully uploaded to the server.');
+                        console.log('[Events] Successfully uploaded to the server.');
                         uploadFile();
                     },
                     function (reason) {
-                        console.log('Error uploading events to the server!');
+                        console.log('[Events] Error uploading to the server!');
                         uploadFile();
                     }
                 );

@@ -120,8 +120,6 @@
 }
 .dapp-theme .bar.bar-calm .title {
     color: #000;
-    text-transform: uppercase;
-    font-size: 1em;
 }
 .dapp-theme .bar.bar-calm .button {
     text-transform: uppercase;
@@ -246,15 +244,22 @@
 }
 
 /* Route components */
-
-.dapp-theme .route .bar-subheader .button {
+.dapp-theme .route .bar.bar-buttons .button {
     text-transform: uppercase;
+}
+.dapp-theme .route .bar.bar-calm .title {
+    text-transform: uppercase;
+    font-size: 1em;
+    text-align: center;
 }
 .route .bar-stops {
     text-align: center;
 }
 .dapp-theme .button-go {
     box-shadow: 2px 3px 1px #888888;
+    font-weight: bold;
+    font-size: 1em;
+    padding: 0 15px;
 }
 .dapp-theme .route .button-takeonboard .icon::before {
     font-size: 2em;
@@ -430,17 +435,17 @@
     color: #438699;
 }
 .dapp-theme .passenger-list {
-    height: 440px;
+    height: 480px;
     overflow-y: scroll;
     overflow-x: hidden;
 }
 .dapp-theme .passenger-list-resized {
-    height: 280px;
+    height: 350px;
     overflow-y: scroll;
     overflow-x: hidden;
 }
 .dapp-theme .passenger-list-resized-xs {
-    height: 180px;
+    height: 260px;
     overflow-y: scroll;
     overflow-x: hidden;
 }
@@ -475,26 +480,26 @@
     max-width: 20px;
     max-height: 50px;
 }
-.dapp-theme .route-volunteers .popup {
+.dapp-theme .route-popup .popup {
     background-color: #fff;
     min-width: 90%;
 }
-.dapp-theme .route-volunteers .popup-head {
+.dapp-theme .route-popup .popup-head {
     min-height: 60px;
     border-bottom-width: 0px;
 }
-.dapp-theme .route-volunteers .popup-title {
+.dapp-theme .route-popup .popup-title {
     font-size: 16px;
     color: #438699;
 }
-.dapp-theme .route-volunteers .popup-sub-title {
+.dapp-theme .route-popup .popup-sub-title {
     font-size: 15px;
 }
-.dapp-theme .route-volunteers .popup-buttons .button.button-positive {
+.dapp-theme .route-popup .popup-buttons .button.button-positive {
     color: #fff;
     background-color: #438699;
 }
-.dapp-theme .route-volunteers .popup-buttons .button.button-default {
+.dapp-theme .route-popup .popup-buttons .button.button-default {
     color: #fff;
     background-color: #B0BEC5;
 }
