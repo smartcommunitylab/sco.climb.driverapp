@@ -167,6 +167,32 @@ angular.module('driverapp.controllers.route', [])
         }
     };
 
+    var handleChildrenAndHelpers = function () {
+        // NODE_CHECKIN
+        /*
+        $scope.onBoardTemp.forEach(function (passengerId) {
+            var child = $scope.getChild(passengerId);
+            AESrv.nodeCheckin(child);
+            if (!!child.wsnId) {
+                WSNSrv.checkinChild(child.wsnId);
+            }
+        });
+        */
+
+        // update onBoard
+        $scope.onBoard = $scope.onBoard.concat($scope.onBoardTemp);
+        $scope.onBoardTemp = [];
+        $scope.mergedOnBoard = $scope.getMergedOnBoard();
+        passengersScrollDelegate.resize();
+
+        // add new helpers
+        $scope.helpersTemp.forEach(function (helper) {
+            AESrv.setHelper(helper);
+        });
+        $scope.helpers = $scope.helpers.concat($scope.helpersTemp);
+        $scope.helpersTemp = [];
+    };
+
     $scope.goNext = function () {
         $ionicScrollDelegate.scrollTop(true);
 
@@ -190,29 +216,7 @@ angular.module('driverapp.controllers.route', [])
                 }, Config.AUTOFINISH_DELAY);
             }
 
-            // NODE_CHECKIN
-            /*
-            $scope.onBoardTemp.forEach(function (passengerId) {
-                var child = $scope.getChild(passengerId);
-                AESrv.nodeCheckin(child);
-                if (!!child.wsnId) {
-                    WSNSrv.checkinChild(child.wsnId);
-                }
-            });
-            */
-
-            // update onBoard
-            $scope.onBoard = $scope.onBoard.concat($scope.onBoardTemp);
-            $scope.onBoardTemp = [];
-            $scope.mergedOnBoard = $scope.getMergedOnBoard();
-            passengersScrollDelegate.resize();
-
-            // add new helpers
-            $scope.helpersTemp.forEach(function (helper) {
-                AESrv.setHelper(helper);
-            });
-            $scope.helpers = $scope.helpers.concat($scope.helpersTemp);
-            $scope.helpersTemp = [];
+            handleChildrenAndHelpers();
 
             // move to the next
             AESrv.stopLeaving($scope.sel.stop);
@@ -232,6 +236,8 @@ angular.module('driverapp.controllers.route', [])
                 okType: 'button-positive'
             }).then(function (ok) {
                 if (ok) {
+                    handleChildrenAndHelpers();
+
                     $scope.onBoard.forEach(function (passengerId) {
                         var child = $scope.getChild(passengerId);
                         AESrv.nodeAtDestination(child);
