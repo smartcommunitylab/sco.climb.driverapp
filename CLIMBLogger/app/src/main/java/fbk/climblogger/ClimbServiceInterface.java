@@ -51,6 +51,13 @@ public interface ClimbServiceInterface {
     public boolean disconnectMaster();
 
     /**
+     * Get path of the log files.
+     *
+     * @return absolute path of each log file, if there is any.
+     */
+    public String[] getLogFiles();
+
+    /**
      * Set the list all nodes that might belong to this master, i.e. nodes for which the master can change state.
      *
      * @param children List of node IDs.
