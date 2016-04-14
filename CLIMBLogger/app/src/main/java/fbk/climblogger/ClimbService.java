@@ -1160,7 +1160,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     private boolean updateGATTMetadata(int recordIndex, byte[] cipo_data, long nowMillis) {
 
 //TODO: L'rssi viene letto tramite un'altra callback, quindi per ora non ne tengo conto (in ClimbNode.updateGATTMetadata l'rssi non viene toccato)
-        List<byte[]> toChecking = nodeList.get(recordIndex).updateGATTMetadata(0, cipo_data, nowMillis);
+        ClimbNode master = nodeList.get(recordIndex);
+        List<byte[]> toChecking = master.updateGATTMetadata(0, cipo_data, nowMillis);
 
         //broadcastUpdate(ACTION_METADATA_CHANGED, EXTRA_INT_ARRAY, new int[]{recordIndex}); //questa allega  al broadcast l'indice che è cambiato, per ora non serve
         broadcastUpdate(ACTION_METADATA_CHANGED);
