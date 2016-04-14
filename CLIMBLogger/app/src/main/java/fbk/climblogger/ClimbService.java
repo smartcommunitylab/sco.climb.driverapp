@@ -730,7 +730,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                         System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
                         p += gattDataFrag.length;
                     } else {
-                        ret = false;
+                        ret &= sendPICOCharacteristic(Arrays.copyOf(gattData,p));
+                        p = 0;
                     }
                 }
             } else {
@@ -738,7 +739,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             }
         }
         if (p > 0) {
-            ret = sendPICOCharacteristic(Arrays.copyOf(gattData,p));
+            ret &= sendPICOCharacteristic(Arrays.copyOf(gattData,p));
         }
         return ret;
     }
@@ -777,7 +778,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                         System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
                         p += gattDataFrag.length;
                     } else {
-                        ret = false;
+                        ret &= sendPICOCharacteristic(Arrays.copyOf(gattData,p));
+                        p = 0;
                     }
                 }
             } else {
@@ -785,7 +787,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             }
         }
         if (p > 0) {
-            ret = sendPICOCharacteristic(Arrays.copyOf(gattData,p));
+            ret &= sendPICOCharacteristic(Arrays.copyOf(gattData,p));
         }
         return ret;
     }
