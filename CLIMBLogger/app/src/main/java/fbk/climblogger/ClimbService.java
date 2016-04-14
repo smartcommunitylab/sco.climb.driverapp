@@ -1178,15 +1178,18 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 continue;
             }
             Log.i(TAG, "Allowing child " + MonitoredClimbNode.nodeID2String(nodeID));
-            byte[] gattDataFrag = {nodeID[0], 1}; //assegna lo stato CHECKING e invia tutto al gatt
-            if (gattData.length - p >= gattDataFrag.length) {
-                System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
-                p += gattDataFrag.length;
-            } else {
-                break;
-            }
             String tempString = "Allowing_node_" + MonitoredClimbNode.nodeID2String(nodeID);
             insertTag(tempString);
+            byte[] gattDataFrag = {nodeID[0], 1}; //assegna lo stato CHECKING e invia tutto al gatt
+            System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
+            p += gattDataFrag.length;
+            if (gattData.length - p < gattDataFrag.length) {
+                //we have filled the packet. Send it out and start now one.
+                if (! sendPICOCharacteristic(Arrays.copyOf(gattData,p))) {
+                    Log.e(TAG, "Can't send state change message");
+                }
+                p = 0;
+            }
         }
 
         if (p > 0) {
