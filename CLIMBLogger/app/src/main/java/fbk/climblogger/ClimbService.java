@@ -688,7 +688,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     private boolean sendPICOCharacteristic(byte[] m) {
         mPICOCharacteristic.setValue(m);
         if (! mBluetoothGatt.writeCharacteristic(mPICOCharacteristic)) {
-            Log.i(TAG, "send: queuing message");
+            Log.i(TAG, "send: queuing message qlen:" +PICOCharacteristicSendQueue.size());
             return PICOCharacteristicSendQueue.add(m.clone()); //clone to be on the safe side. Might not be needed.
         } else {
             Log.i(TAG, "send: sent");
