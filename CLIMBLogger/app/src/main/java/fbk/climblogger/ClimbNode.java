@@ -173,7 +173,7 @@
                 timeoutRestart();
             }
 
-            private MonitoredClimbNode findChildByID(byte[] id) {
+            public MonitoredClimbNode findChildByID(byte[] id) {
                 for (MonitoredClimbNode n : onBoardChildrenList) {
                     if (Arrays.equals(n.getNodeID(), id)) {
                         return n;
