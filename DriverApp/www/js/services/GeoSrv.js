@@ -10,7 +10,7 @@ angular.module('driverapp.services.geo', [])
         watchId = navigator.geolocation.watchPosition(function (p) {
             position = p;
         }, function () {}, {
-            /*enableHighAccuracy: true*/
+            enableHighAccuracy: true
         });
     };
 

@@ -140,8 +140,10 @@ angular.module('driverapp.controllers.wizard', [])
             }
             $scope.volunteers = sortedVolunteers;
         } else if (wizardIndex == 2) {
-            // FIXME dev only!!!
-            $scope.wizard.driver.wsnId = CONF.DEV_MASTER;
+            if (!$scope.wizard.driver.wsnId) {
+                $scope.wizard.driver.wsnId = CONF.DEV_MASTER;
+            }
+            $rootScope.driver = $scope.wizard.driver;
 
             if ($scope.wizard.driver.wsnId !== null && $scope.wizard.driver.wsnId.length > 0) {
                 WSNSrv.connectMaster($scope.wizard.driver.wsnId).then(

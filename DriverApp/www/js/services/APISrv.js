@@ -1,6 +1,6 @@
 angular.module('driverapp.services.api', [])
 
-.factory('APISrv', function ($http, $q, Config, Utils) {
+.factory('APISrv', function ($http, $q, Config, Utils, WSNSrv) {
     var ERROR_TYPE = 'errorType';
     var ERROR_MSG = 'errorMsg';
 
@@ -149,6 +149,32 @@ angular.module('driverapp.services.api', [])
         return deferred.promise;
     };
 
+    APIService.getChildImage = function (childId) {
+        var deferred = $q.defer();
+
+        if (!childId) {
+            deferred.reject('Invalid childId');
+            return deferred.promise;
+        }
+
+        var httpConfig = angular.copy(Config.HTTP_CONFIG);
+        httpConfig.headers['Content-Type'] = 'application/octet-stream';
+
+        $http.get(Config.SERVER_URL + '/image/download/png/' + Config.OWNER_ID + '/' + childId, httpConfig)
+
+        .then(
+            function (response) {
+                // TODO handle image
+                deferred.resolve(response.data);
+            },
+            function (reason) {
+                deferred.reject('[' + reason.headers(ERROR_TYPE) + '] ' + reason.headers(ERROR_MSG));
+            }
+        );
+
+        return deferred.promise;
+    };
+
     APIService.getAnchors = function () {
         var deferred = $q.defer();
 
@@ -274,7 +300,7 @@ angular.module('driverapp.services.api', [])
         return deferred.promise;
     };
 
-    APIService.uploadLog = function (fileURL) {
+    APIService.uploadLog = function (fileURL, routeId) {
         var deferred = $q.defer();
 
         if (ionic.Platform.isWebView()) {
@@ -282,11 +308,16 @@ angular.module('driverapp.services.api', [])
                 deferred.reject('Invalid fileURL');
             }
 
-            fileURL = cordova.file.externalRootDirectory + fileURL;
+            //fileURL = cordova.file.externalRootDirectory + fileURL;
+            fileURL = 'file://' + fileURL;
 
             var options = new FileUploadOptions();
             options.fileKey = 'file';
             options.fileName = fileURL.substr(fileURL.lastIndexOf('/') + 1);
+            if (!!routeId) {
+                options.fileName = routeId + '_' + options.fileName;
+            }
+
             options.mimeType = 'text/plain';
             options.headers = {
                 'X-ACCESS-TOKEN': Config.X_ACCESS_TOKEN
@@ -308,6 +339,35 @@ angular.module('driverapp.services.api', [])
                     deferred.reject(error);
                 },
                 options
+            );
+        } else {
+            deferred.reject('cordova is not defined');
+        }
+
+        return deferred.promise;
+    };
+
+    APIService.uploadWsnLogs = function (routeId) {
+        var deferred = $q.defer();
+
+        if (ionic.Platform.isWebView()) {
+            WSNSrv.getLogFiles().then(
+                function (logFilesPaths) {
+                    angular.forEach(logFilesPaths, function (logFilePath) {
+                        APIService.uploadLog(logFilePath, routeId).then(
+                            function (r) {
+                                deferred.resolve(r);
+                            },
+                            function (error) {
+                                deferred.error(error);
+                            }
+                        );
+                    });
+                },
+                function (reason) {
+                    // TODO toast for failure
+                    //Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
+                }
             );
         } else {
             deferred.reject('cordova is not defined');

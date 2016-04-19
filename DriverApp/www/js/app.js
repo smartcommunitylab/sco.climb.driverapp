@@ -101,7 +101,7 @@ angular.module('driverapp', [
             };
 
             $rootScope.WSNSrvCheckMaster = function () {
-                WSNSrv.connectMaster(CONF.DEV_MASTER).then(
+                WSNSrv.connectMaster($rootScope.driver.wsnId).then(
                     function (procedureStarted) {},
                     function (reason) {}
                 );

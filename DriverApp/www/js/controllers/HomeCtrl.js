@@ -19,8 +19,8 @@ angular.module('driverapp.controllers.home', [])
                                 var dateFrom = moment().format(Config.DATE_FORMAT);
                                 var dateTo = moment().format(Config.DATE_FORMAT);
                                 // FIXME remove hardcoded dates!
-                                dateFrom = '2016-03-22';
-                                dateTo = '2016-03-22';
+                                //dateFrom = '2016-03-22';
+                                //dateTo = '2016-03-22';
                                 APISrv.getVolunteersCalendarsBySchool(schoolId, dateFrom, dateTo).then(
                                     function (cals) {
                                         StorageSrv.saveVolunteersCalendars(cals).then(function (calendars) {

@@ -304,6 +304,25 @@ angular.module('driverapp.services.wsn', [])
         return deferred.promise;
     };
 
+    wsnService.getLogFiles = function () {
+        var deferred = $q.defer();
+
+        if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+            window.DriverAppPlugin.getLogFiles(
+                function (response) {
+                    console.log('getLogFiles: ' + response);
+                    deferred.resolve(response);
+                },
+                function (reason) {
+                    console.log('getLogFiles: ' + reason);
+                    deferred.reject(reason);
+                }
+            );
+        }
+
+        return deferred.promise;
+    };
+
     wsnService.test = function (text) {
         var deferred = $q.defer();
 

@@ -1,6 +1,6 @@
 angular.module('driverapp.services.ae', [])
 
-.factory('AESrv', function ($q, $interval, Config, Utils, StorageSrv, LogSrv, APISrv, GeoSrv) {
+.factory('AESrv', function ($rootScope, $q, $interval, Config, Utils, StorageSrv, LogSrv, APISrv, GeoSrv) {
     var AE = {
         NODE_IN_RANGE: 101,
         NODE_CHECKIN: 102,
@@ -172,16 +172,16 @@ angular.module('driverapp.services.ae', [])
         aeInstance.events.push(event);
         LogSrv.log(JSON.stringify(event));
 
-        var uploadFile = function () {
-            // TODO files from WSN needed
-            APISrv.uploadLog(Config.LOGFILE_PATH).then(
-                function (r) {
+
+        var uploadWsnLogFiles = function () {
+            APISrv.uploadWsnLogs(aeInstance.routeId).then(
+                function () {
                     Utils.loaded();
-                    console.log('[Log] Successfully uploaded to the server.');
+                    console.log('[WSN Logs] Successfully uploaded to the server.');
                 },
-                function (reason) {
+                function (error) {
                     Utils.loaded();
-                    console.log('[Log] Error uploading to the server!');
+                    console.log('[WSN Logs] Error uploading to the server!');
                 }
             );
         };
@@ -192,11 +192,11 @@ angular.module('driverapp.services.ae', [])
                 APISrv.addEvents(eas).then(
                     function (response) {
                         console.log('[Events] Successfully uploaded to the server.');
-                        uploadFile();
+                        uploadWsnLogFiles();
                     },
                     function (reason) {
                         console.log('[Events] Error uploading to the server!');
-                        uploadFile();
+                        uploadWsnLogFiles();
                     }
                 );
             }

@@ -35,6 +35,9 @@ module.exports = {
     'checkoutChildren': function (childrenIds, successCallback, errorCallback) {
         cordova.exec(successCallback, errorCallback, serviceName, 'checkoutChildren', [childrenIds]);
     },
+    'getLogFiles': function (successCallback, errorCallback) {
+        cordova.exec(successCallback, errorCallback, serviceName, 'getLogFiles', []);
+    },
     'test': function (name, successCallback, errorCallback) {
         cordova.exec(successCallback, errorCallback, serviceName, 'test', [name]);
     }

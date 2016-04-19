@@ -220,6 +220,21 @@ public class DriverAppPlugin extends CordovaPlugin {
 			}
 		}
 
+		if (action.equals("getLogFiles")) {
+			String[] logFilePaths = mClimbService.getLogFiles();
+
+			if (logFilePaths.length > 0) {
+				JSONArray logFilePathsJSON = new JSONArray();
+				for (int i = 0; i < logFilePaths.length; i++) {
+					logFilePathsJSON.put(logFilePaths[i]);
+				}
+				callbackContext.success(logFilePathsJSON);
+			} else {
+				callbackContext.error("getLogFiles error!");
+			}
+			return true;
+		}
+
 		if (action.equals("test")) {
 			String name = data.getString(0);
 			String message = "Hello, " + name;

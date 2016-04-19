@@ -470,6 +470,18 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         StartMonitoring(true);
     }
 
+    public String[] getLogFiles() {
+        String[] r;
+        if (mFile != null) {
+            r = new String[1];
+            r[0] = mFile.getAbsolutePath();
+        } else {
+            r = new String[0];
+        }
+
+        return r;
+    }
+
     public void setContext(Context context)
     {
         appContext = context;
