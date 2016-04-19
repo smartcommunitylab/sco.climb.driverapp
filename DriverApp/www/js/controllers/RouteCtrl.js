@@ -316,15 +316,40 @@ angular.module('driverapp.controllers.route', [])
         passengersScrollDelegate.resize();
     };
 
-    $scope.dropOff = function (passengerId) {
-        var index = $scope.onBoardTemp.indexOf(passengerId)
-        if (index !== -1) {
-            $scope.onBoardTemp.splice(index, 1);
-            var child = $scope.getChild(passengerId);
-            AESrv.nodeCheckout(child);
+    $scope.dropOff = function (passenger, event) {
+        event.stopPropagation();
+
+        var child = $scope.getChild(passenger.id);
+        if (passenger.tmp) {
+            var index = $scope.onBoardTemp.indexOf(passenger.id)
+            if (index !== -1) {
+                $scope.onBoardTemp.splice(index, 1);
+                AESrv.nodeCheckout(child);
+                $scope.mergedOnBoard = $scope.getMergedOnBoard();
+                passengersScrollDelegate.resize();
+            }
+        } else {
+            // TODO popup
+            $ionicPopup.confirm({
+                title: 'Rimuovi ' + child.surname + ' ' + child.name,
+                template: child.surname + ' ' + child.name + ' è stato aggiunto in una fermata precedente. Vuoi confermare la rimozione?',
+                cssClass: 'route-popup',
+                cancelText: 'Annulla',
+                cancelType: 'button-stable',
+                okText: 'RIMUOVI',
+                okType: 'button-positive'
+            }).then(function (ok) {
+                if (ok) {
+                    var index = $scope.onBoard.indexOf(passenger.id)
+                    if (index !== -1) {
+                        $scope.onBoard.splice(index, 1);
+                        AESrv.nodeCheckout(child);
+                        $scope.mergedOnBoard = $scope.getMergedOnBoard();
+                        passengersScrollDelegate.resize();
+                    }
+                }
+            });
         }
-        $scope.mergedOnBoard = $scope.getMergedOnBoard();
-        passengersScrollDelegate.resize();
     };
 
     $scope.toBeTaken = [];
