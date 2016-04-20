@@ -803,6 +803,42 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     //---------------------------------------------------------------------
     boolean scanForAll = false;
 
+    private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] manufacterData, long nowMillis) {
+        boolean ret = false;
+        if (mBufferedWriter != null) { // questo significa che il log � stato abilitato
+            final String timestamp = new SimpleDateFormat("yyyy MM dd HH mm ss").format(new Date()); // salva il timestamp per il log
+            String manufString = "";
+
+            if (manufacterData != null) {
+                for (int i = 0; i < manufacterData.length; i++) {
+                    manufString = manufString + String.format("%02X", manufacterData[i]);
+                }
+            }
+
+
+            try {
+                String logLine = "" + timestamp +
+                        " " + nowMillis +
+                        " " + device.getAddress() +
+                        " " + device.getName() +
+                        " ADV data" +
+                        " " + manufString +
+                        "\n";
+                //TODO: AGGIUNGERE RSSI
+                //mBufferedWriter.write(timestamp + " " + nowMillis);
+                //mBufferedWriter.write(" " + result.getDevice().getAddress()); //MAC ADDRESS
+                //mBufferedWriter.write(" " + result.getDevice().getName() + " "); //NAME
+                //mBufferedWriter.write(" " + "ADV data" + " ");
+                mBufferedWriter.write(logLine);
+                ret = true;
+
+            } catch (IOException e) {
+                Log.w(TAG, "Exception throwed while writing data to file.");
+            }
+        }
+        return ret;
+    }
+
     // --- Android 5.x specific code ---
     private ScanCallback mScanCallback;
     class myScanCallback extends ScanCallback {
@@ -824,37 +860,10 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 long nowMillis = System.currentTimeMillis();
                 //PRIMA DI TUTTO SALVA IL LOG
                 if (logEnabled) {
-                    if (mBufferedWriter != null) { // questo significa che il log � stato abilitato
-                        final String timestamp = new SimpleDateFormat("yyyy MM dd HH mm ss").format(new Date()); // salva il timestamp per il log
-                        String manufString = "";
-
-                        byte[] manufacterData = result.getScanRecord().getManufacturerSpecificData(TEXAS_INSTRUMENTS_MANUFACTER_ID);
-                        if(manufacterData != null) {
-                            for (int i = 0; i < manufacterData.length; i++) {
-                                manufString = manufString + String.format("%02X", manufacterData[i]);
-                            }
-                        }
-
-
-                        try {
-                            String logLine =  ""+ timestamp +
-                                            " " + nowMillis +
-                                            " " + result.getDevice().getAddress() +
-                                            " " + result.getDevice().getName() +
-                                            " ADV data" +
-                                            " " + manufString +
-                                            "\n" ;
-                            //TODO: AGGIUNGERE RSSI
-                            //mBufferedWriter.write(timestamp + " " + nowMillis);
-                            //mBufferedWriter.write(" " + result.getDevice().getAddress()); //MAC ADDRESS
-                            //mBufferedWriter.write(" " + result.getDevice().getName() + " "); //NAME
-                            //mBufferedWriter.write(" " + "ADV data" + " ");
-                            mBufferedWriter.write(logLine);
-
-                        } catch (IOException e) {
-                            Log.w(TAG, "Exception throwed while writing data to file.");
-                        }
-                    }
+                    logScanResult(result.getDevice(),
+                            result.getRssi(),
+                            result.getScanRecord().getManufacturerSpecificData(TEXAS_INSTRUMENTS_MANUFACTER_ID),
+                            nowMillis);
                 }
 
                 if (scanForAll || result.getDevice().getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {  //AGGIUNGI alla lista SOLO I NODI MASTER!!!!
@@ -889,6 +898,12 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
             long nowMillis = System.currentTimeMillis();
             Log.v(TAG, "onLeScan called: " + device.getName());
+            if (logEnabled) {
+                logScanResult(device,
+                        rssi,
+                        scanRecord,
+                        nowMillis);
+            }
             if (scanForAll || device.getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {  //AGGIUNGI alla lista SOLO I NODI MASTER!!!!
                 //POI AVVIA IL PROCESSO PER AGGIORNARE LA UI
                 int index = isAlreadyInList(device);
