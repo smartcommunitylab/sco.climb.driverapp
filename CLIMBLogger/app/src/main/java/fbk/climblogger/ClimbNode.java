@@ -1,7 +1,6 @@
         package fbk.climblogger;
 
         import android.bluetooth.BluetoothDevice;
-        import android.bluetooth.le.ScanResult;
         import android.os.Handler;
         import android.util.Log;
         import android.util.SparseArray;
