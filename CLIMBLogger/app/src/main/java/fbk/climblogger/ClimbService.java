@@ -488,7 +488,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public String[] getMasters() {
-        ArrayList<String> ids = new ArrayList<>();
+        ArrayList<String> ids = new ArrayList<String>();
         for(ClimbNode n : nodeList) {
             if (n.isMasterNode()) {
                 ids.add(n.getNodeID());
@@ -683,7 +683,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         return gattData;
     }
 
-    private LinkedList<byte[]> PICOCharacteristicSendQueue = new LinkedList<>();
+    private LinkedList<byte[]> PICOCharacteristicSendQueue = new LinkedList<byte[]>();
 
     private boolean sendPICOCharacteristic(byte[] m) {
         mPICOCharacteristic.setValue(m);

@@ -197,7 +197,7 @@
                 //lastContactMillis = millisNow;
                 timeoutRestart();
 
-                List<byte[]> toChecking = new ArrayList<>();
+                List<byte[]> toChecking = new ArrayList<byte[]>();
                 //AGGIORNA LA LISTA DEI NODI ON_BOARD
                 for (int i = 0; i < lastReceivedGattData.length-2; i = i + 3) {
                     if(lastReceivedGattData[i] != 0 ) { //se l'ID è 0x00 scartalo
