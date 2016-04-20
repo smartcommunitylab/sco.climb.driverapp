@@ -51,7 +51,7 @@ public interface ClimbServiceInterface {
     public boolean disconnectMaster();
 
     /**
-     * Get path of the log files.
+     * Get path of the log files. As a side effect, flush these files.
      *
      * @return absolute path of each log file, if there is any.
      */

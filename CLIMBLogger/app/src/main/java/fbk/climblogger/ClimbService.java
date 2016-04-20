@@ -481,6 +481,12 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     public String[] getLogFiles() {
         String[] r;
         if (mFile != null) {
+            if (mBufferedWriter != null) {
+                try {
+                    mBufferedWriter.flush();
+                } catch (IOException e) {
+                }
+            }
             r = new String[1];
             r[0] = mFile.getAbsolutePath();
         } else {
