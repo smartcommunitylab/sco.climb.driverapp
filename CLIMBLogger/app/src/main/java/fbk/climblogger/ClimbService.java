@@ -18,6 +18,7 @@ import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -211,13 +212,6 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             return false;
         }
 
-        mBluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
-        if (mBluetoothLeScanner == null) {
-            Log.e(TAG, "Unable to obtain a mBluetoothLeScanner.");
-            return false;
-        }
-
-
 
         return true;
     }
@@ -242,20 +236,30 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             }
 
             mScanning = true;
-            //prepara il filtro che fa in modo di fare lo scan solo per device compatibili con climb (per ora filtra il nome)
-            ScanFilter mScanFilter = new ScanFilter.Builder().setDeviceName(ConfigVals.CLIMB_MASTER_DEVICE_NAME).build();
-            List<ScanFilter> mScanFilterList = new ArrayList<>();
-            mScanFilterList.add(mScanFilter);
-            mScanFilter = new ScanFilter.Builder().setDeviceName(ConfigVals.CLIMB_CHILD_DEVICE_NAME).build();
-            mScanFilterList.add(mScanFilter);
+            if (Build.VERSION.SDK_INT < 21) {
+                mLeScanCallback = new myLeScanCallback();
+                mBluetoothAdapter.startLeScan(mLeScanCallback);
+            } else {
+                //prepara il filtro che fa in modo di fare lo scan solo per device compatibili con climb (per ora filtra il nome)
+                ScanFilter mScanFilter = new ScanFilter.Builder().setDeviceName(ConfigVals.CLIMB_MASTER_DEVICE_NAME).build();
+                List<ScanFilter> mScanFilterList = new ArrayList<ScanFilter>();
+                mScanFilterList.add(mScanFilter);
+                mScanFilter = new ScanFilter.Builder().setDeviceName(ConfigVals.CLIMB_CHILD_DEVICE_NAME).build();
+                mScanFilterList.add(mScanFilter);
 
-            //imposta i settings di scan. vedere dentro la clase ScanSettings le opzioni disponibili
-            ScanSettings mScanSettings = new ScanSettings.Builder()
-                                             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-                                             .build();
+                //imposta i settings di scan. vedere dentro la clase ScanSettings le opzioni disponibili
+                ScanSettings mScanSettings = new ScanSettings.Builder()
+                        .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                        .build();
 
-            mBluetoothLeScanner.startScan(mScanFilterList, mScanSettings, mScanCallback);
-            //mBluetoothLeScanner.startScan(mScanCallback);
+                mScanCallback = new myScanCallback();
+                mBluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
+                if (mBluetoothLeScanner == null) {
+                    Log.e(TAG, "Unable to obtain a mBluetoothLeScanner.");
+                    return 0;
+                }
+                mBluetoothLeScanner.startScan(mScanFilterList, mScanSettings, mScanCallback);
+            }
             enableNodeTimeout();
         }else{
             Log.w(TAG, "mBluetoothAdapter == NULL!!");
@@ -269,7 +273,11 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         if(mBluetoothAdapter != null) {
             mScanning = true;
             disableNodeTimeout();
-            mBluetoothLeScanner.stopScan(mScanCallback);
+            if (Build.VERSION.SDK_INT < 21) {
+                mBluetoothAdapter.stopLeScan(mLeScanCallback);
+            } else {
+                mBluetoothLeScanner.stopScan(mScanCallback);
+            }
 
             if(logEnabled){
                 logEnabled = false;
@@ -793,10 +801,11 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     //---------------------------------------------------------------------
+    boolean scanForAll = false;
 
-    ScanCallback mScanCallback = new ScanCallback() {
-
-        boolean scanForAll = true;
+    // --- Android 5.x specific code ---
+    private ScanCallback mScanCallback;
+    class myScanCallback extends ScanCallback {
 
         @Override
         public void onBatchScanResults(List<ScanResult> results){
@@ -873,6 +882,28 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
     };
 
+    // --- Android 4.x specific code ---
+    private myLeScanCallback mLeScanCallback;
+    class myLeScanCallback implements BluetoothAdapter.LeScanCallback {
+        @Override
+        public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
+            long nowMillis = System.currentTimeMillis();
+            Log.v(TAG, "onLeScan called: " + device.getName());
+            if (scanForAll || device.getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {  //AGGIUNGI alla lista SOLO I NODI MASTER!!!!
+                //POI AVVIA IL PROCESSO PER AGGIORNARE LA UI
+                int index = isAlreadyInList(device);
+                if (index >= 0) {
+                    Log.v(TAG, "Found device is already in database and it is at index: " + index);
+                    //updateScnMetadata(index, result, nowMillis);
+                } else {
+                    Log.d(TAG, "New device found, adding it to database!");
+                    android.os.Looper.prepare(); //TODO: check why this was needed. Otherwise to was throwing "Can't create handler inside thread that has not called Looper.prepare()"
+                    addToList(device, rssi, scanRecord, nowMillis);
+                }
+            }
+        }
+    };
+
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
     private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
@@ -885,8 +916,12 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 // Attempts to discover services after successful connection.
 
                 insertTag("Connected_to_GATT");
-                mBluetoothGatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
-                mBluetoothGatt.requestMtu(256);
+                if (Build.VERSION.SDK_INT < 21) {
+                    Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
+                } else {
+                    mBluetoothGatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
+                    mBluetoothGatt.requestMtu(256);
+                }
 
                 //callback is called only after onServicesDiscovered()+getClimbService()
 
@@ -1252,6 +1287,21 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 targetNode.getScanRecord().getManufacturerSpecificData(TEXAS_INSTRUMENTS_MANUFACTER_ID),
                 isMaster, this, this);
                                 //nowMillis);
+        nodeList.add(newNode);
+        broadcastUpdate(ACTION_DEVICE_ADDED_TO_LIST, newNode.getNodeID());
+        Log.d(TAG, "Node added with index: " + nodeList.indexOf(newNode));
+        return true;
+    }
+
+    private boolean addToList(final BluetoothDevice device, int rssi, byte[] scanRecord, long nowMillis){
+        //nodeID id =
+        boolean isMaster = device.getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME);
+        ClimbNode newNode = new ClimbNode(device,
+                //id,
+                (byte) rssi,
+                scanRecord, //TODO: check if this is equivalent
+                isMaster, this, this);
+        //nowMillis);
         nodeList.add(newNode);
         broadcastUpdate(ACTION_DEVICE_ADDED_TO_LIST, newNode.getNodeID());
         Log.d(TAG, "Node added with index: " + nodeList.indexOf(newNode));
