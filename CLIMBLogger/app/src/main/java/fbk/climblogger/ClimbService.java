@@ -683,14 +683,14 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         byte clickedChildState = monitoredChild.getNodeState();
         byte[] gattData = null;
 
-        if(clickedChildState == 2) { //se lo stato è ONBOARD
-            if (!monitoredChild.setImposedState((byte) 4, this, ConfigVals.MON_NODE_TIMEOUT)) { //5: send to sleep
+        if(clickedChildState == 2) { //se lo stato è CHECKING
+            if (!monitoredChild.setImposedState((byte) 5, this, ConfigVals.MON_NODE_TIMEOUT)) { //5: send to sleep
                 Log.i(TAG, "Cannot change state of child " + monitoredChild.getNodeIDString() + ": another change is in progress");
             } else {
                 Log.i(TAG, "Checking out child " + monitoredChild.getNodeIDString());
                 String tempString = "Checking_out_node_" + clickedChildID[0];
                 insertTag(tempString);
-                gattData = new byte[]{clickedChildID[0], 4}; //assegna lo stato ON_BAORD
+                gattData = new byte[]{clickedChildID[0], 0}; //assegna lo stato ON_BAORD
             }
         }
 
