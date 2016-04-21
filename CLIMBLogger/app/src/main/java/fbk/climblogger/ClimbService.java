@@ -684,7 +684,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         byte[] gattData = null;
 
         if(clickedChildState == 2) { //se lo stato è CHECKING
-            if (!monitoredChild.setImposedState((byte) 5, this, ConfigVals.MON_NODE_TIMEOUT)) { //5: send to sleep
+            if (!monitoredChild.setImposedState((byte) 0, this, ConfigVals.MON_NODE_TIMEOUT)) {
                 Log.i(TAG, "Cannot change state of child " + monitoredChild.getNodeIDString() + ": another change is in progress");
             } else {
                 Log.i(TAG, "Checking out child " + monitoredChild.getNodeIDString());
