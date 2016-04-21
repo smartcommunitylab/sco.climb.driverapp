@@ -29,6 +29,11 @@ angular.module('driverapp.controllers.home', [])
                                                     StorageSrv.saveChildren(children).then(
                                                         function (children) {
                                                             WSNSrv.updateNodeList(children, 'child');
+
+                                                            // download children images
+                                                            angular.forEach(children, function (child) {
+                                                                APISrv.getChildImage(child.objectId);
+                                                            });
                                                         }
                                                     );
                                                     deferred.resolve();
@@ -49,7 +54,7 @@ angular.module('driverapp.controllers.home', [])
                                 );
                             });
                         },
-                        function (error) {
+                        function (error) {StorageSrv.saveSchool(CONF.DEV_SCHOOL)
                             // TODO handle error
                             console.log(error);
                             deferred.reject(error);
@@ -67,19 +72,10 @@ angular.module('driverapp.controllers.home', [])
         return deferred.promise;
     };
 
-    StorageSrv.saveSchool(CONF.DEV_SCHOOL).then(function (school) {
-        /*
-         * INIT!
-         */
-        Utils.loading();
-        $rootScope.loadAllBySchool(StorageSrv.getSchoolId()).then(
-            function () {
-                Utils.loaded();
-            }
-        );
-    });
+    // FIXME load schools
+    StorageSrv.saveSchool(CONF.DEV_SCHOOL);
 
-    $scope.getDriverName = function() {
+    $scope.getDriverName = function () {
         $scope.driverName = Utils.getMenuDriverTitle();
         return $scope.driverName;
     };

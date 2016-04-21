@@ -18,6 +18,7 @@ import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -211,13 +212,6 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             return false;
         }
 
-        mBluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
-        if (mBluetoothLeScanner == null) {
-            Log.e(TAG, "Unable to obtain a mBluetoothLeScanner.");
-            return false;
-        }
-
-
 
         return true;
     }
@@ -242,20 +236,30 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             }
 
             mScanning = true;
-            //prepara il filtro che fa in modo di fare lo scan solo per device compatibili con climb (per ora filtra il nome)
-            ScanFilter mScanFilter = new ScanFilter.Builder().setDeviceName(ConfigVals.CLIMB_MASTER_DEVICE_NAME).build();
-            List<ScanFilter> mScanFilterList = new ArrayList<>();
-            mScanFilterList.add(mScanFilter);
-            mScanFilter = new ScanFilter.Builder().setDeviceName(ConfigVals.CLIMB_CHILD_DEVICE_NAME).build();
-            mScanFilterList.add(mScanFilter);
+            if (Build.VERSION.SDK_INT < 21) {
+                mLeScanCallback = new myLeScanCallback();
+                mBluetoothAdapter.startLeScan(mLeScanCallback);
+            } else {
+                //prepara il filtro che fa in modo di fare lo scan solo per device compatibili con climb (per ora filtra il nome)
+                ScanFilter mScanFilter = new ScanFilter.Builder().setDeviceName(ConfigVals.CLIMB_MASTER_DEVICE_NAME).build();
+                List<ScanFilter> mScanFilterList = new ArrayList<ScanFilter>();
+                mScanFilterList.add(mScanFilter);
+                mScanFilter = new ScanFilter.Builder().setDeviceName(ConfigVals.CLIMB_CHILD_DEVICE_NAME).build();
+                mScanFilterList.add(mScanFilter);
 
-            //imposta i settings di scan. vedere dentro la clase ScanSettings le opzioni disponibili
-            ScanSettings mScanSettings = new ScanSettings.Builder()
-                                             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-                                             .build();
+                //imposta i settings di scan. vedere dentro la clase ScanSettings le opzioni disponibili
+                ScanSettings mScanSettings = new ScanSettings.Builder()
+                        .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                        .build();
 
-            mBluetoothLeScanner.startScan(mScanFilterList, mScanSettings, mScanCallback);
-            //mBluetoothLeScanner.startScan(mScanCallback);
+                mScanCallback = new myScanCallback();
+                mBluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
+                if (mBluetoothLeScanner == null) {
+                    Log.e(TAG, "Unable to obtain a mBluetoothLeScanner.");
+                    return 0;
+                }
+                mBluetoothLeScanner.startScan(mScanFilterList, mScanSettings, mScanCallback);
+            }
             enableNodeTimeout();
         }else{
             Log.w(TAG, "mBluetoothAdapter == NULL!!");
@@ -269,7 +273,11 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         if(mBluetoothAdapter != null) {
             mScanning = true;
             disableNodeTimeout();
-            mBluetoothLeScanner.stopScan(mScanCallback);
+            if (Build.VERSION.SDK_INT < 21) {
+                mBluetoothAdapter.stopLeScan(mLeScanCallback);
+            } else {
+                mBluetoothLeScanner.stopScan(mScanCallback);
+            }
 
             if(logEnabled){
                 logEnabled = false;
@@ -473,6 +481,12 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     public String[] getLogFiles() {
         String[] r;
         if (mFile != null) {
+            if (mBufferedWriter != null) {
+                try {
+                    mBufferedWriter.flush();
+                } catch (IOException e) {
+                }
+            }
             r = new String[1];
             r[0] = mFile.getAbsolutePath();
         } else {
@@ -488,7 +502,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public String[] getMasters() {
-        ArrayList<String> ids = new ArrayList<>();
+        ArrayList<String> ids = new ArrayList<String>();
         for(ClimbNode n : nodeList) {
             if (n.isMasterNode()) {
                 ids.add(n.getNodeID());
@@ -670,7 +684,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         byte[] gattData = null;
 
         if(clickedChildState == 2) { //se lo stato è CHECKING
-            if (!monitoredChild.setImposedState((byte) 0, this, ConfigVals.MON_NODE_TIMEOUT)) {
+            if (!monitoredChild.setImposedState((byte) 5, this, ConfigVals.MON_NODE_TIMEOUT)) { //5: send to sleep
                 Log.i(TAG, "Cannot change state of child " + monitoredChild.getNodeIDString() + ": another change is in progress");
             } else {
                 Log.i(TAG, "Checking out child " + monitoredChild.getNodeIDString());
@@ -683,12 +697,12 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         return gattData;
     }
 
-    private LinkedList<byte[]> PICOCharacteristicSendQueue = new LinkedList<>();
+    private LinkedList<byte[]> PICOCharacteristicSendQueue = new LinkedList<byte[]>();
 
     private boolean sendPICOCharacteristic(byte[] m) {
         mPICOCharacteristic.setValue(m);
         if (! mBluetoothGatt.writeCharacteristic(mPICOCharacteristic)) {
-            Log.i(TAG, "send: queuing message");
+            Log.i(TAG, "send: queuing message qlen:" +PICOCharacteristicSendQueue.size());
             return PICOCharacteristicSendQueue.add(m.clone()); //clone to be on the safe side. Might not be needed.
         } else {
             Log.i(TAG, "send: sent");
@@ -730,7 +744,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                         System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
                         p += gattDataFrag.length;
                     } else {
-                        ret = false;
+                        ret &= sendPICOCharacteristic(Arrays.copyOf(gattData,p));
+                        p = 0;
                     }
                 }
             } else {
@@ -738,7 +753,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             }
         }
         if (p > 0) {
-            ret = sendPICOCharacteristic(Arrays.copyOf(gattData,p));
+            ret &= sendPICOCharacteristic(Arrays.copyOf(gattData,p));
         }
         return ret;
     }
@@ -777,7 +792,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                         System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
                         p += gattDataFrag.length;
                     } else {
-                        ret = false;
+                        ret &= sendPICOCharacteristic(Arrays.copyOf(gattData,p));
+                        p = 0;
                     }
                 }
             } else {
@@ -785,16 +801,53 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             }
         }
         if (p > 0) {
-            ret = sendPICOCharacteristic(Arrays.copyOf(gattData,p));
+            ret &= sendPICOCharacteristic(Arrays.copyOf(gattData,p));
         }
         return ret;
     }
 
     //---------------------------------------------------------------------
+    boolean scanForAll = false;
 
-    ScanCallback mScanCallback = new ScanCallback() {
+    private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] manufacterData, long nowMillis) {
+        boolean ret = false;
+        if (mBufferedWriter != null) { // questo significa che il log � stato abilitato
+            final String timestamp = new SimpleDateFormat("yyyy MM dd HH mm ss").format(new Date()); // salva il timestamp per il log
+            String manufString = "";
 
-        boolean scanForAll = true;
+            if (manufacterData != null) {
+                for (int i = 0; i < manufacterData.length; i++) {
+                    manufString = manufString + String.format("%02X", manufacterData[i]);
+                }
+            }
+
+
+            try {
+                String logLine = "" + timestamp +
+                        " " + nowMillis +
+                        " " + device.getAddress() +
+                        " " + device.getName() +
+                        " ADV data" +
+                        " " + manufString +
+                        "\n";
+                //TODO: AGGIUNGERE RSSI
+                //mBufferedWriter.write(timestamp + " " + nowMillis);
+                //mBufferedWriter.write(" " + result.getDevice().getAddress()); //MAC ADDRESS
+                //mBufferedWriter.write(" " + result.getDevice().getName() + " "); //NAME
+                //mBufferedWriter.write(" " + "ADV data" + " ");
+                mBufferedWriter.write(logLine);
+                ret = true;
+
+            } catch (IOException e) {
+                Log.w(TAG, "Exception throwed while writing data to file.");
+            }
+        }
+        return ret;
+    }
+
+    // --- Android 5.x specific code ---
+    private ScanCallback mScanCallback;
+    class myScanCallback extends ScanCallback {
 
         @Override
         public void onBatchScanResults(List<ScanResult> results){
@@ -813,37 +866,10 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 long nowMillis = System.currentTimeMillis();
                 //PRIMA DI TUTTO SALVA IL LOG
                 if (logEnabled) {
-                    if (mBufferedWriter != null) { // questo significa che il log � stato abilitato
-                        final String timestamp = new SimpleDateFormat("yyyy MM dd HH mm ss").format(new Date()); // salva il timestamp per il log
-                        String manufString = "";
-
-                        byte[] manufacterData = result.getScanRecord().getManufacturerSpecificData(TEXAS_INSTRUMENTS_MANUFACTER_ID);
-                        if(manufacterData != null) {
-                            for (int i = 0; i < manufacterData.length; i++) {
-                                manufString = manufString + String.format("%02X", manufacterData[i]);
-                            }
-                        }
-
-
-                        try {
-                            String logLine =  ""+ timestamp +
-                                            " " + nowMillis +
-                                            " " + result.getDevice().getAddress() +
-                                            " " + result.getDevice().getName() +
-                                            " ADV data" +
-                                            " " + manufString +
-                                            "\n" ;
-                            //TODO: AGGIUNGERE RSSI
-                            //mBufferedWriter.write(timestamp + " " + nowMillis);
-                            //mBufferedWriter.write(" " + result.getDevice().getAddress()); //MAC ADDRESS
-                            //mBufferedWriter.write(" " + result.getDevice().getName() + " "); //NAME
-                            //mBufferedWriter.write(" " + "ADV data" + " ");
-                            mBufferedWriter.write(logLine);
-
-                        } catch (IOException e) {
-                            Log.w(TAG, "Exception throwed while writing data to file.");
-                        }
-                    }
+                    logScanResult(result.getDevice(),
+                            result.getRssi(),
+                            result.getScanRecord().getManufacturerSpecificData(TEXAS_INSTRUMENTS_MANUFACTER_ID),
+                            nowMillis);
                 }
 
                 if (scanForAll || result.getDevice().getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {  //AGGIUNGI alla lista SOLO I NODI MASTER!!!!
@@ -871,6 +897,34 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
     };
 
+    // --- Android 4.x specific code ---
+    private myLeScanCallback mLeScanCallback;
+    class myLeScanCallback implements BluetoothAdapter.LeScanCallback {
+        @Override
+        public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
+            long nowMillis = System.currentTimeMillis();
+            Log.v(TAG, "onLeScan called: " + device.getName());
+            if (logEnabled) {
+                logScanResult(device,
+                        rssi,
+                        scanRecord,
+                        nowMillis);
+            }
+            if (scanForAll || device.getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {  //AGGIUNGI alla lista SOLO I NODI MASTER!!!!
+                //POI AVVIA IL PROCESSO PER AGGIORNARE LA UI
+                int index = isAlreadyInList(device);
+                if (index >= 0) {
+                    Log.v(TAG, "Found device is already in database and it is at index: " + index);
+                    //updateScnMetadata(index, result, nowMillis);
+                } else {
+                    Log.d(TAG, "New device found, adding it to database!");
+                    android.os.Looper.prepare(); //TODO: check why this was needed. Otherwise to was throwing "Can't create handler inside thread that has not called Looper.prepare()"
+                    addToList(device, rssi, scanRecord, nowMillis);
+                }
+            }
+        }
+    };
+
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
     private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
@@ -883,8 +937,12 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 // Attempts to discover services after successful connection.
 
                 insertTag("Connected_to_GATT");
-                mBluetoothGatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
-                mBluetoothGatt.requestMtu(256);
+                if (Build.VERSION.SDK_INT < 21) {
+                    Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
+                } else {
+                    mBluetoothGatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
+                    mBluetoothGatt.requestMtu(256);
+                }
 
                 //callback is called only after onServicesDiscovered()+getClimbService()
 
@@ -1160,7 +1218,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     private boolean updateGATTMetadata(int recordIndex, byte[] cipo_data, long nowMillis) {
 
 //TODO: L'rssi viene letto tramite un'altra callback, quindi per ora non ne tengo conto (in ClimbNode.updateGATTMetadata l'rssi non viene toccato)
-        List<byte[]> toChecking = nodeList.get(recordIndex).updateGATTMetadata(0, cipo_data, nowMillis);
+        ClimbNode master = nodeList.get(recordIndex);
+        List<byte[]> toChecking = master.updateGATTMetadata(0, cipo_data, nowMillis);
 
         //broadcastUpdate(ACTION_METADATA_CHANGED, EXTRA_INT_ARRAY, new int[]{recordIndex}); //questa allega  al broadcast l'indice che è cambiato, per ora non serve
         broadcastUpdate(ACTION_METADATA_CHANGED);
@@ -1170,16 +1229,25 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         int p = 0;
 
         for (byte[] nodeID : toChecking) {
-            Log.i(TAG, "Allowing child " + MonitoredClimbNode.nodeID2String(nodeID));
-            byte[] gattDataFrag = {nodeID[0], 1}; //assegna lo stato CHECKING e invia tutto al gatt
-            if (gattData.length - p >= gattDataFrag.length) {
-                System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
-                p += gattDataFrag.length;
+            MonitoredClimbNode n = master.findChildByID(nodeID);
+            if (n != null && n.getImposedState() != 1 ) {
+                n.setImposedState((byte) 1, null, 0);
             } else {
-                break;
+                continue;
             }
+            Log.i(TAG, "Allowing child " + MonitoredClimbNode.nodeID2String(nodeID));
             String tempString = "Allowing_node_" + MonitoredClimbNode.nodeID2String(nodeID);
             insertTag(tempString);
+            byte[] gattDataFrag = {nodeID[0], 1}; //assegna lo stato CHECKING e invia tutto al gatt
+            System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
+            p += gattDataFrag.length;
+            if (gattData.length - p < gattDataFrag.length) {
+                //we have filled the packet. Send it out and start now one.
+                if (! sendPICOCharacteristic(Arrays.copyOf(gattData,p))) {
+                    Log.e(TAG, "Can't send state change message");
+                }
+                p = 0;
+            }
         }
 
         if (p > 0) {
@@ -1240,6 +1308,21 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 targetNode.getScanRecord().getManufacturerSpecificData(TEXAS_INSTRUMENTS_MANUFACTER_ID),
                 isMaster, this, this);
                                 //nowMillis);
+        nodeList.add(newNode);
+        broadcastUpdate(ACTION_DEVICE_ADDED_TO_LIST, newNode.getNodeID());
+        Log.d(TAG, "Node added with index: " + nodeList.indexOf(newNode));
+        return true;
+    }
+
+    private boolean addToList(final BluetoothDevice device, int rssi, byte[] scanRecord, long nowMillis){
+        //nodeID id =
+        boolean isMaster = device.getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME);
+        ClimbNode newNode = new ClimbNode(device,
+                //id,
+                (byte) rssi,
+                scanRecord, //TODO: check if this is equivalent
+                isMaster, this, this);
+        //nowMillis);
         nodeList.add(newNode);
         broadcastUpdate(ACTION_DEVICE_ADDED_TO_LIST, newNode.getNodeID());
         Log.d(TAG, "Node added with index: " + nodeList.indexOf(newNode));

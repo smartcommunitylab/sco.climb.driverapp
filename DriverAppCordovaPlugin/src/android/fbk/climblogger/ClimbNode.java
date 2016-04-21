@@ -1,7 +1,6 @@
         package fbk.climblogger;
 
         import android.bluetooth.BluetoothDevice;
-        import android.bluetooth.le.ScanResult;
         import android.os.Handler;
         import android.util.Log;
         import android.util.SparseArray;
@@ -173,7 +172,7 @@
                 timeoutRestart();
             }
 
-            private MonitoredClimbNode findChildByID(byte[] id) {
+            public MonitoredClimbNode findChildByID(byte[] id) {
                 for (MonitoredClimbNode n : onBoardChildrenList) {
                     if (Arrays.equals(n.getNodeID(), id)) {
                         return n;
@@ -197,7 +196,7 @@
                 //lastContactMillis = millisNow;
                 timeoutRestart();
 
-                List<byte[]> toChecking = new ArrayList<>();
+                List<byte[]> toChecking = new ArrayList<byte[]>();
                 //AGGIORNA LA LISTA DEI NODI ON_BOARD
                 for (int i = 0; i < lastReceivedGattData.length-2; i = i + 3) {
                     if(lastReceivedGattData[i] != 0 ) { //se l'ID è 0x00 scartalo

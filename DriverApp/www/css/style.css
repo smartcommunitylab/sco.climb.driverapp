@@ -244,6 +244,7 @@
 }
 
 /* Route components */
+
 .dapp-theme .route .bar.bar-buttons .button {
     text-transform: uppercase;
 }
@@ -298,19 +299,6 @@
     right: 3%;
     height: 40px;
     min-height: 35px;
-}
-.dapp-theme .button.button-trasparent.passenger-remove {
-    border-color: transparent;
-    background-color: transparent;
-    color: #e53935;
-    padding-top: 10px;
-    position: absolute;
-    top: -10px;
-    right: -5px;
-    pointer-events: auto;
-}
-.dapp-theme .button.button-trasparent.passenger-remove.passenger-remove-prev {
-    opacity: 0.5;
 }
 .dapp-theme .listwrapper-reduced {
     max-height: 60px;
@@ -382,37 +370,78 @@
     min-height: 50px;
     padding-top: 23px;
 }
-.dapp-theme .route-on-board {
+.dapp-theme .route-row {
     padding: 1px;
-    background-image: url("../img/rt_background_child.png");
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-size: auto;
+}
+.dapp-theme .route-on-board {
+    position: relative;
+    width: 32%;
+    float: left;
+    margin: 2px;
+    border: 3px solid #B0BEC5;
     text-align: left;
     min-height: 100px;
-    position: relative;
     color: #000;
 }
-.dapp-theme .route-on-board-inner {
-    border-width: 3px;
-    border-color: #B0BEC5;
-    border-style: solid;
-    margin: 1px;
-    min-height: inherit;
+.dapp-theme .route-on-board-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("../img/placeholder_child.png");
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+    opacity: 0.5;
 }
 .dapp-theme .route-on-board-content {
     position: absolute;
-    bottom: 5px;
-    left: 5px;
+    bottom: 0;
+    left: 0;
+    padding-left: 2px;
+    font-weight: bold;
+    line-height: 1em;
+}
+.dapp-theme .route-on-board .on-board.has-wsnid {
+    background-color: transparent;
+    color: #f29100;
+    position: absolute;
+    top: -5px;
+    left: -10px;
+}
+.dapp-theme .route-on-board .on-board.has-wsnid img {
+    max-width: 20px;
+    max-height: 50px;
+}
+.dapp-theme .route-on-board .button.button-trasparent.passenger-remove {
+    position: absolute;
+    top: -5px;
+    right: 0;
+    padding: 0;
+    border-color: transparent;
+    background-color: transparent;
+    color: #e53935;
+    pointer-events: auto;
+}
+.dapp-theme .route-on-board .button.button-trasparent.passenger-remove.passenger-remove-prev {
+    opacity: 0.5;
 }
 .dapp-theme .item.item-route-passenger {
     line-height: 45px;
 }
+.dapp-theme .item.item-route-passenger .item-route-passenger-img {
+    border: 2px solid #B0BEC5;
+}
 .dapp-theme .item.item-route-passenger .button {
     padding-top: 15px;
 }
-.dapp-theme .route-row {
-    padding: 1px;
+.dapp-theme .item.item-route-passenger .has-wsnid {
+    position: absolute;
+    top: 30px;
+    left: 48px;
+    max-width: 20px;
+    max-height: 50px;
 }
 .dapp-theme .route-title-button {
     background-color: #438699;
@@ -471,18 +500,6 @@
 .dapp-theme .item-avatar img {
     max-width: 45px;
     max-height: 45px;
-}
-.dapp-theme .on-board.has-wsnid {
-    background-color: transparent;
-    color: #f29100;
-    padding-top: 10px;
-    position: absolute;
-    top: -11px;
-    left: -4px;
-}
-.dapp-theme .on-board.has-wsnid img {
-    max-width: 20px;
-    max-height: 50px;
 }
 .dapp-theme .route-popup .popup {
     background-color: #fff;

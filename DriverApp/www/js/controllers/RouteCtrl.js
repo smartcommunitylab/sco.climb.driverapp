@@ -1,6 +1,6 @@
 angular.module('driverapp.controllers.route', [])
 
-.controller('RouteCtrl', function ($scope, $rootScope, $stateParams, $ionicHistory, $ionicNavBarDelegate, $ionicPopup, $ionicModal, $interval, $ionicScrollDelegate, $filter, $timeout, Config, Utils, StorageSrv, GeoSrv, AESrv, APISrv, WSNSrv) {
+.controller('RouteCtrl', function ($scope, $rootScope, $stateParams, $ionicHistory, $ionicNavBarDelegate, $ionicPopup, $ionicModal, $interval, $ionicScrollDelegate, $filter, $timeout, $cordovaFile, Config, Utils, StorageSrv, GeoSrv, AESrv, APISrv, WSNSrv) {
     $scope.fromWizard = false;
     $rootScope.pedibusEnabled = true;
 
@@ -272,6 +272,15 @@ angular.module('driverapp.controllers.route', [])
         return foundChild;
     };
 
+    $scope.getChildBg = function (child) {
+        if (!!child.imageUrl) {
+            return {
+                'background-image': 'url(\'' + child.imageUrl + '\')'
+            };
+        }
+        return {}
+    };
+
     $scope.getChildrenForStop = function (stop) {
         //$scope.sel.stop = stop;
         var passengers = [];
@@ -280,6 +289,17 @@ angular.module('driverapp.controllers.route', [])
         }
         if ($scope.children != null) {
             $scope.children.forEach(function (child) {
+                // set image path
+                if (ionic.Platform.isWebView()) {
+                    var imagePath = cordova.file.externalRootDirectory + Config.IMAGES_DIR + child.objectId + '.png';
+                    $cordovaFile.checkFile(cordova.file.externalRootDirectory + Config.IMAGES_DIR, child.objectId + '.png').then(
+                        function (success) {
+                            child.imageUrl = imagePath;
+                        },
+                        function (error) {}
+                    );
+                }
+
                 if (stop.passengerList.indexOf(child.objectId) != -1) {
                     passengers.push(child);
                 }
@@ -329,7 +349,6 @@ angular.module('driverapp.controllers.route', [])
                 passengersScrollDelegate.resize();
             }
         } else {
-            // TODO popup
             $ionicPopup.confirm({
                 title: 'Rimuovi ' + child.surname + ' ' + child.name,
                 template: child.surname + ' ' + child.name + ' è stato aggiunto in una fermata precedente. Vuoi confermare la rimozione?',

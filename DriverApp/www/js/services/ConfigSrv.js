@@ -8,10 +8,10 @@ angular.module('driverapp.services.config', [])
     config.OWNER_ID = CONF.OWNER_ID;
     config.X_ACCESS_TOKEN = CONF.X_ACCESS_TOKEN;
 
-    config.GPS_DELAY = 5000;
+    config.GPS_DELAY = 4000;
     config.NETWORKSTATE_DELAY = 2000;
     config.NODESTATE_TIMEOUT = 10000;
-    config.AUTOFINISH_DELAY = 1800000; // 30 mins
+    config.AUTOFINISH_DELAY = 2700000; // = 45min; 1800000 = 30 mins;
 
     config.HTTP_CONFIG = {
         timeout: 10000,
@@ -25,6 +25,7 @@ angular.module('driverapp.services.config', [])
     config.WIZARD_SLIDER_OPTIONS = {};
 
     config.LOGFILE_PATH = '/CLIMB_log_data/aelog.txt';
+    config.IMAGES_DIR = '/CLIMB_log_data/images/';
 
     return config;
 });

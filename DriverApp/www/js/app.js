@@ -107,7 +107,7 @@ angular.module('driverapp', [
                 );
             };
 
-            $rootScope.uploadFile = function () {
+            $rootScope.uploadLogFile = function () {
                 APISrv.uploadLog(Config.LOGFILE_PATH).then(
                     function (response) {
                         console.log(response);

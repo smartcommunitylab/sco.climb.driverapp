@@ -157,20 +157,33 @@ angular.module('driverapp.services.api', [])
             return deferred.promise;
         }
 
-        var httpConfig = angular.copy(Config.HTTP_CONFIG);
-        httpConfig.headers['Content-Type'] = 'application/octet-stream';
+        if (ionic.Platform.isWebView()) {
+            var sourceUrl = Config.SERVER_URL + '/image/download/png/' + Config.OWNER_ID + '/' + childId;
+            var targetFile = cordova.file.externalRootDirectory + Config.IMAGES_DIR + childId + '.png';
 
-        $http.get(Config.SERVER_URL + '/image/download/png/' + Config.OWNER_ID + '/' + childId, httpConfig)
-
-        .then(
-            function (response) {
-                // TODO handle image
-                deferred.resolve(response.data);
-            },
-            function (reason) {
-                deferred.reject('[' + reason.headers(ERROR_TYPE) + '] ' + reason.headers(ERROR_MSG));
-            }
-        );
+            var ft = new FileTransfer();
+            ft.download(
+                encodeURI(sourceUrl),
+                targetFile,
+                function (entry) {
+                    console.log('download complete: ' + entry.toURL());
+                    deferred.resolve(entry.toURL());
+                },
+                function (error) {
+                    /*console.log('download error source ' + error.source);
+                    console.log('download error target ' + error.target);
+                    console.log('upload error code' + error.code);*/
+                    deferred.reject();
+                },
+                false, {
+                    headers: {
+                        'X-ACCESS-TOKEN': Config.X_ACCESS_TOKEN
+                    }
+                }
+            );
+        } else {
+            deferred.reject();
+        }
 
         return deferred.promise;
     };
