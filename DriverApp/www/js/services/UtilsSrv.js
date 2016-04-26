@@ -2,7 +2,25 @@ angular.module('driverapp.services.utils', [])
 
 .factory('Utils', function ($rootScope, $filter, $timeout, $ionicPopup, $ionicLoading, $interval, Config) {
     var Utils = {};
-    this.drivername = "";
+    this.drivername = '';
+
+    Utils.isConnectionDown = function () {
+        if (window.Connection) {
+            if (navigator.connection.type == Connection.NONE || navigator.connection.type == Connection.UNKNOWN) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    Utils.isConnectionFastEnough = function () {
+        if (window.Connection) {
+            if (navigator.connection.type == Connection.CELL_2G || navigator.connection.type == Connection.NONE || navigator.connection.type == Connection.UNKNOWN) {
+                return false;
+            }
+        }
+        return true;
+    };
 
     Utils.isValidDate = function (dateString) {
         return moment(dateString, Config.DATE_FORMAT, true).isValid();
@@ -71,7 +89,7 @@ angular.module('driverapp.services.utils', [])
 
     Utils.setMenuDriverTitle = function (drivername) {
         //driver_names = drivername.split(' ');
-        this.drivername = drivername;//driver_names[1];
+        this.drivername = drivername; //driver_names[1];
     }
 
     Utils.getMenuDriverTitle = function () {

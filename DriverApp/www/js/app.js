@@ -39,22 +39,20 @@ angular.module('driverapp', [
         /*
          * Check Internet connection
          */
-        if (window.Connection) {
-            if (navigator.connection.type == Connection.NONE) {
-                Utils.loaded();
+        if (Utils.isConnectionDown()) {
+            Utils.loaded();
 
-                $ionicPopup.alert({
-                    title: 'Nessuna connessione',
-                    template: 'L\'applicazione non può funzionare se il terminale non è connesso a Internet',
-                    okText: 'Chiudi',
-                    okType: 'button-energized'
-                })
+            $ionicPopup.alert({
+                title: 'Nessuna connessione',
+                template: 'L\'applicazione non può funzionare se il terminale non è connesso a Internet',
+                okText: 'Chiudi',
+                okType: 'button-energized'
+            })
 
-                .then(function (result) {
-                    LogSrv.log('--- APPLICATION CLOSED ---');
-                    ionic.Platform.exitApp();
-                });
-            }
+            .then(function (result) {
+                LogSrv.log('--- APPLICATION CLOSED ---');
+                ionic.Platform.exitApp();
+            });
         }
 
         if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {

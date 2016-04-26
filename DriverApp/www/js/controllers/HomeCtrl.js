@@ -30,13 +30,34 @@ angular.module('driverapp.controllers.home', [])
                                                         function (children) {
                                                             WSNSrv.updateNodeList(children, 'child');
 
-                                                            // download children images
-                                                            angular.forEach(children, function (child) {
-                                                                APISrv.getChildImage(child.objectId);
-                                                            });
+                                                            if (Utils.isConnectionFastEnough()) {
+                                                                // download children images
+                                                                var counter = 0;
+                                                                var downloaded = 0;
+                                                                angular.forEach(children, function (child) {
+                                                                    APISrv.getChildImage(child.objectId).then(
+                                                                        function () {
+                                                                            downloaded++;
+                                                                            counter++;
+                                                                            console.log('Downloaded images: ' + downloaded + ' (Total: ' + counter + '/' + children.length + ')');
+                                                                            if (counter == children.length) {
+                                                                                deferred.resolve();
+                                                                            }
+                                                                        },
+                                                                        function () {
+                                                                            counter++;
+                                                                            if (counter == children.length) {
+                                                                                deferred.resolve();
+                                                                            }
+                                                                        }
+                                                                    );
+                                                                });
+                                                            } else {
+                                                                deferred.resolve();
+                                                            }
                                                         }
                                                     );
-                                                    deferred.resolve();
+                                                    //deferred.resolve();
                                                 },
                                                 function (error) {
                                                     // TODO handle error
@@ -54,8 +75,9 @@ angular.module('driverapp.controllers.home', [])
                                 );
                             });
                         },
-                        function (error) {StorageSrv.saveSchool(CONF.DEV_SCHOOL)
-                            // TODO handle error
+                        function (error) {
+                            StorageSrv.saveSchool(CONF.DEV_SCHOOL)
+                                // TODO handle error
                             console.log(error);
                             deferred.reject(error);
                         }
