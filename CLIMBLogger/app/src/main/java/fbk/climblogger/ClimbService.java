@@ -215,6 +215,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     private boolean initialize() {
         // For API level 18 and above, get a reference to BluetoothAdapter through
         // BluetoothManager.
+
         if (mBluetoothManager == null) {
             mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE); //qua era context.BLUETOOTH_SERVICE
             if (mBluetoothManager == null) {
@@ -228,7 +229,6 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             Log.e(TAG, "Unable to obtain a BluetoothAdapter.");
             return false;
         }
-
 
         return true;
     }
