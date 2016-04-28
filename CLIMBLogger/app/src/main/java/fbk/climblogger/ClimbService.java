@@ -587,7 +587,22 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             if (mBluetoothGatt == null) {
                 insertTag("Connecting_to_GATT");
                 mBTDevice = node.getBleDevice();
-                mBluetoothGatt = mBTDevice.connectGatt(appContext, false, mGattCallback); //TODO: check whu context is needed
+                // The following call to the 4 parameter version of cpnnectGatt is public, but hidden with @hide
+                // To make it work in API level 21 and 22, we need the trick from http://stackoverflow.com/questions/27633680/bluetoothdevice-connectgatt-with-transport-parameter
+                java.lang.reflect.Method connectGattMethod;
+
+                try {
+                    connectGattMethod = mBTDevice.getClass().getMethod("connectGatt", Context.class, boolean.class, BluetoothGattCallback.class, int.class);
+                    try {
+                        mBluetoothGatt = (BluetoothGatt) connectGattMethod.invoke(mBTDevice, appContext, false, mGattCallback, 2); // (2 == LE, 1 == BR/EDR)
+                    } catch (Exception e) {
+                        mBluetoothGatt = mBTDevice.connectGatt(appContext, false, mGattCallback); //TODO: check why context is needed
+                    }
+
+                } catch (NoSuchMethodException e) {
+                    mBluetoothGatt = mBTDevice.connectGatt(appContext, false, mGattCallback); //TODO: check why context is needed
+                    //NoSuchMethod
+                }
 
                 if (mBluetoothGatt == null) {
                     Log.w(TAG, "connectGatt returned null!");
