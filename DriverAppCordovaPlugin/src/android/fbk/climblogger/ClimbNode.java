@@ -230,8 +230,8 @@
                     case 1: return "CHECKING";
                     case 2: return "ON BOARD";
                     case 3: return "ALERT";
-                    case 4: return "ERROR";
-                    case 5: return "GOING TO SLEEP";
+                    case 4: return "GOING TO SLEEP";
+                    case 5: return "ERROR";
                     default: return "INVALID STATE";
                 }
             }

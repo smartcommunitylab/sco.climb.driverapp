@@ -157,6 +157,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     public void onCreate() {
         super.onCreate();
         Log.i(TAG, "ClimbService started");
+        insertTag("climb_service_created");
 
         mBinder = new LocalBinder();
         mHandler = new Handler();
@@ -178,12 +179,28 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             mBluetoothGatt = null;
         }
 
-            Log.i(TAG, "ClimbService Stopped.");
+        Log.i(TAG, "ClimbService Stopped.");
+
+        if (mBufferedWriter != null) {
+            try {
+                mBufferedWriter.flush();
+            } catch (IOException e) {
+            }
+        }
+        insertTag("climb_service_destroyed");
 
     }
 
     @Override
     public boolean onUnbind(Intent intent) {
+
+        if (mBufferedWriter != null) {
+            try {
+                mBufferedWriter.flush();
+            } catch (IOException e) {
+            }
+        }
+        insertTag("climb_service_unbind");
 
         return super.onUnbind(intent);
     }
@@ -198,6 +215,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     private boolean initialize() {
         // For API level 18 and above, get a reference to BluetoothAdapter through
         // BluetoothManager.
+
         if (mBluetoothManager == null) {
             mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE); //qua era context.BLUETOOTH_SERVICE
             if (mBluetoothManager == null) {
@@ -211,7 +229,6 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             Log.e(TAG, "Unable to obtain a BluetoothAdapter.");
             return false;
         }
-
 
         return true;
     }
@@ -230,8 +247,22 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             if(enableDatalog) {
 
                 startDataLog();
-                insertTag("Start_Monitoring");
                 logEnabled = true;
+                insertTag("Start_Monitoring");
+                insertTag("initializing" +
+                        " API: " + Build.VERSION.SDK_INT +
+                        " Release: " + Build.VERSION.RELEASE +
+                        " Manuf: " + Build.MANUFACTURER +
+                        " Product: " + Build.PRODUCT +
+                        "");
+
+                if (mBluetoothAdapter != null) {
+                    insertTag("BTadapter" +
+                            " state: " + mBluetoothAdapter.getState() +
+                            " name: " + mBluetoothAdapter.getName() +
+                            " address: " + mBluetoothAdapter.getAddress() +
+                            "");
+                }
                 broadcastUpdate(ACTION_DATALOG_ACTIVE,EXTRA_STRING,file_name_log);
             }
 
@@ -358,8 +389,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
             if(mPICOCharacteristic != null) {
                 byte[] gattData = {(byte) 0xFF, (byte) 0x01,(byte) 0x02};
-                String tempString = "Checking_in_all_nodes";
-                insertTag(tempString);
+                insertTag("Checking_in_all_nodes");
                 mPICOCharacteristic.setValue(gattData);
                 mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
                 return true;
@@ -384,8 +414,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
             if(mPICOCharacteristic != null) {
                 byte[] gattData = {(byte) 0xFF,(byte) 0x01, (byte) 0x00};
-                String tempString = "Checking_out_all_nodes";
-                insertTag(tempString);
+                insertTag("Checking_out_all_nodes");
                 mPICOCharacteristic.setValue(gattData);
                 mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
                 return true;
@@ -411,8 +440,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             if(mPICOCharacteristic != null) {
 
                 byte[] gattData = {(byte) 0xFF,(byte) 0x02, (byte)((timeout_sec>>16)&0xFF), (byte)((timeout_sec>>8)&0xFF), (byte)(timeout_sec&0xFF)};
-                String tempString = "Sending_wake_up_schedule";
-                insertTag(tempString);
+                insertTag("Sending_wake_up_schedule");
                 mPICOCharacteristic.setValue(gattData);
                 mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
                 return true;
@@ -437,8 +465,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
             if(mPICOCharacteristic != null) {
                 byte[] gattData = {(byte) 0xFF, (byte) 0xFF};
-                String tempString = "Accepting all nodes";
-                insertTag(tempString);
+                insertTag("Accepting all nodes");
                 mPICOCharacteristic.setValue(gattData);
                 mBluetoothGatt.writeCharacteristic(mPICOCharacteristic);
                 return true;
@@ -585,9 +612,24 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         ClimbNode node = nodeListGet(master);
         if (node != null && node.isMasterNode()) { //do something only if it is a master node
             if (mBluetoothGatt == null) {
-                insertTag("Connecting_to_GATT");
                 mBTDevice = node.getBleDevice();
-                mBluetoothGatt = mBTDevice.connectGatt(appContext, false, mGattCallback); //TODO: check whu context is needed
+                insertTag("Connecting_to_GATT " + mBTDevice != null ? mBTDevice.getAddress() : "null");
+                // The following call to the 4 parameter version of cpnnectGatt is public, but hidden with @hide
+                // To make it work in API level 21 and 22, we need the trick from http://stackoverflow.com/questions/27633680/bluetoothdevice-connectgatt-with-transport-parameter
+                java.lang.reflect.Method connectGattMethod;
+
+                try {
+                    connectGattMethod = mBTDevice.getClass().getMethod("connectGatt", Context.class, boolean.class, BluetoothGattCallback.class, int.class);
+                    try {
+                        mBluetoothGatt = (BluetoothGatt) connectGattMethod.invoke(mBTDevice, appContext, false, mGattCallback, 2); // (2 == LE, 1 == BR/EDR)
+                    } catch (Exception e) {
+                        mBluetoothGatt = mBTDevice.connectGatt(appContext, false, mGattCallback); //TODO: check why context is needed
+                    }
+
+                } catch (NoSuchMethodException e) {
+                    mBluetoothGatt = mBTDevice.connectGatt(appContext, false, mGattCallback); //TODO: check why context is needed
+                    //NoSuchMethod
+                }
 
                 if (mBluetoothGatt == null) {
                     Log.w(TAG, "connectGatt returned null!");
@@ -631,7 +673,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     public boolean disconnectMaster() { //TODO: handle several masters?
         if (mBluetoothGatt != null) {
             Log.i(TAG, "Climb master node disconnecting ...");
-            insertTag("Disconnecting_from_GATT");
+            insertTag("Request_disconnect_from_GATT");
 
             mBluetoothGatt.disconnect();
             //mBluetoothGatt.close(); //TODO: check if this is needed here, or should better be done when disconnected
@@ -669,8 +711,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 Log.i(TAG, "Cannot change state of child " + monitoredChild.getNodeIDString() + ": another change is in progress");
             } else {
                 Log.i(TAG, "Checking in child " + monitoredChild.getNodeIDString());
-                String tempString = "Accepting_node_" + clickedChildID[0];
-                insertTag(tempString);
+                insertTag("Accepting_node_" + clickedChildID[0]);
                 gattData = new byte[]{clickedChildID[0], 2}; //assegna lo stato ON_BAORD
             }
         }
@@ -684,12 +725,11 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         byte[] gattData = null;
 
         if(clickedChildState == 2) { //se lo stato è CHECKING
-            if (!monitoredChild.setImposedState((byte) 5, this, ConfigVals.MON_NODE_TIMEOUT)) { //5: send to sleep
+            if (!monitoredChild.setImposedState((byte) 0, this, ConfigVals.MON_NODE_TIMEOUT)) {
                 Log.i(TAG, "Cannot change state of child " + monitoredChild.getNodeIDString() + ": another change is in progress");
             } else {
                 Log.i(TAG, "Checking out child " + monitoredChild.getNodeIDString());
-                String tempString = "Checking_out_node_" + clickedChildID[0];
-                insertTag(tempString);
+                insertTag("Checking_out_node_" + clickedChildID[0]);
                 gattData = new byte[]{clickedChildID[0], 0}; //assegna lo stato ON_BAORD
             }
         }
@@ -827,7 +867,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                         " " + nowMillis +
                         " " + device.getAddress() +
                         " " + device.getName() +
-                        " ADV data" +
+                        " ADV " +
+                        rssi +
                         " " + manufString +
                         "\n";
                 //TODO: AGGIUNGERE RSSI
@@ -973,7 +1014,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 mCIPOCharacteristic = null;
                 mPICOCharacteristic = null;
                 used_mtu = 23;
-                insertTag("Disconnected_from_GATT");
+                insertTag("Disconnected_from_GATT " + status);
             }else if (newState == BluetoothProfile.STATE_CONNECTING) {
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTING;
                 Log.i(TAG, "Connecting to GATT server. Status: " + status);
@@ -1094,6 +1135,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         public void onMtuChanged (BluetoothGatt gatt, int mtu, int status){
             Log.i(TAG, "MTU changed. MTU = "+mtu);
             Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
+            insertTag("MTU " +mtu);
             if(status == 0){
                 used_mtu = mtu;
                 return;
@@ -1236,8 +1278,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 continue;
             }
             Log.i(TAG, "Allowing child " + MonitoredClimbNode.nodeID2String(nodeID));
-            String tempString = "Allowing_node_" + MonitoredClimbNode.nodeID2String(nodeID);
-            insertTag(tempString);
+            insertTag("Allowing_node_" + MonitoredClimbNode.nodeID2String(nodeID));
             byte[] gattDataFrag = {nodeID[0], 1}; //assegna lo stato CHECKING e invia tutto al gatt
             System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
             p += gattDataFrag.length;
