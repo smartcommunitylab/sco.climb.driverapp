@@ -259,7 +259,8 @@
                         if (connectionState) {
                             for (MonitoredClimbNode tempNode : onBoardChildrenList) {
                                 description = "Node ID (0x): " + tempNode.getNodeIDString();
-                                description += "\nState: " + stateToString(tempNode.getNodeState());
+                                description += "\tState: " + stateToString(tempNode.getNodeState());
+                                description += "\tRSSI: " + tempNode.getNodeRssi();
                                 neighbourList.add(description);
                             }
                             return neighbourList;
