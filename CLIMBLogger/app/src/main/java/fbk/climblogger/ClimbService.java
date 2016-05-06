@@ -1178,13 +1178,15 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
     // ------ BLE integration ---------------------------------------------
 
-    public void getClimbService() {
+    public boolean getClimbService() {
         Log.i(TAG, "Getting CLIMB Service");
+        insertTag("Getting CLIMB Service");
         mBTService = mBluetoothGatt.getService(mClimbServiceUuid); //QUI VIENE CONTROLLATO CHE IL SERVER SU CUI SI E' CONNESSI ABBIA IL SERVIZIO ADATTO
 
         if(mBTService == null) {
-            Log.i(TAG, "Could not get CLIMB Service");
-            return;
+            Log.e(TAG, "Could not get CLIMB Service");
+            insertTag("Could not get CLIMB Service");
+            return false;
         }
         else {
             Log.i(TAG, "CLIMB Service successfully retrieved");
@@ -1200,9 +1202,11 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 mHandler.removeCallbacks(connectMasterCB);
                 connectMasterCB = null;
                 broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, nodeListGetConnectedMaster().getNodeID(), true, null); //TODO: add timeout on this
-
-
-                return;
+                insertTag("CLIMB Service acquired");
+                return true;
+            } else {
+                insertTag("Could not get CLIMB characteristics");
+                return false;
             }
         }
     }
