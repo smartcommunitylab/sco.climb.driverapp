@@ -109,10 +109,10 @@ public class ScanActivity extends Activity {
                 log("Datalog stopped");
             }else if (ClimbService.STATE_CONNECTED_TO_CLIMB_MASTER.equals(action)) {
                 Toast.makeText(getApplicationContext(),
-                        "Connected with GATT!",
+                        "Connected with GATT? " + intent.getBooleanExtra(ClimbService.INTENT_EXTRA_SUCCESS,true),
                         Toast.LENGTH_SHORT).show();
                 expandableListAdapter.notifyDataSetChanged();
-                log("Connected with GATT");
+                log("Connected with GATT? " + intent.getBooleanExtra(ClimbService.INTENT_EXTRA_SUCCESS,true));
                 mClimbService.setNodeList(allowedChidren.toArray(new String[allowedChidren.size()]));
             }else if (ClimbService.STATE_DISCONNECTED_FROM_CLIMB_MASTER.equals(action)) {
                 //climbNodeList.clear();
