@@ -49,7 +49,7 @@ public class ScanActivity extends Activity {
     private Vibrator mVibrator;
     private int index = 0;
     private ArrayList<ClimbNode> climbNodeList;
-    private List<String> allowedChidren = new ArrayList<>();
+    private List<String> allowedChidren = new ArrayList<String>();
     private ArrayAdapter<ListView> adapter;
     private ClimbService mClimbService;
     private Context mContext = null;
