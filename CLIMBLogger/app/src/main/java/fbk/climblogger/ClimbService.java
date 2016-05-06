@@ -964,24 +964,27 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         @Override
         public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
             long nowMillis = System.currentTimeMillis();
-            Log.v(TAG, "onLeScan called: " + device.getName());
-            if (logEnabled) {
-                logScanResult(device,
-                        rssi,
-                        scanRecord,
-                        nowMillis);
-            }
-            if (scanForAll || device.getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {  //AGGIUNGI alla lista SOLO I NODI MASTER!!!!
-                //POI AVVIA IL PROCESSO PER AGGIORNARE LA UI
-                int index = isAlreadyInList(device);
-                if (index >= 0) {
-                    Log.v(TAG, "Found device is already in database and it is at index: " + index);
-                    //updateScnMetadata(index, result, nowMillis);
-                } else {
-                    Log.d(TAG, "New device found, adding it to database!");
-                    android.os.Looper.prepare(); //TODO: check why this was needed. Otherwise to was throwing "Can't create handler inside thread that has not called Looper.prepare()"
-                    addToList(device, rssi, scanRecord, nowMillis);
+            Log.v(TAG, "onLeScan called: " + (device != null ? device.getName() : "NULL"));
+            if (device != null && device.getName() != null) {
+                if (logEnabled && (device.getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME) || device.getName().equals(ConfigVals.CLIMB_CHILD_DEVICE_NAME))) {
+                    logScanResult(device,
+                            rssi,
+                            scanRecord,
+                            nowMillis);
                 }
+                if (scanForAll || device.getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {  //AGGIUNGI alla lista SOLO I NODI MASTER!!!!
+                    //POI AVVIA IL PROCESSO PER AGGIORNARE LA UI
+                    int index = isAlreadyInList(device);
+                    if (index >= 0) {
+                        Log.v(TAG, "Found device is already in database and it is at index: " + index);
+                        //updateScnMetadata(index, result, nowMillis);
+                    } else {
+                        Log.d(TAG, "New device found, adding it to database!");
+                        android.os.Looper.prepare(); //TODO: check why this was needed. Otherwise to was throwing "Can't create handler inside thread that has not called Looper.prepare()"
+                        addToList(device, rssi, scanRecord, nowMillis);
+                    }
+                }
+
             }
         }
     };
