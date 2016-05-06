@@ -1035,6 +1035,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                         Log.w(TAG, "Connect attempt failed. Trying to reconnect ...");
                         insertTag("Connect attempt failed. Trying to reconnect ...");
                         mBluetoothGatt.connect();
+                        return;
                     } else {
                         Log.w(TAG, "Connect attempt failed. no GATT, no reconnect");
                         insertTag("Connect attempt failed. no GATT, no reconnect");
