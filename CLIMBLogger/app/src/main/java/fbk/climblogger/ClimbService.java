@@ -267,7 +267,10 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             }
 
             mScanning = true;
-            if (Build.VERSION.SDK_INT < 21) {
+            if (Build.VERSION.SDK_INT < 18) {
+                Log.e(TAG, "API level " + Build.VERSION.SDK_INT + " not supported!");
+                return 0;
+            } else if (Build.VERSION.SDK_INT < 21) {
                 mLeScanCallback = new myLeScanCallback();
                 mBluetoothAdapter.startLeScan(mLeScanCallback);
             } else {
