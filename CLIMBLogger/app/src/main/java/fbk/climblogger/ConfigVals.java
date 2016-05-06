@@ -17,7 +17,7 @@ public class ConfigVals {
     static TimeZone tz = TimeZone.getTimeZone("Europe/Rome");
 
     static Calendar rightNow = Calendar.getInstance(tz);// .getInstance();*/
-    public static String folderName = root.getAbsolutePath()+	"/CLIMB_log_data/"+rightNow.get(Calendar.DAY_OF_MONTH)+"_"+ (rightNow.get(Calendar.MONTH) + 1) +"_"+ rightNow.get(Calendar.YEAR) +"/";
+    public static String folderName = root.getAbsolutePath()+	"/CLIMB_log_data/"+rightNow.get(Calendar.YEAR)+"_"+ (rightNow.get(Calendar.MONTH) + 1) +"_"+ rightNow.get(Calendar.DAY_OF_MONTH) +"/";
 
     static final int NODE_TIMEOUT = 15 * 1000;
     static final int MON_NODE_TIMEOUT = 15 * 1000;
