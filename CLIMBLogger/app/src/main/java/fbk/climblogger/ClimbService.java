@@ -165,7 +165,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         if(nodeList == null)  nodeList = new ArrayList<ClimbNode>(); //crea la lista (vuota) che terrà conto dei dispositivi attualmente visibili
         //TODO: why the if above? could it be not empty on onCreate?
         if(mBluetoothManager == null) { //TODO: why this if?
-            initialize(); //TODO: handle error somehow
+            initialize_bluetooth(); //TODO: handle error somehow
         }
 
     }
@@ -212,7 +212,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         return START_STICKY; // run until explicitly stopped.
     }
 
-    private boolean initialize() {
+    private boolean initialize_bluetooth() {
         // For API level 18 and above, get a reference to BluetoothAdapter through
         // BluetoothManager.
 
