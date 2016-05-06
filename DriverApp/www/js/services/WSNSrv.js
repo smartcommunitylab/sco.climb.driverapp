@@ -60,6 +60,9 @@ angular.module('driverapp.services.wsn', [])
                         console.log('=== Where is my Master?!? ===');
                         // TODO toast for failure
                         //Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
+
+                        // Retry
+                        wsnService.connectMaster(response.id);
                     }
                     /*
                     else if (response.action === wsnService.STATE_CHECKEDIN_CHILD) {
