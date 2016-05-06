@@ -1033,6 +1033,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                         broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, connectMasterCB.id, false, "connect failed with code " + status);
                         mHandler.removeCallbacks(connectMasterCB);
                         connectMasterCB = null;
+                    }
                 } else { // was already connected, disconnected for some reason
                     broadcastUpdate(STATE_DISCONNECTED_FROM_CLIMB_MASTER);
                 }
