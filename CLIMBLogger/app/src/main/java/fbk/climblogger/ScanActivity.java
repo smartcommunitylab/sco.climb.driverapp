@@ -232,6 +232,7 @@ public class ScanActivity extends Activity {
 
             if(mClimbService != null){
                 mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                Log.i(TAG, java.util.Arrays.toString(mClimbService.getLogFiles()));
                 mClimbService.StopMonitoring();
                 Log.i(TAG, "Stop scan!");
                 log("Stop scan command sent!");
