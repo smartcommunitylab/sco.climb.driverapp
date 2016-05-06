@@ -62,7 +62,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     private BluetoothGatt mBluetoothGatt = null;
 
     private boolean nodeTimeOutEnabled = false;
-    private Runnable connectMasterCB;
+    private connectMasterCBack connectMasterCB;
 
     private final static int TEXAS_INSTRUMENTS_MANUFACTER_ID = 0x000D;
 
@@ -165,7 +165,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         if(nodeList == null)  nodeList = new ArrayList<ClimbNode>(); //crea la lista (vuota) che terrà conto dei dispositivi attualmente visibili
         //TODO: why the if above? could it be not empty on onCreate?
         if(mBluetoothManager == null) { //TODO: why this if?
-            initialize(); //TODO: handle error somehow
+            initialize_bluetooth(); //TODO: handle error somehow
         }
 
     }
@@ -212,9 +212,13 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         return START_STICKY; // run until explicitly stopped.
     }
 
-    private boolean initialize() {
+    private boolean initialize_bluetooth() {
         // For API level 18 and above, get a reference to BluetoothAdapter through
         // BluetoothManager.
+        if (Build.VERSION.SDK_INT < 18) {
+            Log.e(TAG, "API level " + Build.VERSION.SDK_INT + " not supported!");
+            return false;
+        }
 
         if (mBluetoothManager == null) {
             mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE); //qua era context.BLUETOOTH_SERVICE
@@ -267,9 +271,15 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             }
 
             mScanning = true;
-            if (Build.VERSION.SDK_INT < 21) {
+            if (Build.VERSION.SDK_INT < 18) {
+                Log.e(TAG, "API level " + Build.VERSION.SDK_INT + " not supported!");
+                return 0;
+            } else if (Build.VERSION.SDK_INT < 21) {
                 mLeScanCallback = new myLeScanCallback();
-                mBluetoothAdapter.startLeScan(mLeScanCallback);
+                if (! mBluetoothAdapter.startLeScan(mLeScanCallback)) {
+                    insertTag("can't start BLE scan");
+                    return 0;
+                };
             } else {
                 //prepara il filtro che fa in modo di fare lo scan solo per device compatibili con climb (per ora filtra il nome)
                 ScanFilter mScanFilter = new ScanFilter.Builder().setDeviceName(ConfigVals.CLIMB_MASTER_DEVICE_NAME).build();
@@ -287,6 +297,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 mBluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
                 if (mBluetoothLeScanner == null) {
                     Log.e(TAG, "Unable to obtain a mBluetoothLeScanner.");
+                    insertTag("Unable to obtain a mBluetoothLeScanner.");
                     return 0;
                 }
                 mBluetoothLeScanner.startScan(mScanFilterList, mScanSettings, mScanCallback);
@@ -294,6 +305,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             enableNodeTimeout();
         }else{
             Log.w(TAG, "mBluetoothAdapter == NULL!!");
+            insertTag("mBluetoothAdapter == NULL!!");
+            return 0;
         }
         //TODO: iniziare la ricerca ble
         //TODO: avviare il log
@@ -501,8 +514,10 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
     // ------ CLIMB API Implementation ---------------------------------------------
 
-    public void init() {
-        StartMonitoring(true);
+    public boolean init() {
+
+        return (StartMonitoring(true) == 1);
+
     }
 
     public String[] getLogFiles() {
@@ -608,12 +623,30 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         return ids;
     }
 
+    private class connectMasterCBack implements Runnable {
+        public String id;
+
+        connectMasterCBack(String master){id = master;}
+
+        @Override
+        public void run() {
+            if (mBluetoothGatt != null) {
+                mBluetoothGatt.disconnect(); //be consistent, do not try anymore
+                mBluetoothGatt.close(); //HTC one with android 5.0.2 is not calling the callback after disconnect. Needs to close here
+                mBluetoothGatt = null;
+            }
+            Log.i(TAG, "Connect to " + id + " failed: timeout.");
+            broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, id, false, "Connect timed out");
+        }
+    }
+
     public boolean connectMaster(final String master) {
         ClimbNode node = nodeListGet(master);
+        insertTag("Request_connect_to_GATT "+ master + ((node == null ? " not_in_list" : (" " + node.isMasterNode()))));
         if (node != null && node.isMasterNode()) { //do something only if it is a master node
             if (mBluetoothGatt == null) {
                 mBTDevice = node.getBleDevice();
-                insertTag("Connecting_to_GATT " + mBTDevice != null ? mBTDevice.getAddress() : "null");
+                insertTag("Connecting_to_GATT " + (mBTDevice != null ? mBTDevice.getAddress() : "null"));
                 // The following call to the 4 parameter version of cpnnectGatt is public, but hidden with @hide
                 // To make it work in API level 21 and 22, we need the trick from http://stackoverflow.com/questions/27633680/bluetoothdevice-connectgatt-with-transport-parameter
                 java.lang.reflect.Method connectGattMethod;
@@ -622,17 +655,21 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                     connectGattMethod = mBTDevice.getClass().getMethod("connectGatt", Context.class, boolean.class, BluetoothGattCallback.class, int.class);
                     try {
                         mBluetoothGatt = (BluetoothGatt) connectGattMethod.invoke(mBTDevice, appContext, false, mGattCallback, 2); // (2 == LE, 1 == BR/EDR)
+                        insertTag("using connectGatt4");
                     } catch (Exception e) {
                         mBluetoothGatt = mBTDevice.connectGatt(appContext, false, mGattCallback); //TODO: check why context is needed
+                        insertTag("connectGatt4 failed, using connectGatt3");
                     }
 
                 } catch (NoSuchMethodException e) {
                     mBluetoothGatt = mBTDevice.connectGatt(appContext, false, mGattCallback); //TODO: check why context is needed
+                    insertTag("connectGatt4 doesn't exist, using connectGatt3");
                     //NoSuchMethod
                 }
 
                 if (mBluetoothGatt == null) {
-                    Log.w(TAG, "connectGatt returned null!");
+                    Log.e(TAG, "connectGatt returned null!");
+                    insertTag("connectGatt returned null!");
                     return false;
                 }
 
@@ -642,25 +679,15 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 Toast.makeText(appContext,
                         "Connecting ...",
                         Toast.LENGTH_SHORT).show();
-                connectMasterCB = new Runnable() {
-                    String id = master;
-                    @Override
-                    public void run() {
-                        if (mBluetoothGatt != null) {
-                            mBluetoothGatt.disconnect(); //be consistent, do not try anymore
-                            mBluetoothGatt.close(); //HTC one with android 5.0.2 is not calling the callback after disconnect. Needs to close here
-                            mBluetoothGatt = null;
-                        }
-                        Log.i(TAG, "Connect to " + master + " failed: timeout.");
-                        broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, id, false, "Connect timed out");
-                    }
-                };
+                connectMasterCB = new connectMasterCBack(master);
                 mHandler.postDelayed(connectMasterCB, ConfigVals.CONNECT_TIMEOUT);
             } else {
                 if (connectMasterCB == null) {
                     broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, master, true, "Already connected"); //TODO: we are fireing the intent before returning true. Possible race condition?
+                    insertTag("already connected!");
                     return true; //already connected
                 } else { //connection in progress, do not accept another one
+                    insertTag("already connecting!");
                     return false;
                 }
             }
@@ -944,24 +971,27 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         @Override
         public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
             long nowMillis = System.currentTimeMillis();
-            Log.v(TAG, "onLeScan called: " + device.getName());
-            if (logEnabled) {
-                logScanResult(device,
-                        rssi,
-                        scanRecord,
-                        nowMillis);
-            }
-            if (scanForAll || device.getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {  //AGGIUNGI alla lista SOLO I NODI MASTER!!!!
-                //POI AVVIA IL PROCESSO PER AGGIORNARE LA UI
-                int index = isAlreadyInList(device);
-                if (index >= 0) {
-                    Log.v(TAG, "Found device is already in database and it is at index: " + index);
-                    //updateScnMetadata(index, result, nowMillis);
-                } else {
-                    Log.d(TAG, "New device found, adding it to database!");
-                    android.os.Looper.prepare(); //TODO: check why this was needed. Otherwise to was throwing "Can't create handler inside thread that has not called Looper.prepare()"
-                    addToList(device, rssi, scanRecord, nowMillis);
+            Log.v(TAG, "onLeScan called: " + (device != null ? device.getName() : "NULL"));
+            if (device != null && device.getName() != null) {
+                if (logEnabled && (device.getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME) || device.getName().equals(ConfigVals.CLIMB_CHILD_DEVICE_NAME))) {
+                    logScanResult(device,
+                            rssi,
+                            scanRecord,
+                            nowMillis);
                 }
+                if (scanForAll || device.getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {  //AGGIUNGI alla lista SOLO I NODI MASTER!!!!
+                    //POI AVVIA IL PROCESSO PER AGGIORNARE LA UI
+                    int index = isAlreadyInList(device);
+                    if (index >= 0) {
+                        Log.v(TAG, "Found device is already in database and it is at index: " + index);
+                        //updateScnMetadata(index, result, nowMillis);
+                    } else {
+                        Log.d(TAG, "New device found, adding it to database!");
+                        android.os.Looper.prepare(); //TODO: check why this was needed. Otherwise to was throwing "Can't create handler inside thread that has not called Looper.prepare()"
+                        addToList(device, rssi, scanRecord, nowMillis);
+                    }
+                }
+
             }
         }
     };
@@ -990,6 +1020,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) { //TODO: check if this was intentional or not. If not, try to do something.
 
                 Log.i(TAG, "Disconnected from GATT server. Status: " + status);
+                insertTag("Disconnected_from_GATT " + status);
                 if(mBTDevice != null) {
                     int index = isAlreadyInList(mBTDevice);
                     if (index >= 0) {
@@ -999,10 +1030,21 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                     }
                 }
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_DISCONNECTED;
-                broadcastUpdate(STATE_DISCONNECTED_FROM_CLIMB_MASTER);
-                if (connectMasterCB != null) {
-                    mHandler.removeCallbacks(connectMasterCB);
-                    connectMasterCB = null;
+                if (connectMasterCB != null) { //timeout still active, in connection phase
+                    if (mBluetoothGatt != null) {
+                        Log.w(TAG, "Connect attempt failed. Trying to reconnect ...");
+                        insertTag("Connect attempt failed. Trying to reconnect ...");
+                        mBluetoothGatt.connect();
+                        return;
+                    } else {
+                        Log.w(TAG, "Connect attempt failed. no GATT, no reconnect");
+                        insertTag("Connect attempt failed. no GATT, no reconnect");
+                        broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, connectMasterCB.id, false, "connect failed with code " + status);
+                        mHandler.removeCallbacks(connectMasterCB);
+                        connectMasterCB = null;
+                    }
+                } else { // was already connected, disconnected for some reason
+                    broadcastUpdate(STATE_DISCONNECTED_FROM_CLIMB_MASTER);
                 }
                 //mBluetoothGatt.disconnect();
                 if (mBluetoothGatt != null) {
@@ -1014,7 +1056,6 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 mCIPOCharacteristic = null;
                 mPICOCharacteristic = null;
                 used_mtu = 23;
-                insertTag("Disconnected_from_GATT " + status);
             }else if (newState == BluetoothProfile.STATE_CONNECTING) {
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTING;
                 Log.i(TAG, "Connecting to GATT server. Status: " + status);
@@ -1027,23 +1068,14 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            insertTag("onServicesDiscovered received: " + status);
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 // cerca subito i servizi necessari (aggiorna il broadcast solo quando tutte le caratteristiche saranno salvate)
                 Log.i(TAG, "onServicesDiscovered received: " + status);
                 if(mBTService == null){
                     getClimbService();
-
-//                    mHandler.postDelayed(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            if(!mBluetoothGatt.requestMtu(35)){
-//                                Log.w(TAG, "requestMtu returns FALSE!!!!");
-//                            }
-//                        }
-//                    }, 1000);
-
                 }else{
-
+                    insertTag("onServicesDiscovered received: no mBTSservice");
                 }
             } else {
                 Log.w(TAG, "onServicesDiscovered received: " + status);
@@ -1147,13 +1179,15 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
     // ------ BLE integration ---------------------------------------------
 
-    public void getClimbService() {
+    public boolean getClimbService() {
         Log.i(TAG, "Getting CLIMB Service");
+        insertTag("Getting CLIMB Service");
         mBTService = mBluetoothGatt.getService(mClimbServiceUuid); //QUI VIENE CONTROLLATO CHE IL SERVER SU CUI SI E' CONNESSI ABBIA IL SERVIZIO ADATTO
 
         if(mBTService == null) {
-            Log.i(TAG, "Could not get CLIMB Service");
-            return;
+            Log.e(TAG, "Could not get CLIMB Service");
+            insertTag("Could not get CLIMB Service");
+            return false;
         }
         else {
             Log.i(TAG, "CLIMB Service successfully retrieved");
@@ -1169,9 +1203,11 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 mHandler.removeCallbacks(connectMasterCB);
                 connectMasterCB = null;
                 broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, nodeListGetConnectedMaster().getNodeID(), true, null); //TODO: add timeout on this
-
-
-                return;
+                insertTag("CLIMB Service acquired");
+                return true;
+            } else {
+                insertTag("Could not get CLIMB characteristics");
+                return false;
             }
         }
     }
@@ -1186,8 +1222,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         }
         else {
             Log.i(TAG, "CIPO characteristic retrieved properly");
-            enableNotificationForCIPO();
-            return true;
+            return enableNotificationForCIPO();
         }
     }
 
@@ -1205,17 +1240,17 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         }
     }
 
-    private void enableNotificationForCIPO() {
+    private boolean enableNotificationForCIPO() {
 
         Log.i(TAG, "Enabling notification on Android API for CIPO");
         if(mCIPOCharacteristic == null){
             Log.w(TAG, "mCIPOCharacteristic == null !!");
-            return;
+            return false;
         }
         boolean success = mBluetoothGatt.setCharacteristicNotification(mCIPOCharacteristic, true);
         if(!success) {
             Log.i(TAG, "Enabling Android API notification failed!");
-            return;
+            return false;
         }
         else{
             Log.i(TAG, "Notification enabled on Android API!");
@@ -1229,7 +1264,9 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         }
         else {
             Log.i(TAG, "Could not get descriptor for characteristic! CCCD Notification are not enabled.");
+            return false;
         }
+        return true;
     }
 
     private int isAlreadyInList(BluetoothDevice device){
