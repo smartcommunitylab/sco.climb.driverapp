@@ -276,7 +276,10 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 return 0;
             } else if (Build.VERSION.SDK_INT < 21) {
                 mLeScanCallback = new myLeScanCallback();
-                mBluetoothAdapter.startLeScan(mLeScanCallback);
+                if (! mBluetoothAdapter.startLeScan(mLeScanCallback)) {
+                    insertTag("can't start BLE scan");
+                    return 0;
+                };
             } else {
                 //prepara il filtro che fa in modo di fare lo scan solo per device compatibili con climb (per ora filtra il nome)
                 ScanFilter mScanFilter = new ScanFilter.Builder().setDeviceName(ConfigVals.CLIMB_MASTER_DEVICE_NAME).build();
@@ -294,6 +297,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 mBluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
                 if (mBluetoothLeScanner == null) {
                     Log.e(TAG, "Unable to obtain a mBluetoothLeScanner.");
+                    insertTag("Unable to obtain a mBluetoothLeScanner.");
                     return 0;
                 }
                 mBluetoothLeScanner.startScan(mScanFilterList, mScanSettings, mScanCallback);
@@ -301,6 +305,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             enableNodeTimeout();
         }else{
             Log.w(TAG, "mBluetoothAdapter == NULL!!");
+            insertTag("mBluetoothAdapter == NULL!!");
+            return 0;
         }
         //TODO: iniziare la ricerca ble
         //TODO: avviare il log
