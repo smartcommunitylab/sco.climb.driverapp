@@ -1221,8 +1221,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         }
         else {
             Log.i(TAG, "CIPO characteristic retrieved properly");
-            enableNotificationForCIPO();
-            return true;
+            return enableNotificationForCIPO();
         }
     }
 
@@ -1240,17 +1239,17 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         }
     }
 
-    private void enableNotificationForCIPO() {
+    private boolean enableNotificationForCIPO() {
 
         Log.i(TAG, "Enabling notification on Android API for CIPO");
         if(mCIPOCharacteristic == null){
             Log.w(TAG, "mCIPOCharacteristic == null !!");
-            return;
+            return false;
         }
         boolean success = mBluetoothGatt.setCharacteristicNotification(mCIPOCharacteristic, true);
         if(!success) {
             Log.i(TAG, "Enabling Android API notification failed!");
-            return;
+            return false;
         }
         else{
             Log.i(TAG, "Notification enabled on Android API!");
@@ -1264,7 +1263,9 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         }
         else {
             Log.i(TAG, "Could not get descriptor for characteristic! CCCD Notification are not enabled.");
+            return false;
         }
+        return true;
     }
 
     private int isAlreadyInList(BluetoothDevice device){
