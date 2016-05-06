@@ -642,10 +642,11 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
     public boolean connectMaster(final String master) {
         ClimbNode node = nodeListGet(master);
+        insertTag("Request_connect_to_GATT "+ master + ((node == null ? " not_in_list" : (" " + node.isMasterNode()))));
         if (node != null && node.isMasterNode()) { //do something only if it is a master node
             if (mBluetoothGatt == null) {
                 mBTDevice = node.getBleDevice();
-                insertTag("Connecting_to_GATT " + mBTDevice != null ? mBTDevice.getAddress() : "null");
+                insertTag("Connecting_to_GATT " + (mBTDevice != null ? mBTDevice.getAddress() : "null"));
                 // The following call to the 4 parameter version of cpnnectGatt is public, but hidden with @hide
                 // To make it work in API level 21 and 22, we need the trick from http://stackoverflow.com/questions/27633680/bluetoothdevice-connectgatt-with-transport-parameter
                 java.lang.reflect.Method connectGattMethod;
@@ -654,17 +655,21 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                     connectGattMethod = mBTDevice.getClass().getMethod("connectGatt", Context.class, boolean.class, BluetoothGattCallback.class, int.class);
                     try {
                         mBluetoothGatt = (BluetoothGatt) connectGattMethod.invoke(mBTDevice, appContext, false, mGattCallback, 2); // (2 == LE, 1 == BR/EDR)
+                        insertTag("using connectGatt4");
                     } catch (Exception e) {
                         mBluetoothGatt = mBTDevice.connectGatt(appContext, false, mGattCallback); //TODO: check why context is needed
+                        insertTag("connectGatt4 failed, using connectGatt3");
                     }
 
                 } catch (NoSuchMethodException e) {
                     mBluetoothGatt = mBTDevice.connectGatt(appContext, false, mGattCallback); //TODO: check why context is needed
+                    insertTag("connectGatt4 doesn't exist, using connectGatt3");
                     //NoSuchMethod
                 }
 
                 if (mBluetoothGatt == null) {
-                    Log.w(TAG, "connectGatt returned null!");
+                    Log.e(TAG, "connectGatt returned null!");
+                    insertTag("connectGatt returned null!");
                     return false;
                 }
 
@@ -679,8 +684,10 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             } else {
                 if (connectMasterCB == null) {
                     broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, master, true, "Already connected"); //TODO: we are fireing the intent before returning true. Possible race condition?
+                    insertTag("already connected!");
                     return true; //already connected
                 } else { //connection in progress, do not accept another one
+                    insertTag("already connecting!");
                     return false;
                 }
             }
@@ -1013,6 +1020,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) { //TODO: check if this was intentional or not. If not, try to do something.
 
                 Log.i(TAG, "Disconnected from GATT server. Status: " + status);
+                insertTag("Disconnected_from_GATT " + status);
                 if(mBTDevice != null) {
                     int index = isAlreadyInList(mBTDevice);
                     if (index >= 0) {
@@ -1047,7 +1055,6 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 mCIPOCharacteristic = null;
                 mPICOCharacteristic = null;
                 used_mtu = 23;
-                insertTag("Disconnected_from_GATT " + status);
             }else if (newState == BluetoothProfile.STATE_CONNECTING) {
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTING;
                 Log.i(TAG, "Connecting to GATT server. Status: " + status);
@@ -1060,23 +1067,14 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            insertTag("onServicesDiscovered received: " + status);
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 // cerca subito i servizi necessari (aggiorna il broadcast solo quando tutte le caratteristiche saranno salvate)
                 Log.i(TAG, "onServicesDiscovered received: " + status);
                 if(mBTService == null){
                     getClimbService();
-
-//                    mHandler.postDelayed(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            if(!mBluetoothGatt.requestMtu(35)){
-//                                Log.w(TAG, "requestMtu returns FALSE!!!!");
-//                            }
-//                        }
-//                    }, 1000);
-
                 }else{
-
+                    insertTag("onServicesDiscovered received: no mBTSservice");
                 }
             } else {
                 Log.w(TAG, "onServicesDiscovered received: " + status);
