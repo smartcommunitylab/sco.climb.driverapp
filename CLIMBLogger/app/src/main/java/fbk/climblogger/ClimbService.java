@@ -1001,7 +1001,10 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            String intentAction;
+            if (mBluetoothGatt == null || gatt != mBluetoothGatt) {
+                return;
+            }
+
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTED;
                 Log.i(TAG, "Connected to GATT server.");
