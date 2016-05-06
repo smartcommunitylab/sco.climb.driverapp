@@ -63,6 +63,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
     private boolean nodeTimeOutEnabled = false;
     private connectMasterCBack connectMasterCB;
+    private String connectedMaster = null;
 
     private final static int TEXAS_INSTRUMENTS_MANUFACTER_ID = 0x000D;
 
@@ -641,6 +642,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public boolean connectMaster(final String master) {
+        connectedMaster = master;
         ClimbNode node = nodeListGet(master);
         insertTag("Request_connect_to_GATT "+ master + ((node == null ? " not_in_list" : (" " + node.isMasterNode()))));
         if (node != null && node.isMasterNode()) { //do something only if it is a master node
@@ -1047,7 +1049,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                         connectMasterCB = null;
                     }
                 } else { // was already connected, disconnected for some reason
-                    broadcastUpdate(STATE_DISCONNECTED_FROM_CLIMB_MASTER);
+                    broadcastUpdate(STATE_DISCONNECTED_FROM_CLIMB_MASTER, connectedMaster);
+                    connectedMaster = null;
                 }
                 //mBluetoothGatt.disconnect();
                 if (mBluetoothGatt != null) {
