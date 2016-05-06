@@ -44,7 +44,7 @@ public interface ClimbServiceInterface {
      */
     public final static String INTENT_EXTRA_MSG ="fbk.climblogger.ClimbService.INTENT_EXTRA_MSG";
 
-    public void init();
+    public boolean init();
     public void setContext(Context context);
     public String[] getMasters();
     public boolean connectMaster(String master);

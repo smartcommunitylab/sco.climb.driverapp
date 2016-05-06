@@ -501,8 +501,10 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
     // ------ CLIMB API Implementation ---------------------------------------------
 
-    public void init() {
-        StartMonitoring(true);
+    public boolean init() {
+
+        return (StartMonitoring(true) == 1);
+
     }
 
     public String[] getLogFiles() {
