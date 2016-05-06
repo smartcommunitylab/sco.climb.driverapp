@@ -1023,6 +1023,11 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 }
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_DISCONNECTED;
                 if (connectMasterCB != null) { //timeout still active, in connection phase
+                    if (mBluetoothGatt != null) {
+                        Log.w(TAG, "Connect attempt failed. Trying to reconnect ...");
+                        insertTag("Connect attempt failed. Trying to reconnect ...");
+                        mBluetoothGatt.connect();
+                    } else {
                         Log.w(TAG, "Connect attempt failed. no GATT, no reconnect");
                         insertTag("Connect attempt failed. no GATT, no reconnect");
                         broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, connectMasterCB.id, false, "connect failed with code " + status);
