@@ -62,7 +62,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     private BluetoothGatt mBluetoothGatt = null;
 
     private boolean nodeTimeOutEnabled = false;
-    private Runnable connectMasterCB;
+    private connectMasterCBack connectMasterCB;
 
     private final static int TEXAS_INSTRUMENTS_MANUFACTER_ID = 0x000D;
 
@@ -623,6 +623,23 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         return ids;
     }
 
+    private class connectMasterCBack implements Runnable {
+        public String id;
+
+        connectMasterCBack(String master){id = master;}
+
+        @Override
+        public void run() {
+            if (mBluetoothGatt != null) {
+                mBluetoothGatt.disconnect(); //be consistent, do not try anymore
+                mBluetoothGatt.close(); //HTC one with android 5.0.2 is not calling the callback after disconnect. Needs to close here
+                mBluetoothGatt = null;
+            }
+            Log.i(TAG, "Connect to " + id + " failed: timeout.");
+            broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, id, false, "Connect timed out");
+        }
+    }
+
     public boolean connectMaster(final String master) {
         ClimbNode node = nodeListGet(master);
         if (node != null && node.isMasterNode()) { //do something only if it is a master node
@@ -657,19 +674,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 Toast.makeText(appContext,
                         "Connecting ...",
                         Toast.LENGTH_SHORT).show();
-                connectMasterCB = new Runnable() {
-                    String id = master;
-                    @Override
-                    public void run() {
-                        if (mBluetoothGatt != null) {
-                            mBluetoothGatt.disconnect(); //be consistent, do not try anymore
-                            mBluetoothGatt.close(); //HTC one with android 5.0.2 is not calling the callback after disconnect. Needs to close here
-                            mBluetoothGatt = null;
-                        }
-                        Log.i(TAG, "Connect to " + master + " failed: timeout.");
-                        broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, id, false, "Connect timed out");
-                    }
-                };
+                connectMasterCB = new connectMasterCBack(master);
                 mHandler.postDelayed(connectMasterCB, ConfigVals.CONNECT_TIMEOUT);
             } else {
                 if (connectMasterCB == null) {
