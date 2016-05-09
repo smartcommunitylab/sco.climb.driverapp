@@ -989,7 +989,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                         //updateScnMetadata(index, result, nowMillis);
                     } else {
                         Log.d(TAG, "New device found, adding it to database!");
-                        android.os.Looper.prepare(); //TODO: check why this was needed. Otherwise to was throwing "Can't create handler inside thread that has not called Looper.prepare()"
+                        if (android.os.Looper.myLooper()==null) android.os.Looper.prepare(); //TODO: check why this was needed. Otherwise to was throwing "Can't create handler inside thread that has not called Looper.prepare()"
                         addToList(device, rssi, scanRecord, nowMillis);
                     }
                 }
