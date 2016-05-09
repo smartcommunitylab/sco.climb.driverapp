@@ -998,6 +998,19 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         }
     };
 
+    private void closeGatt() {
+        if (mBluetoothGatt != null) {
+            //mBluetoothGatt.disconnect();
+            mBluetoothGatt.close();
+            mBluetoothGatt = null;
+        }
+        mBTDevice = null;
+        mBTService = null;
+        mCIPOCharacteristic = null;
+        mPICOCharacteristic = null;
+        used_mtu = 23;
+    }
+
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
     private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
@@ -1044,24 +1057,17 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                     } else {
                         Log.w(TAG, "Connect attempt failed. no GATT, no reconnect");
                         insertTag("Connect attempt failed. no GATT, no reconnect");
-                        broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, connectMasterCB.id, false, "connect failed with code " + status);
+                        closeGatt();
+                        String id = connectMasterCB.id;
                         mHandler.removeCallbacks(connectMasterCB);
                         connectMasterCB = null;
+                        broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, id, false, "connect failed with code " + status);
                     }
                 } else { // was already connected, disconnected for some reason
+                    closeGatt();
                     broadcastUpdate(STATE_DISCONNECTED_FROM_CLIMB_MASTER, connectedMaster);
                     connectedMaster = null;
                 }
-                //mBluetoothGatt.disconnect();
-                if (mBluetoothGatt != null) {
-                    mBluetoothGatt.close();
-                    mBluetoothGatt = null;
-                }
-                mBTDevice = null;
-                mBTService = null;
-                mCIPOCharacteristic = null;
-                mPICOCharacteristic = null;
-                used_mtu = 23;
             }else if (newState == BluetoothProfile.STATE_CONNECTING) {
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTING;
                 Log.i(TAG, "Connecting to GATT server. Status: " + status);
