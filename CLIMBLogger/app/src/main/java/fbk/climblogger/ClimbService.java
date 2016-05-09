@@ -811,13 +811,12 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             if (monitoredChild != null) {
                 byte[] gattDataFrag = checkinCommand(monitoredChild);
                 if (gattDataFrag != null) {
-                    if (gattData.length - p >= gattDataFrag.length) {
-                        System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
-                        p += gattDataFrag.length;
-                    } else {
+                    if (gattData.length < p + gattDataFrag.length) {
                         ret &= sendPICOCharacteristic(Arrays.copyOf(gattData,p));
                         p = 0;
                     }
+                    System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
+                    p += gattDataFrag.length;
                 }
             } else {
                 ret = false;
@@ -859,13 +858,12 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             if (monitoredChild != null) {
                 byte[] gattDataFrag = checkoutCommand(monitoredChild);
                 if (gattDataFrag != null) {
-                    if (gattData.length - p >= gattDataFrag.length) {
-                        System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
-                        p += gattDataFrag.length;
-                    } else {
+                    if (gattData.length < p + gattDataFrag.length) {
                         ret &= sendPICOCharacteristic(Arrays.copyOf(gattData,p));
                         p = 0;
                     }
+                    System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
+                    p += gattDataFrag.length;
                 }
             } else {
                 ret = false;
