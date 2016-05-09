@@ -118,7 +118,7 @@ public class ScanActivity extends Activity {
                 //climbNodeList.clear();
 
                  Toast.makeText(getApplicationContext(),
-                    "DISCONNECTED FROM GATT!",
+                    "DISCONNECTED FROM GATT! " + intent.getStringExtra(ClimbService.INTENT_EXTRA_ID),
                     Toast.LENGTH_SHORT).show();
                 log("DISCONNECTED FROM GATT!");
                 expandableListAdapter.notifyDataSetChanged();
