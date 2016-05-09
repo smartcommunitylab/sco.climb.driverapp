@@ -767,14 +767,16 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     private LinkedList<byte[]> PICOCharacteristicSendQueue = new LinkedList<byte[]>();
+    private boolean PICOCharacteristicSending = false;
 
     private boolean sendPICOCharacteristic(byte[] m) {
         mPICOCharacteristic.setValue(m);
-        if (! mBluetoothGatt.writeCharacteristic(mPICOCharacteristic)) {
+        if (!PICOCharacteristicSending && mBluetoothGatt.writeCharacteristic(mPICOCharacteristic)) {
+            PICOCharacteristicSending = true;
+            Log.i(TAG, "send: sent");
+        } else {
             Log.i(TAG, "send: queuing message qlen:" +PICOCharacteristicSendQueue.size());
             return PICOCharacteristicSendQueue.add(m.clone()); //clone to be on the safe side. Might not be needed.
-        } else {
-            Log.i(TAG, "send: sent");
         }
         return true;
     }
@@ -1159,14 +1161,17 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt,
                                           BluetoothGattCharacteristic characteristic, int status) {
+            PICOCharacteristicSending = false;
             if(status != BluetoothGatt.GATT_SUCCESS){
                 Log.e(TAG, "onCharacteristicWrite: failed with status " + status);
+                insertTag("onCharacteristicWrite: failed with status " + status);
             } else {
                 Log.i(TAG, "onCharacteristicWrite: success " + status);
                 //if there are queued writes do them here
                 if (! PICOCharacteristicSendQueue.isEmpty()) {
                     mPICOCharacteristic.setValue(PICOCharacteristicSendQueue.element());
                     if (mBluetoothGatt.writeCharacteristic(mPICOCharacteristic)) {
+                        PICOCharacteristicSending = true;
                         Log.i(TAG, "onCharacteristicWrite: sent queued message");
                         PICOCharacteristicSendQueue.remove();
                     } else {
