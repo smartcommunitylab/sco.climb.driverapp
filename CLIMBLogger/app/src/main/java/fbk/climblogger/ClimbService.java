@@ -1161,6 +1161,13 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt,
                                           BluetoothGattCharacteristic characteristic, int status) {
+            if (gatt != mBluetoothGatt) {
+                Log.e(TAG, "onCharacteristicWrite for unknown GATT!");
+            }
+            if (characteristic != mPICOCharacteristic) {
+                Log.e(TAG, "onCharacteristicWrite for unknown characteristic!");
+            }
+
             PICOCharacteristicSending = false;
             if(status != BluetoothGatt.GATT_SUCCESS){
                 Log.e(TAG, "onCharacteristicWrite: failed with status " + status);
