@@ -4,12 +4,31 @@ angular.module('driverapp.services.storage', [])
     var storageService = {};
 
     var KEYS = {
+        IDENTITY_INDEX: 'da_identityindex',
         SCHOOL: 'da_school',
         CHILDREN: 'da_children',
         VOLUNTEERS: 'da_volunteers',
         VOLUNTEERS_CALS: 'da_volunteers_cals',
         ROUTES: 'da_routes',
         APPLICATION_EVENTS: 'da_eas'
+    };
+
+    storageService.saveIdentityIndex = function (index) {
+        var deferred = $q.defer();
+        localStorage[KEYS.IDENTITY_INDEX] = index;
+        deferred.resolve(index);
+        return deferred.promise;
+    };
+
+    storageService.getIdentityIndex = function () {
+        if (!!localStorage[KEYS.IDENTITY_INDEX]) {
+            return localStorage[KEYS.IDENTITY_INDEX];
+        }
+        return null;
+    };
+
+    storageService.clearIdentityIndex = function () {
+        localStorage.removeItem(KEYS.IDENTITY_INDEX);
     };
 
     storageService.saveSchool = function (school) {

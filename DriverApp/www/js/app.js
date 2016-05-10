@@ -18,7 +18,7 @@ angular.module('driverapp', [
     'driverapp.controllers.volunteers'
 ])
 
-.run(function ($ionicPlatform, $rootScope, $ionicPopup, Config, Utils, LogSrv, WSNSrv, APISrv) {
+.run(function ($ionicPlatform, $rootScope, $state, $ionicHistory, $ionicPopup, Config, Utils, StorageSrv, LogSrv, WSNSrv, APISrv) {
     $ionicPlatform.ready(function () {
         // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
         // for form inputs)
@@ -134,6 +134,13 @@ angular.module('driverapp', [
                     ionic.Platform.exitApp();
                 }
             });
+        };
+
+        $rootScope.logout = function () {
+            $rootScope.identity = null;
+            StorageSrv.clearIdentityIndex();
+
+            window.location.reload(true);
         };
     });
 })

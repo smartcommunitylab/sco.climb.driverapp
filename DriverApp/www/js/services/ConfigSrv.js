@@ -28,5 +28,9 @@ angular.module('driverapp.services.config', [])
     config.LOGFILE_PATH = '/CLIMB_log_data/aelog.txt';
     config.IMAGES_DIR = '/CLIMB_log_data/images/';
 
+    config.setIdentity = function (index) {
+        config.IDENTITY = config.IDENTITIES[index];
+    };
+
     return config;
 });

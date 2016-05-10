@@ -1,11 +1,12 @@
 angular.module('driverapp.controllers.wizard', [])
 
-.controller('WizardCtrl', function ($scope, $rootScope, $state, $ionicPopup, $ionicHistory, $ionicSlideBoxDelegate, $timeout, $filter, Config, Utils, StorageSrv, APISrv, WSNSrv) {
+.controller('WizardCtrl', function ($scope, $rootScope, $state, $ionicPopup, $ionicModal, $ionicHistory, $ionicSlideBoxDelegate, $timeout, $filter, Config, Utils, StorageSrv, APISrv, WSNSrv) {
     $scope.swiperOptions = Config.WIZARD_SLIDER_OPTIONS;
 
     var INDEXES = {
-        'volunteers': 2,
-        'helpers': 3
+        'schools': 0,
+        'volunteers': 1,
+        'helpers': 2
     };
 
     $scope.schools = [];
@@ -40,14 +41,20 @@ angular.module('driverapp.controllers.wizard', [])
         );
     };
 
-    $scope.schools = [StorageSrv.getSchool()];
-
-    if ($scope.schools !== null && $scope.schools.length == 1) {
-        $scope.wizard.school = $scope.schools[0];
+    if (!$rootScope.identity && StorageSrv.getIdentityIndex()) {
+        $rootScope.identity = Config.IDENTITIES[StorageSrv.getIdentityIndex()];
     }
 
-    if ($scope.wizard.school !== null) {
-        loadDataBySchool($scope.wizard.school.objectId);
+    if (!!$rootScope.identity) {
+        $scope.schools = [StorageSrv.getSchool()];
+
+        if ($scope.schools !== null && $scope.schools.length == 1) {
+            $scope.wizard.school = $scope.schools[0];
+        }
+
+        if ($scope.wizard.school !== null) {
+            loadDataBySchool($scope.wizard.school.objectId);
+        }
     }
 
     $scope.selectSchoolPopup = function () {
@@ -103,6 +110,17 @@ angular.module('driverapp.controllers.wizard', [])
     };
 
     $scope.$on("wizard:IndexChanged", function (e, wizardIndex, wizardCount) {
+        /*if (wizardIndex == INDEXES.schools) {
+            $scope.schools = [StorageSrv.getSchool()];
+
+            if ($scope.schools !== null && $scope.schools.length == 1) {
+                $scope.wizard.school = $scope.schools[0];
+            }
+
+            if ($scope.wizard.school !== null) {
+                loadDataBySchool($scope.wizard.school.objectId);
+            }
+        }*/
         if (wizardIndex == INDEXES.volunteers) {
             /*
              * sort volunteers only if route exists but not a driver

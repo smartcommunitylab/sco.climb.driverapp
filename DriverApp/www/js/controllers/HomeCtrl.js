@@ -1,11 +1,75 @@
 angular.module('driverapp.controllers.home', [])
 
-.controller('AppCtrl', function ($scope, $rootScope, $ionicPlatform, $q, $ionicModal, Config, StorageSrv, APISrv, WSNSrv, Utils, GeoSrv) {
+.controller('AppCtrl', function ($scope, $rootScope, $state, $ionicPlatform, $q, $ionicPopup, $ionicModal, Config, StorageSrv, APISrv, WSNSrv, Utils, GeoSrv) {
     $rootScope.pedibusEnabled = true;
     /*
      * FIXME dev purpose only!
      */
     StorageSrv.reset();
+
+    /*
+     * LOGIN
+     */
+    $scope.login = {
+        identities: [],
+        identity: null,
+        identityIndex: null,
+        identityPwd: ''
+    };
+
+    $ionicModal.fromTemplateUrl('templates/wizard_modal_login.html', {
+        scope: $scope,
+        animation: 'slide-in-up',
+        backdropClickToClose: false,
+        hardwareBackButtonClose: false
+    }).then(function (modal) {
+        $rootScope.modalLogin = modal;
+
+        // FIXME dev purpose only!
+        //StorageSrv.saveIdentityIndex(0);
+
+        if (StorageSrv.getIdentityIndex() == null) {
+            $rootScope.modalLogin.show();
+        } else {
+            $scope.identity = Config.IDENTITIES[StorageSrv.getIdentityIndex()];
+        }
+    });
+
+    $scope.selectIdentityPopup = function () {
+        $scope.login.identities = Config.IDENTITIES;
+
+        var identityPopup = $ionicPopup.show({
+            templateUrl: 'templates/wizard_popup_identity.html',
+            title: 'Seleziona identità',
+            scope: $scope,
+            buttons: [{
+                text: 'Annulla',
+                type: 'button-stable'
+            }]
+        });
+
+        $scope.selectIdentity = function (index) {
+            $scope.login.identityIndex = index;
+            $scope.login.identity = $scope.login.identities[index];
+            identityPopup.close();
+        };
+    };
+
+    $scope.checkIdentityPwd = function () {
+        if (!!$scope.login.identity && $scope.login.identityPwd === $scope.login.identity.PWD) {
+            console.log('+++ Right password +++');
+            StorageSrv.saveIdentityIndex($scope.login.identityIndex);
+            $rootScope.identity = $scope.login.identity;
+            $rootScope.modalLogin.hide();
+
+            $state.go($state.current, {}, {
+                reload: true
+            });
+        } else {
+            console.log('--- Wrong password ---');
+            Utils.toast('La password non è corretta!');
+        }
+    };
 
     $rootScope.loadAllBySchool = function (schoolId) {
         var deferred = $q.defer();
