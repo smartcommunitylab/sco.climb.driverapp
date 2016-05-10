@@ -137,10 +137,23 @@ angular.module('driverapp', [
         };
 
         $rootScope.logout = function () {
-            $rootScope.identity = null;
-            StorageSrv.clearIdentityIndex();
+            $ionicPopup.confirm({
+                title: 'Logout',
+                template: 'Vuoi veramente fare logout?',
+                cancelText: 'No',
+                cancelType: 'button-stable',
+                okText: 'Si',
+                okType: 'button-energized'
+            })
 
-            window.location.reload(true);
+            .then(function (result) {
+                if (result) {
+                    LogSrv.log('--- LOGOUT ---');
+                    $rootScope.identity = null;
+                    StorageSrv.clearIdentityIndex();
+                    window.location.reload(true);
+                }
+            });
         };
     });
 })
