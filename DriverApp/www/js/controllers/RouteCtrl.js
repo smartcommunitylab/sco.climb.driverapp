@@ -302,8 +302,8 @@ angular.module('driverapp.controllers.route', [])
             $scope.children.forEach(function (child) {
                 // set image path
                 if (ionic.Platform.isWebView()) {
-                    var imagePath = cordova.file.externalRootDirectory + Config.IMAGES_DIR + child.objectId + '.png';
-                    $cordovaFile.checkFile(cordova.file.externalRootDirectory + Config.IMAGES_DIR, child.objectId + '.png').then(
+                    var imagePath = cordova.file.externalRootDirectory + Config.IMAGES_DIR + child.objectId + '.jpg';
+                    $cordovaFile.checkFile(cordova.file.externalRootDirectory + Config.IMAGES_DIR, child.objectId + '.jpg').then(
                         function (success) {
                             child.imageUrl = imagePath;
                         },
