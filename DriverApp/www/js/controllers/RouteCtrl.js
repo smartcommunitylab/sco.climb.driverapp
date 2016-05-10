@@ -26,6 +26,8 @@ angular.module('driverapp.controllers.route', [])
         stop: null
     };
 
+		var lastEventTimestamp = new Date().getTime();
+
     /* INIT */
     if (!!$stateParams['fromWizard']) {
         $scope.fromWizard = $stateParams['fromWizard'];
@@ -193,7 +195,16 @@ angular.module('driverapp.controllers.route', [])
         $scope.helpersTemp = [];
     };
 
-    $scope.goNext = function () {
+    $scope.goNext = function (event) {
+				var eventTimestamp = event.timeStamp;
+				//drop multi-event
+				if(eventTimestamp < (lastEventTimestamp + 1500)) {
+					console.log("event discarded");
+					//Utils.toast("event discarded");
+					return;
+				}
+				lastEventTimestamp = eventTimestamp;
+
         $ionicScrollDelegate.scrollTop(true);
 
         // if has next
@@ -291,8 +302,8 @@ angular.module('driverapp.controllers.route', [])
             $scope.children.forEach(function (child) {
                 // set image path
                 if (ionic.Platform.isWebView()) {
-                    var imagePath = cordova.file.externalRootDirectory + Config.IMAGES_DIR + child.objectId + '.png';
-                    $cordovaFile.checkFile(cordova.file.externalRootDirectory + Config.IMAGES_DIR, child.objectId + '.png').then(
+                    var imagePath = cordova.file.externalRootDirectory + Config.IMAGES_DIR + child.objectId + '.jpg';
+                    $cordovaFile.checkFile(cordova.file.externalRootDirectory + Config.IMAGES_DIR, child.objectId + '.jpg').then(
                         function (success) {
                             child.imageUrl = imagePath;
                         },

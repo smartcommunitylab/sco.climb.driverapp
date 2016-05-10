@@ -15,7 +15,7 @@
         <button class="button icon ion-android-arrow-dropleft-circle" ng-click="viewPrevious()" ng-disabled="enRouteArrived" ng-if="viewPos != 0"></button>
         <div class="title title-center">{{sel.stop.name}}</div>
         <button class="button icon ion-android-arrow-dropright-circle" ng-click="viewNext()" ng-disabled="enRouteArrived" ng-if="viewPos != enRoutePos"></button>
-        <button class="button button-light button-go" ng-click="goNext()" ng-disabled="enRouteArrived" ng-if="viewPos == enRoutePos">
+        <button class="button button-light button-go" ng-click="goNext($event)" ng-disabled="enRouteArrived" ng-if="viewPos == enRoutePos">
             <span ng-if="(enRoutePos + 1) < stops.length">Vai</span>
             <span ng-if="(enRoutePos + 1) >= stops.length">Arriva</span>
         </button>
