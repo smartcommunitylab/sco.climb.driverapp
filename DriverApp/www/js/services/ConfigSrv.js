@@ -1,12 +1,13 @@
 angular.module('driverapp.services.config', [])
 
-.factory('Config', function ($http, $q) {
+.factory('Config', function ($http, $q, StorageSrv) {
     var config = {};
 
     config.SERVER_URL = CONF.SERVER_URL;
     config.EVENTS_SERVER_URL = CONF.EVENTS_SERVER_URL;
-    config.OWNER_ID = CONF.OWNER_ID;
-    config.X_ACCESS_TOKEN = CONF.X_ACCESS_TOKEN;
+
+    config.IDENTITIES = CONF.IDENTITIES;
+    config.IDENTITY = CONF.IDENTITIES[0];
 
     config.GPS_DELAY = 4000;
     config.NETWORKSTATE_DELAY = 2000;
@@ -17,7 +18,7 @@ angular.module('driverapp.services.config', [])
         timeout: 10000,
         headers: {
             'Content-Type': 'application/json',
-            'X-ACCESS-TOKEN': config.X_ACCESS_TOKEN
+            'X-ACCESS-TOKEN': config.IDENTITY.X_ACCESS_TOKEN
         }
     };
 

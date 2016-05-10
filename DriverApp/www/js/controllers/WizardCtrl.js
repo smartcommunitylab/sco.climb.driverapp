@@ -3,6 +3,11 @@ angular.module('driverapp.controllers.wizard', [])
 .controller('WizardCtrl', function ($scope, $rootScope, $state, $ionicPopup, $ionicHistory, $ionicSlideBoxDelegate, $timeout, $filter, Config, Utils, StorageSrv, APISrv, WSNSrv) {
     $scope.swiperOptions = Config.WIZARD_SLIDER_OPTIONS;
 
+    var INDEXES = {
+        'volunteers': 2,
+        'helpers': 3
+    };
+
     $scope.schools = [];
     $scope.routes = [];
     $scope.volunteers = null;
@@ -98,7 +103,7 @@ angular.module('driverapp.controllers.wizard', [])
     };
 
     $scope.$on("wizard:IndexChanged", function (e, wizardIndex, wizardCount) {
-        if (wizardIndex == 1) {
+        if (wizardIndex == INDEXES.volunteers) {
             /*
              * sort volunteers only if route exists but not a driver
              */
@@ -139,7 +144,7 @@ angular.module('driverapp.controllers.wizard', [])
                 }
             }
             $scope.volunteers = sortedVolunteers;
-        } else if (wizardIndex == 2) {
+        } else if (wizardIndex == INDEXES.helpers) {
             if (!$scope.wizard.driver.wsnId) {
                 $scope.wizard.driver.wsnId = CONF.DEV_MASTER;
             }
