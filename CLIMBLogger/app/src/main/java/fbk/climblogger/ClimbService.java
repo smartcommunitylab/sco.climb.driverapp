@@ -70,7 +70,6 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothLeScanner mBluetoothLeScanner;
-    private boolean mScanning = false;
     private IBinder mBinder;
     private final String TAG = "ClimbService_GIOVA";
     private ArrayList<ClimbNode> nodeList;
@@ -271,7 +270,6 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 broadcastUpdate(ACTION_DATALOG_ACTIVE,EXTRA_STRING,file_name_log);
             }
 
-            mScanning = true;
             if (Build.VERSION.SDK_INT < 18) {
                 Log.e(TAG, "API level " + Build.VERSION.SDK_INT + " not supported!");
                 return 0;
@@ -316,7 +314,6 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
     public int StopMonitoring(){ //TODO: not exposed in main API
         if(mBluetoothAdapter != null) {
-            mScanning = true;
             disableNodeTimeout();
             if (Build.VERSION.SDK_INT < 21) {
                 mBluetoothAdapter.stopLeScan(mLeScanCallback);
