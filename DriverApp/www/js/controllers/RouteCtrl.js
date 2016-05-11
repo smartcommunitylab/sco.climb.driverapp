@@ -135,23 +135,63 @@ angular.module('driverapp.controllers.route', [])
         }
     }
 
-    /*
-     * populate stops
-     */
-    Utils.loading();
-    APISrv.getStopsByRoute($stateParams['routeId']).then(
-        function (stops) {
-            $scope.stops = stops;
-            // Select the first automatically
-            $scope.sel.stop = $scope.stops[0];
-            $scope.getChildrenForStop($scope.sel.stop);
-            Utils.loaded();
-        },
-        function (error) {
-            Utils.loaded();
-            console.log(error);
-        }
-    );
+		/*
+		 * populate stops
+		 */
+		Utils.loading();
+		APISrv.getStopsByRoute($stateParams['routeId']).then(
+			function (stops) {
+				$scope.stops = stops;
+				//get children images
+				if (Utils.isConnectionFastEnough()) {
+					// download children images
+					var counter = 0;
+					var downloaded = 0;
+					var children = StorageSrv.getChildren();
+					var childrenByRoute = [];
+					angular.forEach($scope.stops, function (stop) {
+						angular.forEach(children, function (child) {
+							if(stop.passengerList.indexOf(child.objectId) != -1) {
+								childrenByRoute.push(child);
+							}
+						});
+					});
+					angular.forEach(childrenByRoute, function (child) {
+						APISrv.getChildImage(child.objectId).then(
+							function () {
+								downloaded++;
+								counter++;
+								console.log('Downloaded images: ' + downloaded + ' (Total: ' + counter + '/' + children.length + ')');
+								if (counter == childrenByRoute.length) {
+									// Select the first automatically
+									$scope.sel.stop = $scope.stops[0];
+									$scope.getChildrenForStop($scope.sel.stop);
+									Utils.loaded();
+								}
+							},
+							function () {
+								counter++;
+								if (counter == childrenByRoute.length) {
+									// Select the first automatically
+									$scope.sel.stop = $scope.stops[0];
+									$scope.getChildrenForStop($scope.sel.stop);
+									Utils.loaded();
+								}
+							}
+						);
+					});
+				} else {
+					// Select the first automatically
+					$scope.sel.stop = $scope.stops[0];
+					$scope.getChildrenForStop($scope.sel.stop);
+					Utils.loaded();
+				}
+			},
+			function (error) {
+				Utils.loaded();
+				console.log(error);
+			}
+		);
 
     $scope.viewPrevious = function () {
         if (($scope.viewPos - 1) >= 0) {
