@@ -472,7 +472,7 @@
     color: #438699;
 }
 .dapp-theme .passenger-list {
-    height: 480px;
+    /*height: 480px;*/
     overflow-y: scroll;
     overflow-x: hidden;
 }

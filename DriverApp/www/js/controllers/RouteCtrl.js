@@ -1,10 +1,23 @@
 angular.module('driverapp.controllers.route', [])
 
-.controller('RouteCtrl', function ($scope, $rootScope, $stateParams, $ionicHistory, $ionicNavBarDelegate, $ionicPopup, $ionicModal, $interval, $ionicScrollDelegate, $filter, $timeout, $cordovaFile, Config, Utils, StorageSrv, GeoSrv, AESrv, APISrv, WSNSrv) {
+.controller('RouteCtrl', function ($scope, $rootScope, $stateParams, $ionicHistory, $ionicNavBarDelegate, $ionicPopup, $ionicModal, $interval, $ionicScrollDelegate, $filter, $timeout, $cordovaFile, $window, Config, Utils, StorageSrv, GeoSrv, AESrv, APISrv, WSNSrv) {
     $scope.fromWizard = false;
     $rootScope.pedibusEnabled = true;
 
     var passengersScrollDelegate = $ionicScrollDelegate.$getByHandle('passengersHandle');
+    $scope.mergedOnBoard = [];
+
+    /*
+     * Passengers panel size calculator
+     */
+    $scope.resizePassengersPanel = function () {
+        $scope.passengersPanelStyle = {};
+        var height = $window.innerHeight - (44 * 3);
+        height = height - (100 * $scope.mergedOnBoard.length) - ($scope.mergedOnBoard.length > 0 ? 28 : 0);
+        $scope.passengersPanelStyle['height'] = height + 'px';
+    };
+
+    $scope.resizePassengersPanel
 
     var aesInstance = {};
 
@@ -26,7 +39,7 @@ angular.module('driverapp.controllers.route', [])
         stop: null
     };
 
-		var lastEventTimestamp = new Date().getTime();
+    var lastEventTimestamp = new Date().getTime();
 
     /* INIT */
     if (!!$stateParams['fromWizard']) {
@@ -127,6 +140,8 @@ angular.module('driverapp.controllers.route', [])
                 }
             );
         }
+
+        $scope.resizePassengersPanel();
     } else {
         if (!!$stateParams['route']) {
             $scope.route = $stateParams['route'];
@@ -184,8 +199,7 @@ angular.module('driverapp.controllers.route', [])
         // update onBoard
         $scope.onBoard = $scope.onBoard.concat($scope.onBoardTemp);
         $scope.onBoardTemp = [];
-        $scope.mergedOnBoard = $scope.getMergedOnBoard();
-        passengersScrollDelegate.resize();
+        $scope.updateMergedOnBoard();
 
         // add new helpers
         $scope.helpersTemp.forEach(function (helper) {
@@ -196,14 +210,14 @@ angular.module('driverapp.controllers.route', [])
     };
 
     $scope.goNext = function (event) {
-				var eventTimestamp = event.timeStamp;
-				//drop multi-event
-				if(eventTimestamp < (lastEventTimestamp + 1500)) {
-					console.log("event discarded");
-					//Utils.toast("event discarded");
-					return;
-				}
-				lastEventTimestamp = eventTimestamp;
+        var eventTimestamp = event.timeStamp;
+        //drop multi-event
+        if (eventTimestamp < (lastEventTimestamp + 1500)) {
+            console.log("event discarded");
+            //Utils.toast("event discarded");
+            return;
+        }
+        lastEventTimestamp = eventTimestamp;
 
         $ionicScrollDelegate.scrollTop(true);
 
@@ -343,7 +357,7 @@ angular.module('driverapp.controllers.route', [])
             }
         }
 
-        $scope.mergedOnBoard = $scope.getMergedOnBoard();
+        $scope.updateMergedOnBoard();
         passengersScrollDelegate.resize();
     };
 
@@ -356,7 +370,7 @@ angular.module('driverapp.controllers.route', [])
             if (index !== -1) {
                 $scope.onBoardTemp.splice(index, 1);
                 AESrv.nodeCheckout(child);
-                $scope.mergedOnBoard = $scope.getMergedOnBoard();
+                $scope.updateMergedOnBoard();
                 passengersScrollDelegate.resize();
             }
         } else {
@@ -374,7 +388,7 @@ angular.module('driverapp.controllers.route', [])
                     if (index !== -1) {
                         $scope.onBoard.splice(index, 1);
                         AESrv.nodeCheckout(child);
-                        $scope.mergedOnBoard = $scope.getMergedOnBoard();
+                        $scope.updateMergedOnBoard();
                         passengersScrollDelegate.resize();
                     }
                 }
@@ -420,7 +434,7 @@ angular.module('driverapp.controllers.route', [])
                         });
                         $scope.toBeTaken = [];
 
-                        $scope.mergedOnBoard = $scope.getMergedOnBoard();
+                        $scope.updateMergedOnBoard();
                         passengersScrollDelegate.resize();
                     }
                 },
@@ -450,7 +464,7 @@ angular.module('driverapp.controllers.route', [])
                         });
                         $scope.toBeTaken = [];
 
-                        $scope.mergedOnBoard = $scope.getMergedOnBoard();
+                        $scope.updateMergedOnBoard();
                         passengersScrollDelegate.resize();
                     }
                 }
@@ -476,7 +490,7 @@ angular.module('driverapp.controllers.route', [])
     /*
      * Merge lists method: used to merge the two lists (onBoard and onBoardTmp) and generate a matrix with rows of 3 cols
      */
-    $scope.getMergedOnBoard = function () {
+    $scope.updateMergedOnBoard = function () {
         var onBoardMerged = [];
         var onBoardMatrix = [];
         var cols = 3;
@@ -511,8 +525,10 @@ angular.module('driverapp.controllers.route', [])
             }
             onBoardMatrix.push(rowArr);
         }
-        //return onBoardMerged;
-        return onBoardMatrix;
+
+        $scope.mergedOnBoard = onBoardMatrix;
+        $scope.resizePassengersPanel();
+        passengersScrollDelegate.resize();
     };
 
     /*
