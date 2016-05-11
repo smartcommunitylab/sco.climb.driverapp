@@ -97,8 +97,9 @@ angular.module('driverapp.controllers.home', [])
                                                     StorageSrv.saveChildren(children).then(
                                                         function (children) {
                                                             WSNSrv.updateNodeList(children, 'child');
+																														deferred.resolve();
 
-                                                            if (Utils.isConnectionFastEnough()) {
+                                                            /*if (Utils.isConnectionFastEnough()) {
                                                                 // download children images
                                                                 var counter = 0;
                                                                 var downloaded = 0;
@@ -122,7 +123,7 @@ angular.module('driverapp.controllers.home', [])
                                                                 });
                                                             } else {
                                                                 deferred.resolve();
-                                                            }
+                                                            }*/
                                                         }
                                                     );
                                                     //deferred.resolve();
