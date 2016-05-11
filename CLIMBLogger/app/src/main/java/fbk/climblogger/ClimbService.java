@@ -70,6 +70,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothLeScanner mBluetoothLeScanner;
+    private boolean initialized = false;
     private IBinder mBinder;
     private final String TAG = "ClimbService_GIOVA";
     private ArrayList<ClimbNode> nodeList;
@@ -514,11 +515,14 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
     public boolean init() {
 
-        return (StartMonitoring(true) == 1);
-
+        boolean ret = (StartMonitoring(true) == 1);
+        initialized = ret;
+        return ret;
     }
 
     public String[] getLogFiles() {
+        if (!initialized) return new String[0];
+
         String[] r;
         if (mFile != null) {
             if (mBufferedWriter != null) {
@@ -542,6 +546,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public String[] getMasters() {
+        if (!initialized) return new String[0];
+
         ArrayList<String> ids = new ArrayList<String>();
         for(ClimbNode n : nodeList) {
             if (n.isMasterNode()) {
@@ -552,6 +558,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public boolean setNodeList(String[] children) {
+        if (!initialized) return false;
+
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             return false;
@@ -572,6 +580,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public NodeState getNodeState(String id){
+        if (!initialized) return null;
+
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             // TODO
@@ -589,6 +599,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public NodeState[] getNetworkState() {
+        if (!initialized) return new NodeState[0];
+
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             // TODO
@@ -606,6 +618,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public String[] getChildren() {
+        if (!initialized) return new String[0];
+
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             // TODO
@@ -639,6 +653,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public boolean connectMaster(final String master) {
+        if (!initialized) return false;
+
         connectedMaster = master;
         ClimbNode node = nodeListGet(master);
         insertTag("Request_connect_to_GATT "+ master + ((node == null ? " not_in_list" : (" " + node.isMasterNode()))));
@@ -697,6 +713,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public boolean disconnectMaster() { //TODO: handle several masters?
+        if (!initialized) return false;
+
         if (mBluetoothGatt != null) {
             Log.i(TAG, "Climb master node disconnecting ...");
             insertTag("Request_disconnect_from_GATT");
@@ -779,6 +797,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public boolean checkinChild(String child) {
+        if (!initialized) return false;
+
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             return false; //TODO: exception?
@@ -794,6 +814,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public boolean checkinChildren(String[] children) {
+        if (!initialized) return false;
+
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             return false; //TODO: exception?
@@ -826,6 +848,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public boolean checkoutChild(String child) {
+        if (!initialized) return false;
+
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             return false; //TODO: exception?
@@ -841,6 +865,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public boolean checkoutChildren(String[] children) {
+        if (!initialized) return false;
+
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             return false; //TODO: exception?
