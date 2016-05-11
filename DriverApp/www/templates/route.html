@@ -23,7 +23,8 @@
     <ion-content class="route-view" ng-class="{'has-sub-subheader': fromWizard}" scroll="false">
         <div>
             <div>
-                <ion-scroll delegate-handle="passengersHandle" scroll-height ng-class="{'passenger-list': (!mergedOnBoard || mergedOnBoard.length == 0), 'passenger-list-resized': mergedOnBoard.length == 1, 'passenger-list-resized-xs': mergedOnBoard.length > 1}">
+                <!--<ion-scroll delegate-handle="passengersHandle" scroll-height ng-class="{'passenger-list': (!mergedOnBoard || mergedOnBoard.length == 0), 'passenger-list-resized': mergedOnBoard.length == 1, 'passenger-list-resized-xs': mergedOnBoard.length > 1}">-->
+                <ion-scroll delegate-handle="passengersHandle" scroll-height class="passenger-list" ng-style="passengersPanelStyle">
                     <!-- wsnId -->
                     <ion-item class="item item-avatar item-button-right item-route-passenger" ng-repeat="passenger in sel.stop.passengers | orderBy : ['surname', 'name']" ng-if="(onBoard.indexOf(passenger.objectId) === -1) && (onBoardTemp.indexOf(passenger.objectId) === -1)" ng-click="showChildDetails(passenger)">
                         <img class="item-route-passenger-img" ng-src="{{!!passenger.imageUrl ? passenger.imageUrl : 'img/placeholder_child.png'}}" />

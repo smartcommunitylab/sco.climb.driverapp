@@ -1,13 +1,17 @@
 angular.module('driverapp.services.config', [])
 
-.factory('Config', function ($http, $q, StorageSrv) {
+.factory('Config', function ($rootScope, $http, $q, StorageSrv) {
     var config = {};
 
     config.SERVER_URL = CONF.SERVER_URL;
     config.EVENTS_SERVER_URL = CONF.EVENTS_SERVER_URL;
 
     config.IDENTITIES = CONF.IDENTITIES;
-    config.IDENTITY = CONF.IDENTITIES[0];
+    config.IDENTITY = {
+        'OWNER_ID': '',
+        'X-ACCESS-TOKEN': '',
+        'PWD': ''
+    };
 
     config.GPS_DELAY = 4000;
     config.NETWORKSTATE_DELAY = 2000;
@@ -30,6 +34,20 @@ angular.module('driverapp.services.config', [])
 
     config.setIdentity = function (index) {
         config.IDENTITY = config.IDENTITIES[index];
+    };
+
+    config.resetIdentity = function () {
+        config.IDENTITY = {
+            'OWNER_ID': '',
+            'X-ACCESS-TOKEN': '',
+            'PWD': ''
+        }
+    };
+
+    config.getHttpConfig = function () {
+        var httpcfg = angular.copy(config.HTTP_CONFIG);
+        httpcfg.headers['X-ACCESS-TOKEN'] = config.IDENTITY.X_ACCESS_TOKEN;
+        return httpcfg;
     };
 
     return config;

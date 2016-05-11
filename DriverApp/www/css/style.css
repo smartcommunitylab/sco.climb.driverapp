@@ -238,7 +238,7 @@
     float: right;
 }
 .dapp-theme .wiz-scroll-panel {
-    max-height: 300px;
+    max-height: 250px;
     overflow-y: auto;
     overflow-x: hidden;
 }
@@ -472,7 +472,7 @@
     color: #438699;
 }
 .dapp-theme .passenger-list {
-    height: 480px;
+    /*height: 480px;*/
     overflow-y: scroll;
     overflow-x: hidden;
 }
