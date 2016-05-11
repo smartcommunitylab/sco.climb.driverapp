@@ -17,6 +17,10 @@ angular.module('driverapp.controllers.home', [])
         identityPwd: ''
     };
 
+    if (StorageSrv.getIdentityIndex() != null) {
+        Config.setIdentity(StorageSrv.getIdentityIndex());
+    }
+
     $ionicModal.fromTemplateUrl('templates/wizard_modal_login.html', {
         scope: $scope,
         animation: 'slide-in-up',
@@ -31,7 +35,7 @@ angular.module('driverapp.controllers.home', [])
         if (StorageSrv.getIdentityIndex() == null) {
             $rootScope.modalLogin.show();
         } else {
-            $scope.identity = Config.IDENTITIES[StorageSrv.getIdentityIndex()];
+            Config.setIdentity(StorageSrv.getIdentityIndex());
         }
     });
 
@@ -59,7 +63,7 @@ angular.module('driverapp.controllers.home', [])
         if (!!$scope.login.identity && $scope.login.identityPwd === $scope.login.identity.PWD) {
             console.log('+++ Right password +++');
             StorageSrv.saveIdentityIndex($scope.login.identityIndex);
-            $rootScope.identity = $scope.login.identity;
+            Config.setIdentity($scope.login.identityIndex);
             $rootScope.modalLogin.hide();
 
             $state.go($state.current, {}, {

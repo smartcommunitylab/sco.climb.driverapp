@@ -1,6 +1,6 @@
 angular.module('driverapp.services.api', [])
 
-.factory('APISrv', function ($http, $q, Config, Utils, WSNSrv) {
+.factory('APISrv', function ($rootScope, $http, $q, Config, Utils, WSNSrv) {
     var ERROR_TYPE = 'errorType';
     var ERROR_MSG = 'errorMsg';
 
@@ -9,7 +9,7 @@ angular.module('driverapp.services.api', [])
     APIService.getSchools = function () {
         var deferred = $q.defer();
 
-        $http.get(Config.SERVER_URL + '/school/' + Config.IDENTITY.OWNER_ID, Config.HTTP_CONFIG)
+        $http.get(Config.SERVER_URL + '/school/' + Config.IDENTITY.OWNER_ID, Config.getHttpConfig())
 
         .then(
             function (response) {
@@ -31,7 +31,7 @@ angular.module('driverapp.services.api', [])
             return deferred.promise;
         }
 
-        $http.get(Config.SERVER_URL + '/route/' + Config.IDENTITY.OWNER_ID + '/' + routeId, Config.HTTP_CONFIG)
+        $http.get(Config.SERVER_URL + '/route/' + Config.IDENTITY.OWNER_ID + '/' + routeId, Config.getHttpConfig())
 
         .then(
             function (response) {
@@ -54,14 +54,14 @@ angular.module('driverapp.services.api', [])
             return deferred.promise;
         }
 
-        var httpConfigWithParams = angular.copy(Config.HTTP_CONFIG);
+        var httpConfigWithParams = angular.copy(Config.getHttpConfig());
         httpConfigWithParams.params = {};
 
         if (Utils.isValidDate(date)) {
             httpConfigWithParams.params['date'] = date;
         }
 
-        $http.get(Config.SERVER_URL + '/route/' + Config.IDENTITY.OWNER_ID + '/school/' + schoolId, Config.HTTP_CONFIG)
+        $http.get(Config.SERVER_URL + '/route/' + Config.IDENTITY.OWNER_ID + '/school/' + schoolId, httpConfigWithParams)
 
         .then(
             function (response) {
@@ -83,7 +83,7 @@ angular.module('driverapp.services.api', [])
             return deferred.promise;
         }
 
-        $http.get(Config.SERVER_URL + '/stop/' + Config.IDENTITY.OWNER_ID + '/' + routeId, Config.HTTP_CONFIG)
+        $http.get(Config.SERVER_URL + '/stop/' + Config.IDENTITY.OWNER_ID + '/' + routeId, Config.getHttpConfig())
 
         .then(
             function (response) {
@@ -105,7 +105,7 @@ angular.module('driverapp.services.api', [])
             return deferred.promise;
         }
 
-        $http.get(Config.SERVER_URL + '/child/' + Config.IDENTITY.OWNER_ID + '/' + schoolId, Config.HTTP_CONFIG)
+        $http.get(Config.SERVER_URL + '/child/' + Config.IDENTITY.OWNER_ID + '/' + schoolId, Config.getHttpConfig())
 
         .then(
             function (response) {
@@ -130,7 +130,7 @@ angular.module('driverapp.services.api', [])
             return deferred.promise;
         }
 
-        var httpConfigWithParams = angular.copy(Config.HTTP_CONFIG);
+        var httpConfigWithParams = angular.copy(Config.getHttpConfig());
         httpConfigWithParams.params = {
             'classRoom': classRoom
         };
@@ -177,7 +177,7 @@ angular.module('driverapp.services.api', [])
                 },
                 false, {
                     headers: {
-                        'X-ACCESS-TOKEN': Config.X_ACCESS_TOKEN
+                        'X-ACCESS-TOKEN': Config.IDENTITY.X_ACCESS_TOKEN
                     }
                 }
             );
@@ -191,7 +191,7 @@ angular.module('driverapp.services.api', [])
     APIService.getAnchors = function () {
         var deferred = $q.defer();
 
-        $http.get(Config.SERVER_URL + '/anchor/' + Config.IDENTITY.OWNER_ID, Config.HTTP_CONFIG)
+        $http.get(Config.SERVER_URL + '/anchor/' + Config.IDENTITY.OWNER_ID, Config.getHttpConfig())
 
         .then(
             function (response) {
@@ -213,7 +213,7 @@ angular.module('driverapp.services.api', [])
             return deferred.promise;
         }
 
-        $http.get(Config.SERVER_URL + '/volunteer/' + Config.IDENTITY.OWNER_ID + '/' + schoolId, Config.HTTP_CONFIG)
+        $http.get(Config.SERVER_URL + '/volunteer/' + Config.IDENTITY.OWNER_ID + '/' + schoolId, Config.getHttpConfig())
 
         .then(
             function (response) {
@@ -238,7 +238,7 @@ angular.module('driverapp.services.api', [])
             return deferred.promise;
         }
 
-        var httpConfigWithParams = angular.copy(Config.HTTP_CONFIG);
+        var httpConfigWithParams = angular.copy(Config.getHttpConfig());
         httpConfigWithParams.params = {
             'dateFrom': dateFrom,
             'dateTo': dateTo
@@ -272,7 +272,7 @@ angular.module('driverapp.services.api', [])
             return deferred.promise;
         }
 
-        var httpConfigWithParams = angular.copy(Config.HTTP_CONFIG);
+        var httpConfigWithParams = angular.copy(Config.getHttpConfig());
         httpConfigWithParams.params = {
             'dateFrom': dateFrom,
             'dateTo': dateTo
@@ -299,7 +299,7 @@ angular.module('driverapp.services.api', [])
             deferred.reject('Invalid events');
         }
 
-        $http.post(Config.EVENTS_SERVER_URL + '/event/' + Config.IDENTITY.OWNER_ID, events, Config.HTTP_CONFIG)
+        $http.post(Config.EVENTS_SERVER_URL + '/event/' + Config.IDENTITY.OWNER_ID, events, Config.getHttpConfig())
 
         .then(
             function (response) {
@@ -333,7 +333,7 @@ angular.module('driverapp.services.api', [])
 
             options.mimeType = 'text/plain';
             options.headers = {
-                'X-ACCESS-TOKEN': Config.X_ACCESS_TOKEN
+                'X-ACCESS-TOKEN': Config.IDENTITY.X_ACCESS_TOKEN
             };
             options.params = {
                 name: options.fileName

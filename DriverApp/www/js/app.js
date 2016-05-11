@@ -149,7 +149,7 @@ angular.module('driverapp', [
             .then(function (result) {
                 if (result) {
                     LogSrv.log('--- LOGOUT ---');
-                    $rootScope.identity = null;
+                    Config.resetIdentity();
                     StorageSrv.clearIdentityIndex();
                     window.location.reload(true);
                 }

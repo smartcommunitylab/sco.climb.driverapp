@@ -41,11 +41,11 @@ angular.module('driverapp.controllers.wizard', [])
         );
     };
 
-    if (!$rootScope.identity && StorageSrv.getIdentityIndex()) {
-        $rootScope.identity = Config.IDENTITIES[StorageSrv.getIdentityIndex()];
+    if ((!Config.IDENTITY.OWNER_ID || !Config.IDENTITY.X_ACCESS_TOKEN) && StorageSrv.getIdentityIndex()) {
+        Config.IDENTITY = Config.IDENTITIES[StorageSrv.getIdentityIndex()];
     }
 
-    if (!!$rootScope.identity) {
+    if (!!Config.IDENTITY.OWNER_ID && !!Config.IDENTITY.X_ACCESS_TOKEN) {
         $scope.schools = [StorageSrv.getSchool()];
 
         if ($scope.schools !== null && $scope.schools.length == 1) {
