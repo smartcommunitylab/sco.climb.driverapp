@@ -238,7 +238,7 @@
     float: right;
 }
 .dapp-theme .wiz-scroll-panel {
-    max-height: 300px;
+    max-height: 250px;
     overflow-y: auto;
     overflow-x: hidden;
 }

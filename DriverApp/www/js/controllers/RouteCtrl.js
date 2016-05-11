@@ -13,7 +13,8 @@ angular.module('driverapp.controllers.route', [])
     $scope.resizePassengersPanel = function () {
         $scope.passengersPanelStyle = {};
         var height = $window.innerHeight - (44 * 3);
-        height = height - (100 * $scope.mergedOnBoard.length) - ($scope.mergedOnBoard.length > 0 ? 28 : 0);
+        var onBoardHeight = 100 * ($scope.mergedOnBoard.length > 2 ? 2 : $scope.mergedOnBoard.length);
+        height = height - onBoardHeight - (onBoardHeight > 0 ? 28 : 0);
         $scope.passengersPanelStyle['height'] = height + 'px';
     };
 
