@@ -97,7 +97,7 @@ angular.module('driverapp.controllers.home', [])
                                                     StorageSrv.saveChildren(children).then(
                                                         function (children) {
                                                             WSNSrv.updateNodeList(children, 'child');
-																														deferred.resolve();
+                                                            deferred.resolve();
 
                                                             /*if (Utils.isConnectionFastEnough()) {
                                                                 // download children images
