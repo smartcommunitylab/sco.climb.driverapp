@@ -75,7 +75,13 @@
 
                 mString = mString + "RSSI: " + (rssi );
 
-                if(connectionState){
+                if (bleDevice.getName() != null && bleDevice.getName().equals(ConfigVals.CLIMB_CHILD_DEVICE_NAME)) {
+                    if (scanResponseData != null && scanResponseData.length > 1) {
+                        mString += " Node ID (0x):" + String.format("%02X", scanResponseData[0]) + " State: " + stateToString(scanResponseData[1]);
+                    }
+                }
+
+                    if(connectionState){
                     mString = mString + ". Conn.";
                 }
         /*
