@@ -321,8 +321,9 @@ angular.module('driverapp.services.wsn', [])
                     deferred.reject(reason);
                 }
             );
-        }
-
+        } else {
+					 deferred.reject("log file not present");
+				}
         return deferred.promise;
     };
 

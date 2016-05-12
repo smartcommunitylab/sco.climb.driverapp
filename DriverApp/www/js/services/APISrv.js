@@ -372,14 +372,13 @@ angular.module('driverapp.services.api', [])
                                 deferred.resolve(r);
                             },
                             function (error) {
-                                deferred.error(error);
+                                deferred.reject(error);
                             }
                         );
                     });
                 },
                 function (reason) {
-                    // TODO toast for failure
-                    //Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
+									deferred.reject(reason);
                 }
             );
         } else {
