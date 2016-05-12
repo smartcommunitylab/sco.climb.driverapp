@@ -60,6 +60,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     final static private UUID mCIPOCharacteristicUuid = ConfigVals.Characteristic.CIPO;
     final static private UUID mPICOCharacteristicUuid = ConfigVals.Characteristic.PICO;
     private BluetoothGatt mBluetoothGatt = null;
+    private BluetoothGattCallback mGattCallback;
 
     private boolean nodeTimeOutEnabled = false;
     private connectMasterCBack connectMasterCB;
@@ -660,6 +661,12 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         insertTag("Request_connect_to_GATT "+ master + ((node == null ? " not_in_list" : (" " + node.isMasterNode()))));
         if (node != null && node.isMasterNode()) { //do something only if it is a master node
             if (mBluetoothGatt == null) {
+                if (Build.VERSION.SDK_INT < 18) {
+                    Log.e(TAG, "API level " + Build.VERSION.SDK_INT + " not supporting GATT callbacks!");
+                    return false;
+                }
+                mGattCallback = new BluetoothGattCBack();
+
                 mBTDevice = node.getBleDevice();
                 insertTag("Connecting_to_GATT " + (mBTDevice != null ? mBTDevice.getAddress() : "null"));
                 // The following call to the 4 parameter version of cpnnectGatt is public, but hidden with @hide
@@ -1036,7 +1043,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
-    private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
+    private class BluetoothGattCBack extends BluetoothGattCallback {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             if (mBluetoothGatt == null || gatt != mBluetoothGatt) {
