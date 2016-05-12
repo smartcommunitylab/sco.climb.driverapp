@@ -60,6 +60,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     final static private UUID mCIPOCharacteristicUuid = ConfigVals.Characteristic.CIPO;
     final static private UUID mPICOCharacteristicUuid = ConfigVals.Characteristic.PICO;
     private BluetoothGatt mBluetoothGatt = null;
+    private BluetoothGattCallback mGattCallback;
 
     private boolean nodeTimeOutEnabled = false;
     private connectMasterCBack connectMasterCB;
@@ -70,7 +71,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothLeScanner mBluetoothLeScanner;
-    private boolean mScanning = false;
+    private boolean initialized = false;
     private IBinder mBinder;
     private final String TAG = "ClimbService_GIOVA";
     private ArrayList<ClimbNode> nodeList;
@@ -271,7 +272,6 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 broadcastUpdate(ACTION_DATALOG_ACTIVE,EXTRA_STRING,file_name_log);
             }
 
-            mScanning = true;
             if (Build.VERSION.SDK_INT < 18) {
                 Log.e(TAG, "API level " + Build.VERSION.SDK_INT + " not supported!");
                 return 0;
@@ -316,7 +316,6 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
     public int StopMonitoring(){ //TODO: not exposed in main API
         if(mBluetoothAdapter != null) {
-            mScanning = true;
             disableNodeTimeout();
             if (Build.VERSION.SDK_INT < 21) {
                 mBluetoothAdapter.stopLeScan(mLeScanCallback);
@@ -517,11 +516,14 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
     public boolean init() {
 
-        return (StartMonitoring(true) == 1);
-
+        boolean ret = (StartMonitoring(true) == 1);
+        initialized = ret;
+        return ret;
     }
 
     public String[] getLogFiles() {
+        if (!initialized) return new String[0];
+
         String[] r;
         if (mFile != null) {
             if (mBufferedWriter != null) {
@@ -545,6 +547,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public String[] getMasters() {
+        if (!initialized) return new String[0];
+
         ArrayList<String> ids = new ArrayList<String>();
         for(ClimbNode n : nodeList) {
             if (n.isMasterNode()) {
@@ -555,6 +559,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public boolean setNodeList(String[] children) {
+        if (!initialized) return false;
+
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             return false;
@@ -575,6 +581,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public NodeState getNodeState(String id){
+        if (!initialized) return null;
+
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             // TODO
@@ -592,6 +600,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public NodeState[] getNetworkState() {
+        if (!initialized) return new NodeState[0];
+
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             // TODO
@@ -609,6 +619,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public String[] getChildren() {
+        if (!initialized) return new String[0];
+
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             // TODO
@@ -642,11 +654,19 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public boolean connectMaster(final String master) {
+        if (!initialized) return false;
+
         connectedMaster = master;
         ClimbNode node = nodeListGet(master);
         insertTag("Request_connect_to_GATT "+ master + ((node == null ? " not_in_list" : (" " + node.isMasterNode()))));
         if (node != null && node.isMasterNode()) { //do something only if it is a master node
             if (mBluetoothGatt == null) {
+                if (Build.VERSION.SDK_INT < 18) {
+                    Log.e(TAG, "API level " + Build.VERSION.SDK_INT + " not supporting GATT callbacks!");
+                    return false;
+                }
+                mGattCallback = new BluetoothGattCBack();
+
                 mBTDevice = node.getBleDevice();
                 insertTag("Connecting_to_GATT " + (mBTDevice != null ? mBTDevice.getAddress() : "null"));
                 // The following call to the 4 parameter version of cpnnectGatt is public, but hidden with @hide
@@ -700,6 +720,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public boolean disconnectMaster() { //TODO: handle several masters?
+        if (!initialized) return false;
+
         if (mBluetoothGatt != null) {
             Log.i(TAG, "Climb master node disconnecting ...");
             insertTag("Request_disconnect_from_GATT");
@@ -767,19 +789,23 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     private LinkedList<byte[]> PICOCharacteristicSendQueue = new LinkedList<byte[]>();
+    private boolean PICOCharacteristicSending = false;
 
     private boolean sendPICOCharacteristic(byte[] m) {
         mPICOCharacteristic.setValue(m);
-        if (! mBluetoothGatt.writeCharacteristic(mPICOCharacteristic)) {
+        if (!PICOCharacteristicSending && mBluetoothGatt.writeCharacteristic(mPICOCharacteristic)) {
+            PICOCharacteristicSending = true;
+            Log.i(TAG, "send: sent");
+        } else {
             Log.i(TAG, "send: queuing message qlen:" +PICOCharacteristicSendQueue.size());
             return PICOCharacteristicSendQueue.add(m.clone()); //clone to be on the safe side. Might not be needed.
-        } else {
-            Log.i(TAG, "send: sent");
         }
         return true;
     }
 
     public boolean checkinChild(String child) {
+        if (!initialized) return false;
+
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             return false; //TODO: exception?
@@ -795,6 +821,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public boolean checkinChildren(String[] children) {
+        if (!initialized) return false;
+
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             return false; //TODO: exception?
@@ -809,13 +837,12 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             if (monitoredChild != null) {
                 byte[] gattDataFrag = checkinCommand(monitoredChild);
                 if (gattDataFrag != null) {
-                    if (gattData.length - p >= gattDataFrag.length) {
-                        System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
-                        p += gattDataFrag.length;
-                    } else {
+                    if (gattData.length < p + gattDataFrag.length) {
                         ret &= sendPICOCharacteristic(Arrays.copyOf(gattData,p));
                         p = 0;
                     }
+                    System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
+                    p += gattDataFrag.length;
                 }
             } else {
                 ret = false;
@@ -828,6 +855,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public boolean checkoutChild(String child) {
+        if (!initialized) return false;
+
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             return false; //TODO: exception?
@@ -843,6 +872,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public boolean checkoutChildren(String[] children) {
+        if (!initialized) return false;
+
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             return false; //TODO: exception?
@@ -857,13 +888,12 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             if (monitoredChild != null) {
                 byte[] gattDataFrag = checkoutCommand(monitoredChild);
                 if (gattDataFrag != null) {
-                    if (gattData.length - p >= gattDataFrag.length) {
-                        System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
-                        p += gattDataFrag.length;
-                    } else {
+                    if (gattData.length < p + gattDataFrag.length) {
                         ret &= sendPICOCharacteristic(Arrays.copyOf(gattData,p));
                         p = 0;
                     }
+                    System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
+                    p += gattDataFrag.length;
                 }
             } else {
                 ret = false;
@@ -989,7 +1019,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                         //updateScnMetadata(index, result, nowMillis);
                     } else {
                         Log.d(TAG, "New device found, adding it to database!");
-                        android.os.Looper.prepare(); //TODO: check why this was needed. Otherwise to was throwing "Can't create handler inside thread that has not called Looper.prepare()"
+                        if (android.os.Looper.myLooper()==null) android.os.Looper.prepare(); //TODO: check why this was needed. Otherwise to was throwing "Can't create handler inside thread that has not called Looper.prepare()"
                         addToList(device, rssi, scanRecord, nowMillis);
                     }
                 }
@@ -1013,7 +1043,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
-    private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
+    private class BluetoothGattCBack extends BluetoothGattCallback {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             if (mBluetoothGatt == null || gatt != mBluetoothGatt) {
@@ -1037,6 +1067,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) { //TODO: check if this was intentional or not. If not, try to do something.
 
+                // for status codes, check https://android.googlesource.com/platform/external/bluetooth/bluedroid/+/android-4.4.4_r2.0.1/stack/include/gatt_api.h
                 Log.i(TAG, "Disconnected from GATT server. Status: " + status);
                 insertTag("Disconnected_from_GATT " + status);
                 if(mBTDevice != null) {
@@ -1158,14 +1189,24 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt,
                                           BluetoothGattCharacteristic characteristic, int status) {
+            if (gatt != mBluetoothGatt) {
+                Log.e(TAG, "onCharacteristicWrite for unknown GATT!");
+            }
+            if (characteristic != mPICOCharacteristic) {
+                Log.e(TAG, "onCharacteristicWrite for unknown characteristic!");
+            }
+
+            PICOCharacteristicSending = false;
             if(status != BluetoothGatt.GATT_SUCCESS){
                 Log.e(TAG, "onCharacteristicWrite: failed with status " + status);
+                insertTag("onCharacteristicWrite: failed with status " + status);
             } else {
                 Log.i(TAG, "onCharacteristicWrite: success " + status);
                 //if there are queued writes do them here
                 if (! PICOCharacteristicSendQueue.isEmpty()) {
                     mPICOCharacteristic.setValue(PICOCharacteristicSendQueue.element());
                     if (mBluetoothGatt.writeCharacteristic(mPICOCharacteristic)) {
+                        PICOCharacteristicSending = true;
                         Log.i(TAG, "onCharacteristicWrite: sent queued message");
                         PICOCharacteristicSendQueue.remove();
                     } else {
