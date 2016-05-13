@@ -320,9 +320,13 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         if(mBluetoothAdapter != null) {
             disableNodeTimeout();
             if (Build.VERSION.SDK_INT < 21) {
-                mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                if (mBluetoothAdapter != null) {
+                    mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                }
             } else {
-                mBluetoothLeScanner.stopScan(mScanCallback);
+                if (mBluetoothLeScanner != null) {
+                    mBluetoothLeScanner.stopScan(mScanCallback);
+                }
             }
 
             if(logEnabled){
