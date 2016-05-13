@@ -528,7 +528,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public String[] getLogFiles() {
-        if (!initialized) return new String[0];
+        //if (!initialized) return new String[0];
 
         String[] r;
         if (mFile != null) {
