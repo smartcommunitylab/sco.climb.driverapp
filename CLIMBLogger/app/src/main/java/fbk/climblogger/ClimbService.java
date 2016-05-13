@@ -181,6 +181,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             mBluetoothGatt = null;
         }
 
+        StopMonitoring();
 
         if (mBufferedWriter != null) {
             try {
