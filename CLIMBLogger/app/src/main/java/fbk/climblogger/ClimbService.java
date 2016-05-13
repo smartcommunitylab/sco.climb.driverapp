@@ -158,7 +158,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.i(TAG, "ClimbService started");
+        Log.i(TAG, "ClimbService created");
         insertTag("climb_service_created");
 
         mBinder = new LocalBinder();
@@ -181,7 +181,6 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             mBluetoothGatt = null;
         }
 
-        Log.i(TAG, "ClimbService Stopped.");
 
         if (mBufferedWriter != null) {
             try {
@@ -189,12 +188,14 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             } catch (IOException e) {
             }
         }
+        Log.i(TAG, "ClimbService onDestroy");
         insertTag("climb_service_destroyed");
 
     }
 
     @Override
     public boolean onUnbind(Intent intent) {
+        Log.i(TAG, "ClimbService onUnbind");
 
         if (mBufferedWriter != null) {
             try {
