@@ -54,7 +54,6 @@ public class ScanActivity extends Activity {
     private ClimbService mClimbService;
     private Context mContext = null;
     private EditText mConsole = null;
-    private CheckBox logCheckBox = null;
     private long lastBroadcastMessageSentMillis = 0;
     private int wakeUP_year = 0, wakeUP_month = 0, wakeUP_day = 0, wakeUP_hour = 0, wakeUP_minute = 0;
     ExpandableListView expandableListView;
@@ -204,21 +203,11 @@ public class ScanActivity extends Activity {
 
     View.OnClickListener startButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
-
             if(mClimbService != null){
-                if(logCheckBox != null && logCheckBox.isChecked()) {
-                    //TODO: start logging
-                    mClimbService.StartMonitoring(true);
-                    mVibrator.vibrate(ConfigVals.vibrationTimeout);
-                    Log.i(TAG, "Start scan with data logging!");
-                    log("Start scan with data logging command sent!");
-                }else{
-                    mClimbService.StartMonitoring(false);
-                    mVibrator.vibrate(ConfigVals.vibrationTimeout);
-                    Log.i(TAG, "Start scan without data logging!");
-                    log("Start scan without data logging command sent!");
-                }
-
+                mClimbService.init();
+                mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                Log.i(TAG, "Start scan with data logging!");
+                log("Start scan with data logging command sent!");
             }else{
                 Log.i(TAG, "Start scan not sent!");
                 log("Start scan not sent!");
@@ -534,8 +523,6 @@ public class ScanActivity extends Activity {
         mStopButton = (Button) findViewById(R.id.buttonStop);
         mStopButton.setOnClickListener(stopButtonHandler);
 
-        logCheckBox = (CheckBox) findViewById(R.id.logCheckBox);
-
         mTagButton = (Button) findViewById(R.id.buttonTag);
         mTagButton.setOnClickListener(tagButtonHandler);
 
@@ -607,7 +594,7 @@ public class ScanActivity extends Activity {
         Log.i(TAG, "ScanActivity.onDestroy() called.");
         log("ScanActivity.onDestroy() called.");
 
-        //stopService(new Intent(ScanActivity.this, ClimbService.class));
+        stopService(new Intent(ScanActivity.this, ClimbService.class));
         //climbNodeList = null;
         unbindService(mServiceConnection);
         //mClimbService = null;

@@ -50,14 +50,6 @@
                 android:layout_height="wrap_content"
                 android:text="Stop\nscan"
                 android:textSize="12dp" />
-            <CheckBox
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:text="LOG"
-                android:id="@+id/logCheckBox"
-                android:checked="true"
-                android:textColor="#a3a3a3"
-                android:textSize="18dp" />
 
             <Button
                 android:id="@+id/buttonTag"
