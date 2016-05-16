@@ -22,7 +22,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -31,7 +30,6 @@ import android.widget.EditText;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ListView;
-import android.widget.Spinner;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
@@ -47,22 +45,18 @@ import java.util.Locale;
 public class ScanActivity extends Activity {
 
     private final static String TAG = "ScanActivity_GIOVA";
-    private Button mStartButton,mStopButton,mTagButton,mCheckInAllButton,mSendCmdButton, mScheduleWUButton;//,mReleaseCmdButton;
-    private CheckBox mBroadcastCheckBox, mSelectAllCheckbox;
-    private Spinner mStatesSpinner;
+    private Button mStartButton,mStopButton,mTagButton,mCheckInAllButton,mCheckOutAllButton,mCheckInBcastButton,mCheckOutBcastButton,mScheduleWUButton;//,mReleaseCmdButton;
     private Vibrator mVibrator;
     private int index = 0;
-
+    private ArrayList<ClimbNode> climbNodeList;
+    private List<String> allowedChidren = new ArrayList<String>();
     private ArrayAdapter<ListView> adapter;
     private ClimbService mClimbService;
     private Context mContext = null;
     private EditText mConsole = null;
-    private CheckBox logCheckBox = null, mViewAllCheckbox = null;
-    private Handler mHandler = null;
+    private CheckBox logCheckBox = null;
     private long lastBroadcastMessageSentMillis = 0;
     private int wakeUP_year = 0, wakeUP_month = 0, wakeUP_day = 0, wakeUP_hour = 0, wakeUP_minute = 0;
-    private ArrayList<ClimbNode> climbNodeList;
-    private View monitoredChildNodeView;
     ExpandableListView expandableListView;
     MyExpandableListAdapter expandableListAdapter;
     List<ClimbNode> expandableListTitle;
@@ -89,20 +83,11 @@ public class ScanActivity extends Activity {
                 }else{
                     updateDetailsExpandableListDetails();
                 }
-
-//                boolean nodeCheckState[] = expandableListAdapter.getNodeCheckState(0);
-//                expandableListAdapter.notifyDataSetChanged();
-//                if(nodeCheckState != null) {
-//                    for(int i = 0; i < nodeCheckState.length; i++) {
-//                        nodeCheckState[i] = mSelectAllCheckbox.isChecked();
-//                    }
-//                }
-//                expandableListAdapter.notifyDataSetChanged();
+                expandableListAdapter.notifyDataSetChanged();
                 log("ACTION_DEVICE_ADDED_TO_LIST broadcast received");
 
             } else if (ClimbService.ACTION_DEVICE_REMOVED_FROM_LIST.equals(action)) {
 
-                updateDetailsExpandableListDetails();
                 expandableListAdapter.notifyDataSetChanged();
                 log("ACTION_DEVICE_REMOVED_FROM_LIST broadcast received");
 
@@ -124,25 +109,53 @@ public class ScanActivity extends Activity {
                 log("Datalog stopped");
             }else if (ClimbService.STATE_CONNECTED_TO_CLIMB_MASTER.equals(action)) {
                 Toast.makeText(getApplicationContext(),
-                        "Connected with GATT!",
+                        "Connected with GATT? " + intent.getBooleanExtra(ClimbService.INTENT_EXTRA_SUCCESS,true),
                         Toast.LENGTH_SHORT).show();
                 expandableListAdapter.notifyDataSetChanged();
-                log("Connected with GATT");
+                log("Connected with GATT? " + intent.getBooleanExtra(ClimbService.INTENT_EXTRA_SUCCESS,true));
+                mClimbService.setNodeList(allowedChidren.toArray(new String[allowedChidren.size()]));
             }else if (ClimbService.STATE_DISCONNECTED_FROM_CLIMB_MASTER.equals(action)) {
                 //climbNodeList.clear();
 
                  Toast.makeText(getApplicationContext(),
-                    "DISCONNECTED FROM GATT!",
+                    "DISCONNECTED FROM GATT! " + intent.getStringExtra(ClimbService.INTENT_EXTRA_ID),
                     Toast.LENGTH_SHORT).show();
                 log("DISCONNECTED FROM GATT!");
-                updateDetailsExpandableListDetails();
                 expandableListAdapter.notifyDataSetChanged();
 
             }
             else if (ClimbService.ACTION_NODE_ALERT.equals(action)) {
-                if(intent.hasExtra(ClimbService.EXTRA_BYTE_ARRAY)){
+                if (intent.hasExtra(ClimbService.EXTRA_BYTE_ARRAY)) {
                     byte[] nodeID = intent.getByteArrayExtra(ClimbService.EXTRA_BYTE_ARRAY);
                     String alertString = "ALERT ON NODE :" + String.format("%02X", nodeID[0]);
+                    Toast.makeText(getApplicationContext(),
+                            alertString,
+                            Toast.LENGTH_LONG).show();
+
+                    log(alertString);
+                } else {
+
+                }
+            } else if (ClimbService.STATE_CHECKEDIN_CHILD.equals(action)) {
+                if(intent.hasExtra(ClimbService.INTENT_EXTRA_ID))   {
+                        String nodeID = intent.getStringExtra(ClimbService.INTENT_EXTRA_ID);
+                        boolean success = intent.getBooleanExtra(ClimbService.INTENT_EXTRA_SUCCESS, true);
+                        String msg = intent.getStringExtra(ClimbService.INTENT_EXTRA_MSG);
+                        String alertString = "CHECKIN " + nodeID + " " + success + " " + msg;
+                        Toast.makeText(getApplicationContext(),
+                                alertString,
+                                Toast.LENGTH_LONG).show();
+
+                        log( alertString );
+                    }else{
+
+                    }
+            } else if (ClimbService.STATE_CHECKEDOUT_CHILD.equals(action)) {
+                if(intent.hasExtra(ClimbService.INTENT_EXTRA_ID))   {
+                    String nodeID = intent.getStringExtra(ClimbService.INTENT_EXTRA_ID);
+                    boolean success = intent.getBooleanExtra(ClimbService.INTENT_EXTRA_SUCCESS, true);
+                    String msg = intent.getStringExtra(ClimbService.INTENT_EXTRA_MSG);
+                    String alertString = "CHECKOUT " + nodeID + " " + success + " " + msg;
                     Toast.makeText(getApplicationContext(),
                             alertString,
                             Toast.LENGTH_LONG).show();
@@ -151,8 +164,6 @@ public class ScanActivity extends Activity {
                 }else{
 
                 }
-
-
             }
         }
     };
@@ -164,21 +175,23 @@ public class ScanActivity extends Activity {
         public void onServiceConnected(ComponentName componentName, IBinder service) {
             //la prossima istruzione ritorna l'oggetto BluetoothLeService
             mClimbService = ((ClimbService.LocalBinder) service).getService();
-            mClimbService.setHandler(mHandler);
             mClimbService.setContext(getApplicationContext());
-            mClimbService.setViewAll(mViewAllCheckbox.isChecked());
-
             //IN QUESTO PUNTO RICHIEDI LA LISTA DI DISPOSITIVI INIZIALI PER INSERIRLA NELLA LISTVIEW
-            climbNodeList = mClimbService.getNodeList();
+            climbNodeList = mClimbService.getNodeList(); //Csaba: TODO replace
             //expandableListTitle = climbNodeList;
             //expandableListDetail = ExpandableListDataPump.getData(); //expandableListDetail conterrà le info aggiuntive
             //expandableListTitle = new ArrayList<String>(expandableListDetail.keySet()); //expandableListTitle dovrà contenere i nomi dei dispositivi direttamente visibili dallo smartphone
-            expandableListDetail = new HashMap<ClimbNode, List<String>>(); //expandableListDetail conterrà le info aggiuntive
+            expandableListDetail = new HashMap<ClimbNode, List<String>>();
             expandableListAdapter = new MyExpandableListAdapter(mContext, climbNodeList, expandableListDetail);
-            expandableListView.setAdapter(expandableListAdapter); // climbNodeList dovrà contenere i nomi dei dispositivi direttamente visibili dallo smartphone
-            expandableListAdapter.notifyDataSetChanged();
+            expandableListView.setAdapter(expandableListAdapter);
+/*
+            //crea un adapter per gestire la listView
+            adapter = new ArrayAdapter<ListView>(mContext, android.R.layout.simple_list_item_1, android.R.id.text1,climbNodeList);
 
-
+            // Assign adapter to ListView
+            listView.setAdapter(adapter);
+            adapter.notifyDataSetChanged();
+*/
             Log.i(TAG, "Service connected!");
         }
 
@@ -219,6 +232,7 @@ public class ScanActivity extends Activity {
 
             if(mClimbService != null){
                 mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                Log.i(TAG, java.util.Arrays.toString(mClimbService.getLogFiles()));
                 mClimbService.StopMonitoring();
                 Log.i(TAG, "Stop scan!");
                 log("Stop scan command sent!");
@@ -249,119 +263,104 @@ public class ScanActivity extends Activity {
         }
     };
 
-    View.OnClickListener viewAllCheckboxHandler = new View.OnClickListener(){
+    View.OnClickListener ckInAllButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
 
-            if(mClimbService != null){
-                mClimbService.setViewAll(mViewAllCheckbox.isChecked());
-
-                expandableListAdapter.notifyDataSetChanged();
-
-
-            }else{
-                Log.w(TAG, "mClimbService == null");
-            }
-
-        }
-    };
-
-
-//    View.OnClickListener ckInAllButtonHandler = new View.OnClickListener(){
-//        public void onClick(View v) {
-//
-//            if (mBroadcastCheckBox.isChecked()) {
-//                if ((SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
-//                    if (mClimbService != null) {
-//                        if (mClimbService.SendCheckInAllCmd()) {
-//                            mVibrator.vibrate(ConfigVals.vibrationTimeout);
-//                            lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
-//                        } else {
-//                            Log.w(TAG, "Check in all not sent!");
-//                            log("Check in all not sent!");
-//                        }
-//                    } else {
-//                        Log.w(TAG, "Check in all not sent!");
-//                        log("Check in all not sent!");
-//                    }
-//                } else {
-//                    String alertString = "Wait a little";
-//                    Toast.makeText(getApplicationContext(),
-//                            alertString,
-//                            Toast.LENGTH_LONG).show();
-//                }
-//            }else{ //not broadcast a message
-//                if(expandableListAdapter != null) {
-//                    boolean[] childCheckStates = expandableListAdapter.getNodeCheckState(0);
-//                    if(mClimbService.setNewStateToCheckedNodes(0x02,childCheckStates,0)){
-//                        mVibrator.vibrate(ConfigVals.vibrationTimeout);
-//                    }else {
-//                        Log.w(TAG, "Check in not sent!");
-//                    }
-//                }else {
-//                    Log.w(TAG, "expandableListAdapter == null!!");
-//                }
-//            }
-//        }
-//    };
-    View.OnClickListener sendCmdButtonHandler = new View.OnClickListener(){
-        public void onClick(View v) {
-
-            if (climbNodeList != null && !climbNodeList.isEmpty()){
-                if (mBroadcastCheckBox.isChecked()) {
-                    if ((SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
-                        if (mClimbService != null) {
-                            String selectedState_S = mStatesSpinner.getSelectedItem().toString();
-                            int selectedState_i = stateString2int(selectedState_S);
-                            if (selectedState_i < 5) { //allow only transitions to valid states
-                                if (mClimbService.SendBroadcastStateChange(selectedState_i)) {
-                                    mVibrator.vibrate(ConfigVals.vibrationTimeout);
-                                    lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
-                                } else {
-                                    Log.w(TAG, "Cmd not sent!");
-                                    log("Cmd not sent!");
-                                }
-                            } else {
-                                Log.w(TAG, "Wrong state selected: " + selectedState_i);
-                            }
-                        } else {
-                            Log.w(TAG, "Cmd not sent!");
-                            log("Cmd not sent!");
-                        }
-
+            if( (SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
+                if (mClimbService != null) {
+                    if (mClimbService.checkinChildren(mClimbService.getChildren())) {
+                        mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                        lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
                     } else {
-                        String alertString = "Wait a little";
-                        Toast.makeText(getApplicationContext(),
-                                alertString,
-                                Toast.LENGTH_LONG).show();
+                        Log.i(TAG, "Check in all not sent!");
+                        log("Check in all not sent!");
                     }
-                } else { //not broadcast a messages
-                    if (expandableListAdapter != null) {
-                        boolean[] childCheckStates = expandableListAdapter.getNodeCheckState(0);
-                        if (childCheckStates != null) {
-
-                            String selectedState_S = mStatesSpinner.getSelectedItem().toString();
-                            int selectedState_i = stateString2int(selectedState_S);
-                            if (selectedState_i < 5) { //allow only transitions to valid states
-                                if (mClimbService.setNewStateToCheckedNodes(selectedState_i, childCheckStates, 0)) {
-                                    mVibrator.vibrate(ConfigVals.vibrationTimeout);
-                                } else {
-                                    Log.i(TAG, "Cmd not sent!");
-                                }
-                            } else {
-                                Log.w(TAG, "Wrong state selected: " + selectedState_i);
-                            }
-                        }
-                    } else {
-                        Log.w(TAG, "expandableListAdapter == null!!");
-                    }
+                } else {
+                    Log.i(TAG, "Check in all not sent!");
+                    log("Check in all not sent!");
                 }
             }else{
-                Toast.makeText(mContext,
-                        "Master NOT CONNECTED!",
-                        Toast.LENGTH_SHORT).show();
+                String alertString = "Wait a little";
+                Toast.makeText(getApplicationContext(),
+                        alertString,
+                        Toast.LENGTH_LONG).show();
             }
         }
-};
+    };
+    View.OnClickListener ckOutAllButtonHandler = new View.OnClickListener(){
+        public void onClick(View v) {
+
+            if ((SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
+                if (mClimbService != null) {
+                    if (mClimbService.checkoutChildren(mClimbService.getChildren())) {
+                        mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                        lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
+                    } else {
+                        Log.i(TAG, "Check out all not sent!");
+                        log("Check out all not sent!");
+                    }
+                } else {
+                    Log.i(TAG, "Check out all not sent!");
+                    log("Check out all not sent!");
+                }
+
+            }else{
+                String alertString = "Wait a little";
+                Toast.makeText(getApplicationContext(),
+                        alertString,
+                        Toast.LENGTH_LONG).show();
+            }
+        }
+    };
+    View.OnClickListener ckInBcastButtonHandler = new View.OnClickListener(){
+        public void onClick(View v) {
+
+            if( (SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
+                if (mClimbService != null) {
+                    if (mClimbService.SendCheckInAllCmd()) {
+                        mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                        lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
+                    } else {
+                        Log.i(TAG, "Check in all not sent!");
+                        log("Check in all not sent!");
+                    }
+                } else {
+                    Log.i(TAG, "Check in all not sent!");
+                    log("Check in all not sent!");
+                }
+            }else{
+                String alertString = "Wait a little";
+                Toast.makeText(getApplicationContext(),
+                        alertString,
+                        Toast.LENGTH_LONG).show();
+            }
+        }
+    };
+    View.OnClickListener ckOutBcastButtonHandler = new View.OnClickListener(){
+        public void onClick(View v) {
+
+            if ((SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
+                if (mClimbService != null) {
+                    if (mClimbService.SendCheckOutAllCmd()) {
+                        mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                        lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
+                    } else {
+                        Log.i(TAG, "Check out all not sent!");
+                        log("Check out all not sent!");
+                    }
+                } else {
+                    Log.i(TAG, "Check out all not sent!");
+                    log("Check out all not sent!");
+                }
+
+            }else{
+                String alertString = "Wait a little";
+                Toast.makeText(getApplicationContext(),
+                        alertString,
+                        Toast.LENGTH_LONG).show();
+            }
+        }
+    };
     View.OnClickListener scheduleWUButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
 
@@ -370,8 +369,28 @@ public class ScanActivity extends Activity {
             DialogFragment newFragment = new DatePickerFragment();
             newFragment.show(getFragmentManager(), "datePicker");
 
+/*            if( (SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
+                if (mClimbService != null) {
+                    if (mClimbService.ScheduleWakeUpCmd()) {
+                        mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                        lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
+                    } else {
+                        Log.i(TAG, "schedule wake up not sent!");
+                        log("schedule wake up not sent!");
+                    }
+                } else {
+                    Log.i(TAG, "schedule wake up not sent!");
+                    log("schedule wake up not sent!");
+                }
+            }else{
+                String alertString = "Wait a little";
+                Toast.makeText(getApplicationContext(),
+                        alertString,
+                        Toast.LENGTH_LONG).show();
+            }*/
         }
     };
+
     public void setWakeUpDate(int year, int month, int day){
         wakeUP_year = year;
         wakeUP_month = month;
@@ -430,26 +449,6 @@ public class ScanActivity extends Activity {
 
     }
 
-    View.OnClickListener selectAllCheckboxHandler = new View.OnClickListener(){
-        public void onClick(View v) {
-
-            mVibrator.vibrate(ConfigVals.vibrationTimeout);
-
-            if(expandableListAdapter != null) {
-                boolean nodeCheckState[] = expandableListAdapter.getNodeCheckState(0);
-                if(nodeCheckState != null) {
-                    boolean checked = mSelectAllCheckbox.isChecked();
-                    for (int i = 0; i < nodeCheckState.length; i++) {
-                        nodeCheckState[i] = checked;
-                    }
-                    expandableListAdapter.notifyDataSetChanged();
-                }
-            }
-        }
-    };
-
-
-
 /*    View.OnClickListener releaseCmdButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
 
@@ -460,25 +459,21 @@ public class ScanActivity extends Activity {
     };*/
 
     ExpandableListView.OnGroupExpandListener mOnGroupExpandListener = new ExpandableListView.OnGroupExpandListener() {
-
         @Override
         public void onGroupExpand(int groupPosition) {
             Log.i(TAG, "Group expanded, position: " + groupPosition);
-            //ClimbNode clickedNode = climbNodeList.get(groupPosition);
-
-            mClimbService.onNodeClick(groupPosition, -1);
+            ClimbNode clickedNode = climbNodeList.get(groupPosition);
+            if (! mClimbService.connectMaster(clickedNode.getNodeID())) {
+                Log.w(TAG, "Cannot connect to " + clickedNode.getNodeID());
+            }
             mVibrator.vibrate(ConfigVals.vibrationTimeout);
-
-
         }
     };
 
     ExpandableListView.OnGroupCollapseListener mOnGroupCollapseListener = new ExpandableListView.OnGroupCollapseListener() {
-
         @Override
         public void onGroupCollapse(int groupPosition) {
-
-            mClimbService.onNodeClick(groupPosition, -2);
+            mClimbService.disconnectMaster();
             mVibrator.vibrate(ConfigVals.vibrationTimeout);
         }
     };
@@ -487,9 +482,35 @@ public class ScanActivity extends Activity {
         @Override
         public boolean onChildClick(ExpandableListView parent, View v,
                                     int groupPosition, int childPosition, long id) {
-
-            mClimbService.onNodeClick(groupPosition,childPosition);
-            mVibrator.vibrate(ConfigVals.vibrationTimeout);
+            //TODO: implement
+            ClimbNode clickedNode = climbNodeList.get(groupPosition);
+            if (clickedNode.isMasterNode()) {
+                MonitoredClimbNode monitoredChild = clickedNode.getMonitoredClimbNodeList().get(childPosition);
+                String actionString = "";
+                String childID = monitoredChild.getNodeIDString();
+                switch (monitoredChild.getNodeState()) {
+                    case 0:
+                        if (!allowedChidren.contains(childID)) {
+                            allowedChidren.add(childID);
+                        }
+                        mClimbService.setNodeList(allowedChidren.toArray(new String[allowedChidren.size()]));
+                        actionString = "allowing " + childID;
+                        break;
+                    case 1:
+                        mClimbService.checkinChild(childID);
+                        actionString = "checkin " + childID;
+                        break;
+                    case 2:
+                        mClimbService.checkoutChild(childID);
+                        actionString = "checkout " + childID;
+                        break;
+                    default:
+                }
+                mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                Toast.makeText(getApplicationContext(),
+                        actionString,
+                        Toast.LENGTH_LONG).show();
+            }
 
             return false;
         }
@@ -500,10 +521,8 @@ public class ScanActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scan);
-        mHandler = new Handler();
 
         mContext = this.getApplicationContext();
-
         //mConsole = (EditText) findViewById(R.id.console_item);
 
         //listView = (ListView) findViewById(R.id.list);
@@ -520,32 +539,20 @@ public class ScanActivity extends Activity {
         mTagButton = (Button) findViewById(R.id.buttonTag);
         mTagButton.setOnClickListener(tagButtonHandler);
 
+        mCheckInAllButton = (Button) findViewById(R.id.buttonCheckInAll);
+        mCheckInAllButton.setOnClickListener(ckInAllButtonHandler);
 
-        mViewAllCheckbox = (CheckBox) findViewById(R.id.viewAllCheckBox);
-        mViewAllCheckbox.setOnClickListener(viewAllCheckboxHandler);
+        mCheckOutAllButton = (Button) findViewById(R.id.buttonCheckOutAll);
+        mCheckOutAllButton.setOnClickListener(ckOutAllButtonHandler);
 
-        //mCheckInAllButton = (Button) findViewById(R.id.buttonCheckInAll);
-        //mCheckInAllButton.setOnClickListener(ckInAllButtonHandler);
+        mCheckInBcastButton = (Button) findViewById(R.id.buttonCheckInBcast);
+        mCheckInBcastButton.setOnClickListener(ckInBcastButtonHandler);
 
-        mSendCmdButton = (Button) findViewById(R.id.sendCmd);
-        mSendCmdButton.setOnClickListener(sendCmdButtonHandler);
+        mCheckOutBcastButton = (Button) findViewById(R.id.buttonCheckOutBcast);
+        mCheckOutBcastButton.setOnClickListener(ckOutBcastButtonHandler);
 
         mScheduleWUButton = (Button) findViewById(R.id.scheduleWakeUpAll);
         mScheduleWUButton.setOnClickListener(scheduleWUButtonHandler);
-
-        mSelectAllCheckbox = (CheckBox) findViewById(R.id.selectAllCheckbox);
-        mSelectAllCheckbox.setOnClickListener(selectAllCheckboxHandler);
-
-
-        mBroadcastCheckBox = (CheckBox) findViewById(R.id.broadcastCheckBox);
-
-        mStatesSpinner = (Spinner) findViewById(R.id.statesSpinner);
-        // Create an ArrayAdapter using the string array and a default spinner layout
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.Node_states, R.layout.spinner_item);
-        // Specify the layout to use when the list of choices appears
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        // Apply the adapter to the spinner
-        mStatesSpinner.setAdapter(adapter);
 
        // mReleaseCmdButton = (Button) findViewById(R.id.test);
         //mReleaseCmdButton.setOnClickListener(releaseCmdButtonHandler);
@@ -656,20 +663,6 @@ public class ScanActivity extends Activity {
 
     }
 
-    private int stateString2int(String stateString){
-        if(stateString.equals("BY_MYSELF")){
-            return 0;
-        }else if(stateString.equals("CHECKING")){
-            return 1;
-        }else if(stateString.equals("ON_BOARD")){
-            return 2;
-        }else if(stateString.equals("GOING_TO_SLEEP")){
-            return 4;
-        }else{
-            return 6;
-        }
-    }
-
     private void log(final String txt) {
         if(mConsole == null) return;
 
@@ -692,6 +685,8 @@ public class ScanActivity extends Activity {
         intentFilter.addAction(ClimbService.STATE_DISCONNECTED_FROM_CLIMB_MASTER);
         intentFilter.addAction(ClimbService.ACTION_DEVICE_REMOVED_FROM_LIST);
         intentFilter.addAction(ClimbService.ACTION_NODE_ALERT);
+        intentFilter.addAction(ClimbService.STATE_CHECKEDIN_CHILD);
+        intentFilter.addAction(ClimbService.STATE_CHECKEDOUT_CHILD);
         return intentFilter;
     }
 

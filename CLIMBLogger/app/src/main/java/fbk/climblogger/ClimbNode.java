@@ -1,7 +1,7 @@
         package fbk.climblogger;
 
         import android.bluetooth.BluetoothDevice;
-        import android.bluetooth.le.ScanResult;
+        import android.os.Handler;
         import android.util.Log;
         import android.util.SparseArray;
 
@@ -13,7 +13,12 @@
         /**
          * Created by user on 05/10/2015.
          */
+
         public class ClimbNode {
+
+            interface ClimbNodeTimeout {
+                public void climbNodeTimedout(ClimbNode node);
+            }
 
             private BluetoothDevice bleDevice;
             private byte rssi;
@@ -22,26 +27,18 @@
             private byte[] lastReceivedGattData = {};
             private final String TAG = "ClimbNode_GIOVA";
             //private long lastContactMillis = 0;
+            private String[] allowedChildrenList = new String[0];
             private ArrayList<MonitoredClimbNode> onBoardChildrenList;
             private boolean connectionState = false;
             private boolean isMasterNode = false;
-            private boolean timedOut = false;
+            private ClimbNodeTimeout timedoutCallback = null;
+            private MonitoredClimbNode.MonitoredClimbNodeTimeout timedoutCallback2 = null;
+            private Runnable timedoutTimer = null;
+            private Handler mHandler = null;
+            private boolean driveTransitionToChecking = true;
 
-            public ClimbNode() {
-                return;
-            }
 
-            /*
-                public ClimbNode(String initName, String initAddress , int initRssi, byte[] newScanResponse, long millisNow){//SparseArray<byte[]> newScanResponse){
-
-                    bleDevice = null;
-                    rssi = initRssi;
-                    scanResponseData = newScanResponse;
-                    lastContactMillis = millisNow;
-                    return;
-                }
-            */
-            public ClimbNode(BluetoothDevice dev, byte initRssi, byte[] newScanResponse, boolean masterNode) {//SparseArray<byte[]> newScanResponse){
+            public ClimbNode(BluetoothDevice dev, byte initRssi, byte[] newScanResponse, boolean masterNode, ClimbNodeTimeout cb, MonitoredClimbNode.MonitoredClimbNodeTimeout cb2) {//SparseArray<byte[]> newScanResponse){
 
                 bleDevice = dev;
                 rssi = initRssi;
@@ -49,7 +46,9 @@
                 //lastContactMillis = millisNow;
                 onBoardChildrenList = new ArrayList<MonitoredClimbNode>();
                 isMasterNode = masterNode;
-                timedOut = false;
+                timedoutCallback = cb;
+                timedoutCallback2 = cb2;
+                mHandler = new Handler();
                 return;
             }
 
@@ -76,9 +75,14 @@
 
                 mString = mString + "RSSI: " + (rssi );
 
-                if(connectionState){
-                    mString = mString + ". Conn. " + onBoardChildrenList.size() +" C.";
+                if (bleDevice.getName() != null && bleDevice.getName().equals(ConfigVals.CLIMB_CHILD_DEVICE_NAME)) {
+                    if (scanResponseData != null && scanResponseData.length > 1) {
+                        mString += " Node ID (0x):" + String.format("%02X", scanResponseData[0]) + " State: " + stateToString(scanResponseData[1]);
+                    }
+                }
 
+                    if(connectionState){
+                    mString = mString + ". Conn.";
                 }
         /*
                 if(scanResponseData != null){
@@ -104,25 +108,16 @@
                 return mString;
             }
 
-            public String getAddress() {
-                return bleDevice.getAddress();
-            }
+            public String getAddress() { return bleDevice.getAddress(); }
 
             public String getName() {
                 return bleDevice.getName();
             }
 
+            public String getNodeID() { return getAddress(); }
+
             public BluetoothDevice getBleDevice() {
                 return bleDevice;
-            }
-
-
-            public void setTimedOut(boolean value){
-                timedOut = value;
-            }
-
-            public boolean getTimedOut(){
-                return timedOut;
             }
 
             public boolean isMasterNode(){
@@ -141,42 +136,110 @@
                 return onBoardChildrenList;
             }
 
+            public void setAllowedChildrenList(String[] children){
+                allowedChildrenList = children;
+            }
+
+            public String[] getAllowedChildrenList(){
+                return allowedChildrenList;
+            }
+
+            public MonitoredClimbNode getChildByID(String id) {
+                for(MonitoredClimbNode n : onBoardChildrenList){
+                    if( n.getNodeIDString().equals(id) ){
+                        return n;
+                    }
+                }
+
+                return null;
+            }
+
+            private void timedout() {
+                (timedoutCallback).climbNodeTimedout(this);
+            }
+
+            private void timeoutRestart() {
+                if (timedoutTimer != null) {
+                    mHandler.removeCallbacks(timedoutTimer);
+                }
+                timedoutTimer = new Runnable() {
+                    @Override
+                    public void run() {
+                        timedout();
+                    }
+                };
+                mHandler.postDelayed(timedoutTimer, ConfigVals.NODE_TIMEOUT);
+            }
+
             public void updateScnMetadata(byte newRssi, byte[] newScanResponse){//, long millisNow) {//SparseArray<byte[]> newScanResponse){
                 rssi = newRssi;
                 scanResponseData = newScanResponse;
-                timedOut = false;
                 //lastContactMillis = millisNow;
+                timeoutRestart();
             }
 
-            public void updateGATTMetadata(int newRssi, byte[] cipo_metadata){//}, long millisNow) {//SparseArray<byte[]> newScanResponse){
+            public MonitoredClimbNode findChildByID(byte[] id) {
+                for (MonitoredClimbNode n : onBoardChildrenList) {
+                    if (Arrays.equals(n.getNodeID(), id)) {
+                        return n;
+                    }
+                }
+                return null;
+            }
+
+            private boolean isAllowedChild(byte[] nodeID) {
+                for (String s : allowedChildrenList) {
+                    if (s.equals(String.format("%02X", nodeID[0]))) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            public List<byte[]> updateGATTMetadata(int newRssi, byte[] cipo_metadata, long millisNow) {//SparseArray<byte[]> newScanResponse){
                 //rssi = newRssi;
                 lastReceivedGattData = cipo_metadata;
-                timedOut = false;
                 //lastContactMillis = millisNow;
+                timeoutRestart();
 
+                List<byte[]> toChecking = new ArrayList<byte[]>();
                 //AGGIORNA LA LISTA DEI NODI ON_BOARD
                 for (int i = 0; i < lastReceivedGattData.length-2; i = i + 3) {
                     if(lastReceivedGattData[i] != 0 ) { //se l'ID è 0x00 scartalo
                         //if (lastReceivedGattData[i + 2] == 2) { //ON_BOARD
                             byte[] tempNodeID = { lastReceivedGattData[i] };//, lastReceivedGattData[i+1]};
-                            MonitoredClimbNode tempNode = new MonitoredClimbNode(tempNodeID,lastReceivedGattData[i+1],lastReceivedGattData[i+2]);//, millisNow);
+                            byte state = lastReceivedGattData[i+1];
+                            byte rssi = lastReceivedGattData[i+2];
+                            MonitoredClimbNode n = findChildByID(tempNodeID);
 
-                            int pos = onBoardChildrenList.indexOf(tempNode);
-                            if(pos == -1){ //aggiungi il nodo
-                                onBoardChildrenList.add(tempNode);
-                            }else{  //aggiorna il nodo (sostituisci l'istanza)
-                                MonitoredClimbNode tempNode2 = onBoardChildrenList.get(pos);
-
-                                if(tempNode2.getNodeState() != tempNode.getNodeState()){
-                                    tempNode.setAutomaticStateChangeRequested(false);
+                            if (driveTransitionToChecking) {
+                                if (state == 0 && isAllowedChild(tempNodeID)) {
+                                    //state = 1; //TODO: think whether this makes things faster
+                                    toChecking.add(tempNodeID);
                                 }
-
-                                onBoardChildrenList.set(pos,tempNode);
+                            }
+                            if (n == null) {
+                                onBoardChildrenList.add(new MonitoredClimbNode(tempNodeID, state, rssi, millisNow, mHandler));
+                            } else {
+                                n.setNodeState(state, millisNow);
+                                n.setNodeRssi(rssi);
                             }
                         //}
                     }
                 }
+                return toChecking;
+            }
 
+            private String stateToString(byte s) {
+                switch (s) {
+                    case 0: return "BY MYSELF";
+                    case 1: return "CHECKING";
+                    case 2: return "ON BOARD";
+                    case 3: return "ALERT";
+                    case 4: return "GOING TO SLEEP";
+                    case 5: return "ERROR";
+                    default: return "INVALID STATE";
+                }
             }
 
             public List<String> getClimbNeighbourList() {
@@ -187,24 +250,10 @@
 
                     if (bleDevice.getName().equals(ConfigVals.CLIMB_CHILD_DEVICE_NAME)) {
                         if (scanResponseData != null && scanResponseData.length > 1){
-                            if (scanResponseData[1] == 0) {   //BY_MYSELF
-                                description = "Node ID: 0x" + String.format("%02X",scanResponseData[0]) + "\nState: BY MYSELF";
-                            } else if (scanResponseData[1] == 1) { //CHECKING
-                                description = "Node ID: 0x" + String.format("%02X",scanResponseData[0]) + "\nState: CHECKING";
-                            } else if (scanResponseData[1] == 2) { //ON_BOARD
-                                description = "Node ID: 0x" + String.format("%02X",scanResponseData[0]) + "\nState: ON BOARD";
-                            } else if (scanResponseData[1] == 3) { //ALERT
-                                description = "Node ID: 0x" + String.format("%02X",scanResponseData[0]) + "\nState: ALERT";
-                            } else if (scanResponseData[1] == 4) { //GOING TO SLEEP
-                                description = "Node ID: 0x" + String.format("%02X", scanResponseData[0]) + "\nState: GOING TO SLEEP";
-                            }else if (scanResponseData[1] == 5) { //ERROR
-                                description = "Node ID: 0x" + String.format("%02X",scanResponseData[0]) + "\nState: ERROR";
-                            } else { //INVALID STATE
-                                description = "Node ID: 0x" + String.format("%02X",scanResponseData[0]) + "\nState: INVALID STATE";
-                            }
+                            description = "Node ID (0x):" + String.format("%02X",scanResponseData[0]) +"\nState: " + stateToString(scanResponseData[1]);
                         }
 
-                        if (scanResponseData.length > 3) {
+                        if (scanResponseData.length > 4) {
                             description = description + "\nBattery Voltage = " + String.format("%d", (  ((((int) scanResponseData[scanResponseData.length-3]) << 24) >>> 24)<<8) + ( (((int) scanResponseData[scanResponseData.length-2]) << 24) >>> 24 ) ) + " mV";
                         }
 
@@ -214,29 +263,12 @@
                     } else if (bleDevice.getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {
 
                         if (connectionState) {
-                            for (int i = 0; i < onBoardChildrenList.size(); i++) {
-                                MonitoredClimbNode tempNode = onBoardChildrenList.get(i);
-                                if (tempNode.getNodeState() == 0) {   //BY_MYSELF
-                                    description = "Node ID: 0x" + String.format("%02X", tempNode.getNodeID()[0]) + ", State: BY MYSELF, RSSI: " + tempNode.getNodeRssi();
-                                } else if (tempNode.getNodeState()  == 1) { //CHECKING
-                                    description = "Node ID: 0x" + String.format("%02X", tempNode.getNodeID()[0]) + ", State: CHECKING, RSSI: " + tempNode.getNodeRssi();
-                                } else if (tempNode.getNodeState()  == 2) { //ON_BOARD
-                                    description = "Node ID: 0x" + String.format("%02X", tempNode.getNodeID()[0]) + ", State: ON BOARD, RSSI: " + tempNode.getNodeRssi();
-                                } else if (tempNode.getNodeState()  == 3) { //ALERT
-                                    description = "Node ID: 0x" + String.format("%02X", tempNode.getNodeID()[0]) + ", State: ALERT, RSSI: " + tempNode.getNodeRssi();
-                                } else if (tempNode.getNodeState()  == 4) { //GOING TO SLEEP
-                                    description = "Node ID: 0x" + String.format("%02X", tempNode.getNodeID()[0]) + ", State: GOING TO SLEEP, RSSI: " + tempNode.getNodeRssi();
-                                } else if (tempNode.getNodeState()  == 5) { //ERROR
-                                    description = "Node ID: 0x" + String.format("%02X", tempNode.getNodeID()[0]) + ", State: ERROR, RSSI: " + tempNode.getNodeRssi();
-                                } else { //INVALID STATE
-                                    description = "Node ID: 0x" + String.format("%02X", tempNode.getNodeID()[0]) + ", State: INVALID STATE, RSSI: " + tempNode.getNodeRssi();
-                                }
+                            for (MonitoredClimbNode tempNode : onBoardChildrenList) {
+                                description = "Node ID (0x): " + tempNode.getNodeIDString();
+                                description += "\tState: " + stateToString(tempNode.getNodeState());
+                                description += "\tRSSI: " + tempNode.getNodeRssi();
                                 neighbourList.add(description);
                             }
-
-                            return neighbourList;
-                        } else {//master not connected
-
                             return neighbourList;
                         }
 

@@ -17,11 +17,13 @@ public class ConfigVals {
     static TimeZone tz = TimeZone.getTimeZone("Europe/Rome");
 
     static Calendar rightNow = Calendar.getInstance(tz);// .getInstance();*/
-    public static String folderName = root.getAbsolutePath()+	"/CLIMB_log_data/"+rightNow.get(Calendar.DAY_OF_MONTH)+"_"+ (rightNow.get(Calendar.MONTH) + 1) +"_"+ rightNow.get(Calendar.YEAR) +"/";
+    public static String folderName = root.getAbsolutePath()+	"/CLIMB_log_data/"+rightNow.get(Calendar.YEAR)+"_"+ (rightNow.get(Calendar.MONTH) + 1) +"_"+ rightNow.get(Calendar.DAY_OF_MONTH) +"/";
 
-    static final int NODE_TIMEOUT = 2500;
+    static final int NODE_TIMEOUT = 15 * 1000;
+    static final int MON_NODE_TIMEOUT = 15 * 1000;
+    static final int CONNECT_TIMEOUT = 15 * 1000;
 
-    static final long MAX_WAKE_UP_DELAY_SEC = 864000; //864000 secondi = 10 giorni
+    static final long MAX_WAKE_UP_DELAY_SEC = 259200;
 
     static final int vibrationTimeout = 15;
 
