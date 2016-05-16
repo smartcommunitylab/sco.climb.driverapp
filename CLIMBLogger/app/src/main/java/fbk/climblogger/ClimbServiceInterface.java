@@ -7,7 +7,7 @@ import java.util.ArrayList;
 public interface ClimbServiceInterface {
 
     public enum State {
-        BYMYSELF(0), CHECKING(1), ONBOARD(2), ALERT(3), ERROR(4);
+        BYMYSELF(0), CHECKING(1), ONBOARD(2), ALERT(3), GOINGTOSLEEP(4), ERROR(5);
         private final int id;
         State(int id) { this.id = id; }
         public int getValue() { return id; }
