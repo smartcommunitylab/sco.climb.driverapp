@@ -44,10 +44,46 @@ public interface ClimbServiceInterface {
      */
     public final static String INTENT_EXTRA_MSG ="fbk.climblogger.ClimbService.INTENT_EXTRA_MSG";
 
+    /**
+     * Initialize the service.
+     *
+     * @return whether initialization wa successful. If false, other functions of the service should
+     * not be used.
+     */
     public boolean init();
+
+    /**
+     * Pass on the application context to the service, required for initializing the underlying
+     * Bluetooth GATT. Its utilization is not documented in the Android API.
+     */
     public void setContext(Context context);
+
+
+    /**
+     * Get list of recently seen master nodes.
+     *
+     * @return list of master node IDs, if any, or empty list.
+     */
     public String[] getMasters();
+
+    /**
+     * Connect to the selected master.
+     *
+     * @return true if successfully started the connection process. If true, a
+     * STATE_CONNECTED_TO_CLIMB_MASTER(true/false) message will signal the successful or
+     * unsuccessful end of the connection attempt. If false, STATE_CONNECTED_TO_CLIMB_MASTER will
+     * not be fired.
+     */
     public boolean connectMaster(String master);
+
+    /**
+     * Disconnect from the connected master.
+     *
+     * @return true if successfully started the disconnection process. If true, a
+     * STATE_DISCONNECTED_FROM_CLIMB_MASTER(true/false) message will signal the successful or
+     * unsuccessful end of the disconnection attempt. If false, STATE_DISCONNECTED_FROM_CLIMB_MASTER
+     * will not be fired.
+     */
     public boolean disconnectMaster();
 
     /**
@@ -58,7 +94,8 @@ public interface ClimbServiceInterface {
     public String[] getLogFiles();
 
     /**
-     * Set the list all nodes that might belong to this master, i.e. nodes for which the master can change state.
+     * Set the list of all nodes that might belong to the connected master, i.e. nodes for which the
+     * master can change state.
      *
      * @param children List of node IDs.
      * @return false if master is not connected or other error occurs
@@ -75,14 +112,46 @@ public interface ClimbServiceInterface {
 
     /**
      * Get state of every child node seen by the master.
+     *
      * @return Array of node states.
      */
     public NodeState[] getNetworkState();
 
+    /**
+     * Check in a given child node.
+     *
+     * @param child Id of node.
+     * @return true if successfully started the checkin. If true, a STATE_CHECKEDIN_CHILD (true/false)
+     * message will be fired signaling successful/unsuccessful checkin.
+     */
     public boolean checkinChild(String child);
-    public boolean checkinChildren(String[] children);
-    public boolean checkoutChild(String child);
-    public boolean checkoutChildren(String[] children);
 
-    ////public boolean ScheduleWakeUpCmd(int timeout_sec);
+    /**
+     * Check in child nodes.
+     *
+     * @param children Id of child nodes to check in.
+     * @return true if successfully started the checkin for every single child node in the list.
+     * A STATE_CHECKEDIN_CHILD (true/false) message will be fired signaling successful/unsuccessful checkin
+     * for every child node where the checkin process stated successfully.
+     */
+    public boolean checkinChildren(String[] children);
+
+    /**
+     * Check out a given child node.
+     *
+     * @param child Id of node.
+     * @return true if successfully started the checkout. If true, a STATE_CHECKEDOUT_CHILD (true/false)
+     * message will be fired signaling successful/unsuccessful checkout.
+     */
+    public boolean checkoutChild(String child);
+
+    /**
+     * Check out child nodes.
+     *
+     * @param children Id of child nodes to check out.
+     * @return true if successfully started the checkout for every single child node in the list.
+     * A STATE_CHECKEDOUT_CHILD (true/false) message will be fired signaling successful/unsuccessful checkout
+     * for every child node where the checkout process stated successfully.
+     */
+    public boolean checkoutChildren(String[] children);
 }
