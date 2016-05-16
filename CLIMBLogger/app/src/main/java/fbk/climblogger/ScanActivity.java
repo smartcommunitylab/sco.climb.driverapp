@@ -594,7 +594,7 @@ public class ScanActivity extends Activity {
         Log.i(TAG, "ScanActivity.onDestroy() called.");
         log("ScanActivity.onDestroy() called.");
 
-        //stopService(new Intent(ScanActivity.this, ClimbService.class));
+        stopService(new Intent(ScanActivity.this, ClimbService.class));
         //climbNodeList = null;
         unbindService(mServiceConnection);
         //mClimbService = null;
