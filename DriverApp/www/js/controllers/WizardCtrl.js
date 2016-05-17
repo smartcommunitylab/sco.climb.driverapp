@@ -45,17 +45,20 @@ angular.module('driverapp.controllers.wizard', [])
         Config.IDENTITY = Config.IDENTITIES[StorageSrv.getIdentityIndex()];
     }
 
-    if (!!Config.IDENTITY.OWNER_ID && !!Config.IDENTITY.X_ACCESS_TOKEN) {
-        $scope.schools = [StorageSrv.getSchool()];
-
-        if ($scope.schools !== null && $scope.schools.length == 1) {
-            $scope.wizard.school = $scope.schools[0];
+    APISrv.getSchools().then(
+        function (schools) {
+            $scope.schools = schools;
+        	if ($scope.schools !== null && $scope.schools.length == 1) {
+            	$scope.wizard.school = $scope.schools[0];
+        	}
+			if ($scope.wizard.school !== null) {
+				loadDataBySchool($scope.wizard.school.objectId);
+			}
+        },
+        function (error) {
+            console.log(error);
         }
-
-        if ($scope.wizard.school !== null) {
-            loadDataBySchool($scope.wizard.school.objectId);
-        }
-    }
+    );
 
     $scope.selectSchoolPopup = function () {
         var schoolPopup = $ionicPopup.show({
@@ -70,6 +73,7 @@ angular.module('driverapp.controllers.wizard', [])
 
         $scope.selectSchool = function (school) {
             $scope.wizard.school = school;
+		  	StorageSrv.saveSchool(school);
             schoolPopup.close();
             loadDataBySchool($scope.wizard.school.objectId);
         };
