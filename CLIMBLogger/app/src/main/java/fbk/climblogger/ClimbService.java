@@ -181,6 +181,9 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             mBluetoothGatt = null;
         }
 
+        Log.i(TAG, "ClimbService onDestroy");
+        insertTag("climb_service_destroyed");
+
         StopMonitoring();
 
         if (mBufferedWriter != null) {
@@ -189,9 +192,6 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             } catch (IOException e) {
             }
         }
-        Log.i(TAG, "ClimbService onDestroy");
-        insertTag("climb_service_destroyed");
-
     }
 
     @Override
