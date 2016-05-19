@@ -22,9 +22,13 @@ import fbk.climblogger.ClimbServiceInterface;
 import fbk.climblogger.ClimbServiceInterface.NodeState;
 
 public class DriverAppPlugin extends CordovaPlugin {
-	private static final String LOG_TAG = "DriverAppPlugin";
+	private static final String LOG_TAG = "ClimbDriverAppPlugin";
+
+	private Context ctx;
 
 	private ClimbService mClimbService = null;
+	private boolean isBound = false;
+
 	private BroadcastReceiver receiver = null;
 	private CallbackContext listenerCallbackContext = null;
 
@@ -36,13 +40,13 @@ public class DriverAppPlugin extends CordovaPlugin {
 	public void initialize(CordovaInterface cordova, CordovaWebView webView) {
 		super.initialize(cordova, webView);
 
-		Log.w(LOG_TAG, "context: " + webView.getContext());
+		ctx = webView.getContext();
+		Log.w(LOG_TAG, "context: " + ctx);
 
-		Intent climbServiceIntent = new Intent(webView.getContext(), ClimbService.class);
+		Intent climbServiceIntent = new Intent(ctx, ClimbService.class);
 		Log.w(LOG_TAG, "climbServiceIntent: " + climbServiceIntent);
-		boolean bound = webView.getContext().bindService(climbServiceIntent, mServiceConnection,
-				Context.BIND_AUTO_CREATE);
-		Log.w(LOG_TAG, "bound? " + bound);
+		isBound = ctx.bindService(climbServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+		Log.w(LOG_TAG, "bound? " + isBound);
 	}
 
 	@Override
@@ -274,6 +278,11 @@ public class DriverAppPlugin extends CordovaPlugin {
 
 	public void onDestroy() {
 		removeListener();
+
+		if (isBound) {
+			ctx.unbindService(mServiceConnection);
+			Log.w(LOG_TAG, "unbindService called");
+		}
 	}
 
 	public void onReset() {
@@ -285,6 +294,7 @@ public class DriverAppPlugin extends CordovaPlugin {
 			try {
 				webView.getContext().unregisterReceiver(this.receiver);
 				this.receiver = null;
+				Log.w(LOG_TAG, "Listener removed");
 			} catch (Exception e) {
 				Log.e(LOG_TAG, "Error unregistering receiver: " + e.getMessage(), e);
 			}
