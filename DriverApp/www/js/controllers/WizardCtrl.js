@@ -1,7 +1,13 @@
 angular.module('driverapp.controllers.wizard', [])
 
-.controller('WizardCtrl', function ($scope, $rootScope, $state, $ionicPopup, $ionicHistory, $ionicSlideBoxDelegate, $timeout, $filter, Config, Utils, StorageSrv, APISrv, WSNSrv) {
+.controller('WizardCtrl', function ($scope, $rootScope, $state, $ionicPopup, $ionicModal, $ionicHistory, $ionicSlideBoxDelegate, $timeout, $filter, Config, Utils, StorageSrv, APISrv, WSNSrv) {
     $scope.swiperOptions = Config.WIZARD_SLIDER_OPTIONS;
+
+    var INDEXES = {
+        'schools': 0,
+        'volunteers': 1,
+        'helpers': 2
+    };
 
     $scope.schools = [];
     $scope.routes = [];
@@ -35,15 +41,24 @@ angular.module('driverapp.controllers.wizard', [])
         );
     };
 
-    $scope.schools = [StorageSrv.getSchool()];
-
-    if ($scope.schools !== null && $scope.schools.length == 1) {
-        $scope.wizard.school = $scope.schools[0];
+    if ((!Config.IDENTITY.OWNER_ID || !Config.IDENTITY.X_ACCESS_TOKEN) && StorageSrv.getIdentityIndex()) {
+        Config.IDENTITY = Config.IDENTITIES[StorageSrv.getIdentityIndex()];
     }
 
-    if ($scope.wizard.school !== null) {
-        loadDataBySchool($scope.wizard.school.objectId);
-    }
+    APISrv.getSchools().then(
+        function (schools) {
+            $scope.schools = schools;
+        	if ($scope.schools !== null && $scope.schools.length == 1) {
+            	$scope.wizard.school = $scope.schools[0];
+        	}
+			if ($scope.wizard.school !== null) {
+				loadDataBySchool($scope.wizard.school.objectId);
+			}
+        },
+        function (error) {
+            console.log(error);
+        }
+    );
 
     $scope.selectSchoolPopup = function () {
         var schoolPopup = $ionicPopup.show({
@@ -58,6 +73,7 @@ angular.module('driverapp.controllers.wizard', [])
 
         $scope.selectSchool = function (school) {
             $scope.wizard.school = school;
+		  	StorageSrv.saveSchool(school);
             schoolPopup.close();
             loadDataBySchool($scope.wizard.school.objectId);
         };
@@ -98,7 +114,18 @@ angular.module('driverapp.controllers.wizard', [])
     };
 
     $scope.$on("wizard:IndexChanged", function (e, wizardIndex, wizardCount) {
-        if (wizardIndex == 1) {
+        /*if (wizardIndex == INDEXES.schools) {
+            $scope.schools = [StorageSrv.getSchool()];
+
+            if ($scope.schools !== null && $scope.schools.length == 1) {
+                $scope.wizard.school = $scope.schools[0];
+            }
+
+            if ($scope.wizard.school !== null) {
+                loadDataBySchool($scope.wizard.school.objectId);
+            }
+        }*/
+        if (wizardIndex == INDEXES.volunteers) {
             /*
              * sort volunteers only if route exists but not a driver
              */
@@ -139,7 +166,7 @@ angular.module('driverapp.controllers.wizard', [])
                 }
             }
             $scope.volunteers = sortedVolunteers;
-        } else if (wizardIndex == 2) {
+        } else if (wizardIndex == INDEXES.helpers) {
             if (!$scope.wizard.driver.wsnId) {
                 $scope.wizard.driver.wsnId = CONF.DEV_MASTER;
             }

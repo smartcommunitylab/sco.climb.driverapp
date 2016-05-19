@@ -1,12 +1,17 @@
 angular.module('driverapp.services.config', [])
 
-.factory('Config', function ($http, $q) {
+.factory('Config', function ($rootScope, $http, $q, StorageSrv) {
     var config = {};
 
     config.SERVER_URL = CONF.SERVER_URL;
     config.EVENTS_SERVER_URL = CONF.EVENTS_SERVER_URL;
-    config.OWNER_ID = CONF.OWNER_ID;
-    config.X_ACCESS_TOKEN = CONF.X_ACCESS_TOKEN;
+
+    config.IDENTITIES = CONF.IDENTITIES;
+    config.IDENTITY = {
+        'OWNER_ID': '',
+        'X-ACCESS-TOKEN': '',
+        'PWD': ''
+    };
 
     config.GPS_DELAY = 4000;
     config.NETWORKSTATE_DELAY = 2000;
@@ -17,7 +22,7 @@ angular.module('driverapp.services.config', [])
         timeout: 10000,
         headers: {
             'Content-Type': 'application/json',
-            'X-ACCESS-TOKEN': config.X_ACCESS_TOKEN
+            'X-ACCESS-TOKEN': config.IDENTITY.X_ACCESS_TOKEN
         }
     };
 
@@ -26,6 +31,24 @@ angular.module('driverapp.services.config', [])
 
     config.LOGFILE_PATH = '/CLIMB_log_data/aelog.txt';
     config.IMAGES_DIR = '/CLIMB_log_data/images/';
+
+    config.setIdentity = function (index) {
+        config.IDENTITY = config.IDENTITIES[index];
+    };
+
+    config.resetIdentity = function () {
+        config.IDENTITY = {
+            'OWNER_ID': '',
+            'X-ACCESS-TOKEN': '',
+            'PWD': ''
+        }
+    };
+
+    config.getHttpConfig = function () {
+        var httpcfg = angular.copy(config.HTTP_CONFIG);
+        httpcfg.headers['X-ACCESS-TOKEN'] = config.IDENTITY.X_ACCESS_TOKEN;
+        return httpcfg;
+    };
 
     return config;
 });

@@ -73,8 +73,14 @@
                         <span ng-class="{'warning': masterError == true}">Diagnostica</span>
                     </div>
                 </ion-item>
-                <ion-item nav-clear menu-close href ng-click="exitApp()">
+                <ion-item nav-clear menu-close href ng-click="logout()">
                     <i class="icon ion-log-out"></i>
+                    <div class="menu-link-wrapper">
+                        Logout
+                    </div>
+                </ion-item>
+                <ion-item nav-clear menu-close href ng-click="exitApp()">
+                    <i class="icon ion-close"></i>
                     <div class="menu-link-wrapper">
                         Chiudi l'app
                     </div>

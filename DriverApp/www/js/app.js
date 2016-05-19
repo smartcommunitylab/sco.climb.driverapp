@@ -2,10 +2,10 @@ angular.module('driverapp', [
     'ionic',
     'ionic.wizard',
     'ngCordova',
-    'driverapp.services.config',
-    'driverapp.services.log',
-    'driverapp.services.utils',
     'driverapp.services.storage',
+    'driverapp.services.config',
+    'driverapp.services.utils',
+    'driverapp.services.log',
     'driverapp.services.wsn',
     'driverapp.services.geo',
     'driverapp.services.ae',
@@ -18,7 +18,7 @@ angular.module('driverapp', [
     'driverapp.controllers.volunteers'
 ])
 
-.run(function ($ionicPlatform, $rootScope, $ionicPopup, Config, Utils, LogSrv, WSNSrv, APISrv) {
+.run(function ($ionicPlatform, $rootScope, $state, $ionicHistory, $ionicPopup, $window, Config, Utils, StorageSrv, LogSrv, WSNSrv, APISrv) {
     $ionicPlatform.ready(function () {
         // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
         // for form inputs)
@@ -132,6 +132,49 @@ angular.module('driverapp', [
                     LogSrv.log('--- APPLICATION CLOSED ---');
                     Utils.setMenuDriverTitle(null); // clear driver name in menu
                     ionic.Platform.exitApp();
+                }
+            });
+        };
+
+        $rootScope.logout = function () {
+            $ionicPopup.confirm({
+                title: 'Logout',
+                template: 'Vuoi veramente fare logout?',
+                cancelText: 'No',
+                cancelType: 'button-stable',
+                okText: 'Si',
+                okType: 'button-energized'
+            })
+
+            .then(function (result) {
+                if (result) {
+                    LogSrv.log('--- LOGOUT ---');
+                    Config.resetIdentity();
+                    StorageSrv.clearIdentityIndex();
+                    ionic.Platform.exitApp();
+
+                    /*
+                    $state.go('app.wizard').then(function () {
+                        window.location.reload(true);
+                    });
+                    */
+
+                    /*
+                    window.location.hash = '/wizard';
+                    window.location.reload(true);
+                    */
+
+                    /*
+                    document.location.href = 'index.html';
+                    */
+
+                    /*
+                    $state.go('app.wizard');
+                    $ionicHistory.clearHistory();
+                    setTimeout(function () {
+                        $window.location.reload(true);
+                    }, 100);
+                    */
                 }
             });
         };

@@ -1,5 +1,5 @@
 <ion-list>
-    <ion-item ng-repeat="route in routes" ng-click="selectRoute(route)">
+    <ion-item ng-repeat="route in routes | orderBy : ['name']" ng-click="selectRoute(route)">
         {{route.name}}
     </ion-item>
 </ion-list>

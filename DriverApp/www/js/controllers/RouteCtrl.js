@@ -1,10 +1,24 @@
 angular.module('driverapp.controllers.route', [])
 
-.controller('RouteCtrl', function ($scope, $rootScope, $stateParams, $ionicHistory, $ionicNavBarDelegate, $ionicPopup, $ionicModal, $interval, $ionicScrollDelegate, $filter, $timeout, $cordovaFile, Config, Utils, StorageSrv, GeoSrv, AESrv, APISrv, WSNSrv) {
+.controller('RouteCtrl', function ($scope, $rootScope, $stateParams, $ionicHistory, $ionicNavBarDelegate, $ionicPopup, $ionicModal, $interval, $ionicScrollDelegate, $filter, $timeout, $cordovaFile, $window, Config, Utils, StorageSrv, GeoSrv, AESrv, APISrv, WSNSrv) {
     $scope.fromWizard = false;
     $rootScope.pedibusEnabled = true;
 
     var passengersScrollDelegate = $ionicScrollDelegate.$getByHandle('passengersHandle');
+    $scope.mergedOnBoard = [];
+
+    /*
+     * Passengers panel size calculator
+     */
+    $scope.resizePassengersPanel = function () {
+        $scope.passengersPanelStyle = {};
+        var height = $window.innerHeight - (44 * 3);
+        var onBoardHeight = 100 * ($scope.mergedOnBoard.length > 2 ? 2 : $scope.mergedOnBoard.length);
+        height = height - onBoardHeight - (onBoardHeight > 0 ? 28 : 0);
+        $scope.passengersPanelStyle['height'] = height + 'px';
+    };
+
+    $scope.resizePassengersPanel
 
     var aesInstance = {};
 
@@ -25,6 +39,8 @@ angular.module('driverapp.controllers.route', [])
     $scope.sel = {
         stop: null
     };
+
+    var lastEventTimestamp = new Date().getTime();
 
     /* INIT */
     if (!!$stateParams['fromWizard']) {
@@ -125,6 +141,8 @@ angular.module('driverapp.controllers.route', [])
                 }
             );
         }
+
+        $scope.resizePassengersPanel();
     } else {
         if (!!$stateParams['route']) {
             $scope.route = $stateParams['route'];
@@ -133,23 +151,63 @@ angular.module('driverapp.controllers.route', [])
         }
     }
 
-    /*
-     * populate stops
-     */
-    Utils.loading();
-    APISrv.getStopsByRoute($stateParams['routeId']).then(
-        function (stops) {
-            $scope.stops = stops;
-            // Select the first automatically
-            $scope.sel.stop = $scope.stops[0];
-            $scope.getChildrenForStop($scope.sel.stop);
-            Utils.loaded();
-        },
-        function (error) {
-            Utils.loaded();
-            console.log(error);
-        }
-    );
+	/*
+	 * populate stops
+	 */
+	Utils.loading();
+	APISrv.getStopsByRoute($stateParams['routeId']).then(
+		function (stops) {
+			$scope.stops = stops;
+			//get children images
+			if (Utils.isConnectionFastEnough()) {
+				// download children images
+				var counter = 0;
+				var downloaded = 0;
+				var children = StorageSrv.getChildren();
+				var childrenByRoute = [];
+				angular.forEach($scope.stops, function (stop) {
+					angular.forEach(children, function (child) {
+						if(stop.passengerList.indexOf(child.objectId) != -1) {
+							childrenByRoute.push(child);
+						}
+					});
+				});
+				angular.forEach(childrenByRoute, function (child) {
+					APISrv.getChildImage(child.objectId).then(
+						function () {
+							downloaded++;
+							counter++;
+							console.log('Downloaded images: ' + downloaded + ' (Total: ' + counter + '/' + children.length + ')');
+							if (counter == childrenByRoute.length) {
+								// Select the first automatically
+								$scope.sel.stop = $scope.stops[0];
+								$scope.getChildrenForStop($scope.sel.stop);
+								Utils.loaded();
+							}
+						},
+						function () {
+							counter++;
+							if (counter == childrenByRoute.length) {
+								// Select the first automatically
+								$scope.sel.stop = $scope.stops[0];
+								$scope.getChildrenForStop($scope.sel.stop);
+								Utils.loaded();
+							}
+						}
+					);
+				});
+			} else {
+				// Select the first automatically
+				$scope.sel.stop = $scope.stops[0];
+				$scope.getChildrenForStop($scope.sel.stop);
+				Utils.loaded();
+			}
+		},
+		function (error) {
+			Utils.loaded();
+			console.log(error);
+		}
+	);
 
     $scope.viewPrevious = function () {
         if (($scope.viewPos - 1) >= 0) {
@@ -182,8 +240,7 @@ angular.module('driverapp.controllers.route', [])
         // update onBoard
         $scope.onBoard = $scope.onBoard.concat($scope.onBoardTemp);
         $scope.onBoardTemp = [];
-        $scope.mergedOnBoard = $scope.getMergedOnBoard();
-        passengersScrollDelegate.resize();
+        $scope.updateMergedOnBoard();
 
         // add new helpers
         $scope.helpersTemp.forEach(function (helper) {
@@ -193,7 +250,16 @@ angular.module('driverapp.controllers.route', [])
         $scope.helpersTemp = [];
     };
 
-    $scope.goNext = function () {
+    $scope.goNext = function (event) {
+        var eventTimestamp = event.timeStamp;
+        //drop multi-event
+        if (eventTimestamp < (lastEventTimestamp + 1500)) {
+            console.log("event discarded");
+            //Utils.toast("event discarded");
+            return;
+        }
+        lastEventTimestamp = eventTimestamp;
+
         $ionicScrollDelegate.scrollTop(true);
 
         // if has next
@@ -291,8 +357,8 @@ angular.module('driverapp.controllers.route', [])
             $scope.children.forEach(function (child) {
                 // set image path
                 if (ionic.Platform.isWebView()) {
-                    var imagePath = cordova.file.externalRootDirectory + Config.IMAGES_DIR + child.objectId + '.png';
-                    $cordovaFile.checkFile(cordova.file.externalRootDirectory + Config.IMAGES_DIR, child.objectId + '.png').then(
+                    var imagePath = cordova.file.externalRootDirectory + Config.IMAGES_DIR + child.objectId + '.jpg';
+                    $cordovaFile.checkFile(cordova.file.externalRootDirectory + Config.IMAGES_DIR, child.objectId + '.jpg').then(
                         function (success) {
                             child.imageUrl = imagePath;
                         },
@@ -332,7 +398,7 @@ angular.module('driverapp.controllers.route', [])
             }
         }
 
-        $scope.mergedOnBoard = $scope.getMergedOnBoard();
+        $scope.updateMergedOnBoard();
         passengersScrollDelegate.resize();
     };
 
@@ -345,7 +411,7 @@ angular.module('driverapp.controllers.route', [])
             if (index !== -1) {
                 $scope.onBoardTemp.splice(index, 1);
                 AESrv.nodeCheckout(child);
-                $scope.mergedOnBoard = $scope.getMergedOnBoard();
+                $scope.updateMergedOnBoard();
                 passengersScrollDelegate.resize();
             }
         } else {
@@ -363,7 +429,7 @@ angular.module('driverapp.controllers.route', [])
                     if (index !== -1) {
                         $scope.onBoard.splice(index, 1);
                         AESrv.nodeCheckout(child);
-                        $scope.mergedOnBoard = $scope.getMergedOnBoard();
+                        $scope.updateMergedOnBoard();
                         passengersScrollDelegate.resize();
                     }
                 }
@@ -409,7 +475,7 @@ angular.module('driverapp.controllers.route', [])
                         });
                         $scope.toBeTaken = [];
 
-                        $scope.mergedOnBoard = $scope.getMergedOnBoard();
+                        $scope.updateMergedOnBoard();
                         passengersScrollDelegate.resize();
                     }
                 },
@@ -439,7 +505,7 @@ angular.module('driverapp.controllers.route', [])
                         });
                         $scope.toBeTaken = [];
 
-                        $scope.mergedOnBoard = $scope.getMergedOnBoard();
+                        $scope.updateMergedOnBoard();
                         passengersScrollDelegate.resize();
                     }
                 }
@@ -465,7 +531,7 @@ angular.module('driverapp.controllers.route', [])
     /*
      * Merge lists method: used to merge the two lists (onBoard and onBoardTmp) and generate a matrix with rows of 3 cols
      */
-    $scope.getMergedOnBoard = function () {
+    $scope.updateMergedOnBoard = function () {
         var onBoardMerged = [];
         var onBoardMatrix = [];
         var cols = 3;
@@ -500,8 +566,10 @@ angular.module('driverapp.controllers.route', [])
             }
             onBoardMatrix.push(rowArr);
         }
-        //return onBoardMerged;
-        return onBoardMatrix;
+
+        $scope.mergedOnBoard = onBoardMatrix;
+        $scope.resizePassengersPanel();
+        passengersScrollDelegate.resize();
     };
 
     /*
