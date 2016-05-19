@@ -1175,7 +1175,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                                         " GATT data " +
                                         " " + gattString +
                                         "\n";
-                        mBufferedWriter.write(logLine);
+                        //mBufferedWriter.write(logLine);
 
                         //mBufferedWriter.write(timestamp + " " + nowMillis);
                         //mBufferedWriter.write(" " + mBTDevice.getAddress()); //MAC ADDRESS

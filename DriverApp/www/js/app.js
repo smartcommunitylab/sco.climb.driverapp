@@ -178,6 +178,12 @@ angular.module('driverapp', [
                 }
             });
         };
+
+        $ionicPlatform.registerBackButtonAction(function (event) {
+            if (true) { // TODO need a condition?
+                $rootScope.exitApp();
+            }
+        }, 100);
     });
 })
 
