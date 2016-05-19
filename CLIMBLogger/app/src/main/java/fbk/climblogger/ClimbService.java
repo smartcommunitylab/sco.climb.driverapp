@@ -522,6 +522,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
     public boolean init() {
 
+        closeGatt(); //make sure we start from a connection closed state, even if the service remained alive
         boolean ret = (StartMonitoring(true) == 1);
         initialized = ret;
         insertTag("init: " + ret);
