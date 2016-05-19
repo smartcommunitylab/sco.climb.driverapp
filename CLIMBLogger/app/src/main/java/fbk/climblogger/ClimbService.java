@@ -672,9 +672,17 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                     Log.e(TAG, "API level " + Build.VERSION.SDK_INT + " not supporting GATT callbacks!");
                     return false;
                 }
+                mBTDevice = node.getBleDevice();
+                if (node.getConnectionState()) {// unfortunately mBTDevice.isConnected() is a SystemApi and thus can't be called
+                    insertTag("this should not happen ... already connected?");
+                }
+
+                if (mBTDevice == null) {
+                    insertTag("this should not happen ... mBTDevice == null!");
+                }
+
                 mGattCallback = new BluetoothGattCBack();
 
-                mBTDevice = node.getBleDevice();
                 insertTag("Connecting_to_GATT " + (mBTDevice != null ? mBTDevice.getAddress() : "null"));
                 // The following call to the 4 parameter version of cpnnectGatt is public, but hidden with @hide
                 // To make it work in API level 21 and 22, we need the trick from http://stackoverflow.com/questions/27633680/bluetoothdevice-connectgatt-with-transport-parameter
