@@ -58,6 +58,9 @@
                     onBoardChildrenList.clear();
                     onBoardChildrenList = new ArrayList<MonitoredClimbNode>();
                     lastReceivedGattData = null;
+                    timeoutRestart();
+                } else {
+                    timeoutStop();
                 }
             }
 
@@ -158,10 +161,14 @@
                 (timedoutCallback).climbNodeTimedout(this);
             }
 
-            private void timeoutRestart() {
+            private void timeoutStop() {
                 if (timedoutTimer != null) {
                     mHandler.removeCallbacks(timedoutTimer);
                 }
+            }
+
+            private void timeoutRestart() {
+                timeoutStop();
                 timedoutTimer = new Runnable() {
                     @Override
                     public void run() {
@@ -175,7 +182,7 @@
                 rssi = newRssi;
                 scanResponseData = newScanResponse;
                 //lastContactMillis = millisNow;
-                timeoutRestart();
+                if (!connectionState) timeoutRestart();
             }
 
             public MonitoredClimbNode findChildByID(byte[] id) {
@@ -200,7 +207,7 @@
                 //rssi = newRssi;
                 lastReceivedGattData = cipo_metadata;
                 //lastContactMillis = millisNow;
-                timeoutRestart();
+                if (!connectionState) timeoutRestart();
 
                 List<byte[]> toChecking = new ArrayList<byte[]>();
                 //AGGIORNA LA LISTA DEI NODI ON_BOARD
