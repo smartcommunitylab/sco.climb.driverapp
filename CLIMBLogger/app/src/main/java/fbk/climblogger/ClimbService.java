@@ -524,6 +524,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
         boolean ret = (StartMonitoring(true) == 1);
         initialized = ret;
+        insertTag("init: " + ret);
         return ret;
     }
 
@@ -720,6 +721,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 }
             }
         } else {
+            insertTag("node " + master + " unknown or not a master node, can't connect!");
             return false;
         }
         return true;
