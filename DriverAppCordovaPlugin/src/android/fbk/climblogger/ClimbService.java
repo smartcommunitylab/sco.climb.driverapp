@@ -158,7 +158,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.i(TAG, "ClimbService started");
+        Log.i(TAG, "ClimbService created");
         insertTag("climb_service_created");
 
         mBinder = new LocalBinder();
@@ -181,7 +181,10 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             mBluetoothGatt = null;
         }
 
-        Log.i(TAG, "ClimbService Stopped.");
+        Log.i(TAG, "ClimbService onDestroy");
+        insertTag("climb_service_destroyed");
+
+        StopMonitoring();
 
         if (mBufferedWriter != null) {
             try {
@@ -189,12 +192,11 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             } catch (IOException e) {
             }
         }
-        insertTag("climb_service_destroyed");
-
     }
 
     @Override
     public boolean onUnbind(Intent intent) {
+        Log.i(TAG, "ClimbService onUnbind");
 
         if (mBufferedWriter != null) {
             try {
@@ -318,9 +320,13 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         if(mBluetoothAdapter != null) {
             disableNodeTimeout();
             if (Build.VERSION.SDK_INT < 21) {
-                mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                if (mBluetoothAdapter != null) {
+                    mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                }
             } else {
-                mBluetoothLeScanner.stopScan(mScanCallback);
+                if (mBluetoothLeScanner != null) {
+                    mBluetoothLeScanner.stopScan(mScanCallback);
+                }
             }
 
             if(logEnabled){
@@ -516,13 +522,15 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
     public boolean init() {
 
+        closeGatt(); //make sure we start from a connection closed state, even if the service remained alive
         boolean ret = (StartMonitoring(true) == 1);
         initialized = ret;
+        insertTag("init: " + ret);
         return ret;
     }
 
     public String[] getLogFiles() {
-        if (!initialized) return new String[0];
+        //if (!initialized) return new String[0];
 
         String[] r;
         if (mFile != null) {
@@ -665,9 +673,17 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                     Log.e(TAG, "API level " + Build.VERSION.SDK_INT + " not supporting GATT callbacks!");
                     return false;
                 }
+                mBTDevice = node.getBleDevice();
+                if (node.getConnectionState()) {// unfortunately mBTDevice.isConnected() is a SystemApi and thus can't be called
+                    insertTag("this should not happen ... already connected?");
+                }
+
+                if (mBTDevice == null) {
+                    insertTag("this should not happen ... mBTDevice == null!");
+                }
+
                 mGattCallback = new BluetoothGattCBack();
 
-                mBTDevice = node.getBleDevice();
                 insertTag("Connecting_to_GATT " + (mBTDevice != null ? mBTDevice.getAddress() : "null"));
                 // The following call to the 4 parameter version of cpnnectGatt is public, but hidden with @hide
                 // To make it work in API level 21 and 22, we need the trick from http://stackoverflow.com/questions/27633680/bluetoothdevice-connectgatt-with-transport-parameter
@@ -714,6 +730,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 }
             }
         } else {
+            insertTag("node " + master + " unknown or not a master node, can't connect!");
             return false;
         }
         return true;
