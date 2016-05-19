@@ -181,6 +181,9 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             mBluetoothGatt = null;
         }
 
+        Log.i(TAG, "ClimbService onDestroy");
+        insertTag("climb_service_destroyed");
+
         StopMonitoring();
 
         if (mBufferedWriter != null) {
@@ -189,9 +192,6 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             } catch (IOException e) {
             }
         }
-        Log.i(TAG, "ClimbService onDestroy");
-        insertTag("climb_service_destroyed");
-
     }
 
     @Override
@@ -524,6 +524,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
         boolean ret = (StartMonitoring(true) == 1);
         initialized = ret;
+        insertTag("init: " + ret);
         return ret;
     }
 
@@ -720,6 +721,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 }
             }
         } else {
+            insertTag("node " + master + " unknown or not a master node, can't connect!");
             return false;
         }
         return true;
