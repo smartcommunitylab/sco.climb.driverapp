@@ -145,8 +145,8 @@ angular.module('driverapp.controllers.home', [])
                             });
                         },
                         function (error) {
-                            StorageSrv.saveSchool(CONF.DEV_SCHOOL)
-                                // TODO handle error
+                            //StorageSrv.saveSchool(CONF.DEV_SCHOOL)
+                            // TODO handle error
                             console.log(error);
                             deferred.reject(error);
                         }
@@ -164,7 +164,7 @@ angular.module('driverapp.controllers.home', [])
     };
 
     // FIXME load schools
-    StorageSrv.saveSchool(CONF.DEV_SCHOOL);
+    //StorageSrv.saveSchool(CONF.DEV_SCHOOL);
 
     $scope.getDriverName = function () {
         $scope.driverName = Utils.getMenuDriverTitle();
