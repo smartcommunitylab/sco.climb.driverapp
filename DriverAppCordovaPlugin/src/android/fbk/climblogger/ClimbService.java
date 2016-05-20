@@ -256,7 +256,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
                 startDataLog();
                 logEnabled = true;
-                insertTag("Start_Monitoring");
+                insertTag("Start_Monitoring " + ConfigVals.libVersion );
                 insertTag("initializing" +
                         " API: " + Build.VERSION.SDK_INT +
                         " Release: " + Build.VERSION.RELEASE +
