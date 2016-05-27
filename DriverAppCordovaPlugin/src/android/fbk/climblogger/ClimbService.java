@@ -1113,8 +1113,9 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                     }
                 } else { // was already connected, disconnected for some reason
                     closeGatt();
-                    broadcastUpdate(STATE_DISCONNECTED_FROM_CLIMB_MASTER, connectedMaster);
+                    String id = connectedMaster; //broadcastUpdate could trigger connectMaster, so save id in temp variable first
                     connectedMaster = null;
+                    broadcastUpdate(STATE_DISCONNECTED_FROM_CLIMB_MASTER, id);
                 }
             }else if (newState == BluetoothProfile.STATE_CONNECTING) {
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTING;
