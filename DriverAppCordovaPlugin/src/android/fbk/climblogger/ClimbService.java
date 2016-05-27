@@ -733,6 +733,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 }
             }
         } else {
+            Log.w(TAG, "node " + master + " unknown or not a master node, can't connect!");
             insertTag("node " + master + " unknown or not a master node, can't connect!");
             return false;
         }
@@ -1088,8 +1089,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) { //TODO: check if this was intentional or not. If not, try to do something.
 
                 // for status codes, check https://android.googlesource.com/platform/external/bluetooth/bluedroid/+/android-4.4.4_r2.0.1/stack/include/gatt_api.h
-                Log.i(TAG, "Disconnected from GATT server. Status: " + status);
-                insertTag("Disconnected_from_GATT " + status);
+                Log.i(TAG, "Disconnected from GATT server " + connectedMaster + " Status: " + status);
+                insertTag("Disconnected_from_GATT " + connectedMaster + " Status:" + status);
                 if(mBTDevice != null) {
                     int index = isAlreadyInList(mBTDevice);
                     if (index >= 0) {
