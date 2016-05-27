@@ -646,17 +646,20 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
     private class connectMasterCBack implements Runnable {
         public String id;
+        public boolean timedout = false;
 
         connectMasterCBack(String master){id = master;}
 
         @Override
         public void run() {
+            timedout = true;
             if (mBluetoothGatt != null) {
                 mBluetoothGatt.disconnect(); //be consistent, do not try anymore
                 mBluetoothGatt.close(); //HTC one with android 5.0.2 is not calling the callback after disconnect. Needs to close here
                 mBluetoothGatt = null;
             }
             Log.i(TAG, "Connect to " + id + " failed: timeout.");
+            insertTag("Connect to " + id + " failed: timeout.");
             broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, id, false, "Connect timed out");
         }
     }
@@ -730,6 +733,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 }
             }
         } else {
+            Log.w(TAG, "node " + master + " unknown or not a master node, can't connect!");
             insertTag("node " + master + " unknown or not a master node, can't connect!");
             return false;
         }
@@ -1085,8 +1089,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) { //TODO: check if this was intentional or not. If not, try to do something.
 
                 // for status codes, check https://android.googlesource.com/platform/external/bluetooth/bluedroid/+/android-4.4.4_r2.0.1/stack/include/gatt_api.h
-                Log.i(TAG, "Disconnected from GATT server. Status: " + status);
-                insertTag("Disconnected_from_GATT " + status);
+                Log.i(TAG, "Disconnected from GATT server " + connectedMaster + " Status: " + status);
+                insertTag("Disconnected_from_GATT " + connectedMaster + " Status:" + status);
                 if(mBTDevice != null) {
                     int index = isAlreadyInList(mBTDevice);
                     if (index >= 0) {
@@ -1098,9 +1102,13 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_DISCONNECTED;
                 if (connectMasterCB != null) { //timeout still active, in connection phase
                     if (mBluetoothGatt != null) {
-                        Log.w(TAG, "Connect attempt failed. Trying to reconnect ...");
-                        insertTag("Connect attempt failed. Trying to reconnect ...");
-                        mBluetoothGatt.connect();
+                        if (!connectMasterCB.timedout) {
+                            Log.w(TAG, "Connect attempt failed. Trying to reconnect ...");
+                            insertTag("Connect attempt failed. Trying to reconnect ...");
+                            mBluetoothGatt.connect();
+                        } else {
+                            insertTag("Disconnect while ending connect due to timeout");
+                        }
                         return;
                     } else {
                         Log.w(TAG, "Connect attempt failed. no GATT, no reconnect");
@@ -1113,8 +1121,9 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                     }
                 } else { // was already connected, disconnected for some reason
                     closeGatt();
-                    broadcastUpdate(STATE_DISCONNECTED_FROM_CLIMB_MASTER, connectedMaster);
+                    String id = connectedMaster; //broadcastUpdate could trigger connectMaster, so save id in temp variable first
                     connectedMaster = null;
+                    broadcastUpdate(STATE_DISCONNECTED_FROM_CLIMB_MASTER, id);
                 }
             }else if (newState == BluetoothProfile.STATE_CONNECTING) {
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTING;
