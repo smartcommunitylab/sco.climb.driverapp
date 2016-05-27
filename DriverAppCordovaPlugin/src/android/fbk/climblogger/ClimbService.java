@@ -646,17 +646,20 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
     private class connectMasterCBack implements Runnable {
         public String id;
+        public boolean timedout = false;
 
         connectMasterCBack(String master){id = master;}
 
         @Override
         public void run() {
+            timedout = true;
             if (mBluetoothGatt != null) {
                 mBluetoothGatt.disconnect(); //be consistent, do not try anymore
                 mBluetoothGatt.close(); //HTC one with android 5.0.2 is not calling the callback after disconnect. Needs to close here
                 mBluetoothGatt = null;
             }
             Log.i(TAG, "Connect to " + id + " failed: timeout.");
+            insertTag("Connect to " + id + " failed: timeout.");
             broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, id, false, "Connect timed out");
         }
     }
@@ -1098,9 +1101,13 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 masterNodeGATTConnectionState = BluetoothProfile.STATE_DISCONNECTED;
                 if (connectMasterCB != null) { //timeout still active, in connection phase
                     if (mBluetoothGatt != null) {
-                        Log.w(TAG, "Connect attempt failed. Trying to reconnect ...");
-                        insertTag("Connect attempt failed. Trying to reconnect ...");
-                        mBluetoothGatt.connect();
+                        if (!connectMasterCB.timedout) {
+                            Log.w(TAG, "Connect attempt failed. Trying to reconnect ...");
+                            insertTag("Connect attempt failed. Trying to reconnect ...");
+                            mBluetoothGatt.connect();
+                        } else {
+                            insertTag("Disconnect while ending connect due to timeout");
+                        }
                         return;
                     } else {
                         Log.w(TAG, "Connect attempt failed. no GATT, no reconnect");
