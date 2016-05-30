@@ -1094,14 +1094,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 // for status codes, check https://android.googlesource.com/platform/external/bluetooth/bluedroid/+/android-4.4.4_r2.0.1/stack/include/gatt_api.h
                 Log.i(TAG, "Disconnected from GATT server " + connectedMaster + " Status: " + status);
                 insertTag("Disconnected_from_GATT " + connectedMaster + " Status:" + status);
-                if(mBTDevice != null) {
-                    int index = isAlreadyInList(mBTDevice);
-                    if (index >= 0) {
-                        nodeList.get(index).setConnectionState(false);
-                    } else {
-                        Log.d(TAG, "Master not found in the list, CHECK!!!!");
-                    }
-                }
+
                 if (connectMasterCB != null) { //timeout still active, in connection phase
                     if (mBluetoothGatt != null) {
                         if (!connectMasterCB.timedout) {
@@ -1123,6 +1116,24 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                         broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, id, false, "connect failed with code " + status);
                     }
                 } else { // was already connected, disconnected for some reason
+                    if (masterNodeGATTConnectionState == BluetoothProfile.STATE_CONNECTED) {
+                        if (mBluetoothGatt != null && mBluetoothGatt.connect()) {
+                            Log.w(TAG, "Disconnected, trying quick reconnect ...");
+                            insertTag("Disconnected, trying quick reconnect ...");
+                            return;
+                        }
+                    }
+
+                    Log.w(TAG, "Disconnected");
+                    insertTag("Disconnected");
+                    if(mBTDevice != null) {
+                        int index = isAlreadyInList(mBTDevice);
+                        if (index >= 0) {
+                            nodeList.get(index).setConnectionState(false);
+                        } else {
+                            Log.d(TAG, "Master not found in the list, CHECK!!!!");
+                        }
+                    }
                     closeGatt();
                     String id = connectedMaster; //broadcastUpdate could trigger connectMaster, so save id in temp variable first
                     connectedMaster = null;
