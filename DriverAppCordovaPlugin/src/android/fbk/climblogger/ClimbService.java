@@ -1141,11 +1141,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 // cerca subito i servizi necessari (aggiorna il broadcast solo quando tutte le caratteristiche saranno salvate)
                 Log.i(TAG, "onServicesDiscovered received: " + status);
-                if(mBTService == null){
-                    getClimbService();
-                }else{
-                    insertTag("onServicesDiscovered received: no mBTSservice");
-                }
+                getClimbService();
             } else {
                 Log.w(TAG, "onServicesDiscovered received: " + status);
             }
