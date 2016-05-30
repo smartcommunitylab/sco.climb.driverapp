@@ -773,7 +773,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             //broadcastUpdate(STATE_DISCONNECTED_FROM_CLIMB_MASTER);
             return true;
         } else {
-            return false;
+            return true;
         }
     }
 
