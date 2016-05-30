@@ -686,6 +686,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                     insertTag("this should not happen ... mBTDevice == null!");
                 }
 
+                masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTING;
+
                 mGattCallback = new BluetoothGattCBack();
 
                 insertTag("Connecting_to_GATT " + (mBTDevice != null ? mBTDevice.getAddress() : "null"));
@@ -712,10 +714,9 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 if (mBluetoothGatt == null) {
                     Log.e(TAG, "connectGatt returned null!");
                     insertTag("connectGatt returned null!");
+                    masterNodeGATTConnectionState = BluetoothProfile.STATE_DISCONNECTED;
                     return false;
                 }
-
-                masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTING;
 
                 Log.i(TAG, "Try to connect a CLIMB master node ...");
                 Toast.makeText(appContext,
@@ -745,6 +746,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         Log.i(TAG, "Climb master node disconnecting ...");
         insertTag("Request_disconnect_from_GATT");
         if (!initialized) return false;
+
+        masterNodeGATTConnectionState = BluetoothProfile.STATE_DISCONNECTING;
 
         if (mBluetoothGatt != null) {
 
@@ -1073,7 +1076,6 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             }
 
             if (newState == BluetoothProfile.STATE_CONNECTED) {
-                masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTED;
                 Log.i(TAG, "Connected to GATT server.");
                 // Attempts to discover services after successful connection.
 
@@ -1100,7 +1102,6 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                         Log.d(TAG, "Master not found in the list, CHECK!!!!");
                     }
                 }
-                masterNodeGATTConnectionState = BluetoothProfile.STATE_DISCONNECTED;
                 if (connectMasterCB != null) { //timeout still active, in connection phase
                     if (mBluetoothGatt != null) {
                         if (!connectMasterCB.timedout) {
@@ -1125,14 +1126,13 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                     closeGatt();
                     String id = connectedMaster; //broadcastUpdate could trigger connectMaster, so save id in temp variable first
                     connectedMaster = null;
+                    masterNodeGATTConnectionState = BluetoothProfile.STATE_DISCONNECTED;
                     broadcastUpdate(STATE_DISCONNECTED_FROM_CLIMB_MASTER, id);
                 }
             }else if (newState == BluetoothProfile.STATE_CONNECTING) {
-                masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTING;
                 Log.i(TAG, "Connecting to GATT server. Status: " + status);
 
             }else if (newState == BluetoothProfile.STATE_DISCONNECTING) {   //TODO: understand difference from DISCONNECTED
-                masterNodeGATTConnectionState = BluetoothProfile.STATE_DISCONNECTING;
                 Log.i(TAG, "Disconnecting from GATT server. Status: " + status);
             }
         }
@@ -1272,11 +1272,11 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 int index = isAlreadyInList(mBTDevice);
                 if (index >= 0) {
                     nodeList.get(index).setConnectionState(true);
-                    masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTED;
                 } else {
                     Log.d(TAG, "Master not found in the list, CHECK!!!!");
                 }
 
+                masterNodeGATTConnectionState = BluetoothProfile.STATE_CONNECTED;
                 mHandler.removeCallbacks(connectMasterCB);
                 connectMasterCB = null;
                 broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, nodeListGetConnectedMaster().getNodeID(), true, null); //TODO: add timeout on this
