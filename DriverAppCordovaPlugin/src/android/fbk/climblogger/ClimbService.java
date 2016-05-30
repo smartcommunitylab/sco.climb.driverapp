@@ -670,6 +670,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         connectedMaster = master;
         ClimbNode node = nodeListGet(master);
         insertTag("Request_connect_to_GATT "+ master + ((node == null ? " not_in_list" : (" " + node.isMasterNode()))));
+        Log.i(TAG,"Request_connect_to_GATT "+ master + ((node == null ? " not_in_list" : (" " + node.isMasterNode()))));
         if (node != null && node.isMasterNode()) { //do something only if it is a master node
             if (mBluetoothGatt == null) {
                 if (Build.VERSION.SDK_INT < 18) {
@@ -741,11 +742,11 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     public boolean disconnectMaster() { //TODO: handle several masters?
+        Log.i(TAG, "Climb master node disconnecting ...");
+        insertTag("Request_disconnect_from_GATT");
         if (!initialized) return false;
 
         if (mBluetoothGatt != null) {
-            Log.i(TAG, "Climb master node disconnecting ...");
-            insertTag("Request_disconnect_from_GATT");
 
             mBluetoothGatt.disconnect();
             //mBluetoothGatt.close(); //TODO: check if this is needed here, or should better be done when disconnected
@@ -1107,6 +1108,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                             insertTag("Connect attempt failed. Trying to reconnect ...");
                             mBluetoothGatt.connect();
                         } else {
+                            Log.w(TAG, "Disconnect while ending connect due to timeout");
                             insertTag("Disconnect while ending connect due to timeout");
                         }
                         return;
