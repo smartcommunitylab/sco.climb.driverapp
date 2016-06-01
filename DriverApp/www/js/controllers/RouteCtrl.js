@@ -72,10 +72,12 @@ angular.module('driverapp.controllers.route', [])
 
             if ($scope.enRoutePos == 0) {
                 GeoSrv.startWatchingPosition(function (position) {
-                    var lat = position.coords.latitude;
-                    var lon = position.coords.longitude;
-                    var acc = position.coords.accuracy;
-                    AESrv.driverPosition($scope.driver, lat, lon, acc);
+                    if (!!position && !!position.coords) {
+                        var lat = position.coords.latitude;
+                        var lon = position.coords.longitude;
+                        var acc = position.coords.accuracy;
+                        AESrv.driverPosition($scope.driver, lat, lon, acc);
+                    }
                 }, null, Config.GPS_DELAY);
             }
 
