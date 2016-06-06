@@ -787,7 +787,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 Log.i(TAG, "Cannot change state of child " + monitoredChild.getNodeIDString() + ": another change is in progress");
             } else {
                 Log.i(TAG, "Checking in child " + monitoredChild.getNodeIDString());
-                insertTag("Accepting_node_" + clickedChildID[0]);
+                insertTag("Accepting_node_" + monitoredChild.getNodeIDString());
                 gattData = new byte[]{clickedChildID[0], 2}; //assegna lo stato ON_BAORD
             }
         }
@@ -805,7 +805,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 Log.i(TAG, "Cannot change state of child " + monitoredChild.getNodeIDString() + ": another change is in progress");
             } else {
                 Log.i(TAG, "Checking out child " + monitoredChild.getNodeIDString());
-                insertTag("Checking_out_node_" + clickedChildID[0]);
+                insertTag("Checking_out_node_" + monitoredChild.getNodeIDString());
                 gattData = new byte[]{clickedChildID[0], 0}; //assegna lo stato ON_BAORD
             }
         }
