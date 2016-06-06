@@ -1117,7 +1117,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                     }
                 } else { // was already connected, disconnected for some reason
                     if (masterNodeGATTConnectionState == BluetoothProfile.STATE_CONNECTED) {
-                        if (mBluetoothGatt != null && mBluetoothGatt.connect()) {
+                        if (mBluetoothGatt != null && status != 6 && mBluetoothGatt.connect()) {   //TODO: on Motorola + Android 5.0.1 this leads to a busy loop of connect() and DISCONNECTED events
                             Log.w(TAG, "Disconnected, trying quick reconnect ...");
                             insertTag("Disconnected, trying quick reconnect ...");
                             return;
