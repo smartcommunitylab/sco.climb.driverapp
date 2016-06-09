@@ -504,31 +504,35 @@ public class ScanActivity extends Activity {
             //TODO: implement
             ClimbNode clickedNode = climbNodeList.get(groupPosition);
             if (clickedNode.isMasterNode()) {
-                MonitoredClimbNode monitoredChild = clickedNode.getMonitoredClimbNodeList().get(childPosition);
-                String actionString = "";
-                String childID = monitoredChild.getNodeIDString();
-                switch (monitoredChild.getNodeState()) {
-                    case 0:
-                        if (!allowedChidren.contains(childID)) {
-                            allowedChidren.add(childID);
-                        }
-                        mClimbService.setNodeList(allowedChidren.toArray(new String[allowedChidren.size()]));
-                        actionString = "allowing " + childID;
-                        break;
-                    case 1:
-                        mClimbService.checkinChild(childID);
-                        actionString = "checkin " + childID;
-                        break;
-                    case 2:
-                        mClimbService.checkoutChild(childID);
-                        actionString = "checkout " + childID;
-                        break;
-                    default:
+                try {
+                    MonitoredClimbNode monitoredChild = clickedNode.getMonitoredClimbNodeList().get(childPosition);
+                    String actionString = "";
+                    String childID = monitoredChild.getNodeIDString();
+                    switch (monitoredChild.getNodeState()) {
+                        case 0:
+                            if (!allowedChidren.contains(childID)) {
+                                allowedChidren.add(childID);
+                            }
+                            mClimbService.setNodeList(allowedChidren.toArray(new String[allowedChidren.size()]));
+                            actionString = "allowing " + childID;
+                            break;
+                        case 1:
+                            mClimbService.checkinChild(childID);
+                            actionString = "checkin " + childID;
+                            break;
+                        case 2:
+                            mClimbService.checkoutChild(childID);
+                            actionString = "checkout " + childID;
+                            break;
+                        default:
+                    }
+                    mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                    //Toast.makeText(getApplicationContext(),
+                    //        actionString,
+                    //        Toast.LENGTH_LONG).show();
+                } catch (IndexOutOfBoundsException e) {
+                    //TODO: trigger update
                 }
-                mVibrator.vibrate(ConfigVals.vibrationTimeout);
-                Toast.makeText(getApplicationContext(),
-                        actionString,
-                        Toast.LENGTH_LONG).show();
             }
 
             return false;
