@@ -83,12 +83,12 @@ public class ScanActivity extends Activity {
                     updateDetailsExpandableListDetails();
                 }
                 expandableListAdapter.notifyDataSetChanged();
-                log("ACTION_DEVICE_ADDED_TO_LIST broadcast received");
+                Log.i(TAG,"ACTION_DEVICE_ADDED_TO_LIST broadcast received");
 
             } else if (ClimbService.ACTION_DEVICE_REMOVED_FROM_LIST.equals(action)) {
 
                 expandableListAdapter.notifyDataSetChanged();
-                log("ACTION_DEVICE_REMOVED_FROM_LIST broadcast received");
+                Log.i(TAG,"ACTION_DEVICE_REMOVED_FROM_LIST broadcast received");
 
             }else if (ClimbService.ACTION_METADATA_CHANGED.equals(action)) {
 
@@ -453,7 +453,7 @@ public class ScanActivity extends Activity {
             Log.i(TAG, "Group expanded, position: " + groupPosition);
             ClimbNode clickedNode = climbNodeList.get(groupPosition);
             if (! mClimbService.connectMaster(clickedNode.getNodeID())) {
-                Log.w(TAG, "Cannot connect to " + clickedNode.getNodeID());
+                Log.w(TAG, "connect failed immediately to " + clickedNode.getNodeID());
             }
             mVibrator.vibrate(ConfigVals.vibrationTimeout);
         }
