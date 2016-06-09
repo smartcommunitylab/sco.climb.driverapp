@@ -13,6 +13,7 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
@@ -69,6 +70,18 @@ public class ScanActivity extends Activity {
     //                        or notification operations.
 
 
+    private void reconnectAfter(final String id, final int t){
+        Handler h = new Handler();
+        h.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (!mClimbService.connectMaster(id)) {
+                    Log.w(TAG, "reconnect failed immediately. retry after " + t);
+                    reconnectAfter(id, t);
+                }
+            }
+        }, t);
+    };
 
     private final BroadcastReceiver mClimbUpdateReceiver = new BroadcastReceiver() {
         @Override
@@ -107,21 +120,38 @@ public class ScanActivity extends Activity {
 
                 log("Datalog stopped");
             }else if (ClimbService.STATE_CONNECTED_TO_CLIMB_MASTER.equals(action)) {
+                String id = intent.getStringExtra(ClimbService.INTENT_EXTRA_ID);
+                Boolean success = intent.getBooleanExtra(ClimbService.INTENT_EXTRA_SUCCESS, true);
+
                 Toast.makeText(getApplicationContext(),
-                        "Connected with GATT? " + intent.getBooleanExtra(ClimbService.INTENT_EXTRA_SUCCESS,true),
+                        "Connected with GATT? " + success,
                         Toast.LENGTH_SHORT).show();
                 expandableListAdapter.notifyDataSetChanged();
-                log("Connected with GATT? " + intent.getBooleanExtra(ClimbService.INTENT_EXTRA_SUCCESS,true));
-                mClimbService.setNodeList(allowedChidren.toArray(new String[allowedChidren.size()]));
+                Log.i(TAG,"Connected with GATT? " + success);
+                if (success) {
+                    mClimbService.setNodeList(allowedChidren.toArray(new String[allowedChidren.size()]));
+                } else {
+                    if (!mClimbService.connectMaster(id)) {
+                        Log.w(TAG, "reconnect failed immediately after connect failure. Retry in 5s");
+                        reconnectAfter(id,5000);
+                        // schedule a new connect try
+                    };
+                }
             }else if (ClimbService.STATE_DISCONNECTED_FROM_CLIMB_MASTER.equals(action)) {
                 //climbNodeList.clear();
 
+                String id = intent.getStringExtra(ClimbService.INTENT_EXTRA_ID);
+                Log.w(TAG,"Disconnected from GATT " + id);
+
                  Toast.makeText(getApplicationContext(),
-                    "DISCONNECTED FROM GATT! " + intent.getStringExtra(ClimbService.INTENT_EXTRA_ID),
+                    "DISCONNECTED FROM GATT! " + id,
                     Toast.LENGTH_SHORT).show();
-                log("DISCONNECTED FROM GATT!");
                 expandableListAdapter.notifyDataSetChanged();
 
+                if (!mClimbService.connectMaster(id)) {
+                    Log.w(TAG, "Reconnect to " + id + " failed immediately. Retry in 5s");
+                    reconnectAfter(id,5000);
+                }
             }
             else if (ClimbService.ACTION_NODE_ALERT.equals(action)) {
                 if (intent.hasExtra(ClimbService.EXTRA_BYTE_ARRAY)) {
