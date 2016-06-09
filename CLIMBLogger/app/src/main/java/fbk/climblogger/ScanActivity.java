@@ -582,8 +582,8 @@ public class ScanActivity extends Activity {
 
         expandableListView = (ExpandableListView) findViewById(R.id.list);
 
-        Intent climbServiceIntent = new Intent(ScanActivity.this, ClimbService.class); //capire come si comporta nel caso in qui il servizio sia ancora in esecuzione in background
-        startService(climbServiceIntent);
+        //Intent climbServiceIntent = new Intent(ScanActivity.this, ClimbService.class); //capire come si comporta nel caso in qui il servizio sia ancora in esecuzione in background
+        //startService(climbServiceIntent);
 
 
         expandableListView.setOnGroupExpandListener( mOnGroupExpandListener );
@@ -628,7 +628,7 @@ public class ScanActivity extends Activity {
         Log.i(TAG, "ScanActivity.onDestroy() called.");
         log("ScanActivity.onDestroy() called.");
 
-        stopService(new Intent(ScanActivity.this, ClimbService.class));
+        //stopService(new Intent(ScanActivity.this, ClimbService.class));
         //climbNodeList = null;
         unbindService(mServiceConnection);
         //mClimbService = null;
