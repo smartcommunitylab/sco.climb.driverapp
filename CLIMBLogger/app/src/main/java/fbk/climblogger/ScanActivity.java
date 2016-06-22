@@ -200,7 +200,7 @@ public class ScanActivity extends Activity {
         @Override //Questa � usata per ritornare l'oggetto IBinder (c'� solo nei bound services)
         public void onServiceConnected(ComponentName componentName, IBinder service) {
             //la prossima istruzione ritorna l'oggetto BluetoothLeService
-            mClimbService = ((ClimbService.LocalBinder) service).getService();
+            mClimbService = ((ClimbSimpleService.LocalBinder) service).getService();
             mClimbService.setContext(getApplicationContext());
             //IN QUESTO PUNTO RICHIEDI LA LISTA DI DISPOSITIVI INIZIALI PER INSERIRLA NELLA LISTVIEW
             expandableListAdapter = new MyExpandableListAdapter(mContext, mClimbService);
@@ -615,7 +615,7 @@ public class ScanActivity extends Activity {
         log("ScanActivity.onResume() called.");
 
         //AVVIA IL SERVIZIO E INIZIALIZZA IL BIND
-        Intent climbServiceIntent = new Intent(ScanActivity.this, ClimbService.class); //capire come si comporta nel caso in qui il servizio sia ancora in esecuzione in background
+        Intent climbServiceIntent = new Intent(ScanActivity.this, ClimbSimpleService.class); //capire come si comporta nel caso in qui il servizio sia ancora in esecuzione in background
         bindService(climbServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
 
         registerReceiver(mClimbUpdateReceiver, makeClimbServiceIntentFilter());

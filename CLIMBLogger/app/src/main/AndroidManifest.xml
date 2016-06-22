@@ -29,12 +29,12 @@
         </activity>
 
         <service
-            android:name=".ClimbService"
+            android:name=".ClimbSimpleService"
             android:enabled="true"
             android:exported="false" >
         </service>
     </application>
     <intent-filter>
-        <action android:name="fbk.climblogger.ClimbService" />
+        <action android:name="fbk.climblogger.ClimbSimpleService" />
     </intent-filter>
 </manifest>
