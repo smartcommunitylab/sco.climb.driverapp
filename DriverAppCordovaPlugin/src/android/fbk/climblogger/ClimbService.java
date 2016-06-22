@@ -613,7 +613,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             // TODO
-            return null;
+            return new NodeState[0];
         }
         ArrayList<MonitoredClimbNode> children = master.getMonitoredClimbNodeList();
         NodeState[] nodeStates = new NodeState[children.size()];
