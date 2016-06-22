@@ -226,12 +226,16 @@ public class ScanActivity extends Activity {
     View.OnClickListener startButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
             if(mClimbService != null){
-                mClimbService.init();
-                mVibrator.vibrate(ConfigVals.vibrationTimeout);
-                Log.i(TAG, "Start scan with data logging!");
-                log("Start scan with data logging command sent!");
+                if (mClimbService.init()) {
+                    mVibrator.vibrate(ConfigVals.vibrationTimeout);
+                    Log.i(TAG, "Start scan with data logging!");
+                    log("Start scan with data logging command sent!");
+                } else {
+                    Log.i(TAG, "Failed to start scan!");
+                    log("Failed to start scan!");
+                }
             }else{
-                Log.i(TAG, "Start scan not sent!");
+                Log.i(TAG, "Start scan not sent: service not available!");
                 log("Start scan not sent!");
             }
 
