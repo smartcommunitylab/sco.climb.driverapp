@@ -280,10 +280,14 @@ public class ScanActivity extends Activity {
     View.OnClickListener ckInAllButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
 
-            /* NOT SUPPORTED through iface
             if( (SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
                 if (mClimbService != null) {
-                    if (mClimbService.checkinChildren(mClimbService.getChildren())) {
+                    ClimbServiceInterface.NodeState[] nss =  mClimbService.getNetworkState();
+                    String[] ids = new String[nss.length];
+                    for (int i = 0; i < nss.length; i++) {
+                        ids[i] = nss[i].nodeID;
+                    }
+                    if (mClimbService.checkinChildren(ids)) {
                         mVibrator.vibrate(ConfigVals.vibrationTimeout);
                         lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
                     } else {
@@ -300,16 +304,19 @@ public class ScanActivity extends Activity {
                         alertString,
                         Toast.LENGTH_LONG).show();
             }
-            */
         }
     };
     View.OnClickListener ckOutAllButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
 
-            /* NOT SUPPORTED through iface
             if ((SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
                 if (mClimbService != null) {
-                    if (mClimbService.checkoutChildren(mClimbService.getChildren())) {
+                    ClimbServiceInterface.NodeState[] nss =  mClimbService.getNetworkState();
+                    String[] ids = new String[nss.length];
+                    for (int i = 0; i < nss.length; i++) {
+                        ids[i] = nss[i].nodeID;
+                    }
+                    if (mClimbService.checkoutChildren(ids)) {
                         mVibrator.vibrate(ConfigVals.vibrationTimeout);
                         lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
                     } else {
@@ -327,7 +334,6 @@ public class ScanActivity extends Activity {
                         alertString,
                         Toast.LENGTH_LONG).show();
             }
-            */
         }
     };
     View.OnClickListener ckInBcastButtonHandler = new View.OnClickListener(){
