@@ -13,21 +13,21 @@ import android.widget.TextView;
 
 public class MyExpandableListAdapter extends BaseExpandableListAdapter {
 
+    private ClimbServiceInterface service;
     private Context context;
-    private List<ClimbNode> expandableListTitle;
-    private HashMap<ClimbNode, List<String>> expandableListDetail;
 
-    public MyExpandableListAdapter(Context context, List<ClimbNode> expandableListTitle,
-                                 HashMap<ClimbNode, List<String>> expandableListDetail) {
+    public String[] getMasters() {
+        return service.getMasters();
+    }
+
+    public MyExpandableListAdapter(Context context, ClimbServiceInterface service) {
         this.context = context;
-        this.expandableListTitle = expandableListTitle;
-        this.expandableListDetail = expandableListDetail;
+        this.service = service;
     }
 
     @Override
     public Object getChild(int listPosition, int expandedListPosition) {
-        return this.expandableListDetail.get(this.expandableListTitle.get(listPosition))
-                .get(expandedListPosition);
+        return service.getNetworkState()[expandedListPosition];
     }
 
     @Override
@@ -38,7 +38,8 @@ public class MyExpandableListAdapter extends BaseExpandableListAdapter {
     @Override
     public View getChildView(int listPosition, final int expandedListPosition,
                              boolean isLastChild, View convertView, ViewGroup parent) {
-        final String expandedListText = (String) getChild(listPosition, expandedListPosition);
+        ClimbServiceInterface.NodeState ns = (ClimbServiceInterface.NodeState) getChild(listPosition, expandedListPosition);
+        final String expandedListText = "ID:" + ns.nodeID + " state:" + ns.state + " ts:" + (System.currentTimeMillis() - ns.lastSeen);
         if (convertView == null) {
             LayoutInflater layoutInflater = (LayoutInflater) this.context
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -52,20 +53,17 @@ public class MyExpandableListAdapter extends BaseExpandableListAdapter {
 
     @Override
     public int getChildrenCount(int listPosition) {
-        if(this.expandableListDetail.get(this.expandableListTitle.get(listPosition)) == null){
-            return 0;
-        }
-        return this.expandableListDetail.get(this.expandableListTitle.get(listPosition)).size();
+        return service.getNetworkState().length;
     }
 
     @Override
     public Object getGroup(int listPosition) {
-        return this.expandableListTitle.get(listPosition);
+        return getMasters()[listPosition];
     }
 
     @Override
     public int getGroupCount() {
-        return this.expandableListTitle.size();
+        return getMasters().length;
     }
 
     @Override

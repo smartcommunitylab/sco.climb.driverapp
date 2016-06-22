@@ -49,10 +49,9 @@ public class ScanActivity extends Activity {
     private Button mStartButton,mStopButton,mTagButton,mCheckInAllButton,mCheckOutAllButton,mCheckInBcastButton,mCheckOutBcastButton,mScheduleWUButton;//,mReleaseCmdButton;
     private Vibrator mVibrator;
     private int index = 0;
-    private ArrayList<ClimbNode> climbNodeList;
     private List<String> allowedChidren = new ArrayList<String>();
     private ArrayAdapter<ListView> adapter;
-    private ClimbService mClimbService;
+    private ClimbServiceInterface mClimbService;
     private Context mContext = null;
     private EditText mConsole = null;
     private long lastBroadcastMessageSentMillis = 0;
@@ -138,8 +137,6 @@ public class ScanActivity extends Activity {
                     };
                 }
             }else if (ClimbService.STATE_DISCONNECTED_FROM_CLIMB_MASTER.equals(action)) {
-                //climbNodeList.clear();
-
                 String id = intent.getStringExtra(ClimbService.INTENT_EXTRA_ID);
                 Log.w(TAG,"Disconnected from GATT " + id);
 
@@ -206,12 +203,7 @@ public class ScanActivity extends Activity {
             mClimbService = ((ClimbService.LocalBinder) service).getService();
             mClimbService.setContext(getApplicationContext());
             //IN QUESTO PUNTO RICHIEDI LA LISTA DI DISPOSITIVI INIZIALI PER INSERIRLA NELLA LISTVIEW
-            climbNodeList = mClimbService.getNodeList(); //Csaba: TODO replace
-            //expandableListTitle = climbNodeList;
-            //expandableListDetail = ExpandableListDataPump.getData(); //expandableListDetail conterrà le info aggiuntive
-            //expandableListTitle = new ArrayList<String>(expandableListDetail.keySet()); //expandableListTitle dovrà contenere i nomi dei dispositivi direttamente visibili dallo smartphone
-            expandableListDetail = new HashMap<ClimbNode, List<String>>();
-            expandableListAdapter = new MyExpandableListAdapter(mContext, climbNodeList, expandableListDetail);
+            expandableListAdapter = new MyExpandableListAdapter(mContext, mClimbService);
             expandableListView.setAdapter(expandableListAdapter);
 /*
             //crea un adapter per gestire la listView
@@ -249,6 +241,7 @@ public class ScanActivity extends Activity {
     View.OnClickListener stopButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
 
+            /* NOT SUPPORTED through iface
             if(mClimbService != null){
                 mVibrator.vibrate(ConfigVals.vibrationTimeout);
                 Log.i(TAG, java.util.Arrays.toString(mClimbService.getLogFiles()));
@@ -259,6 +252,7 @@ public class ScanActivity extends Activity {
                 Log.i(TAG, "Stop scan not sent!");
                 log("Stop scan not sent!");
             }
+            */
 
         }
     };
@@ -266,6 +260,7 @@ public class ScanActivity extends Activity {
     View.OnClickListener tagButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
 
+            /* NOT SUPPORTED through iface
             if(mClimbService != null){
                 if(mClimbService.insertTag("Manually_inserted_tag")){
                     mVibrator.vibrate(ConfigVals.vibrationTimeout);
@@ -277,7 +272,7 @@ public class ScanActivity extends Activity {
             }else{
                 Log.i(TAG, "Tag not inserted! mClimbService == null");
                 log("Tag not inserted! mClimbService == null");
-            }
+            }*/
 
         }
     };
@@ -285,6 +280,7 @@ public class ScanActivity extends Activity {
     View.OnClickListener ckInAllButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
 
+            /* NOT SUPPORTED through iface
             if( (SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
                 if (mClimbService != null) {
                     if (mClimbService.checkinChildren(mClimbService.getChildren())) {
@@ -304,11 +300,13 @@ public class ScanActivity extends Activity {
                         alertString,
                         Toast.LENGTH_LONG).show();
             }
+            */
         }
     };
     View.OnClickListener ckOutAllButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
 
+            /* NOT SUPPORTED through iface
             if ((SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
                 if (mClimbService != null) {
                     if (mClimbService.checkoutChildren(mClimbService.getChildren())) {
@@ -329,11 +327,13 @@ public class ScanActivity extends Activity {
                         alertString,
                         Toast.LENGTH_LONG).show();
             }
+            */
         }
     };
     View.OnClickListener ckInBcastButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
 
+            /* NOT SUPPORTED through iface
             if( (SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
                 if (mClimbService != null) {
                     if (mClimbService.SendCheckInAllCmd()) {
@@ -353,11 +353,13 @@ public class ScanActivity extends Activity {
                         alertString,
                         Toast.LENGTH_LONG).show();
             }
+            */
         }
     };
     View.OnClickListener ckOutBcastButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
 
+            /* NOT SUPPORTED through iface
             if ((SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
                 if (mClimbService != null) {
                     if (mClimbService.SendCheckOutAllCmd()) {
@@ -378,6 +380,7 @@ public class ScanActivity extends Activity {
                         alertString,
                         Toast.LENGTH_LONG).show();
             }
+            */
         }
     };
     View.OnClickListener scheduleWUButtonHandler = new View.OnClickListener(){
@@ -423,6 +426,7 @@ public class ScanActivity extends Activity {
 
     public void sendWakeUpCMD(){
 
+        /* NOT SUPPORTED through iface
         if( (SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
             if (mClimbService != null) {
 
@@ -465,6 +469,7 @@ public class ScanActivity extends Activity {
                     alertString,
                     Toast.LENGTH_LONG).show();
         }
+        */
 
     }
 
@@ -481,9 +486,9 @@ public class ScanActivity extends Activity {
         @Override
         public void onGroupExpand(int groupPosition) {
             Log.i(TAG, "Group expanded, position: " + groupPosition);
-            ClimbNode clickedNode = climbNodeList.get(groupPosition);
-            if (! mClimbService.connectMaster(clickedNode.getNodeID())) {
-                Log.w(TAG, "connect failed immediately to " + clickedNode.getNodeID());
+            String clickedNode = expandableListAdapter.getMasters()[groupPosition];
+            if (! mClimbService.connectMaster(clickedNode)) {
+                Log.w(TAG, "connect failed immediately to " + clickedNode);
             }
             mVibrator.vibrate(ConfigVals.vibrationTimeout);
         }
@@ -501,41 +506,34 @@ public class ScanActivity extends Activity {
         @Override
         public boolean onChildClick(ExpandableListView parent, View v,
                                     int groupPosition, int childPosition, long id) {
-            //TODO: implement
-            ClimbNode clickedNode = climbNodeList.get(groupPosition);
-            if (clickedNode.isMasterNode()) {
-                try {
-                    MonitoredClimbNode monitoredChild = clickedNode.getMonitoredClimbNodeList().get(childPosition);
-                    String actionString = "";
-                    String childID = monitoredChild.getNodeIDString();
-                    switch (monitoredChild.getNodeState()) {
-                        case 0:
-                            if (!allowedChidren.contains(childID)) {
-                                allowedChidren.add(childID);
-                            }
-                            mClimbService.setNodeList(allowedChidren.toArray(new String[allowedChidren.size()]));
-                            actionString = "allowing " + childID;
-                            break;
-                        case 1:
-                            mClimbService.checkinChild(childID);
-                            actionString = "checkin " + childID;
-                            break;
-                        case 2:
-                            mClimbService.checkoutChild(childID);
-                            actionString = "checkout " + childID;
-                            break;
-                        default:
-                    }
-                    mVibrator.vibrate(ConfigVals.vibrationTimeout);
-                    //Toast.makeText(getApplicationContext(),
-                    //        actionString,
-                    //        Toast.LENGTH_LONG).show();
-                } catch (IndexOutOfBoundsException e) {
-                    //TODO: trigger update
-                }
-            }
 
-            return false;
+            ClimbServiceInterface.NodeState monitoredChild = (ClimbServiceInterface.NodeState) expandableListAdapter.getChild(groupPosition,childPosition);
+            String actionString = "";
+            String childID = monitoredChild.nodeID;
+            switch (monitoredChild.state) {
+                case 0:
+                    if (!allowedChidren.contains(childID)) {
+                        allowedChidren.add(childID);
+                    }
+                    mClimbService.setNodeList(allowedChidren.toArray(new String[allowedChidren.size()]));
+                    actionString = "allowing " + childID;
+                    break;
+                case 1:
+                    mClimbService.checkinChild(childID);
+                    actionString = "checkin " + childID;
+                    break;
+                case 2:
+                    mClimbService.checkoutChild(childID);
+                    actionString = "checkout " + childID;
+                    break;
+                default:
+            }
+            mVibrator.vibrate(ConfigVals.vibrationTimeout);
+            //Toast.makeText(getApplicationContext(),
+            //        actionString,
+            //        Toast.LENGTH_LONG).show();
+
+            return true;
         }
     };
 
@@ -659,29 +657,9 @@ public class ScanActivity extends Activity {
     }
 
     private void updateDetailsExpandableListDetails(final int[] changedClimbNodeIndex){
-        if(climbNodeList != null) {
-            for (int i = 0; i < changedClimbNodeIndex.length; i++) {
-                ClimbNode actualNode = climbNodeList.get(changedClimbNodeIndex[i]);
-                if (actualNode != null) {
-                    List<String> actualNodeDetailsList = actualNode.getClimbNeighbourList();
-                    expandableListDetail.put(actualNode, actualNodeDetailsList); //il metodo put sostituisce il vecchio valore, quindi nella hashmap non si creano doppioni
-                }
-            }
-        }
-
     }
 
     private void updateDetailsExpandableListDetails(){
-        if(climbNodeList != null) {
-            for (int i = 0; i < climbNodeList.size(); i++) {
-                ClimbNode actualNode = climbNodeList.get(i);
-                if (actualNode != null) {
-                    List<String> actualNodeDetailsList = actualNode.getClimbNeighbourList();
-                    expandableListDetail.put(actualNode, actualNodeDetailsList); //il metodo put sostituisce il vecchio valore, quindi nella hashmap non si creano doppioni
-                }
-            }
-        }
-
     }
 
     private void log(final String txt) {
