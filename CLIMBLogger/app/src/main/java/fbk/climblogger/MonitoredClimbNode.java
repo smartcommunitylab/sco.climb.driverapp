@@ -1,1 +1,1 @@
-/Users/cskiraly/local/fbk/CLIMB/sco.climb.driverapp/DriverAppCordovaPlugin/src/android/fbk/climblogger/MonitoredClimbNode.java
+../../../../../../../DriverAppCordovaPlugin/src/android/fbk/climblogger/MonitoredClimbNode.java
