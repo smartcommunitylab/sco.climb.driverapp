@@ -25,6 +25,8 @@ import java.util.List;
 
 public class ClimbSimpleService extends Service implements ClimbServiceInterface{
 
+    //--- Service -----------------------------------------------
+
     private final String TAG = "ClimbSimpleService";
 
     private IBinder mBinder;
@@ -51,7 +53,8 @@ public class ClimbSimpleService extends Service implements ClimbServiceInterface
 
         return mBinder;
     }
-    //--------------------------------------------------
+
+    //--- BlueTooth -----------------------------------------------
 
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
@@ -183,7 +186,7 @@ public class ClimbSimpleService extends Service implements ClimbServiceInterface
     };
 
 
-    //--------------------------------------------------
+    //--- Callbacks helpers -----------------------------------------------
 
     private void broadcastUpdate(final String action, final String id) {
         final Intent intent = new Intent(action);
@@ -205,7 +208,7 @@ public class ClimbSimpleService extends Service implements ClimbServiceInterface
         sendBroadcast(intent);
     }
 
-    //--------------------------------------------------
+    //--- CLIMB API -----------------------------------------------
 
     private String[] allowedChildren = new String[0];
     private HashMap<String,NodeState> seenChildren = new HashMap<String,NodeState>();
@@ -260,6 +263,7 @@ public class ClimbSimpleService extends Service implements ClimbServiceInterface
         NodeState s = seenChildren.get(child);
         if (s != null) {
             s.state = State.ONBOARD.getValue();
+            //TODO: call callback
             return true;
         } else {
             return false;
@@ -278,6 +282,7 @@ public class ClimbSimpleService extends Service implements ClimbServiceInterface
         NodeState s = seenChildren.get(child);
         if (s != null) {
             s.state = State.CHECKING.getValue();
+            //TODO: call callback
             return true;
         } else {
             return false;
