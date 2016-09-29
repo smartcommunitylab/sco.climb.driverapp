@@ -175,7 +175,8 @@ public class ClimbSimpleService extends Service implements ClimbServiceInterface
             long nowMillis = System.currentTimeMillis();
             if (device != null) {
                 if (device.getName() != null && device.getName().equals(ConfigVals.CLIMB_CHILD_DEVICE_NAME)) {
-                    id = nodeID2String(scanRecord);
+                    //id = nodeID2String(scanRecord);
+                    id = nodeID2String(Arrays.copyOfRange(scanRecord,12,scanRecord.length));
                 } else {
                     id = device.getAddress();
                 }
