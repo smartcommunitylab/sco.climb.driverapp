@@ -17,7 +17,8 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.util.Log;
-import fbk.climblogger.ClimbService;
+//import fbk.climblogger.ClimbService;
+import fbk.climblogger.ClimbSimpleService;
 import fbk.climblogger.ClimbServiceInterface;
 import fbk.climblogger.ClimbServiceInterface.NodeState;
 
@@ -26,7 +27,7 @@ public class DriverAppPlugin extends CordovaPlugin {
 
 	private Context ctx;
 
-	private ClimbService mClimbService = null;
+	private ClimbServiceInterface mClimbService = null;
 	private boolean isBound = false;
 
 	private BroadcastReceiver receiver = null;
@@ -43,7 +44,7 @@ public class DriverAppPlugin extends CordovaPlugin {
 		ctx = webView.getContext();
 		Log.w(LOG_TAG, "context: " + ctx);
 
-		Intent climbServiceIntent = new Intent(ctx, ClimbService.class);
+		Intent climbServiceIntent = new Intent(ctx, ClimbSimpleService.class);
 		Log.w(LOG_TAG, "climbServiceIntent: " + climbServiceIntent);
 		isBound = ctx.bindService(climbServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
 		Log.w(LOG_TAG, "bound? " + isBound);
@@ -304,7 +305,7 @@ public class DriverAppPlugin extends CordovaPlugin {
 	private final ServiceConnection mServiceConnection = new ServiceConnection() {
 		@Override
 		public void onServiceConnected(ComponentName className, IBinder service) {
-			mClimbService = ((ClimbService.LocalBinder) service).getService();
+			mClimbService = ((ClimbSimpleService.LocalBinder) service).getService();
 			// mClimbService.setHandler(new Handler());
 			mClimbService.setContext(webView.getContext());
 			Log.w(LOG_TAG, "climbService: " + mClimbService);
