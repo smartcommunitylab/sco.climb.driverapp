@@ -17,17 +17,17 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.util.Log;
-//import fbk.climblogger.ClimbService;
-import fbk.climblogger.ClimbSimpleService;
 import fbk.climblogger.ClimbServiceInterface;
 import fbk.climblogger.ClimbServiceInterface.NodeState;
+//import fbk.climblogger.ClimbService;
+import fbk.climblogger.ClimbSimpleService;
 
 public class DriverAppPlugin extends CordovaPlugin {
 	private static final String LOG_TAG = "ClimbDriverAppPlugin";
 
 	private Context ctx;
 
-	private ClimbServiceInterface mClimbService = null;
+	private ClimbSimpleService mClimbService = null;
 	private boolean isBound = false;
 
 	private BroadcastReceiver receiver = null;
@@ -305,7 +305,7 @@ public class DriverAppPlugin extends CordovaPlugin {
 	private final ServiceConnection mServiceConnection = new ServiceConnection() {
 		@Override
 		public void onServiceConnected(ComponentName className, IBinder service) {
-			mClimbService = ((ClimbSimpleService.LocalBinder) service).getService();
+			mClimbService = (ClimbSimpleService) ((ClimbSimpleService.LocalBinder) service).getService();
 			// mClimbService.setHandler(new Handler());
 			mClimbService.setContext(webView.getContext());
 			Log.w(LOG_TAG, "climbService: " + mClimbService);

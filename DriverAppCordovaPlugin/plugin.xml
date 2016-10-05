@@ -13,7 +13,7 @@
 
         <platform name="android">
             <config-file target="AndroidManifest.xml" parent="/manifest/application">
-          		<service android:name="fbk.climblogger.ClimbService" android:enabled="true" android:exported="false"></service>
+          		<service android:name="fbk.climblogger.ClimbSimpleService" android:enabled="true" android:exported="false"></service>
           	</config-file>
 
             <config-file target="AndroidManifest.xml" parent="/manifest">
@@ -25,7 +25,7 @@
                 <uses-permission android:name="android.permission.VIBRATE" />
 
                 <intent-filter>
-        			<action android:name="fbk.climblogger.ClimbService" />
+        			<action android:name="fbk.climblogger.ClimbSimpleService" />
     			</intent-filter>
             </config-file>
 
