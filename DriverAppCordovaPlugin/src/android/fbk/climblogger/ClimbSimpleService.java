@@ -227,6 +227,21 @@ public class ClimbSimpleService extends Service implements ClimbServiceInterface
         broadcastUpdate(ACTION_DATALOG_ACTIVE, ACTION_METADATA_CHANGED,id);
     }
 
+    
+    private String cutZeros(String x) {
+        int position = -1;
+        for (int i = x.length()-1; i>=0; i--) {
+            if (x.charAt(i) != '0') {
+                position = i+1;
+                break;
+            }
+        }
+        if (position == -1) {
+            return x;
+        }
+        return x.substring(0, position);
+    }
+
 private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] manufacterData, long nowMillis) {
     boolean ret = false;
     if (mBufferedWriter != null) { // questo significa che il log � stato abilitato
@@ -236,6 +251,7 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
         if (manufacterData != null) {
             for (int i = 0; i < manufacterData.length; i++) {
                 manufString = manufString + String.format("%02X", manufacterData[i]);
+                manufString = cutZeros(manufString);
             }
         }
 
