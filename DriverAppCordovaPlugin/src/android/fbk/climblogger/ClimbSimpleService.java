@@ -20,6 +20,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -228,20 +229,6 @@ public class ClimbSimpleService extends Service implements ClimbServiceInterface
     }
 
     
-    private String cutZeros(String x) {
-        int position = -1;
-        for (int i = x.length()-1; i>=0; i--) {
-            if (x.charAt(i) != '0') {
-                position = i+1;
-                break;
-            }
-        }
-        if (position == -1) {
-            return x;
-        }
-        return x.substring(0, position);
-    }
-
 private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] manufacterData, long nowMillis) {
     boolean ret = false;
     if (mBufferedWriter != null) { // questo significa che il log � stato abilitato
@@ -251,7 +238,7 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
         if (manufacterData != null) {
             for (int i = 0; i < manufacterData.length; i++) {
                 manufString = manufString + String.format("%02X", manufacterData[i]);
-                manufString = cutZeros(manufString);
+                
             }
         }
 
@@ -322,11 +309,12 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
         public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
             String id;
             long nowMillis = System.currentTimeMillis();
+            byte[] manufacturerData = extractManufacturerSpecificData(scanRecord, TEXAS_INSTRUMENTS_MANUFACTER_ID);
             if (device != null) {
                 if (logEnabled && device.getName().equals(ConfigVals.CLIMB_CHILD_DEVICE_NAME)) {
                     logScanResult(device,
                         rssi,
-                        scanRecord,
+                        manufacturerData,
                         nowMillis);
                 }
                 if (device.getName() != null && device.getName().equals(ConfigVals.CLIMB_CHILD_DEVICE_NAME)) {
@@ -337,6 +325,27 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
                 }
 
                 updateChild(id);
+            }
+        }
+
+        private byte[] extractManufacturerSpecificData(byte[] scanRecord, int manufacturer_id){
+
+            if(scanRecord != null) {
+                int ptr = 0;
+                while (ptr < scanRecord.length && scanRecord[ptr] != 0) {
+                    int field_length = scanRecord[ptr];
+                    if (scanRecord[ptr + 1] == (byte) (0xFF)) { //this is true when the manufacturer specific data field has been found
+                        if (((scanRecord[ptr + 3] << 8) + scanRecord[ptr + 2]) == manufacturer_id) {
+                            byte[] manufacturerSpecificData = new byte[field_length - 3];
+                            System.arraycopy(scanRecord, ptr + 4, manufacturerSpecificData, 0, field_length - 3);
+                            return manufacturerSpecificData;
+                        }
+                    }
+                    ptr += (field_length + 1);
+                }
+                return null;
+            }else{
+                return null;
             }
         }
     };
