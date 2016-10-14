@@ -1,24 +1,24 @@
 <ion-modal-view class="dapp-wizard">
-    <ion-header-bar class="bar-positive">
-        <h1 class="title">Login</h1>
-        <!--<button class="button button-positive icon ion-close" ng-click="modalVolunteers.hide()"></button>-->
-    </ion-header-bar>
-    <ion-content class="has-header">
-        <div class="padding-horizontal">
-            <img class="dapp-logo" src="img/climb_logo.png" />
-            <div class="helptext">
-                Benvenuto, ti chiediamo 3 minuti per configurare la tua app
-            </div>
-            <ion-item class="item-select" ng-click="selectIdentityPopup()">
-                <span>{{login.identity ? login.identity.OWNER_ID : 'Seleziona identità'}}</span>
-            </ion-item>
-            <ion-item class="item-input">
-                <input type="password" ng-model="login.identityPwd">
-            </ion-item>
-            <div class="buttonbar">
-                <button class="button button-energized button-clear" ng-click="exitApp()">Chiudi</button>
-                <button class="button button-energized button-clear button-next" ng-click="checkIdentityPwd()" ng-disabled="!login.identity || !login.identityPwd">Avanti</button>
-            </div>
-        </div>
-    </ion-content>
+	<ion-header-bar class="bar-positive">
+		<h1 class="title">Login</h1>
+		<!--<button class="button button-positive icon ion-close" ng-click="modalVolunteers.hide()"></button>-->
+	</ion-header-bar>
+	<ion-content class="has-header">
+		<div class="padding-horizontal">
+			<img class="dapp-logo" src="img/climb_logo.png" />
+			<div class="helptext">
+				Benvenuto, ti chiediamo 3 minuti per configurare la tua app
+			</div>
+			<ion-item class="item-select" ng-click="selectIdentityPopup()">
+				<span>{{login.identity ? login.identity.OWNER_ID : 'Seleziona identità'}}</span>
+			</ion-item>
+			<ion-item class="item-input">
+				<input type="password" placeholder="Password" ng-model="login.identityPwd">
+			</ion-item>
+		</div>
+	</ion-content>
+	<ion-footer-bar>
+			<button class="button button-energized button-clear" ng-click="exitApp()">Chiudi</button>
+			<button class="button button-energized button-clear button-next" ng-click="checkIdentityPwd()" ng-disabled="!login.identity || !login.identityPwd">Avanti</button>
+	</ion-footer-bar>
 </ion-modal-view>

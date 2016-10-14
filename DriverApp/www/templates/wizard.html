@@ -1,5 +1,5 @@
 <ion-view>
-    <!--<ion-nav-buttons side="left">
+	<!--<ion-nav-buttons side="left">
         <button class="button no-animation" ion-wizard-previous>
             Indietro
         </button>
@@ -13,75 +13,85 @@
         </button>
     </ion-nav-buttons>-->
 
-    <ion-slides class="dapp-wizard" options="swiperOptions" slider="swiper" ion-wizard>
-        <!-- School & Route -->
-        <ion-slide-page class="swiper-no-swiping" ion-wizard-step next-condition="!!wizard.school && !!wizard.route">
-            <ion-content class="has-header">
-                <div class="padding-horizontal">
-                    <img class="dapp-logo" src="img/climb_logo.png" />
-                    <div class="helptext">
-                        Benvenuto, ti chiediamo 3 minuti per configurare la tua app
-                    </div>
-                    <ion-item class="item-select" ng-click="selectSchoolPopup()">
-                        <span>{{wizard.school ? wizard.school.name: 'Seleziona la scuola'}}</span>
-                        <!--<i class="icon ion-arrow-down-b"></i>-->
-                    </ion-item>
-                    <ion-item class="item-select" ng-disabled="!wizard.school" ng-click="selectRoutePopup()">
-                        <span>{{wizard.route ? wizard.route.name: 'Seleziona il pedibus'}}</span>
-                        <!--<i class="icon ion-arrow-down-b"></i>-->
-                    </ion-item>
-                    <div class="buttonbar">
-                        <button class="button button-energized button-clear" ion-wizard-previous>Indietro</button>
-                        <button class="button button-energized button-clear button-next" ion-wizard-next>Avanti</button>
-                    </div>
-                </div>
-            </ion-content>
-        </ion-slide-page>
-        <!-- Driver -->
-        <ion-slide-page class="swiper-no-swiping" ion-wizard-step next-condition="!!wizard.driver">
-            <ion-content class="has-header">
-                <div class="padding-horizontal">
-                    <img class="dapp-logo" src="img/climb_logo.png" />
-                    <div class="helptext">
-                        Accedi con le tue credenziali
-                    </div>
-                    <ion-item class="item-select" ng-click="selectDriverPopup()">
-                        <span>{{wizard.driver ? wizard.driver.name : 'Chi sei?'}}</span>
-                    </ion-item>
-                    <!--<ion-item class="item-input">
+	<ion-slides class="dapp-wizard" options="swiperOptions" slider="swiper" ion-wizard>
+		<!-- School & Route -->
+		<ion-slide-page class="swiper-no-swiping" ion-wizard-step next-condition="!!wizard.school && !!wizard.route">
+			<ion-content class="has-header">
+				<div class="padding-horizontal">
+					<img class="dapp-logo" src="img/climb_logo.png" />
+					<div class="helptext">
+						Benvenuto, ti chiediamo 3 minuti per configurare la tua app.
+					</div>
+					<ion-item class="item-select" ng-click="selectSchoolPopup()">
+						<span>{{wizard.school ? wizard.school.name: 'Seleziona la scuola'}}</span>
+						<!--<i class="icon ion-arrow-down-b"></i>-->
+					</ion-item>
+					<ion-item class="item-select" ng-disabled="!wizard.school" ng-click="selectRoutePopup()">
+						<span>{{wizard.route ? wizard.route.name: 'Seleziona il pedibus'}}</span>
+						<!--<i class="icon ion-arrow-down-b"></i>-->
+					</ion-item>
+					<div class="helptext">
+						<div class="row">
+							<div class="col col-20 col-center">
+								<i class="icon ion-bluetooth"></i>
+							</div>
+							<div class="col col-80">
+								<strong>Se devi interagire con la rete di sensori ricorda di abilitare il Bluetooth dello smartphone.</strong>
+							</div>
+						</div>
+					</div>
+				</div>
+			</ion-content>
+			<ion-footer-bar>
+				<button class="button button-energized button-clear" ion-wizard-previous>Indietro</button>
+				<button class="button button-energized button-clear" ion-wizard-next>Avanti</button>
+			</ion-footer-bar>
+		</ion-slide-page>
+		<!-- Driver -->
+		<ion-slide-page class="swiper-no-swiping" ion-wizard-step next-condition="!!wizard.driver">
+			<ion-content class="has-header">
+				<div class="padding-horizontal">
+					<img class="dapp-logo" src="img/climb_logo.png" />
+					<div class="helptext">
+						Accedi con le tue credenziali
+					</div>
+					<ion-item class="item-select" ng-click="selectDriverPopup()">
+						<span>{{wizard.driver ? wizard.driver.name : 'Chi sei?'}}</span>
+					</ion-item>
+					<!--<ion-item class="item-input">
                         <input type="password" placeholder="Password">
                     </ion-item>-->
-                    <div class="buttonbar">
-                        <button class="button button-energized button-clear" ion-wizard-previous>Indietro</button>
-                        <button class="button button-energized button-clear button-next" ion-wizard-next>Avanti</button>
-                    </div>
-                </div>
-            </ion-content>
-        </ion-slide-page>
-        <!-- Helpers -->
-        <ion-slide-page class="swiper-no-swiping" ion-wizard-step>
-            <ion-content class="has-header" scroll="false">
-                <!--<ion-content class="has-header" scroll="false">-->
-                <div class="padding">
-                    <img class="dapp-logo" src="img/climb_logo.png" />
-                    <div class="helptext">
-                        Ciao <strong>{{wizard.driver.name}}</strong>! Oggi accompagnerai la <strong>{{wizard.route.name}}</strong> assieme a:
-                    </div>
-                    <!--<ion-scroll>-->
-                    <div class="wiz-scroll-panel">
-                        <ion-list scroll="true">
-                            <ion-checkbox class="checkbox-dapp" ng-repeat="volunteer in volunteers" ng-if="volunteer !== wizard.driver" ng-model="volunteer.checked">
-                                {{volunteer.name}}
-                            </ion-checkbox>
-                        </ion-list>
-                    </div>
-                    <!--</ion-scroll>-->
-                    <div class="buttonbar">
-                        <button class="button button-energized button-clear" ion-wizard-previous>Indietro</button>
-                        <button class="button button-energized button-clear button-next" ion-wizard-start="saveWizardChoices()">Inizia</button>
-                    </div>
-                </div>
-            </ion-content>
-        </ion-slide-page>
-    </ion-slides>
+				</div>
+			</ion-content>
+			<ion-footer-bar>
+				<button class="button button-energized button-clear" ion-wizard-previous>Indietro</button>
+				<button class="button button-energized button-clear" ion-wizard-next>Avanti</button>
+			</ion-footer-bar>
+		</ion-slide-page>
+		<!-- Helpers -->
+		<ion-slide-page class="swiper-no-swiping" ion-wizard-step>
+			<ion-content class="has-header" scroll="false">
+				<!--<ion-content class="has-header" scroll="false">-->
+				<div class="padding-horizontal">
+					<img class="dapp-logo" src="img/climb_logo.png" />
+					<div id="helptext-helpers" class="helptext">
+						Ciao <strong>{{wizard.driver.name}}</strong>! Oggi accompagnerai la <strong>{{wizard.route.name}}</strong> assieme a:
+					</div>
+					<ion-scroll ng-style="helpersListStyle">
+						<!--<div class="wiz-scroll-panel">-->
+						<div class="list">
+							<ion-checkbox class="checkbox-dapp" ng-repeat="volunteer in volunteers" ng-if="volunteer !== wizard.driver" ng-model="volunteer.checked">
+								{{volunteer.name}}
+							</ion-checkbox>
+						</div>
+						<!--</div>-->
+					</ion-scroll>
+				</div>
+			</ion-content>
+			<ion-footer-bar>
+				<button class="button button-energized button-clear" ion-wizard-previous>Indietro</button>
+				<button class="button button-energized button-clear" ion-wizard-start="saveWizardChoices()">Inizia</button>
+			</ion-footer-bar>
+		</ion-slide-page>
+	</ion-slides>
 </ion-view>

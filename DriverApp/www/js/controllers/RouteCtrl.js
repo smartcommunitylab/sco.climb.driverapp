@@ -18,8 +18,6 @@ angular.module('driverapp.controllers.route', [])
         $scope.passengersPanelStyle['height'] = height + 'px';
     };
 
-    $scope.resizePassengersPanel
-
     var aesInstance = {};
 
     $scope.children = null;
