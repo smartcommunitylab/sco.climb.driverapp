@@ -1,1 +1,0 @@
-../../../../../../../DriverAppCordovaPlugin/src/android/fbk/climblogger/MonitoredClimbNode.java
