@@ -13,6 +13,7 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:orientation="vertical"
+        android:layout_margin="4dp"
         tools:context=".ScanActivity">
 
         <!--    <android.support.design.widget.AppBarLayout android:layout_height="wrap_content"
@@ -32,31 +33,38 @@
         <!--android:src="@android:drawable/ic_dialog_email" />-->
 
         <LinearLayout
-            android:layout_width="fill_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:gravity="center_vertical|center_horizontal">
 
             <Button
                 android:id="@+id/buttonStart"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="Start\nScan"
-                android:textSize="12dp" />
+                android:textSize="12sp"
+                android:layout_weight="0.25"
+                />
 
             <Button
                 android:id="@+id/buttonStop"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="Stop\nscan"
-                android:textSize="12dp" />
+                android:textSize="12sp"
+                android:layout_weight="0.25"
+                />
 
             <Button
                 android:id="@+id/buttonTag"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="Insert\nTag"
-                android:textSize="12dp" />
+                android:textSize="12sp"
+                android:layout_weight="0.25"
+                />
+
 
 
         </LinearLayout>
@@ -66,27 +74,34 @@
             android:background="@android:color/darker_gray"/>
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="center_horizontal"
+            android:layout_height="0dp"
+            android:gravity="top|center_horizontal"
             android:orientation="vertical"
-            android:layout_weight="1"
-            android:layout_margin="5dp">
+            android:layout_margin="0dp"
+            android:layout_weight="1">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="fill_parent"
-                android:layout_gravity="center_horizontal"
+                android:gravity="top|center_horizontal"
                 android:orientation="vertical"
-                android:layout_weight="0.38"
-                android:layout_margin="5dp">
+                android:layout_margin="0dp">
 
-                <TextView
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="VISIBLE CLIMBM BEACONS:"
-                    android:textSize="20dp"
-                    android:textColor="#a3a3a3"
-                    android:textStyle="bold" />
+                    android:gravity="top|center_horizontal"
+                    android:orientation="horizontal"
+                    android:layout_margin="0dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="VISIBLE CLIMBM BEACONS: "
+                        android:textSize="20dp"
+                        android:textColor="#a3a3a3"
+                        android:textStyle="bold" />
+                </LinearLayout>
                 <ExpandableListView
                     android:id="@+id/list"
                     android:layout_height="match_parent"
@@ -99,67 +114,90 @@
                     android:layout_gravity="top"
                     android:layout_margin="5dp">
                 </ListView>-->
-
+                </LinearLayout>
             </LinearLayout>
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@android:color/darker_gray"/>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_gravity="center_horizontal"
-                android:orientation="vertical"
-                android:layout_weight="1.8"
-                android:layout_margin="5dp">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="BROADCAST MESSAGES"
-                    android:textSize="15dp"
-                    android:textColor="#a3a3a3"
-                    android:textStyle="bold" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray"/>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BROADCAST MESSAGES"
+                android:textSize="15dp"
+                android:textColor="#a3a3a3"
+                android:textStyle="bold"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentLeft="true"
+                android:id="@+id/broadcast_label"/>
+            <TextView
+                android:id="@+id/filename_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/broadcast_label"
+                android:layout_alignParentLeft="true"
+                android:text="Log Filename: "
+                android:textSize="12dp"
+                android:textColor="#a3a3a3" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/broadcast_label"
+                android:layout_toEndOf="@id/filename_label"
+                android:id="@+id/filenameTextBox"
+                android:textSize="12dp"
+                android:textColor="#a3a3a3" />
             <LinearLayout
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:gravity="center_vertical|center_horizontal">
+                android:layout_below="@id/filename_label"
+                android:gravity="center_vertical|center_horizontal"
+                >
 
                 <Button
                     android:id="@+id/buttonCheckInAll"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="checkin\nall"
-                    android:textSize="12dp" />
+                    android:text="ck-in\nall"
+                    android:textSize="12sp"
+                    android:layout_weight="1"/>
 
                 <Button
                     android:id="@+id/buttonCheckOutAll"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="checkout\nall"
-                    android:textSize="12dp" />
+                    android:text="ck-out\nall"
+                    android:textSize="12sp"
+                    android:layout_weight="1"/>
 
                 <Button
                     android:id="@+id/buttonCheckInBcast"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="checki\nbcast"
-                    android:textSize="12dp" />
+                    android:text="ck-in\nbcast"
+                    android:textSize="12sp"
+                    android:layout_weight="1"/>
 
                 <Button
                     android:id="@+id/buttonCheckOutBcast"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="checkout\nbcast"
-                    android:textSize="12dp" />
+                    android:text="ck-out\nbcast"
+                    android:textSize="12sp"
+                    android:layout_weight="1"/>
 
 
                 <Button
                     android:id="@+id/scheduleWakeUpAll"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="schedule\nWake up"
-                    android:textSize="12dp" />
+                    android:text="Wake\nup"
+                    android:textSize="12sp"
+                    android:layout_weight="1"/>
 
                 <!--<Button
                     android:id="@+id/test"
@@ -170,7 +208,8 @@
 
             </LinearLayout>
 
-            </LinearLayout>
+        </RelativeLayout>
+
             <!--<View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
@@ -210,8 +249,6 @@
                     </EditText>
                 </ScrollView>
             </LinearLayout>-->
-
-        </LinearLayout>
     </LinearLayout>
 
 </android.support.design.widget.CoordinatorLayout>
