@@ -100,8 +100,19 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
     private BluetoothLeScanner mBluetoothLeScanner;
 
     private final static int TEXAS_INSTRUMENTS_MANUFACTER_ID = 0x000D;
-    private static String nodeID2String(byte[] id) {
-        return String.format("%02X", id[0]);
+    private static String getNodeIdFromRawPacket(byte[] manufSpecField) {
+        if(manufSpecField != null && manufSpecField.length > 1) {
+            return String.format("%02X", manufSpecField[0]);
+        }else{
+            return null;
+        }
+    }
+    private static int getNodeBatteryVoltageFromRawPacket(byte[] manufSpecField){
+        if(manufSpecField != null && manufSpecField.length > 4) {
+            return (((((int) manufSpecField[manufSpecField.length - 3]) << 24) >>> 24) << 8) + ((((int) manufSpecField[manufSpecField.length - 2]) << 24) >>> 24);
+        }else{
+            return 0;
+        }
     }
 
     private boolean initialize_bluetooth() {
@@ -223,11 +234,35 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
             s.state = fbk.climblogger.ClimbServiceInterface.State.CHECKING.getValue();
             s.lastStateChange = nowMillis;
             s.lastSeen = nowMillis;
+            s.batteryVoltage_mV = 0;
+            s.batteryLevel = 0;
             seenChildren.put(id,s);
         } else {
             s.lastSeen = nowMillis;
+            s.batteryVoltage_mV = 0;
+            s.batteryLevel = 0;
         }
-        broadcastUpdate(ACTION_DATALOG_ACTIVE, ACTION_METADATA_CHANGED,id);
+        //broadcastUpdate(ACTION_DATALOG_ACTIVE, ACTION_METADATA_CHANGED,id);
+        broadcastUpdate(ACTION_METADATA_CHANGED,id);
+    }
+
+    void updateChild(String id, int batteryVoltage) {
+        updateChild(id);
+        NodeState s = seenChildren.get(id);
+        //only update battery voltage, the other stuff is updated in updateChild(String id)
+        s.batteryVoltage_mV = batteryVoltage;
+        if(batteryVoltage == 0){
+            s.batteryLevel = 0;
+        }else if(batteryVoltage < 2000 & batteryVoltage != 0) { //TODO: parametrize levels boundaries in function of the type of battery
+            s.batteryLevel = 1;
+        }else if(batteryVoltage >= 2000 & batteryVoltage < 2500){ //TODO: parametrize levels boundaries in function of the type of battery
+            s.batteryLevel = 2;
+        }else if(batteryVoltage >= 2500){ //TODO: parametrize levels boundaries in function of the type of battery
+            s.batteryLevel = 3;
+        }
+
+        //broadcastUpdate(ACTION_DATALOG_ACTIVE, ACTION_METADATA_CHANGED,id);
+        broadcastUpdate(ACTION_METADATA_CHANGED,id);
     }
 
     
@@ -287,6 +322,8 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
             if(callbackType == ScanSettings.CALLBACK_TYPE_ALL_MATCHES) {
                 long nowMillis = System.currentTimeMillis();
                 String id;
+                byte[] manufSpecDataPacket;
+                int batteryVoltage = 0;
                 if (logEnabled) {
                     logScanResult(result.getDevice(),
                             result.getRssi(),
@@ -294,12 +331,19 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
                             nowMillis);
                 }
                 if (result.getDevice().getName().equals(fbk.climblogger.ConfigVals.CLIMB_CHILD_DEVICE_NAME)) {
-                    id = nodeID2String(result.getScanRecord().getManufacturerSpecificData(TEXAS_INSTRUMENTS_MANUFACTER_ID));
+                    manufSpecDataPacket = result.getScanRecord().getManufacturerSpecificData(TEXAS_INSTRUMENTS_MANUFACTER_ID);
+                    id = getNodeIdFromRawPacket(manufSpecDataPacket);
+                    if(id != null) {
+                        batteryVoltage = getNodeBatteryVoltageFromRawPacket(manufSpecDataPacket);
+                        updateChild(id, batteryVoltage);
+                    }else{
+                        id = result.getDevice().getAddress();
+                        updateChild(id);
+                    }
                 } else {
                     id = result.getDevice().getAddress();
+                    updateChild(id);
                 }
-
-                updateChild(id);
             }
         }
     };
@@ -311,22 +355,30 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
         public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
             String id;
             long nowMillis = System.currentTimeMillis();
-            byte[] manufacturerData = extractManufacturerSpecificData(scanRecord, TEXAS_INSTRUMENTS_MANUFACTER_ID);
+            byte[] manufSpecDataPacket = extractManufacturerSpecificData(scanRecord, TEXAS_INSTRUMENTS_MANUFACTER_ID);
+            int batteryVoltage = 0;
+
             if (device != null) {
-                if (logEnabled && device.getName().equals(ConfigVals.CLIMB_CHILD_DEVICE_NAME)) {
+                if (logEnabled && device.getName().equals(fbk.climblogger.ConfigVals.CLIMB_CHILD_DEVICE_NAME)) {
                     logScanResult(device,
-                        rssi,
-                        manufacturerData,
-                        nowMillis);
+                            rssi,
+                            manufSpecDataPacket,
+                            nowMillis);
                 }
                 if (device.getName() != null && device.getName().equals(fbk.climblogger.ConfigVals.CLIMB_CHILD_DEVICE_NAME)) {
-                    //id = nodeID2String(scanRecord);
-                    id = nodeID2String(Arrays.copyOfRange(scanRecord,12,scanRecord.length));
+                    id = getNodeIdFromRawPacket(manufSpecDataPacket);
+                    //id = getNodeIdFromRawPacket(Arrays.copyOfRange(scanRecord,12,scanRecord.length));  //not sure if this works, scanRecord in android 4.x does ot support getManufacturerSpecificData
+                    if(id != null) {
+                        batteryVoltage = getNodeBatteryVoltageFromRawPacket(manufSpecDataPacket);
+                        updateChild(id, batteryVoltage);
+                    }else{
+                        id = device.getAddress();
+                        updateChild(id);
+                    }
                 } else {
                     id = device.getAddress();
+                    updateChild(id);
                 }
-
-                updateChild(id);
             }
         }
 

@@ -18,6 +18,8 @@ public interface ClimbServiceInterface {
         public int state;
         public long lastSeen;   //local time in millisec
         public long lastStateChange; //local time in millisec
+        public int batteryVoltage_mV; //battery voltage
+        public int batteryLevel; //battery level (0: not applicable, 1: very low, 2: mid, 3: good)
     }
 
     //events
