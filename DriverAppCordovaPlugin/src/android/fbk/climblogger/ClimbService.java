@@ -1583,6 +1583,14 @@ public class ClimbService extends Service implements ClimbServiceInterface, fbk.
         return 1;
     }
 
+    public ErrorCode enableMaintenanceProcedure(int wakeUP_year, int wakeUP_month, int wakeUP_day, int wakeUP_hour, int wakeUP_minute){ //TODO: implement it!
+        return ErrorCode.INTERNAL_ERROR;
+    }
+
+    public ErrorCode disableMaintenanceProcedure(){ //TODO: implement it!
+        return ErrorCode.INTERNAL_ERROR;
+    }
+
     private void enableNodeTimeout(){
         nodeTimeOutEnabled = true;
     }

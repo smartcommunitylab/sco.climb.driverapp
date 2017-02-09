@@ -13,6 +13,15 @@ public interface ClimbServiceInterface {
         public int getValue() { return id; }
     }
 
+    public enum ErrorCode {
+        NO_ERROR,
+        WRONG_BLE_NAME_ERROR,
+        ADVERTISER_NOT_AVAILABLE_ERROR,
+        INTERNAL_ERROR,
+        ANDROID_VERSION_NOT_COMPATIBLE_ERROR,
+        INVALID_DATE_ERROR
+    }
+
     public class NodeState{
         public String nodeID;
         public int state;
@@ -158,4 +167,21 @@ public interface ClimbServiceInterface {
      * for every child node where the checkout process stated successfully.
      */
     public boolean checkoutChildren(String[] children);
+
+    /**
+     * Enable Maintenance Procedure
+     *
+     * @param timeout (measured in s) until the next wake up.
+     * @return The error codes defined in ErrorCode enum
+     * Enable the maintenance procedure to re-set the clock on the nodes. Usefull for changing battery.
+     */
+    public ErrorCode enableMaintenanceProcedure(int wakeUP_year, int wakeUP_month, int wakeUP_day, int wakeUP_hour, int wakeUP_minute);
+
+    /**
+     * Disabble Maintenance Procedure
+     *
+     * @return The error codes defined in ErrorCode enum
+     * Disabble the maintenance procedure to re-set the clock on the nodes.
+     */
+    public ErrorCode disableMaintenanceProcedure();
 }

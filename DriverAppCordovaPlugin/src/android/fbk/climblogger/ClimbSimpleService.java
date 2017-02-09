@@ -5,6 +5,10 @@ import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.AdvertiseCallback;
+import android.bluetooth.le.AdvertiseData;
+import android.bluetooth.le.AdvertiseSettings;
+import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
@@ -16,12 +20,14 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
+import android.os.ParcelUuid;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 
@@ -32,6 +38,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 
 public class ClimbSimpleService extends Service implements fbk.climblogger.ClimbServiceInterface {
@@ -47,7 +54,10 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
     private boolean logEnabled;
     private ArrayList<ClimbNode> nodeList;
     private boolean initialized = false;
-
+    private long lastMaintainaceCallTime_millis = 0;
+    private long lastWakeUpTimeoutSet_sec = 0;
+    private boolean maintenanceProcedureEnabled = false;
+    private String originalDeviceName = null;
     //--- Service -----------------------------------------------
 
     private final String TAG = "ClimbSimpleService";
@@ -98,6 +108,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothLeScanner mBluetoothLeScanner;
+    private BluetoothLeAdvertiser mBluetoothLeAdvertiser;
 
     private final static int TEXAS_INSTRUMENTS_MANUFACTER_ID = 0x000D;
     private static String getNodeIdFromRawPacket(byte[] manufSpecField) {
@@ -348,6 +359,22 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
         }
     };
 
+    private AdvertiseCallback mAdvCallback;
+    @TargetApi(21)
+    class myAdvCallback extends AdvertiseCallback {
+        @Override
+        public void onStartSuccess(AdvertiseSettings settingsInEffect) {
+            super.onStartSuccess(settingsInEffect);
+        }
+
+        @Override
+        public void onStartFailure(int errorCode) {
+            Log.e( TAG, "Advertising onStartFailure: " + errorCode );
+            super.onStartFailure(errorCode);
+            disableMaintenanceProcedure(); //if the advertising fails disable maintenance so that the name keeps correct
+        }
+    };
+
     // --- Android 4.x specific code ---
     private myLeScanCallback mLeScanCallback;
     class myLeScanCallback implements BluetoothAdapter.LeScanCallback {
@@ -481,6 +508,57 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
         }else{
             return false;
         }
+    }
+
+    private void updateMaintenancePacket(){
+        if(Build.VERSION.SDK_INT >= 21){
+            if(maintenanceProcedureEnabled) {
+                if(mAdvCallback != null) {
+                    mBluetoothLeAdvertiser.stopAdvertising(mAdvCallback); //when the maintenance packet is configured for the first time the call back is null
+                }
+
+                AdvertiseSettings settings = new AdvertiseSettings.Builder()
+                        .setAdvertiseMode( AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY )
+                        .setTxPowerLevel( AdvertiseSettings.ADVERTISE_TX_POWER_HIGH )
+                        .setConnectable( false )
+                        .build();
+
+                //ParcelUuid pUuid = new ParcelUuid( ConfigVals.Service.CLIMB );
+                GregorianCalendar nowDate = new GregorianCalendar(Locale.ITALY);
+                long nowMillis =  nowDate.getTimeInMillis();
+                long lastMaintainaceCallElapse_sec = (nowMillis - lastMaintainaceCallTime_millis)/1000;
+
+                long timeoutSec = lastWakeUpTimeoutSet_sec - lastMaintainaceCallElapse_sec;
+
+                if(timeoutSec > 0) {
+
+                    byte[] manufacturerData = {(byte) 0xFF, (byte) 0x02, (byte) (timeoutSec >> 16), (byte) (timeoutSec >> 8), (byte) (timeoutSec)};
+
+                    AdvertiseData advertiseData = new AdvertiseData.Builder()
+                            .setIncludeDeviceName(true)
+                            //.addServiceUuid( pUuid )
+                            //.addServiceData( pUuid, "Data".getBytes( Charset.forName( "UTF-8" ) ) )
+                            .addManufacturerData(TEXAS_INSTRUMENTS_MANUFACTER_ID, manufacturerData)
+                            .build();
+
+                    mAdvCallback = new myAdvCallback();
+                    insertTag("enabling_advertise");
+                    mBluetoothLeAdvertiser.startAdvertising(settings, advertiseData, mAdvCallback);
+
+
+                    Handler h = new Handler();
+                    h.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            updateMaintenancePacket();
+                        }
+                    }, fbk.climblogger.ConfigVals.MAINTENANCE_PACKET_UPDATE_INTERVAL_MS);
+                }else{ //(timeoutSec > 0), when the timeout goes negative disable the maintenance packet
+                    maintenanceProcedureEnabled = false;
+                }
+            }
+        } // (Build.VERSION.SDK_INT >= 21)
+        return;
     }
 
     //--- CLIMB API -----------------------------------------------
@@ -671,5 +749,90 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
         return 1;
     }
 
+    public ErrorCode enableMaintenanceProcedure(int wakeUP_year, int wakeUP_month, int wakeUP_day, int wakeUP_hour, int wakeUP_minute) {
+        if (Build.VERSION.SDK_INT < 21) {
+            return ErrorCode.ANDROID_VERSION_NOT_COMPATIBLE_ERROR;
+        }
+        if (mBluetoothAdapter == null) {
+            disableMaintenanceProcedure();
+            return ErrorCode.INTERNAL_ERROR; //internal error
+        }
 
+        mBluetoothLeAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
+
+        if (mBluetoothLeAdvertiser == null ) {
+            disableMaintenanceProcedure();
+            return ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR;
+        }
+
+        if (!mBluetoothAdapter.isMultipleAdvertisementSupported()) { //it seems we need multiple advertising to make it work.
+            disableMaintenanceProcedure();
+            //return ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR;
+        }
+
+        if (!maintenanceProcedureEnabled){ //don't overwrite the original device name if successive calls to enableMaintenanceProcedure are performed without calling disableMaintenanceProcedure
+            disableMaintenanceProcedure();
+            originalDeviceName = mBluetoothAdapter.getName();
+        }
+
+        String deviceName = mBluetoothAdapter.getName();
+
+        if(deviceName != null && !deviceName.equals(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {
+            if(!mBluetoothAdapter.setName(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {
+                return ErrorCode.WRONG_BLE_NAME_ERROR; //wrong BLE name, the  setName can't update it!
+            }
+            //check the name string after the setting it....not strictly needed.
+            deviceName = mBluetoothAdapter.getName();
+            if(deviceName != null && !deviceName.equals(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {
+                mBluetoothAdapter.setName(originalDeviceName);
+                return ErrorCode.WRONG_BLE_NAME_ERROR;
+            }
+        }
+
+        GregorianCalendar wakeUpDate = new GregorianCalendar(wakeUP_year, wakeUP_month, wakeUP_day, wakeUP_hour, wakeUP_minute);
+        GregorianCalendar nowDate = new GregorianCalendar(Locale.ITALY);
+
+        long wakeUpDate_millis = wakeUpDate.getTimeInMillis();
+        long nowDate_millis = nowDate.getTimeInMillis();
+
+        if (wakeUpDate_millis > nowDate_millis) {
+            lastWakeUpTimeoutSet_sec = (wakeUpDate_millis - nowDate_millis) / 1000;
+            if (lastWakeUpTimeoutSet_sec < fbk.climblogger.ConfigVals.MAX_WAKE_UP_DELAY_SEC && lastWakeUpTimeoutSet_sec == (int) lastWakeUpTimeoutSet_sec) {
+
+                lastMaintainaceCallTime_millis = nowDate_millis;
+
+                if(!maintenanceProcedureEnabled) { //if the maintenance was already enabled, don't call updateMaintenancePacket() twice (just update the wake up date/hour)!
+                    maintenanceProcedureEnabled = true;
+                    updateMaintenancePacket();
+                }
+            }else{
+                disableMaintenanceProcedure();
+                return ErrorCode.INVALID_DATE_ERROR;
+            }
+        }else{
+            disableMaintenanceProcedure();
+            return ErrorCode.INVALID_DATE_ERROR;
+        }
+        return ErrorCode.NO_ERROR; //no error
+    }
+
+    public ErrorCode disableMaintenanceProcedure(){
+        if(Build.VERSION.SDK_INT >= 21){
+            if(maintenanceProcedureEnabled) {
+                maintenanceProcedureEnabled = false;
+                mBluetoothLeAdvertiser.stopAdvertising(mAdvCallback);
+                insertTag("disabling_advertise");
+                if(originalDeviceName != null) {
+                    mBluetoothAdapter.setName(originalDeviceName);
+                    originalDeviceName = null;
+                }
+                mAdvCallback = null;
+                return ErrorCode.NO_ERROR;
+            }else{ //maintenance non enabled, don't react but do not generate errors
+                return ErrorCode.NO_ERROR;
+            }
+        }else { // (Build.VERSION.SDK_INT >= 21)
+            return ErrorCode.ANDROID_VERSION_NOT_COMPATIBLE_ERROR;
+        }
+    }
 }

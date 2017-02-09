@@ -27,6 +27,8 @@ public class ConfigVals {
 
     static final long MAX_WAKE_UP_DELAY_SEC = 259200;
 
+    static final long MAINTENANCE_PACKET_UPDATE_INTERVAL_MS = 10000;
+
     static final int vibrationTimeout = 15;
 
     static final int consecutiveBroadcastMessageTimeout_ms = 7000;
