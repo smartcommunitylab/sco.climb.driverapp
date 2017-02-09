@@ -12,7 +12,7 @@ import java.util.UUID;
  */
 public class ConfigVals {
 
-    static String libVersion = "0.2.2";
+    static String libVersion = "0.2.3";
 
     private static File root = Environment.getExternalStorageDirectory();
 
