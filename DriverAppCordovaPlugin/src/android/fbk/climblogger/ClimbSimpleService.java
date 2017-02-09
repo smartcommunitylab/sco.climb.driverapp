@@ -103,6 +103,28 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         }
     }
 
+    @Override
+    public boolean onUnbind(Intent intent) {
+        Log.i(TAG, "ClimbService onUnbind");
+
+        if (mBufferedWriter != null) {
+            try {
+                mBufferedWriter.flush();
+            } catch (IOException e) {
+            }
+        }
+        insertTag("climb_service_unbind");
+
+        return super.onUnbind(intent);
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.i(TAG, "Received start id " + startId + ": " + intent);
+
+        return START_STICKY; // run until explicitly stopped.
+    }
+
     //--- BlueTooth -----------------------------------------------
 
     private BluetoothManager mBluetoothManager;
@@ -182,7 +204,9 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
                 Log.e(TAG, "API level " + Build.VERSION.SDK_INT + " not supported!");
                 return 0;
             } else if (Build.VERSION.SDK_INT < 21) {
-                mLeScanCallback = new myLeScanCallback();
+                if(mScanCallback == null) {
+                    mLeScanCallback = new myLeScanCallback();
+                }
                 if (!mBluetoothAdapter.startLeScan(mLeScanCallback)) {
                     return 0;
                 }
