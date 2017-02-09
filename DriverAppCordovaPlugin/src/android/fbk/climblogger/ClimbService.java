@@ -1,5 +1,6 @@
 package fbk.climblogger;
 
+import android.annotation.TargetApi;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -44,7 +45,7 @@ import java.util.Queue;
 import java.util.TimeZone;
 import java.util.UUID;
 
-public class ClimbService extends Service implements ClimbServiceInterface, ClimbNode.ClimbNodeTimeout, MonitoredClimbNode.MonitoredClimbNodeTimeout {
+public class ClimbService extends Service implements ClimbServiceInterface, fbk.climblogger.ClimbNode.ClimbNodeTimeout, fbk.climblogger.MonitoredClimbNode.MonitoredClimbNodeTimeout {
 
     public final static String ACTION_DATALOG_ACTIVE ="fbk.climblogger.ClimbService.ACTION_DATALOG_ACTIVE";
     public final static String ACTION_DATALOG_INACTIVE ="fbk.climblogger.ClimbService.ACTION_DATALOG_INACTIVE";
@@ -56,9 +57,9 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     private BluetoothDevice  mBTDevice = null;
     private BluetoothGattService mBTService = null;
     private BluetoothGattCharacteristic mCIPOCharacteristic = null, mPICOCharacteristic = null;
-    final static private UUID mClimbServiceUuid = ConfigVals.Service.CLIMB;
-    final static private UUID mCIPOCharacteristicUuid = ConfigVals.Characteristic.CIPO;
-    final static private UUID mPICOCharacteristicUuid = ConfigVals.Characteristic.PICO;
+    final static private UUID mClimbServiceUuid = fbk.climblogger.ConfigVals.Service.CLIMB;
+    final static private UUID mCIPOCharacteristicUuid = fbk.climblogger.ConfigVals.Characteristic.CIPO;
+    final static private UUID mPICOCharacteristicUuid = fbk.climblogger.ConfigVals.Characteristic.PICO;
     private BluetoothGatt mBluetoothGatt = null;
     private BluetoothGattCallback mGattCallback;
 
@@ -74,7 +75,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     private boolean initialized = false;
     private IBinder mBinder;
     private final String TAG = "ClimbService_GIOVA";
-    private ArrayList<ClimbNode> nodeList;
+    private ArrayList<fbk.climblogger.ClimbNode> nodeList;
 
     public String dirName, file_name_log;
     File root;
@@ -164,7 +165,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         mBinder = new LocalBinder();
         mHandler = new Handler();
 
-        if(nodeList == null)  nodeList = new ArrayList<ClimbNode>(); //crea la lista (vuota) che terrà conto dei dispositivi attualmente visibili
+        if(nodeList == null)  nodeList = new ArrayList<fbk.climblogger.ClimbNode>(); //crea la lista (vuota) che terrà conto dei dispositivi attualmente visibili
         //TODO: why the if above? could it be not empty on onCreate?
         if(mBluetoothManager == null) { //TODO: why this if?
             initialize_bluetooth(); //TODO: handle error somehow
@@ -256,7 +257,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
                 startDataLog();
                 logEnabled = true;
-                insertTag("Start_Monitoring " + ConfigVals.libVersion );
+                insertTag("Start_Monitoring " + fbk.climblogger.ConfigVals.libVersion );
                 insertTag("initializing" +
                         " API: " + Build.VERSION.SDK_INT +
                         " Release: " + Build.VERSION.RELEASE +
@@ -285,10 +286,10 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                 };
             } else {
                 //prepara il filtro che fa in modo di fare lo scan solo per device compatibili con climb (per ora filtra il nome)
-                ScanFilter mScanFilter = new ScanFilter.Builder().setDeviceName(ConfigVals.CLIMB_MASTER_DEVICE_NAME).build();
+                ScanFilter mScanFilter = new ScanFilter.Builder().setDeviceName(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME).build();
                 List<ScanFilter> mScanFilterList = new ArrayList<ScanFilter>();
                 mScanFilterList.add(mScanFilter);
-                mScanFilter = new ScanFilter.Builder().setDeviceName(ConfigVals.CLIMB_CHILD_DEVICE_NAME).build();
+                mScanFilter = new ScanFilter.Builder().setDeviceName(fbk.climblogger.ConfigVals.CLIMB_CHILD_DEVICE_NAME).build();
                 mScanFilterList.add(mScanFilter);
 
                 //imposta i settings di scan. vedere dentro la clase ScanSettings le opzioni disponibili
@@ -498,8 +499,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
     // ------ CLIMB API Helpers ---------------------------------------------
 
-    private ClimbNode nodeListGet(String master) {  //TODO: include in nodeList
-        for(ClimbNode n : nodeList) {
+    private fbk.climblogger.ClimbNode nodeListGet(String master) {  //TODO: include in nodeList
+        for(fbk.climblogger.ClimbNode n : nodeList) {
             if (n.getNodeID().equals(master)) {
                 return n;
             }
@@ -508,8 +509,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         return null;
     }
 
-    private ClimbNode nodeListGetConnectedMaster() {  //TODO: include in nodeList
-        for(ClimbNode n : nodeList){
+    private fbk.climblogger.ClimbNode nodeListGetConnectedMaster() {  //TODO: include in nodeList
+        for(fbk.climblogger.ClimbNode n : nodeList){
             if (n.getConnectionState()) {
                 return n;
             }
@@ -558,7 +559,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         if (!initialized) return new String[0];
 
         ArrayList<String> ids = new ArrayList<String>();
-        for(ClimbNode n : nodeList) {
+        for(fbk.climblogger.ClimbNode n : nodeList) {
             if (n.isMasterNode()) {
                 ids.add(n.getNodeID());
             }
@@ -569,7 +570,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     public boolean setNodeList(String[] children) {
         if (!initialized) return false;
 
-        ClimbNode master = nodeListGetConnectedMaster();
+        fbk.climblogger.ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             return false;
         }
@@ -578,7 +579,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         return true;
     }
 
-    private NodeState getNodeState(MonitoredClimbNode n) {
+    private NodeState getNodeState(fbk.climblogger.MonitoredClimbNode n) {
         NodeState nodeState = new NodeState();
         nodeState.nodeID = n.getNodeIDString();
         nodeState.state = n.getNodeState();
@@ -591,14 +592,14 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     public NodeState getNodeState(String id){
         if (!initialized) return null;
 
-        ClimbNode master = nodeListGetConnectedMaster();
+        fbk.climblogger.ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             // TODO
             return null;
         }
-        ArrayList<MonitoredClimbNode> children = master.getMonitoredClimbNodeList();
+        ArrayList<fbk.climblogger.MonitoredClimbNode> children = master.getMonitoredClimbNodeList();
         NodeState nodeState = null;
-        for (MonitoredClimbNode n : children){
+        for (fbk.climblogger.MonitoredClimbNode n : children){
             if (n.getNodeIDString().equals(id)) {
                 nodeState = getNodeState(n);
                 break;
@@ -610,16 +611,16 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     public NodeState[] getNetworkState() {
         if (!initialized) return new NodeState[0];
 
-        ClimbNode master = nodeListGetConnectedMaster();
+        fbk.climblogger.ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             // TODO
             return new NodeState[0];
         }
-        ArrayList<MonitoredClimbNode> children = master.getMonitoredClimbNodeList();
+        ArrayList<fbk.climblogger.MonitoredClimbNode> children = master.getMonitoredClimbNodeList();
         NodeState[] nodeStates = new NodeState[children.size()];
 
         for (int i = 0; i < children.size(); i++){
-            MonitoredClimbNode n = children.get(i);
+            fbk.climblogger.MonitoredClimbNode n = children.get(i);
             nodeStates[i] = getNodeState(n);
         }
 
@@ -629,12 +630,12 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     public String[] getChildren() {
         if (!initialized) return new String[0];
 
-        ClimbNode master = nodeListGetConnectedMaster();
+        fbk.climblogger.ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             // TODO
             return null;
         }
-        ArrayList<MonitoredClimbNode> children = master.getMonitoredClimbNodeList();
+        ArrayList<fbk.climblogger.MonitoredClimbNode> children = master.getMonitoredClimbNodeList();
         String[] ids = new String[children.size()];
 
         for (int i = 0; i < children.size(); i++){
@@ -668,7 +669,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         if (!initialized) return false;
 
         connectedMaster = master;
-        ClimbNode node = nodeListGet(master);
+        fbk.climblogger.ClimbNode node = nodeListGet(master);
         insertTag("Request_connect_to_GATT "+ master + ((node == null ? " not_in_list" : (" " + node.isMasterNode()))));
         Log.i(TAG,"Request_connect_to_GATT "+ master + ((node == null ? " not_in_list" : (" " + node.isMasterNode()))));
         if (node != null && node.isMasterNode()) { //do something only if it is a master node
@@ -723,7 +724,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                         "Connecting ...",
                         Toast.LENGTH_SHORT).show();
                 connectMasterCB = new connectMasterCBack(master);
-                mHandler.postDelayed(connectMasterCB, ConfigVals.CONNECT_TIMEOUT);
+                mHandler.postDelayed(connectMasterCB, fbk.climblogger.ConfigVals.CONNECT_TIMEOUT);
             } else {
                 if (connectMasterCB == null) {
                     broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, master, true, "Already connected"); //TODO: we are fireing the intent before returning true. Possible race condition?
@@ -777,13 +778,13 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         }
     }
 
-    private byte[] checkinCommand(MonitoredClimbNode monitoredChild){
+    private byte[] checkinCommand(fbk.climblogger.MonitoredClimbNode monitoredChild){
         byte[] clickedChildID = monitoredChild.getNodeID();
         byte clickedChildState = monitoredChild.getNodeState();
         byte[] gattData = null;
 
         if(clickedChildState == 1) { //se lo stato è CHECKING
-            if (!monitoredChild.setImposedState((byte) 2, this, ConfigVals.MON_NODE_TIMEOUT)) {
+            if (!monitoredChild.setImposedState((byte) 2, this, fbk.climblogger.ConfigVals.MON_NODE_TIMEOUT)) {
                 Log.i(TAG, "Cannot change state of child " + monitoredChild.getNodeIDString() + ": another change is in progress");
             } else {
                 Log.i(TAG, "Checking in child " + monitoredChild.getNodeIDString());
@@ -797,13 +798,13 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         return gattData;
     }
 
-    private byte[] checkoutCommand(MonitoredClimbNode monitoredChild){
+    private byte[] checkoutCommand(fbk.climblogger.MonitoredClimbNode monitoredChild){
         byte[] clickedChildID = monitoredChild.getNodeID();
         byte clickedChildState = monitoredChild.getNodeState();
         byte[] gattData = null;
 
         if(clickedChildState == 2) { //se lo stato è CHECKING
-            if (!monitoredChild.setImposedState((byte) 0, this, ConfigVals.MON_NODE_TIMEOUT)) {
+            if (!monitoredChild.setImposedState((byte) 0, this, fbk.climblogger.ConfigVals.MON_NODE_TIMEOUT)) {
                 Log.i(TAG, "Cannot change state of child " + monitoredChild.getNodeIDString() + ": another change is in progress");
             } else {
                 Log.i(TAG, "Checking out child " + monitoredChild.getNodeIDString());
@@ -835,11 +836,11 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     public boolean checkinChild(String child) {
         if (!initialized) return false;
 
-        ClimbNode master = nodeListGetConnectedMaster();
+        fbk.climblogger.ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             return false; //TODO: exception?
         }
-        MonitoredClimbNode monitoredChild = master.getChildByID(child);
+        fbk.climblogger.MonitoredClimbNode monitoredChild = master.getChildByID(child);
         if(monitoredChild != null){
             byte[] gattData = checkinCommand(monitoredChild);
             if (gattData != null) {
@@ -852,7 +853,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     public boolean checkinChildren(String[] children) {
         if (!initialized) return false;
 
-        ClimbNode master = nodeListGetConnectedMaster();
+        fbk.climblogger.ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             return false; //TODO: exception?
         }
@@ -862,7 +863,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         int p = 0;
 
         for (String child : children) {
-            MonitoredClimbNode monitoredChild = master.getChildByID(child);
+            fbk.climblogger.MonitoredClimbNode monitoredChild = master.getChildByID(child);
             if (monitoredChild != null) {
                 byte[] gattDataFrag = checkinCommand(monitoredChild);
                 if (gattDataFrag != null) {
@@ -886,11 +887,11 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     public boolean checkoutChild(String child) {
         if (!initialized) return false;
 
-        ClimbNode master = nodeListGetConnectedMaster();
+        fbk.climblogger.ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             return false; //TODO: exception?
         }
-        MonitoredClimbNode monitoredChild = master.getChildByID(child);
+        fbk.climblogger.MonitoredClimbNode monitoredChild = master.getChildByID(child);
         if(monitoredChild != null){
             byte[] gattData = checkoutCommand(monitoredChild);
             if (gattData != null) {
@@ -903,7 +904,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     public boolean checkoutChildren(String[] children) {
         if (!initialized) return false;
 
-        ClimbNode master = nodeListGetConnectedMaster();
+        fbk.climblogger.ClimbNode master = nodeListGetConnectedMaster();
         if (master == null) {
             return false; //TODO: exception?
         }
@@ -913,7 +914,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         int p = 0;
 
         for (String child : children) {
-            MonitoredClimbNode monitoredChild = master.getChildByID(child);
+            fbk.climblogger.MonitoredClimbNode monitoredChild = master.getChildByID(child);
             if (monitoredChild != null) {
                 byte[] gattDataFrag = checkoutCommand(monitoredChild);
                 if (gattDataFrag != null) {
@@ -976,6 +977,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
     // --- Android 5.x specific code ---
     private ScanCallback mScanCallback;
+    @TargetApi(21)
     class myScanCallback extends ScanCallback {
 
         @Override
@@ -1001,7 +1003,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
                             nowMillis);
                 }
 
-                if (scanForAll || result.getDevice().getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {  //AGGIUNGI alla lista SOLO I NODI MASTER!!!!
+                if (scanForAll || result.getDevice().getName().equals(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {  //AGGIUNGI alla lista SOLO I NODI MASTER!!!!
                     //POI AVVIA IL PROCESSO PER AGGIORNARE LA UI
                     int index = isAlreadyInList(result.getDevice());
                     if (index >= 0) {
@@ -1034,13 +1036,13 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             long nowMillis = System.currentTimeMillis();
             Log.v(TAG, "onLeScan called: " + (device != null ? device.getName() : "NULL"));
             if (device != null && device.getName() != null) {
-                if (logEnabled && (device.getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME) || device.getName().equals(ConfigVals.CLIMB_CHILD_DEVICE_NAME))) {
+                if (logEnabled && (device.getName().equals(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME) || device.getName().equals(fbk.climblogger.ConfigVals.CLIMB_CHILD_DEVICE_NAME))) {
                     logScanResult(device,
                             rssi,
                             scanRecord,
                             nowMillis);
                 }
-                if (scanForAll || device.getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {  //AGGIUNGI alla lista SOLO I NODI MASTER!!!!
+                if (scanForAll || device.getName().equals(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {  //AGGIUNGI alla lista SOLO I NODI MASTER!!!!
                     //POI AVVIA IL PROCESSO PER AGGIORNARE LA UI
                     int index = isAlreadyInList(device);
                     if (index >= 0) {
@@ -1348,7 +1350,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
             Log.i(TAG, "Notification enabled on Android API!");
         }
 
-        BluetoothGattDescriptor descriptor = mCIPOCharacteristic.getDescriptor(ConfigVals.Descriptor.CHAR_CLIENT_CONFIG);
+        BluetoothGattDescriptor descriptor = mCIPOCharacteristic.getDescriptor(fbk.climblogger.ConfigVals.Descriptor.CHAR_CLIENT_CONFIG);
         if(descriptor != null) {
             descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
             mBluetoothGatt.writeDescriptor(descriptor);
@@ -1389,7 +1391,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     private boolean updateGATTMetadata(int recordIndex, byte[] cipo_data, long nowMillis) {
 
 //TODO: L'rssi viene letto tramite un'altra callback, quindi per ora non ne tengo conto (in ClimbNode.updateGATTMetadata l'rssi non viene toccato)
-        ClimbNode master = nodeList.get(recordIndex);
+        fbk.climblogger.ClimbNode master = nodeList.get(recordIndex);
         List<byte[]> toChecking = master.updateGATTMetadata(0, cipo_data, nowMillis);
 
         //broadcastUpdate(ACTION_METADATA_CHANGED, EXTRA_INT_ARRAY, new int[]{recordIndex}); //questa allega  al broadcast l'indice che è cambiato, per ora non serve
@@ -1400,14 +1402,14 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         int p = 0;
 
         for (byte[] nodeID : toChecking) {
-            MonitoredClimbNode n = master.findChildByID(nodeID);
+            fbk.climblogger.MonitoredClimbNode n = master.findChildByID(nodeID);
             if (n != null && n.getImposedState() != 1 ) {
                 n.setImposedState((byte) 1, null, 0);
             } else {
                 continue;
             }
-            Log.i(TAG, "Allowing child " + MonitoredClimbNode.nodeID2String(nodeID));
-            insertTag("Allowing_node_" + MonitoredClimbNode.nodeID2String(nodeID));
+            Log.i(TAG, "Allowing child " + fbk.climblogger.MonitoredClimbNode.nodeID2String(nodeID));
+            insertTag("Allowing_node_" + fbk.climblogger.MonitoredClimbNode.nodeID2String(nodeID));
             byte[] gattDataFrag = {nodeID[0], 1}; //assegna lo stato CHECKING e invia tutto al gatt
             System.arraycopy(gattDataFrag, 0, gattData, p, gattDataFrag.length);
             p += gattDataFrag.length;
@@ -1430,14 +1432,14 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     @Override
-    public void climbNodeTimedout(ClimbNode node) {
+    public void climbNodeTimedout(fbk.climblogger.ClimbNode node) {
         nodeList.remove(node);
         broadcastUpdate(ACTION_DEVICE_REMOVED_FROM_LIST, node.getNodeID());
         Log.i(TAG, "Timeout: node removed with index: " + nodeList.indexOf(node));
     }
 
     @Override
-    public void monitoredClimbNodeChangeTimedout(MonitoredClimbNode node, byte imposedState, byte state) {
+    public void monitoredClimbNodeChangeTimedout(fbk.climblogger.MonitoredClimbNode node, byte imposedState, byte state) {
         switch (imposedState) {
             case 0:
                 broadcastUpdate(STATE_CHECKEDOUT_CHILD, node.getNodeIDString(), false, "checkout failed: timeout"); //TODO: add param: failed
@@ -1453,7 +1455,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     }
 
     @Override
-    public void monitoredClimbNodeChangeSuccess(MonitoredClimbNode node, byte state) {
+    public void monitoredClimbNodeChangeSuccess(fbk.climblogger.MonitoredClimbNode node, byte state) {
         switch (state) {
             case 0:
                 broadcastUpdate(STATE_CHECKEDOUT_CHILD, node.getNodeIDString(), true, ""); //TODO: add param: success
@@ -1471,8 +1473,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
     private boolean addToList(ScanResult targetNode, long nowMillis){
         BluetoothDevice device = targetNode.getDevice();
         //nodeID id =
-        boolean isMaster = device.getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME);
-        ClimbNode newNode = new ClimbNode(device,
+        boolean isMaster = device.getName().equals(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME);
+        fbk.climblogger.ClimbNode newNode = new fbk.climblogger.ClimbNode(device,
                 //id,
                 (byte) targetNode.getRssi(),
                 targetNode.getScanRecord().getManufacturerSpecificData(TEXAS_INSTRUMENTS_MANUFACTER_ID),
@@ -1486,8 +1488,8 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
 
     private boolean addToList(final BluetoothDevice device, int rssi, byte[] scanRecord, long nowMillis){
         //nodeID id =
-        boolean isMaster = device.getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME);
-        ClimbNode newNode = new ClimbNode(device,
+        boolean isMaster = device.getName().equals(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME);
+        fbk.climblogger.ClimbNode newNode = new fbk.climblogger.ClimbNode(device,
                 //id,
                 (byte) rssi,
                 scanRecord, //TODO: check if this is equivalent
@@ -1533,7 +1535,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, Clim
         TimeZone tz = TimeZone.getTimeZone("Europe/Rome");
 
         Calendar rightNow = Calendar.getInstance(tz);// .getInstance();
-        dirName=ConfigVals.folderName;
+        dirName= fbk.climblogger.ConfigVals.folderName;
         //dirName2="CUPID_data/"+rightNow.get(Calendar.DAY_OF_MONTH)+"_"+ (rightNow.get(Calendar.MONTH) + 1) +"_"+ rightNow.get(Calendar.YEAR) +"/";
 
         try{

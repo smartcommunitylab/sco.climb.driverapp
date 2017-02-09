@@ -28,23 +28,23 @@
             private final String TAG = "ClimbNode_GIOVA";
             //private long lastContactMillis = 0;
             private String[] allowedChildrenList = new String[0];
-            private ArrayList<MonitoredClimbNode> onBoardChildrenList;
+            private ArrayList<fbk.climblogger.MonitoredClimbNode> onBoardChildrenList;
             private boolean connectionState = false;
             private boolean isMasterNode = false;
             private ClimbNodeTimeout timedoutCallback = null;
-            private MonitoredClimbNode.MonitoredClimbNodeTimeout timedoutCallback2 = null;
+            private fbk.climblogger.MonitoredClimbNode.MonitoredClimbNodeTimeout timedoutCallback2 = null;
             private Runnable timedoutTimer = null;
             private Handler mHandler = null;
             private boolean driveTransitionToChecking = true;
 
 
-            public ClimbNode(BluetoothDevice dev, byte initRssi, byte[] newScanResponse, boolean masterNode, ClimbNodeTimeout cb, MonitoredClimbNode.MonitoredClimbNodeTimeout cb2) {//SparseArray<byte[]> newScanResponse){
+            public ClimbNode(BluetoothDevice dev, byte initRssi, byte[] newScanResponse, boolean masterNode, ClimbNodeTimeout cb, fbk.climblogger.MonitoredClimbNode.MonitoredClimbNodeTimeout cb2) {//SparseArray<byte[]> newScanResponse){
 
                 bleDevice = dev;
                 rssi = initRssi;
                 scanResponseData = newScanResponse;
                 //lastContactMillis = millisNow;
-                onBoardChildrenList = new ArrayList<MonitoredClimbNode>();
+                onBoardChildrenList = new ArrayList<fbk.climblogger.MonitoredClimbNode>();
                 isMasterNode = masterNode;
                 timedoutCallback = cb;
                 timedoutCallback2 = cb2;
@@ -56,7 +56,7 @@
                 connectionState = state;
                 if(connectionState == false){
                     onBoardChildrenList.clear();
-                    onBoardChildrenList = new ArrayList<MonitoredClimbNode>();
+                    onBoardChildrenList = new ArrayList<fbk.climblogger.MonitoredClimbNode>();
                     lastReceivedGattData = null;
                     timeoutRestart();
                 } else {
@@ -78,7 +78,7 @@
 
                 mString = mString + "RSSI: " + (rssi );
 
-                if (bleDevice.getName() != null && bleDevice.getName().equals(ConfigVals.CLIMB_CHILD_DEVICE_NAME)) {
+                if (bleDevice.getName() != null && bleDevice.getName().equals(fbk.climblogger.ConfigVals.CLIMB_CHILD_DEVICE_NAME)) {
                     if (scanResponseData != null && scanResponseData.length > 1) {
                         mString += " Node ID (0x):" + String.format("%02X", scanResponseData[0]) + " State: " + stateToString(scanResponseData[1]);
                     }
@@ -135,7 +135,7 @@
                 return lastReceivedGattData;
             }
 
-            public ArrayList<MonitoredClimbNode> getMonitoredClimbNodeList(){
+            public ArrayList<fbk.climblogger.MonitoredClimbNode> getMonitoredClimbNodeList(){
                 return onBoardChildrenList;
             }
 
@@ -147,8 +147,8 @@
                 return allowedChildrenList;
             }
 
-            public MonitoredClimbNode getChildByID(String id) {
-                for(MonitoredClimbNode n : onBoardChildrenList){
+            public fbk.climblogger.MonitoredClimbNode getChildByID(String id) {
+                for(fbk.climblogger.MonitoredClimbNode n : onBoardChildrenList){
                     if( n.getNodeIDString().equals(id) ){
                         return n;
                     }
@@ -175,7 +175,7 @@
                         timedout();
                     }
                 };
-                mHandler.postDelayed(timedoutTimer, ConfigVals.NODE_TIMEOUT);
+                mHandler.postDelayed(timedoutTimer, fbk.climblogger.ConfigVals.NODE_TIMEOUT);
             }
 
             public void updateScnMetadata(byte newRssi, byte[] newScanResponse){//, long millisNow) {//SparseArray<byte[]> newScanResponse){
@@ -185,8 +185,8 @@
                 if (!connectionState) timeoutRestart();
             }
 
-            public MonitoredClimbNode findChildByID(byte[] id) {
-                for (MonitoredClimbNode n : onBoardChildrenList) {
+            public fbk.climblogger.MonitoredClimbNode findChildByID(byte[] id) {
+                for (fbk.climblogger.MonitoredClimbNode n : onBoardChildrenList) {
                     if (Arrays.equals(n.getNodeID(), id)) {
                         return n;
                     }
@@ -217,7 +217,7 @@
                             byte[] tempNodeID = { lastReceivedGattData[i] };//, lastReceivedGattData[i+1]};
                             byte state = lastReceivedGattData[i+1];
                             byte rssi = lastReceivedGattData[i+2];
-                            MonitoredClimbNode n = findChildByID(tempNodeID);
+                            fbk.climblogger.MonitoredClimbNode n = findChildByID(tempNodeID);
 
                             if (driveTransitionToChecking) {
                                 if (state == 0 && isAllowedChild(tempNodeID)) {
@@ -226,7 +226,7 @@
                                 }
                             }
                             if (n == null) {
-                                onBoardChildrenList.add(new MonitoredClimbNode(tempNodeID, state, rssi, millisNow, mHandler));
+                                onBoardChildrenList.add(new fbk.climblogger.MonitoredClimbNode(tempNodeID, state, rssi, millisNow, mHandler));
                             } else {
                                 n.setNodeState(state, millisNow);
                                 n.setNodeRssi(rssi);
@@ -255,7 +255,7 @@
                     ArrayList<String> neighbourList = new ArrayList<String>();
                     String description = "";
 
-                    if (bleDevice.getName().equals(ConfigVals.CLIMB_CHILD_DEVICE_NAME)) {
+                    if (bleDevice.getName().equals(fbk.climblogger.ConfigVals.CLIMB_CHILD_DEVICE_NAME)) {
                         if (scanResponseData != null && scanResponseData.length > 1){
                             description = "Node ID (0x):" + String.format("%02X",scanResponseData[0]) +"\nState: " + stateToString(scanResponseData[1]);
                         }
@@ -267,10 +267,10 @@
                         neighbourList.add(description);
                         return neighbourList;
 
-                    } else if (bleDevice.getName().equals(ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {
+                    } else if (bleDevice.getName().equals(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {
 
                         if (connectionState) {
-                            for (MonitoredClimbNode tempNode : onBoardChildrenList) {
+                            for (fbk.climblogger.MonitoredClimbNode tempNode : onBoardChildrenList) {
                                 description = "Node ID (0x): " + tempNode.getNodeIDString();
                                 description += "\tState: " + stateToString(tempNode.getNodeState());
                                 description += "\tRSSI: " + tempNode.getNodeRssi();
