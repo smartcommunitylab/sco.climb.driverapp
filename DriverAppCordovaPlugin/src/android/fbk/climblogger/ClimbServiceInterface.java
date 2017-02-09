@@ -66,6 +66,13 @@ public interface ClimbServiceInterface {
     public boolean init();
 
     /**
+     *  deinitialize the service.
+     *
+     * @return whether deinitialization was successful.
+     */
+    public boolean deinit();
+
+    /**
      * Pass on the application context to the service, required for initializing the underlying
      * Bluetooth GATT. Its utilization is not documented in the Android API.
      */

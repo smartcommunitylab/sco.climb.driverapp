@@ -530,6 +530,18 @@ public class ClimbService extends Service implements ClimbServiceInterface, fbk.
         return ret;
     }
 
+    public boolean deinit() {
+
+
+        disableMaintenanceProcedure();
+        boolean ret = (StopMonitoring() == 1);
+        initialized = ret;
+        insertTag("deinit: " + ret);
+        Log.i(TAG, "deInitializing: ret = " + ret);
+        return ret;
+
+    }
+
     public String[] getLogFiles() {
         //if (!initialized) return new String[0];
 

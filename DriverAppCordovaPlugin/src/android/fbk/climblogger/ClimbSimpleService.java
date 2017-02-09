@@ -93,7 +93,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         Log.i(TAG, "ClimbSimpleService onDestroy");
         insertTag("climb_simple_service_destroyed");
 
-        StopMonitoring();
+        deinit();
 
         if (mBufferedWriter != null) {
             try {
@@ -199,6 +199,8 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
                             "");
             }
                 broadcastUpdate(ACTION_DATALOG_ACTIVE,EXTRA_STRING,file_name_log);
+            }else{
+                mFile = null;
             }
             if (Build.VERSION.SDK_INT < 18) {
                 Log.e(TAG, "API level " + Build.VERSION.SDK_INT + " not supported!");
@@ -234,7 +236,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         return 1;
     }
 
-    public int StopMonitoring(){ //TODO: not exposed in main API
+    private int StopMonitoring(){
         if(mBluetoothAdapter != null) {
             if (Build.VERSION.SDK_INT < 21) {
                 if (mBluetoothAdapter != null) {
@@ -255,8 +257,6 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         }else{
             Log.w(TAG, "mBluetoothAdapter == NULL!!");
         }
-        //TODO: spegnere la ricerca ble
-        //TODO: fermare il log
         return 1;
     }
 
@@ -591,13 +591,28 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
     private HashMap<String, fbk.climblogger.ClimbServiceInterface.NodeState> seenChildren = new HashMap<String, fbk.climblogger.ClimbServiceInterface.NodeState>();
 
     public boolean init() {
-        Log.i(TAG, "Initializing");
+
        // insertTag("Initializing");
        // return StartScanning();
 
         boolean ret = (StartScanning(true) == 1);
         initialized = ret;
         insertTag("init: " + ret);
+        Log.i(TAG, "Initializing: ret = " + ret);
+        return ret;
+
+    }
+
+    public boolean deinit() {
+
+
+        disableMaintenanceProcedure();
+        boolean ret = (StopMonitoring() == 1);
+        seenChildren = new HashMap<String, fbk.climblogger.ClimbServiceInterface.NodeState>(); //empty node list!
+        broadcastUpdate(ACTION_METADATA_CHANGED);
+        initialized = ret;
+        insertTag("deinit: " + ret);
+        Log.i(TAG, "deInitializing: ret = " + ret);
         return ret;
 
     }
@@ -713,7 +728,7 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
         if(mBufferedWriter != null){ // il file � presente
             try {
                 mBufferedWriter.close();
-                mFile = null;
+                //mFile = null; //this is not nulled so that the filename remains available even after the call to deinit()
                 mBufferedWriter = null;
                 file_name_log = null;
             }catch (IOException e) {
