@@ -11,16 +11,18 @@ import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.TextView;
 
+import fbk.climblogger.ClimbSimpleService;
+
 public class MyExpandableListAdapter extends BaseExpandableListAdapter {
 
-    private ClimbServiceInterface service;
+    private fbk.climblogger.ClimbServiceInterface service;
     private Context context;
 
     public String[] getMasters() {
         return service.getMasters();
     }
 
-    public MyExpandableListAdapter(Context context, ClimbServiceInterface service) {
+    public MyExpandableListAdapter(Context context, fbk.climblogger.ClimbServiceInterface service) {
         this.context = context;
         this.service = service;
     }
@@ -38,8 +40,13 @@ public class MyExpandableListAdapter extends BaseExpandableListAdapter {
     @Override
     public View getChildView(int listPosition, final int expandedListPosition,
                              boolean isLastChild, View convertView, ViewGroup parent) {
-        ClimbServiceInterface.NodeState ns = (ClimbServiceInterface.NodeState) getChild(listPosition, expandedListPosition);
-        final String expandedListText = "ID:" + ns.nodeID + " state:" + ns.state + " ts:" + (System.currentTimeMillis() - ns.lastSeen);
+        fbk.climblogger.ClimbServiceInterface.NodeState ns = (fbk.climblogger.ClimbServiceInterface.NodeState) getChild(listPosition, expandedListPosition);
+        final String expandedListText;
+        if( ns.batteryLevel != 0) {
+            expandedListText = "ID: " + ns.nodeID + "\nState: " + ns.state + "\nBattery Voltage: " + ns.batteryVoltage_mV + "mV, Level: " + ns.batteryLevel  + "\nLast seen: " + (System.currentTimeMillis() - ns.lastSeen + "ms ago");
+        }else{
+            expandedListText = "ID: " + ns.nodeID + "\nState: " + ns.state + "\nLast seen: " + (System.currentTimeMillis() - ns.lastSeen + "ms ago");
+        }
         if (convertView == null) {
             LayoutInflater layoutInflater = (LayoutInflater) this.context
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -73,7 +80,12 @@ public class MyExpandableListAdapter extends BaseExpandableListAdapter {
 
     @Override
     public View getGroupView(int listPosition, boolean isExpanded,View convertView, ViewGroup parent) {
-        String listTitle = getGroup(listPosition).toString();
+        String listTitle = "";
+        if(service instanceof fbk.climblogger.ClimbSimpleService){
+            listTitle += "CLIMBM - " + getGroup(listPosition).toString() + " - Local device";
+        }else{
+            listTitle += getGroup(listPosition).toString();
+        }
         if (convertView == null) {
             LayoutInflater layoutInflater = (LayoutInflater) this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             convertView = layoutInflater.inflate(R.layout.list_group, null);
