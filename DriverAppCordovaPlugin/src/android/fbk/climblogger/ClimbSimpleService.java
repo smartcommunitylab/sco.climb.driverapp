@@ -34,7 +34,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
-public class ClimbSimpleService extends Service implements ClimbServiceInterface{
+public class ClimbSimpleService extends Service implements fbk.climblogger.ClimbServiceInterface {
     public final static String ACTION_DATALOG_ACTIVE ="fbk.climblogger.ClimbSimpleService.ACTION_DATALOG_ACTIVE";
     public final static String ACTION_DATALOG_INACTIVE ="fbk.climblogger.ClimbSimpleService.ACTION_DATALOG_INACTIVE";
     public final static String EXTRA_STRING ="fbk.climblogger.ClimbSimpleService.EXTRA_STRING";
@@ -55,7 +55,7 @@ public class ClimbSimpleService extends Service implements ClimbServiceInterface
     private IBinder mBinder;
 
     public class LocalBinder extends Binder {
-        public ClimbServiceInterface getService() {
+        public fbk.climblogger.ClimbServiceInterface getService() {
             return ClimbSimpleService.this;
         }
     }
@@ -139,7 +139,7 @@ public class ClimbSimpleService extends Service implements ClimbServiceInterface
             if(enableDatalog) {
                 startDataLog();
                 logEnabled = true;
-                insertTag("Start_Monitoring " + ConfigVals.libVersion);
+                insertTag("Start_Monitoring " + fbk.climblogger.ConfigVals.libVersion);
                 insertTag("initializing" +
                         " API: " + Build.VERSION.SDK_INT +
                         " Release: " + Build.VERSION.RELEASE +
@@ -167,18 +167,20 @@ public class ClimbSimpleService extends Service implements ClimbServiceInterface
                 ;
             } else {
                 //prepare filter
-                List<ScanFilter> mScanFilterList = new ArrayList<ScanFilter>();
-                mScanFilterList.add(new ScanFilter.Builder().setDeviceName(ConfigVals.CLIMB_MASTER_DEVICE_NAME).build());
-                mScanFilterList.add(new ScanFilter.Builder().setDeviceName(ConfigVals.CLIMB_CHILD_DEVICE_NAME).build());
 
-                //imposta i settings di scan. vedere dentro la clase ScanSettings le opzioni disponibili
-                ScanSettings mScanSettings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
+                    List<ScanFilter> mScanFilterList = new ArrayList<ScanFilter>();
+                    mScanFilterList.add(new ScanFilter.Builder().setDeviceName(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME).build());
+                    mScanFilterList.add(new ScanFilter.Builder().setDeviceName(fbk.climblogger.ConfigVals.CLIMB_CHILD_DEVICE_NAME).build());
 
-                mScanCallback = new myScanCallback();
-                mBluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
-                if (mBluetoothLeScanner == null) {
-                    Log.e(TAG, "Unable to obtain a mBluetoothLeScanner.");
-                    return 0;
+                    //imposta i settings di scan. vedere dentro la clase ScanSettings le opzioni disponibili
+                    ScanSettings mScanSettings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
+                if(mScanCallback == null) {
+                    mScanCallback = new myScanCallback();
+                    mBluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
+                    if (mBluetoothLeScanner == null) {
+                        Log.e(TAG, "Unable to obtain a mBluetoothLeScanner.");
+                        return 0;
+                    }
                 }
                 mBluetoothLeScanner.startScan(mScanFilterList, mScanSettings, mScanCallback);
             }
@@ -214,11 +216,11 @@ public class ClimbSimpleService extends Service implements ClimbServiceInterface
 
     void updateChild(String id) {
         long nowMillis = System.currentTimeMillis();
-        NodeState s = seenChildren.get(id);
+        fbk.climblogger.ClimbServiceInterface.NodeState s = seenChildren.get(id);
         if (s == null) {
-            s = new NodeState();
+            s = new fbk.climblogger.ClimbServiceInterface.NodeState();
             s.nodeID = id;
-            s.state = State.CHECKING.getValue();
+            s.state = fbk.climblogger.ClimbServiceInterface.State.CHECKING.getValue();
             s.lastStateChange = nowMillis;
             s.lastSeen = nowMillis;
             seenChildren.put(id,s);
@@ -291,7 +293,7 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
                             result.getScanRecord().getManufacturerSpecificData(TEXAS_INSTRUMENTS_MANUFACTER_ID),
                             nowMillis);
                 }
-                if (result.getDevice().getName().equals(ConfigVals.CLIMB_CHILD_DEVICE_NAME)) {
+                if (result.getDevice().getName().equals(fbk.climblogger.ConfigVals.CLIMB_CHILD_DEVICE_NAME)) {
                     id = nodeID2String(result.getScanRecord().getManufacturerSpecificData(TEXAS_INSTRUMENTS_MANUFACTER_ID));
                 } else {
                     id = result.getDevice().getAddress();
@@ -317,7 +319,7 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
                         manufacturerData,
                         nowMillis);
                 }
-                if (device.getName() != null && device.getName().equals(ConfigVals.CLIMB_CHILD_DEVICE_NAME)) {
+                if (device.getName() != null && device.getName().equals(fbk.climblogger.ConfigVals.CLIMB_CHILD_DEVICE_NAME)) {
                     //id = nodeID2String(scanRecord);
                     id = nodeID2String(Arrays.copyOfRange(scanRecord,12,scanRecord.length));
                 } else {
@@ -432,7 +434,7 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
     //--- CLIMB API -----------------------------------------------
 
     private String[] allowedChildren = new String[0];
-    private HashMap<String,NodeState> seenChildren = new HashMap<String,NodeState>();
+    private HashMap<String, fbk.climblogger.ClimbServiceInterface.NodeState> seenChildren = new HashMap<String, fbk.climblogger.ClimbServiceInterface.NodeState>();
 
     public boolean init() {
         Log.i(TAG, "Initializing");
@@ -574,7 +576,7 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
         TimeZone tz = TimeZone.getTimeZone("Europe/Rome");
 
         Calendar rightNow = Calendar.getInstance(tz);// .getInstance();
-        dirName=ConfigVals.folderName;
+        dirName= fbk.climblogger.ConfigVals.folderName;
         try{
 
             File newFile = new File(dirName);
