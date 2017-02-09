@@ -19,6 +19,7 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.ParcelUuid;
 import android.support.annotation.Nullable;
@@ -26,6 +27,7 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -52,7 +54,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
     private FileWriter mFileWriter = null;
     private BufferedWriter mBufferedWriter = null;
     private boolean logEnabled;
-    private ArrayList<ClimbNode> nodeList;
+    //private ArrayList<ClimbNode> nodeList;
     private boolean initialized = false;
     private long lastMaintainaceCallTime_millis = 0;
     private long lastWakeUpTimeoutSet_sec = 0;

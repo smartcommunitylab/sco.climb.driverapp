@@ -45,6 +45,8 @@ import java.util.Queue;
 import java.util.TimeZone;
 import java.util.UUID;
 
+import fbk.climblogger.ClimbServiceInterface;
+
 public class ClimbService extends Service implements ClimbServiceInterface, fbk.climblogger.ClimbNode.ClimbNodeTimeout, fbk.climblogger.MonitoredClimbNode.MonitoredClimbNodeTimeout {
 
     public final static String ACTION_DATALOG_ACTIVE ="fbk.climblogger.ClimbService.ACTION_DATALOG_ACTIVE";
@@ -1042,6 +1044,7 @@ public class ClimbService extends Service implements ClimbServiceInterface, fbk.
 
     // --- Android 4.x specific code ---
     private myLeScanCallback mLeScanCallback;
+    @TargetApi(21)
     class myLeScanCallback implements BluetoothAdapter.LeScanCallback {
         @Override
         public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
