@@ -88,12 +88,12 @@ angular.module('driverapp.controllers.route', [])
           function (newNs, oldNs) {
             var ns = angular.copy(newNs)
             var somethingChanged = false
-            $rootScope.batteryAlarm = false
+            $scope.batteryAlarm = false
 
             Object.keys(ns).forEach(function (nodeId) {
               if (WSNSrv.isNodeByType(nodeId, 'child')) {
                 if (ns[nodeId].batteryLevel < 2) {
-                  $rootScope.batteryAlarm = true
+                  $scope.batteryAlarm = true
                 }
 
                 if (ns[nodeId].status === WSNSrv.STATUS_NEW) {

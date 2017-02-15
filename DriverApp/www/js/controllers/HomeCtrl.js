@@ -185,7 +185,23 @@ angular.module('driverapp.controllers.home', [])
       $scope.modalBatteries = modal
     })
 
-    $rootScope.batteryAlarm = false
+    $scope.batteryAlarm = false
+
+    $scope.startMaintenanceMode = function () {
+      var date = new Date()
+      date.setDate(date.getDate() + 1)
+      date.setHours(Utils.isDST() ? 6 : 7) // just to handle DST
+
+      WSNSrv.enableMaintenanceProcedure(date.getFullYear(), date.getMonth(), date.getDay(), date.getHours(), 0).then(
+        function () {
+          // TODO open popup or modal
+        },
+        function (error) {
+          Utils.toast('Non è possibile avviare la procedura di manutenzione')
+          console.log(error)
+        }
+      )
+    }
   })
 
   .controller('HomeCtrl', function ($scope, Utils, StorageSrv, APISrv) {
