@@ -18,6 +18,7 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.util.Log;
 import fbk.climblogger.ClimbServiceInterface;
+import fbk.climblogger.ClimbServiceInterface.ErrorCode;
 import fbk.climblogger.ClimbServiceInterface.NodeState;
 //import fbk.climblogger.ClimbService;
 import fbk.climblogger.ClimbSimpleService;
@@ -223,6 +224,35 @@ public class DriverAppPlugin extends CordovaPlugin {
 				}
 				return true;
 			}
+		}
+
+		if (action.equals("enableMaintenanceProcedure")) {
+			if (data != null && data.length() == 5) {
+				ErrorCode ec = mClimbService.enableMaintenanceProcedure(data.getInt(0), data.getInt(1), data.getInt(2),
+						data.getInt(3), data.getInt(4));
+
+				if (ec.equals(ErrorCode.NO_ERROR)) {
+					callbackContext.success(String.valueOf(ec));
+				} else {
+					callbackContext.error(String.valueOf(ec));
+				}
+			} else {
+				callbackContext.error("arguments missing!");
+			}
+
+			return true;
+		}
+
+		if (action.equals("disableMaintenanceProcedure")) {
+			ErrorCode ec = mClimbService.disableMaintenanceProcedure();
+
+			if (ec.equals(ErrorCode.NO_ERROR)) {
+				callbackContext.success(String.valueOf(ec));
+			} else {
+				callbackContext.error(String.valueOf(ec));
+			}
+
+			return true;
 		}
 
 		if (action.equals("getLogFiles")) {

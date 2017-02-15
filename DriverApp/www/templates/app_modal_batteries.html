@@ -1,0 +1,16 @@
+<ion-modal-view>
+  <ion-header-bar class="bar-positive">
+    <h1 class="title">Livelli batteria</h1>
+    <button class="button button-positive icon ion-close" ng-click="modalBatteries.hide()"></button>
+  </ion-header-bar>
+  <ion-content class="has-header" ng-controller="BatteriesCtrl">
+    <ion-list>
+      <div class="padding" ng-if="!almostOneVisible">Nessun nodo visibile</div>
+      <ion-item class="item item-avatar item-icon-right item-route-passenger" ng-repeat="child in children | orderBy : ['batteryLevel', 'surname', 'name']"
+        ng-if="isVisible(child)" ng-init="batteryLevel = getBatteryLevel(child)">
+        <img class="item-route-passenger-img" ng-src="{{child.imageUrl ? child.imageUrl : 'img/placeholder_child.png'}}" /> {{child.surname}} {{child.name}}
+        <i class="icon" ng-class="{'ion-battery-full': batteryLevel === 3, 'ion-battery-half': batteryLevel === 2, 'ion-battery-low': batteryLevel === 1, 'ion-alert': batteryLevel === 0}"></i>
+      </ion-item>
+    </ion-list>
+  </ion-content>
+</ion-modal-view>

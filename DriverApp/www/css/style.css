@@ -131,6 +131,9 @@
 .dapp-theme .bar.bar-calm .button.icon::before {
     font-size: 2.5em;
 }
+.dapp-theme .bar .button.button-battery-alarm {
+    color: red;
+}
 .dapp-theme .checkbox input:before,
 .dapp-theme .checkbox .checkbox-icon:before {
     background: transparent;
@@ -453,6 +456,18 @@
     left: 48px;
     max-width: 20px;
     max-height: 50px;
+}
+.dapp-theme .item.item-route-passenger .icon.ion-battery-full {
+    color: green;
+}
+.dapp-theme .item.item-route-passenger .icon.ion-battery-half {
+    color: orange;
+}
+.dapp-theme .item.item-route-passenger .icon.ion-battery-low {
+    color: red;
+}
+.dapp-theme .item.item-route-passenger .icon.ion-alert {
+    color: black;
 }
 .dapp-theme .route-title-button {
     background-color: #438699;
