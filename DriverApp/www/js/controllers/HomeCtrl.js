@@ -202,29 +202,29 @@ angular.module('driverapp.controllers.home', [])
       }
 
       // TODO
-      $scope.modalMaintenance.show()
+      // $scope.modalMaintenance.show()
 
-      /* WSNSrv.enableMaintenanceProcedure(date.getFullYear(), date.getMonth(), date.getDay(), date.getHours(), 0).then(
+      WSNSrv.enableMaintenanceProcedure(date.getFullYear(), date.getMonth(), date.getDay(), date.getHours(), 0).then(
         function () {
-          // $scope.modalMaintenance.show()
+          $scope.modalMaintenance.show()
         },
         function (error) {
           Utils.toast('Non è possibile avviare la procedura di manutenzione')
           console.log(error)
         }
-      ) */
+      )
     }
 
     $scope.stopMaintenanceMode = function () {
       // TODO
-      $scope.modalMaintenance.hide()
+      // $scope.modalMaintenance.hide()
 
-      /* WSNSrv.disableMaintenanceProcedure().then(
+      WSNSrv.disableMaintenanceProcedure().then(
         function () {
           $scope.modalMaintenance.hide()
         },
         function () {}
-      ) */
+      )
     }
   })
 

@@ -318,9 +318,13 @@ angular.module('driverapp.controllers.route', [])
               AESrv.nodeAtDestination(child)
               AESrv.nodeCheckout(child)
 
-              if (!!child.wsnId && !!WSNSrv.networkState[child.wsnId] && WSNSrv.networkState[child.wsnId].status === WSNSrv.STATUS_BOARDED_ALREADY) {
-                // WSNSrv.checkoutChild(child.wsnId);
-                childrenWsnIds.push(child.wsnId)
+              if (child.wsnId && WSNSrv.networkState[child.wsnId]) {
+                AESrv.batteryStatus(child)
+
+                if (WSNSrv.networkState[child.wsnId].status === WSNSrv.STATUS_BOARDED_ALREADY) {
+                  // WSNSrv.checkoutChild(child.wsnId);
+                  childrenWsnIds.push(child.wsnId)
+                }
               }
             })
 
