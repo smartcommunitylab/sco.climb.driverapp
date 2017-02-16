@@ -156,6 +156,15 @@
     border: none;
 }
 
+.dapp-theme .modal-maintenance ion-content img {
+    width: 100%;
+}
+
+.dapp-theme .modal-maintenance ion-footer-bar .button {
+    text-transform: uppercase;
+    width: 100%;
+}
+
 /* Menu Bar */
 
 .dapp-theme .dapp-menu .menu,

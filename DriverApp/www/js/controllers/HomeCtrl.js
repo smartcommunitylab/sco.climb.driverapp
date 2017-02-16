@@ -185,22 +185,46 @@ angular.module('driverapp.controllers.home', [])
       $scope.modalBatteries = modal
     })
 
+    $ionicModal.fromTemplateUrl('templates/app_modal_maintenance.html', {
+      scope: $scope,
+      animation: 'slide-in-up'
+    }).then(function (modal) {
+      $scope.modalMaintenance = modal
+    })
+
     $scope.batteryAlarm = false
 
     $scope.startMaintenanceMode = function () {
       var date = new Date()
-      date.setDate(date.getDate() + 1)
       date.setHours(Utils.isDST() ? 6 : 7) // just to handle DST
+      if (date.getTime() < new Date().getTime()) {
+        date.setDate(date.getDate() + 1)
+      }
 
-      WSNSrv.enableMaintenanceProcedure(date.getFullYear(), date.getMonth(), date.getDay(), date.getHours(), 0).then(
+      // TODO
+      $scope.modalMaintenance.show()
+
+      /* WSNSrv.enableMaintenanceProcedure(date.getFullYear(), date.getMonth(), date.getDay(), date.getHours(), 0).then(
         function () {
-          // TODO open popup or modal
+          // $scope.modalMaintenance.show()
         },
         function (error) {
           Utils.toast('Non è possibile avviare la procedura di manutenzione')
           console.log(error)
         }
-      )
+      ) */
+    }
+
+    $scope.stopMaintenanceMode = function () {
+      // TODO
+      $scope.modalMaintenance.hide()
+
+      /* WSNSrv.disableMaintenanceProcedure().then(
+        function () {
+          $scope.modalMaintenance.hide()
+        },
+        function () {}
+      ) */
     }
   })
 

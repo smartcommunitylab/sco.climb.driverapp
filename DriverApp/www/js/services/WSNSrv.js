@@ -393,5 +393,64 @@ angular.module('driverapp.services.wsn', [])
       return wsnService.networkState[nodeId].type === type
     }
 
+    /*
+    NO_ERROR,
+    WRONG_BLE_NAME_ERROR,
+    ADVERTISER_NOT_AVAILABLE_ERROR,
+    INTERNAL_ERROR,
+    ANDROID_VERSION_NOT_COMPATIBLE_ERROR,
+    INVALID_DATE_ERROR
+    */
+
+    wsnService.enableMaintenanceProcedure = function (wakeUpYear, wakeUpMonth, wakeUpDay, wakeUpHour, wakeUpMinutes) {
+      var deferred = $q.defer()
+
+      if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+        window.DriverAppPlugin.enableMaintenanceProcedure(wakeUpYear, wakeUpMonth, wakeUpDay, wakeUpHour, wakeUpMinutes,
+          function (response) {
+            console.log('enableMaintenanceProcedure: ' + response)
+            if (response === 'NO_ERROR') {
+              deferred.resolve(response)
+            } else {
+              deferred.reject(response)
+            }
+          },
+          function (reason) {
+            console.log('enableMaintenanceProcedure: ' + reason)
+            deferred.reject(reason)
+          }
+        )
+      } else {
+        deferred.reject('DriverAppPlugin not present')
+      }
+
+      return deferred.promise
+    }
+
+    wsnService.disableMaintenanceProcedure = function () {
+      var deferred = $q.defer()
+
+      if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+        window.DriverAppPlugin.disableMaintenanceProcedure(
+          function (response) {
+            console.log('disableMaintenanceProcedure: ' + response)
+            if (response === 'NO_ERROR') {
+              deferred.resolve(response)
+            } else {
+              deferred.reject(response)
+            }
+          },
+          function (reason) {
+            console.log('disableMaintenanceProcedure: ' + reason)
+            deferred.reject(reason)
+          }
+        )
+      } else {
+        deferred.reject('DriverAppPlugin not present')
+      }
+
+      return deferred.promise
+    }
+
     return wsnService
   })

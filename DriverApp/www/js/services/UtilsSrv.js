@@ -97,12 +97,13 @@ angular.module('driverapp.services.utils', [])
     }
 
     Utils.isDST = function () {
+      var now = new Date()
       var stdTimezoneOffset = function () {
-        var jan = new Date(Date.getFullYear(), 0, 1)
-        var jul = new Date(Date.getFullYear(), 6, 1)
+        var jan = new Date(now.getFullYear(), 0, 1)
+        var jul = new Date(now.getFullYear(), 6, 1)
         return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset())
       }
-      return Date.getTimezoneOffset() < stdTimezoneOffset()
+      return now.getTimezoneOffset() < stdTimezoneOffset()
     }
 
     return Utils
