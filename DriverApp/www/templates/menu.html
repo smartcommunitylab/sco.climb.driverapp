@@ -9,7 +9,7 @@
             </ion-nav-buttons>
             <span class="title"></span>
             <ion-nav-buttons side="right">
-            <button class="button button-icon icon ion-battery-low button-battery-alarm" ng-if="batteryAlarm" ng-click="modalBatteries.show()"></button>
+            <button class="button button-icon icon ion-battery-low button-battery-alarm" ng-if="batteryAlarm" ng-click="openBatteryMonitor()"></button>
             </ion-nav-buttons>
         </ion-nav-bar>
         <ion-nav-view name="menuContent"></ion-nav-view>
@@ -48,7 +48,7 @@
                     </div>
                 </ion-item>
                 <!--<ion-item nav-clear menu-close href="#/app/batteries">-->
-                <ion-item nav-clear menu-close href="" ng-click="modalBatteries.show()">
+                <ion-item nav-clear menu-close href="" ng-click="openBatteryMonitor()">
                     <i class="icon ion-battery-charging"></i>
                     <div class="menu-link-wrapper">
                         Livelli batterie

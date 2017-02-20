@@ -1,5 +1,5 @@
 angular.module('driverapp.services.ae', [])
-  .factory('AESrv', function ($rootScope, $q, $interval, Config, Utils, StorageSrv, LogSrv, APISrv, GeoSrv) {
+  .factory('AESrv', function ($rootScope, $q, $interval, Config, Utils, StorageSrv, LogSrv, APISrv, GeoSrv, WSNSrv) {
     var AE = {
       NODE_IN_RANGE: 101,
       NODE_CHECKIN: 102,
@@ -334,8 +334,8 @@ angular.module('driverapp.services.ae', [])
         timestamp: moment().valueOf(),
         payload: {
           'passengerId': passenger.objectId,
-          'batteryVoltage': passenger.batteryVoltage_mV,
-          'batteryLevel': passenger.batteryLevel
+          'batteryVoltage': WSNSrv.networkState[passenger.wsnId].batteryVoltage_mV,
+          'batteryLevel': WSNSrv.networkState[passenger.wsnId].batteryLevel
         }
       }
 

@@ -1,7 +1,10 @@
+/* global performance */
 angular.module('driverapp.controllers.route', [])
   .controller('RouteCtrl', function ($scope, $rootScope, $stateParams, $ionicHistory, $ionicNavBarDelegate, $ionicPopup, $ionicModal, $interval, $ionicScrollDelegate, $filter, $timeout, $cordovaFile, $window, Config, Utils, StorageSrv, GeoSrv, AESrv, APISrv, WSNSrv) {
     $scope.fromWizard = false
     $rootScope.pedibusEnabled = true
+
+    var BATTERYLEVEL_LOW = 1
 
     var passengersScrollDelegate = $ionicScrollDelegate.$getByHandle('passengersHandle')
     $scope.mergedOnBoard = []
@@ -88,12 +91,12 @@ angular.module('driverapp.controllers.route', [])
           function (newNs, oldNs) {
             var ns = angular.copy(newNs)
             var somethingChanged = false
-            $scope.batteryAlarm = false
+            $rootScope.batteryAlarm = false
 
             Object.keys(ns).forEach(function (nodeId) {
               if (WSNSrv.isNodeByType(nodeId, 'child')) {
-                if (ns[nodeId].batteryLevel < 2) {
-                  $scope.batteryAlarm = true
+                if (ns[nodeId].batteryLevel === BATTERYLEVEL_LOW && $rootScope.batteryAlarm === false) {
+                  $rootScope.batteryAlarm = true
                 }
 
                 if (ns[nodeId].status === WSNSrv.STATUS_NEW) {
@@ -259,7 +262,7 @@ angular.module('driverapp.controllers.route', [])
     }
 
     $scope.goNext = function (event) {
-      var eventTimestamp = event.timeStamp
+      var eventTimestamp = (event.timeStamp % 1 !== 0) ? Math.floor(event.timeStamp + performance.timing.navigationStart) : event.timeStamp
       // drop multi-event
       if (eventTimestamp < (lastEventTimestamp + 1500)) {
         console.log('event discarded')
@@ -319,7 +322,9 @@ angular.module('driverapp.controllers.route', [])
               AESrv.nodeCheckout(child)
 
               if (child.wsnId && WSNSrv.networkState[child.wsnId]) {
-                AESrv.batteryStatus(child)
+                if (WSNSrv.networkState[child.wsnId].batteryLevel != null) {
+                  AESrv.batteryStatus(child)
+                }
 
                 if (WSNSrv.networkState[child.wsnId].status === WSNSrv.STATUS_BOARDED_ALREADY) {
                   // WSNSrv.checkoutChild(child.wsnId);

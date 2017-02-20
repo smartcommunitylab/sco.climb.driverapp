@@ -1,5 +1,4 @@
 angular.module('driverapp.controllers.home', [])
-
   .controller('AppCtrl', function ($scope, $rootScope, $state, $ionicPlatform, $q, $ionicPopup, $ionicModal, Config, StorageSrv, APISrv, WSNSrv, Utils, GeoSrv) {
     $rootScope.pedibusEnabled = true
     /*
@@ -178,24 +177,31 @@ angular.module('driverapp.controllers.home', [])
       $scope.modalVolunteers = modal
     })
 
-    $ionicModal.fromTemplateUrl('templates/app_modal_batteries.html', {
-      scope: $scope,
-      animation: 'slide-in-up'
-    }).then(function (modal) {
-      $scope.modalBatteries = modal
-    })
-
     $ionicModal.fromTemplateUrl('templates/app_modal_maintenance.html', {
       scope: $scope,
-      animation: 'slide-in-up'
+      animation: 'slide-in-up',
+      backdropClickToClose: false,
+      hardwareBackButtonClose: false
     }).then(function (modal) {
       $scope.modalMaintenance = modal
     })
 
-    $scope.batteryAlarm = false
+    $rootScope.batteryAlarm = false
+
+    $scope.openBatteryMonitor = function () {
+      $ionicModal.fromTemplateUrl('templates/app_modal_batteries.html', {
+        scope: $scope,
+        animation: 'slide-in-up'
+      }).then(function (modal) {
+        $scope.modalBatteries = modal
+        $scope.modalBatteries.show()
+      })
+    }
 
     $scope.startMaintenanceMode = function () {
       var date = new Date()
+      date.setSeconds(0)
+      date.setMinutes(0)
       date.setHours(Utils.isDST() ? 6 : 7) // just to handle DST
       if (date.getTime() < new Date().getTime()) {
         date.setDate(date.getDate() + 1)
@@ -204,7 +210,7 @@ angular.module('driverapp.controllers.home', [])
       // TODO
       // $scope.modalMaintenance.show()
 
-      WSNSrv.enableMaintenanceProcedure(date.getFullYear(), date.getMonth(), date.getDay(), date.getHours(), 0).then(
+      WSNSrv.enableMaintenanceProcedure(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 0).then(
         function () {
           $scope.modalMaintenance.show()
         },
@@ -223,7 +229,10 @@ angular.module('driverapp.controllers.home', [])
         function () {
           $scope.modalMaintenance.hide()
         },
-        function () {}
+        function (error) {
+          Utils.toast('Non è possibile fermare la procedura di manutenzione')
+          console.log(error)
+        }
       )
     }
   })

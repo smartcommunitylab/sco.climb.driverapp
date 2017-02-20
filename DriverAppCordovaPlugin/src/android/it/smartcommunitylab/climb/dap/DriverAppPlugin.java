@@ -360,6 +360,8 @@ public class DriverAppPlugin extends CordovaPlugin {
 			jsonObject.put("state", node.state);
 			jsonObject.put("lastSeen", node.lastSeen);
 			jsonObject.put("lastStateChange", node.lastStateChange);
+			jsonObject.put("batteryLevel", node.batteryLevel);
+			jsonObject.put("batteryVoltage_mV", node.batteryVoltage_mV);
 		} catch (JSONException e) {
 			Log.w(LOG_TAG, "nodeState2json: " + e.getMessage());
 		}

@@ -15,7 +15,12 @@
     "shelljs": "^0.3.0"
   },
   "standard": {
-    "globals": ["ionic", "angular", "cordova", "moment"]
+    "globals": [
+      "ionic",
+      "angular",
+      "cordova",
+      "moment"
+    ]
   },
   "cordovaPlugins": [
     "cordova-plugin-device",

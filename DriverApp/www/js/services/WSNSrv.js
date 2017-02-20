@@ -6,6 +6,8 @@ angular.module('driverapp.services.wsn', [])
     wsnService.NODESTATE_STATE = 'state'
     wsnService.NODESTATE_LASTSEEN = 'lastSeen'
     wsnService.NODESTATE_LASTSTATECHANGE = 'lastStateChange'
+    wsnService.NODESTATE_BATTERYLEVEL = 'batteryLevel'
+    wsnService.NODESTATE_BATTERYVOLTAGE_MV = 'batteryVoltage_mV'
 
     wsnService.STATE_CONNECTED_TO_CLIMB_MASTER = 'fbk.climblogger.ClimbService.STATE_CONNECTED_TO_CLIMB_MASTER'
     wsnService.STATE_DISCONNECTED_FROM_CLIMB_MASTER = 'fbk.climblogger.ClimbService.STATE_DISCONNECTED_FROM_CLIMB_MASTER'
@@ -185,6 +187,8 @@ angular.module('driverapp.services.wsn', [])
                   ns[nodeState.nodeID].status = wsnService.STATUS_NEW
                 }
                 ns[nodeState.nodeID].timestamp = nodeState[wsnService.NODESTATE_LASTSEEN]
+                ns[nodeState.nodeID].batteryLevel = nodeState[wsnService.NODESTATE_BATTERYLEVEL]
+                ns[nodeState.nodeID].batteryVoltage_mV = nodeState[wsnService.NODESTATE_BATTERYVOLTAGE_MV]
               }
             })
             wsnService.networkState = ns
