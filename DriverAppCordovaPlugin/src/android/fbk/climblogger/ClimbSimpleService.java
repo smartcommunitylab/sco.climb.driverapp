@@ -606,17 +606,14 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
     }
 
     public boolean deinit() {
-
-
         disableMaintenanceProcedure();
         boolean ret = (StopMonitoring() == 1);
         seenChildren = new HashMap<String, fbk.climblogger.ClimbServiceInterface.NodeState>(); //empty node list!
         broadcastUpdate(ACTION_METADATA_CHANGED);
-        initialized = ret;
+        initialized = false;
         insertTag("deinit: " + ret);
         Log.i(TAG, "deInitializing: ret = " + ret);
         return ret;
-
     }
 
     private Context mContext;
