@@ -279,8 +279,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
             s.batteryVoltage_mV = 0;
             s.batteryLevel = 0;
         }
-        //broadcastUpdate(ACTION_DATALOG_ACTIVE, ACTION_METADATA_CHANGED,id);
-        broadcastUpdate(ACTION_METADATA_CHANGED,id);
+        //broadcastUpdate(ACTION_METADATA_CHANGED,id);
     }
 
     void updateChild(String id, int batteryVoltage) {
@@ -298,8 +297,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
             s.batteryLevel = 3;
         }
 
-        //broadcastUpdate(ACTION_DATALOG_ACTIVE, ACTION_METADATA_CHANGED,id);
-        broadcastUpdate(ACTION_METADATA_CHANGED,id);
+        //broadcastUpdate(ACTION_METADATA_CHANGED,id);
     }
 
     
