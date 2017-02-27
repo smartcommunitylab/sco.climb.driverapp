@@ -2,7 +2,7 @@
     "name": "CLIMB Driver App",
     "private": "true",
     "devDependencies": {
-        "ionic": "driftyco/ionic-bower#1.2.4"
+        "ionic": "driftyco/ionic-bower#master"
     },
     "install": {
         "path": "www/lib",

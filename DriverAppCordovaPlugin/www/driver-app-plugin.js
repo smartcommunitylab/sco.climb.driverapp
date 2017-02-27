@@ -1,44 +1,50 @@
-/*global cordova, module*/
-var serviceName = 'DriverAppPlugin';
+/* global cordova, module */
+var serviceName = 'DriverAppPlugin'
 
 module.exports = {
-    'init': function (successCallback, errorCallback) {
-        cordova.exec(successCallback, errorCallback, serviceName, 'init', []);
+  'init': function (successCallback, errorCallback) {
+      cordova.exec(successCallback, errorCallback, serviceName, 'init', [])
     },
-    'startListener': function (successCallback, errorCallback) {
-        cordova.exec(successCallback, errorCallback, serviceName, 'startListener', []);
+  'startListener': function (successCallback, errorCallback) {
+      cordova.exec(successCallback, errorCallback, serviceName, 'startListener', [])
     },
-    'stopListener': function (successCallback, errorCallback) {
-        cordova.exec(successCallback, errorCallback, serviceName, 'stopListener', []);
+  'stopListener': function (successCallback, errorCallback) {
+      cordova.exec(successCallback, errorCallback, serviceName, 'stopListener', [])
     },
-    'getMasters': function (successCallback, errorCallback) {
-        cordova.exec(successCallback, errorCallback, serviceName, 'getMasters', []);
+  'getMasters': function (successCallback, errorCallback) {
+      cordova.exec(successCallback, errorCallback, serviceName, 'getMasters', [])
     },
-    'connectMaster': function (masterId, successCallback, errorCallback) {
-        cordova.exec(successCallback, errorCallback, serviceName, 'connectMaster', [masterId]);
+  'connectMaster': function (masterId, successCallback, errorCallback) {
+      cordova.exec(successCallback, errorCallback, serviceName, 'connectMaster', [masterId])
     },
-    'setNodeList': function (nodeList, successCallback, errorCallback) {
-        cordova.exec(successCallback, errorCallback, serviceName, 'setNodeList', [nodeList]);
+  'setNodeList': function (nodeList, successCallback, errorCallback) {
+      cordova.exec(successCallback, errorCallback, serviceName, 'setNodeList', [nodeList])
     },
-    'getNetworkState': function (successCallback, errorCallback) {
-        cordova.exec(successCallback, errorCallback, serviceName, 'getNetworkState', []);
+  'getNetworkState': function (successCallback, errorCallback) {
+      cordova.exec(successCallback, errorCallback, serviceName, 'getNetworkState', [])
     },
-    'checkinChild': function (childId, successCallback, errorCallback) {
-        cordova.exec(successCallback, errorCallback, serviceName, 'checkinChild', [childId]);
+  'checkinChild': function (childId, successCallback, errorCallback) {
+      cordova.exec(successCallback, errorCallback, serviceName, 'checkinChild', [childId])
     },
-    'checkinChildren': function (childrenIds, successCallback, errorCallback) {
-        cordova.exec(successCallback, errorCallback, serviceName, 'checkinChildren', [childrenIds]);
+  'checkinChildren': function (childrenIds, successCallback, errorCallback) {
+      cordova.exec(successCallback, errorCallback, serviceName, 'checkinChildren', [childrenIds])
     },
-    'checkoutChild': function (childId, successCallback, errorCallback) {
-        cordova.exec(successCallback, errorCallback, serviceName, 'checkoutChild', [childId]);
+  'checkoutChild': function (childId, successCallback, errorCallback) {
+      cordova.exec(successCallback, errorCallback, serviceName, 'checkoutChild', [childId])
     },
-    'checkoutChildren': function (childrenIds, successCallback, errorCallback) {
-        cordova.exec(successCallback, errorCallback, serviceName, 'checkoutChildren', [childrenIds]);
+  'checkoutChildren': function (childrenIds, successCallback, errorCallback) {
+      cordova.exec(successCallback, errorCallback, serviceName, 'checkoutChildren', [childrenIds])
     },
-    'getLogFiles': function (successCallback, errorCallback) {
-        cordova.exec(successCallback, errorCallback, serviceName, 'getLogFiles', []);
+  'getLogFiles': function (successCallback, errorCallback) {
+      cordova.exec(successCallback, errorCallback, serviceName, 'getLogFiles', [])
     },
-    'test': function (name, successCallback, errorCallback) {
-        cordova.exec(successCallback, errorCallback, serviceName, 'test', [name]);
+  'enableMaintenanceProcedure': function (wakeUpYear, wakeUpMonth, wakeUpDay, wakeUpHour, wakeUpMinute, successCallback, errorCallback) {
+      cordova.exec(successCallback, errorCallback, serviceName, 'enableMaintenanceProcedure', [wakeUpYear, wakeUpMonth, wakeUpDay, wakeUpHour, wakeUpMinute])
+    },
+  'disableMaintenanceProcedure': function (successCallback, errorCallback) {
+      cordova.exec(successCallback, errorCallback, serviceName, 'disableMaintenanceProcedure', [])
+    },
+  'test': function (name, successCallback, errorCallback) {
+      cordova.exec(successCallback, errorCallback, serviceName, 'test', [name])
     }
-};
+}

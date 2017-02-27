@@ -14,6 +14,14 @@
     "gulp-util": "^2.2.14",
     "shelljs": "^0.3.0"
   },
+  "standard": {
+    "globals": [
+      "ionic",
+      "angular",
+      "cordova",
+      "moment"
+    ]
+  },
   "cordovaPlugins": [
     "cordova-plugin-device",
     "cordova-plugin-console",
@@ -28,7 +36,8 @@
     "cordova-plugin-x-toast",
     "cordova-plugin-logtofile",
     "cordova-plugin-file-transfer",
-    "cordova-plugin-network-information"
+    "cordova-plugin-network-information",
+    "cordova-plugin-crosswalk-webview"
   ],
   "cordovaPlatforms": [
     "android"
