@@ -558,18 +558,18 @@ angular.module('driverapp.controllers.route', [])
       var onBoardMatrix = []
       var cols = 3
       for (var i = 0; i < $scope.onBoard.length; i++) {
-        var tmpData = {
+        onBoardMerged.push({
           id: $scope.onBoard[i],
           tmp: false
-        }
-        onBoardMerged.push(tmpData)
+        })
       }
       for (var j = 0; j < $scope.onBoardTemp.length; j++) {
+        var tmpData = {
+          id: $scope.onBoardTemp[j],
+          tmp: true
+        }
         if ($scope.isNewValue(onBoardMerged, tmpData)) {
-          onBoardMerged.push({
-            id: $scope.onBoardTemp[j],
-            tmp: true
-          })
+          onBoardMerged.push(tmpData)
         }
       }
       // here I have to convert in matrix
@@ -598,9 +598,10 @@ angular.module('driverapp.controllers.route', [])
      */
     $scope.isNewValue = function (arr, val) {
       var present = false
-      for (var i = 0; i < arr.length && !present; i++) {
-        if (arr[i] === val) {
+      for (var i = 0; i < arr.length; i++) {
+        if (Utils.fastCompareObjects(arr[i], val)) {
           present = true
+          i = arr.length
         }
       }
       return !present

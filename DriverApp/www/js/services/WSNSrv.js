@@ -39,6 +39,25 @@ angular.module('driverapp.services.wsn', [])
       return deferred.promise
     }
 
+    wsnService.deinit = function () {
+      var deferred = $q.defer()
+
+      if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+        window.DriverAppPlugin.deinit(
+          function (response) {
+            console.log('deinit: ' + response)
+            deferred.resolve(response)
+          },
+          function (reason) {
+            console.log('deinit: ' + reason)
+            deferred.reject(reason)
+          }
+        )
+      }
+
+      return deferred.promise
+    }
+
     wsnService.startListener = function () {
       var deferred = $q.defer()
 

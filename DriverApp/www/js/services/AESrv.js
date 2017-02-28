@@ -174,32 +174,40 @@ angular.module('driverapp.services.ae', [])
       aeInstance.events.push(event)
       LogSrv.log(JSON.stringify(event))
 
-      var uploadWsnLogFiles = function () {
-        APISrv.uploadWsnLogs(aeInstance.routeId).then(
-          function () {
-            Utils.loaded()
-            console.log('[WSN Logs] Successfully uploaded to the server.')
-          },
-          function (error) {
-            Utils.loaded()
-            console.log('[WSN Logs] Error uploading to the server: ' + error)
+      WSNSrv.deinit().then(
+        function () {
+          var uploadWsnLogFiles = function () {
+            APISrv.uploadWsnLogs(aeInstance.routeId).then(
+              function () {
+                Utils.loaded()
+                console.log('[WSN Logs] Successfully uploaded to the server.')
+              },
+              function (error) {
+                Utils.loaded()
+                console.log('[WSN Logs] Error uploading to the server: ' + error)
+              }
+            )
           }
-        )
-      }
 
-      StorageSrv.saveEAs(aeInstance.events).then(
-        function (eas) {
-          Utils.loading()
-          APISrv.addEvents(eas).then(
-            function (response) {
-              console.log('[Events] Successfully uploaded to the server.')
-              uploadWsnLogFiles()
-            },
-            function (reason) {
-              console.log('[Events] Error uploading to the server!')
-              uploadWsnLogFiles()
+          StorageSrv.saveEAs(aeInstance.events).then(
+            function (eas) {
+              Utils.loading()
+              APISrv.addEvents(eas).then(
+                function (response) {
+                  console.log('[Events] Successfully uploaded to the server.')
+                  uploadWsnLogFiles()
+                },
+                function (reason) {
+                  console.log('[Events] Error uploading to the server!')
+                  uploadWsnLogFiles()
+                }
+              )
             }
           )
+        },
+        function (error) {
+          Utils.loaded()
+          console.log('[deinit] Error! ' + error)
         }
       )
 

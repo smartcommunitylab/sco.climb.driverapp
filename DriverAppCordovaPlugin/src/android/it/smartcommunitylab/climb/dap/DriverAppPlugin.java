@@ -62,6 +62,13 @@ public class DriverAppPlugin extends CordovaPlugin {
 			return true;
 		}
 
+		if (action.equals("deinit")) {
+			mClimbService.deinit();
+			// TODO handle success
+			callbackContext.success();
+			return true;
+		}
+
 		// getMasters
 		if (action.equals("getMasters")) {
 			String[] masters = mClimbService.getMasters();
