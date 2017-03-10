@@ -271,19 +271,19 @@ angular.module('driverapp.controllers.home', [])
   };
   $scope.tutorialSlides = [
     {
-      image: 'img/sensorTag.png',
+      image: 'img/1.png',
       text: 'Segui la procedura per cambíare in modo corretto la batteria del gadget.'
     }, {
-      image: 'img/sensorTag.png',
+      image: 'img/2.png',
       text: 'Apri il gadget servendoti di un cacciavite.'
     }, {
-      image: 'img/sensorTag.png',
+      image: 'img/3.png',
       text: 'Togli la scheda e il cuscinetto di protezione dalla busta trasparente.'
     }, {
-      image: 'img/sensorTag.png',
+      image: 'img/4.png',
       text: 'Estrai la batterla dalla scheda e sostituiscila con la nuovai controlla che i segni \'+\' delle battena e dell\'alloggiamento baneria combecino.'
     }, {
-      image: 'img/sensorTag.png',
+      image: 'img/5.png',
       text: 'Quando il led rosso smette di lampeggiare il nodo è pronto (potrebbe lampeggiare solo una volta). Riassembla i componenti, reinserendoli nella busta trasparente e di seguito nel gadget.'
     }
   ]
@@ -343,6 +343,7 @@ angular.module('driverapp.controllers.home', [])
       $scope.startTutorial = false;
     }
     $scope.pager.current = $ionicSlideBoxDelegate.currentIndex();
+    changeCurrentText($ionicSlideBoxDelegate.currentIndex());
   };
 
 
