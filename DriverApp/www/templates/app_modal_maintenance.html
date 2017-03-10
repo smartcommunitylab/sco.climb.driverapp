@@ -1,12 +1,57 @@
-<ion-modal-view class="modal-maintenance">
+<ion-modal-view class="modal-maintenance" ng-controller="MaintenanceCtrl">
   <ion-header-bar class="bar-positive">
     <h1 class="title">Modalità manutenzione</h1>
     <!--<button class="button button-positive icon ion-close" ng-click="modalMaintenance.hide()"></button>-->
   </ion-header-bar>
   <ion-content class="has-header padding">
-    <img src="img/sensorTag.png" alt="Sensor Tag" />
+    <div ng-if="!showTutorial">
+      <div>Sei in modalitá manutenzine, puoi procedere con la sostituzione della battería dei gadget</div>
+      <button class="button button-icon tut-vis" ng-click="visualizeTutorial()">MOSTRAMI COME</button>
+    </div>
+    <div class="slideTutorial" ng-if="showTutorial">
+      <ion-slide-box on-slide-changed="slideHasChanged($index)">
+        <ion-slide>
+          <div class="box box1">
+            <img src="img/sensorTag.png" alt="Sensor Tag" />
+            <div>Segui la procedura per cambíare in modo corretto la batteria del gadget.</div>
+          </div>
+        </ion-slide>
+        <ion-slide>
+          <div class="box box1">
+            <img src="img/sensorTag.png" alt="Sensor Tag" />
+            <div>Apri il gadget servendoti di un cacciavite.</div>
+          </div>
+        </ion-slide>
+        <ion-slide>
+          <div class="box box1">
+            <img src="img/sensorTag.png" alt="Sensor Tag" />
+            <div>Togli la scheda e il cuscinetto di protezione dalla busta trasparente.</div>
+          </div>
+        </ion-slide>
+        <ion-slide>
+          <div class="box box1">
+            <img src="img/sensorTag.png" alt="Sensor Tag" />
+            <div>Estrai la batterla dalla scheda e sostituiscila con la nuovai controlla che i segni '+' delle battena e dell'alloggiamento baneria combecino.</div>
+          </div>
+        </ion-slide>
+        <ion-slide>
+          <div class="box box1">
+            <img src="img/sensorTag.png" alt="Sensor Tag" />
+            <div>Quando il led rosso smette di lampeggiare il nodo è pronto (potrebbe lampeggiare solo una volta). Riassembla i componenti, reinserendoli nella busta trasparente e di seguito nel gadget.</div>
+          </div>
+        </ion-slide>
+
+
+
+      </ion-slide-box>
+      <div>
+        <button class="button button-icon tut-prev" ng-click="prevSlide()" ng-if="!startTutorial">{{'Indietro'|uppercase}}</button>
+        <button class="button button-icon tut-next" ng-click="nextSlide()" ng-if="!endTutorial">{{'Avanti'|uppercase}}</button>
+        <button class="button button-icon tut-next" ng-click="startSlide()" ng-if="endTutorial">{{'Torna all\'inizio'|uppercase}}</button>
+      </div>
+    </div>
   </ion-content>
   <ion-footer-bar>
-    <button class="button button-energized" ng-click="stopMaintenanceMode()">Termina manutenzione</button>
+    <button class="button button-energized" ng-click="stopMaintenanceMode()">{{'Ho completato la procedura'|uppercase}}</button>
   </ion-footer-bar>
 </ion-modal-view>

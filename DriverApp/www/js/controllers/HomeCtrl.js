@@ -1,6 +1,7 @@
 angular.module('driverapp.controllers.home', [])
-  .controller('AppCtrl', function ($scope, $rootScope, $state, $ionicPlatform, $q, $ionicPopup, $ionicModal, Config, StorageSrv, APISrv, WSNSrv, Utils, GeoSrv) {
+  .controller('AppCtrl', function ($scope, $rootScope, $state, $ionicPlatform, $ionicSlideBoxDelegate, $q, $ionicPopup, $ionicModal, Config, StorageSrv, APISrv, WSNSrv, Utils, GeoSrv) {
     $rootScope.pedibusEnabled = true
+
     /*
      * FIXME dev purpose only!
      */
@@ -19,7 +20,6 @@ angular.module('driverapp.controllers.home', [])
     if (StorageSrv.getIdentityIndex() != null) {
       Config.setIdentity(StorageSrv.getIdentityIndex())
     }
-
     $ionicModal.fromTemplateUrl('templates/wizard_modal_login.html', {
       scope: $scope,
       animation: 'slide-in-up',
@@ -85,47 +85,47 @@ angular.module('driverapp.controllers.home', [])
                 StorageSrv.saveVolunteers(volunteers).then(function (volunteers) {
                   var dateFrom = moment().format(Config.DATE_FORMAT)
                   var dateTo = moment().format(Config.DATE_FORMAT)
-                  // FIXME remove hardcoded dates!
-                  // dateFrom = '2016-03-22';
-                  // dateTo = '2016-03-22';
+                    // FIXME remove hardcoded dates!
+                    // dateFrom = '2016-03-22';
+                    // dateTo = '2016-03-22';
                   APISrv.getVolunteersCalendarsBySchool(schoolId, dateFrom, dateTo).then(
                     function (cals) {
                       StorageSrv.saveVolunteersCalendars(cals).then(function (calendars) {
                         APISrv.getChildrenBySchool(schoolId).then(
                           function (children) {
                             StorageSrv.saveChildren(children).then(
-                              function (children) {
-                                WSNSrv.updateNodeList(children, 'child')
-                                deferred.resolve()
+                                function (children) {
+                                  WSNSrv.updateNodeList(children, 'child')
+                                  deferred.resolve()
 
-                                /* if (Utils.isConnectionFastEnough()) {
-                                    // download children images
-                                    var counter = 0;
-                                    var downloaded = 0;
-                                    angular.forEach(children, function (child) {
-                                        APISrv.getChildImage(child.objectId).then(
-                                            function () {
-                                                downloaded++;
-                                                counter++;
-                                                console.log('Downloaded images: ' + downloaded + ' (Total: ' + counter + '/' + children.length + ')');
-                                                if (counter == children.length) {
-                                                    deferred.resolve();
-                                                }
-                                            },
-                                            function () {
-                                                counter++;
-                                                if (counter == children.length) {
-                                                    deferred.resolve();
-                                                }
-                                            }
-                                        );
-                                    });
-                                } else {
-                                    deferred.resolve();
-                                } */
-                              }
-                            )
-                            // deferred.resolve();
+                                  /* if (Utils.isConnectionFastEnough()) {
+                                      // download children images
+                                      var counter = 0;
+                                      var downloaded = 0;
+                                      angular.forEach(children, function (child) {
+                                          APISrv.getChildImage(child.objectId).then(
+                                              function () {
+                                                  downloaded++;
+                                                  counter++;
+                                                  console.log('Downloaded images: ' + downloaded + ' (Total: ' + counter + '/' + children.length + ')');
+                                                  if (counter == children.length) {
+                                                      deferred.resolve();
+                                                  }
+                                              },
+                                              function () {
+                                                  counter++;
+                                                  if (counter == children.length) {
+                                                      deferred.resolve();
+                                                  }
+                                              }
+                                          );
+                                      });
+                                  } else {
+                                      deferred.resolve();
+                                  } */
+                                }
+                              )
+                              // deferred.resolve();
                           },
                           function (error) {
                             // TODO handle error
@@ -235,24 +235,92 @@ angular.module('driverapp.controllers.home', [])
         }
       )
     }
+
+
   })
 
-  .controller('HomeCtrl', function ($scope, Utils, StorageSrv, APISrv) {
-    StorageSrv.reset()
+.controller('HomeCtrl', function ($scope, Utils, StorageSrv, APISrv) {
+  StorageSrv.reset()
 
-    $scope.schools = null
-    $scope.school = null
+  $scope.schools = null
+  $scope.school = null
 
-    APISrv.getSchools().then(
-      function (schools) {
-        $scope.schools = schools
-      },
-      function (error) {
-        console.log(error)
-      }
-    )
-
-    $scope.chooseSchool = function (school) {
-      // retrieve volunteers
+  APISrv.getSchools().then(
+    function (schools) {
+      $scope.schools = schools
+    },
+    function (error) {
+      console.log(error)
     }
-  })
+  )
+
+  $scope.chooseSchool = function (school) {
+    // retrieve volunteers
+  }
+})
+
+.controller('MaintenanceCtrl', function ($scope, $ionicSlideBoxDelegate) {
+  $scope.showTutorial = false;
+  $scope.tutorialSlides = [
+    {
+      image: 'img/sensorTag.png',
+      text: 'Segui la procedura per cambíare in modo corretto la batteria del gadget.'
+    }, {
+      image: 'img/sensorTag.png',
+      text: 'Apri il gadget servendoti di un cacciavite.'
+    }, {
+      image: 'img/sensorTag.png',
+      text: 'Togli la scheda e il cuscinetto di protezione dalla busta trasparente.'
+    }, {
+      image: 'img/sensorTag.png',
+      text: 'Estrai la batterla dalla scheda e sostituiscila con la nuovai controlla che i segni \'+\' delle battena e dell\'alloggiamento baneria combecino.'
+    }, {
+      image: 'img/sensorTag.png',
+      text: 'Quando il led rosso smette di lampeggiare il nodo è pronto (potrebbe lampeggiare solo una volta). Riassembla i componenti, reinserendoli nella busta trasparente e di seguito nel gadget.'
+    }
+  ]
+  $scope.visualizeTutorial = function () {
+    $scope.showTutorial = true;
+    $scope.startTutorial = true;
+
+  }
+
+  $scope.nextSlide = function () {
+    if ($ionicSlideBoxDelegate.currentIndex() == $ionicSlideBoxDelegate.slidesCount() - 2) {
+      //end reached
+      $scope.endTutorial = true;
+    }
+    $ionicSlideBoxDelegate.next();
+    $scope.startTutorial = false;
+
+  }
+  $scope.prevSlide = function () {
+    $ionicSlideBoxDelegate.previous();
+    $scope.endTutorial = false;
+    if ($ionicSlideBoxDelegate.currentIndex() == 0) {
+      //start reached
+      $scope.startTutorial = true;
+    }
+  }
+  $scope.startSlide = function () {
+    $ionicSlideBoxDelegate.slide(0);
+    $scope.startTutorial = true;
+    $scope.endTutorial = false;
+  }
+
+  $scope.slideHasChanged = function ($index) {
+    if ($index == $ionicSlideBoxDelegate.slidesCount() - 1) {
+      //end reached
+      $scope.endTutorial = true;
+    } else {
+      $scope.endTutorial = false;
+    }
+    if ($index == 0) {
+      //start reached
+      $scope.startTutorial = true;
+    } else {
+      $scope.startTutorial = false;
+    }
+  };
+
+})
