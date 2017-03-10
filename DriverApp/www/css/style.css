@@ -208,21 +208,51 @@
 .dapp-theme .modal-maintenance .tut-prev {
   position: absolute;
   left: 0px;
-  color: #438699;
+  color: #f29100;
   font-weight: bold;
+  font-size: 32px;
 }
 
 .dapp-theme .modal-maintenance .tut-next {
   position: absolute;
   right: 0px;
-  color: #438699;
+  color: #f29100;
   font-weight: bold;
+  font-size: 32px;
 }
 
 .dapp-theme .modal-maintenance .tut-vis {
   width: 100%;
   color: #f29100;
   font-weight: bold;
+}
+
+.dapp-theme .modal-maintenance .tutorial-text {
+  position: absolute;
+}
+
+.dapp-theme .modal-maintenance .customSliderPager {
+  text-align: center;
+  line-height: 40px;
+}
+
+.dapp-theme .modal-maintenance .customSliderPager .customSlider-pager-page {
+  display: inline-block;
+  margin: 0px 3px;
+  width: 8px;
+  color: #000;
+  text-decoration: none;
+  opacity: 0.3;
+}
+
+.dapp-theme .modal-maintenance .customSliderPager .customSlider-pager-page.active {
+  -webkit-transition: opacity 0.4s ease-in;
+  transition: opacity 0.4s ease-in;
+  opacity: 1;
+}
+
+.dapp-theme .modal-maintenance .customSliderPager .icon {
+  font-size: 8px;
 }
 
 

@@ -8,46 +8,43 @@
       <div>Sei in modalitá manutenzine, puoi procedere con la sostituzione della battería dei gadget</div>
       <button class="button button-icon tut-vis" ng-click="visualizeTutorial()">MOSTRAMI COME</button>
     </div>
-    <div class="slideTutorial" ng-if="showTutorial">
-      <ion-slide-box on-slide-changed="slideHasChanged($index)">
-        <ion-slide>
-          <div class="box box1">
-            <img src="img/sensorTag.png" alt="Sensor Tag" />
-            <div>Segui la procedura per cambíare in modo corretto la batteria del gadget.</div>
-          </div>
-        </ion-slide>
-        <ion-slide>
-          <div class="box box1">
-            <img src="img/sensorTag.png" alt="Sensor Tag" />
-            <div>Apri il gadget servendoti di un cacciavite.</div>
-          </div>
-        </ion-slide>
-        <ion-slide>
-          <div class="box box1">
-            <img src="img/sensorTag.png" alt="Sensor Tag" />
-            <div>Togli la scheda e il cuscinetto di protezione dalla busta trasparente.</div>
-          </div>
-        </ion-slide>
-        <ion-slide>
-          <div class="box box1">
-            <img src="img/sensorTag.png" alt="Sensor Tag" />
-            <div>Estrai la batterla dalla scheda e sostituiscila con la nuovai controlla che i segni '+' delle battena e dell'alloggiamento baneria combecino.</div>
-          </div>
-        </ion-slide>
-        <ion-slide>
-          <div class="box box1">
-            <img src="img/sensorTag.png" alt="Sensor Tag" />
-            <div>Quando il led rosso smette di lampeggiare il nodo è pronto (potrebbe lampeggiare solo una volta). Riassembla i componenti, reinserendoli nella busta trasparente e di seguito nel gadget.</div>
-          </div>
-        </ion-slide>
+    <div ng-if="showTutorial">
+      <div class="slideTutorial">
+        <ion-slide-box on-slide-changed="slideHasChanged($index)" show-pager="false">
+          <ion-slide ng-repeat="slide in tutorialSlides">
+            <div class="box box1">
+              <img src="{{slide.image}}" alt="Sensor Tag" />
+              <!--            <div>{{slide.text}}</div>-->
+            </div>
+          </ion-slide>
+        </ion-slide-box>
 
-
-
-      </ion-slide-box>
-      <div>
-        <button class="button button-icon tut-prev" ng-click="prevSlide()" ng-if="!startTutorial">{{'Indietro'|uppercase}}</button>
-        <button class="button button-icon tut-next" ng-click="nextSlide()" ng-if="!endTutorial">{{'Avanti'|uppercase}}</button>
-        <button class="button button-icon tut-next" ng-click="startSlide()" ng-if="endTutorial">{{'Torna all\'inizio'|uppercase}}</button>
+        <!--
+        <div class="customSliderPager">
+          <span class="customSlider-pager-page" ng-repeat="i in getCount(pager.total) track by $index" ng-class="{active: pager.current == $index}">
+          <i class="icon ion-record"></i>
+        </span>
+        </div>
+-->
+        <div class="row">
+          <div class="col">
+            <button class="button button-icon ion-arrow-left-b  tut-prev" ng-click="prevSlide()" ng-if="!startTutorial"></button>
+          </div>
+          <div class="col">
+            <div class="customSliderPager">
+              <span class="customSlider-pager-page" ng-repeat="i in getCount(pager.total) track by $index" ng-class="{active: pager.current == $index}">
+          <i class="icon ion-record"></i>
+        </span>
+            </div>
+          </div>
+          <div class="col">
+            <button class="button button-icon  ion-arrow-right-b tut-next" ng-click="nextSlide()" ng-if="!endTutorial"></button>
+            <button class="button button-icon ion-refresh tut-next" ng-click="startSlide()" ng-if="endTutorial"></button>
+          </div>
+        </div>
+      </div>
+      <div class="tutorial-text">
+        {{currentText}}
       </div>
     </div>
   </ion-content>

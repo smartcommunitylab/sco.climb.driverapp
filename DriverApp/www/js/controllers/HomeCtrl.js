@@ -261,6 +261,14 @@ angular.module('driverapp.controllers.home', [])
 
 .controller('MaintenanceCtrl', function ($scope, $ionicSlideBoxDelegate) {
   $scope.showTutorial = false;
+  $scope.pager = {
+    total: 5,
+    current: 0
+  }
+
+  $scope.getCount = function (num) {
+    return new Array(num);
+  };
   $scope.tutorialSlides = [
     {
       image: 'img/sensorTag.png',
@@ -279,12 +287,19 @@ angular.module('driverapp.controllers.home', [])
       text: 'Quando il led rosso smette di lampeggiare il nodo è pronto (potrebbe lampeggiare solo una volta). Riassembla i componenti, reinserendoli nella busta trasparente e di seguito nel gadget.'
     }
   ]
+  $scope.currentText = $scope.tutorialSlides[0].text;
+
+  function changeCurrentText(index) {
+    $scope.currentText = $scope.tutorialSlides[index].text;
+  }
   $scope.visualizeTutorial = function () {
     $scope.showTutorial = true;
     $scope.startTutorial = true;
 
   }
-
+  $scope.getCurrentText = function () {
+    return $scope.tutorialSlide[$ionicSlideBoxDelegate.currentIndex()];
+  }
   $scope.nextSlide = function () {
     if ($ionicSlideBoxDelegate.currentIndex() == $ionicSlideBoxDelegate.slidesCount() - 2) {
       //end reached
@@ -292,6 +307,8 @@ angular.module('driverapp.controllers.home', [])
     }
     $ionicSlideBoxDelegate.next();
     $scope.startTutorial = false;
+    changeCurrentText($ionicSlideBoxDelegate.currentIndex());
+    $scope.pager.current = $ionicSlideBoxDelegate.currentIndex();
 
   }
   $scope.prevSlide = function () {
@@ -301,9 +318,13 @@ angular.module('driverapp.controllers.home', [])
       //start reached
       $scope.startTutorial = true;
     }
+    changeCurrentText($ionicSlideBoxDelegate.currentIndex());
+    $scope.pager.current = $ionicSlideBoxDelegate.currentIndex();
   }
   $scope.startSlide = function () {
     $ionicSlideBoxDelegate.slide(0);
+    changeCurrentText(0);
+    $scope.pager.current = 0;
     $scope.startTutorial = true;
     $scope.endTutorial = false;
   }
@@ -321,6 +342,9 @@ angular.module('driverapp.controllers.home', [])
     } else {
       $scope.startTutorial = false;
     }
+    $scope.pager.current = $ionicSlideBoxDelegate.currentIndex();
   };
+
+
 
 })
