@@ -188,8 +188,17 @@ angular.module('driverapp.controllers.home', [])
 
     $rootScope.batteryAlarm = false
     $scope.changeBattery = function () {
-      $scope.modalBatteries.hide();
-      $scope.modalMaintenance.show();
+      WSNSrv.enableMaintenanceProcedure(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 0).then(
+        function () {
+          $scope.modalBatteries.hide();
+          $scope.modalMaintenance.show();
+        },
+        function (error) {
+          Utils.toast('Non è possibile avviare la procedura di manutenzione')
+          console.log(error)
+        }
+      )
+
     }
     $scope.openBatteryMonitor = function () {
       $ionicModal.fromTemplateUrl('templates/app_modal_batteries.html', {
