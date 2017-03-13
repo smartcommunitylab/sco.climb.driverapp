@@ -256,6 +256,22 @@
 }
 
 
+/* modal batteries*/
+
+.dapp-theme .modal-battery .battery-change {
+  margin: 20px 10px 20px 10px;
+}
+
+.dapp-theme .modal-battery .battery-mode {
+  color: #f29100;
+  font-weight: bold;
+}
+
+.dapp-theme .modal-battery .no-nodes {
+  text-align: center;
+}
+
+
 /* Menu Bar */
 
 .dapp-theme .dapp-menu .menu,
