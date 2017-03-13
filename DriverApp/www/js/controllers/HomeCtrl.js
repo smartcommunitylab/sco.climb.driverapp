@@ -188,6 +188,13 @@ angular.module('driverapp.controllers.home', [])
 
     $rootScope.batteryAlarm = false
     $scope.changeBattery = function () {
+      var date = new Date()
+      date.setSeconds(0)
+      date.setMinutes(0)
+      date.setHours(Utils.isDST() ? 6 : 7) // just to handle DST
+      if (date.getTime() < new Date().getTime()) {
+        date.setDate(date.getDate() + 1)
+      }
       WSNSrv.enableMaintenanceProcedure(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 0).then(
         function () {
           $scope.modalBatteries.hide();
