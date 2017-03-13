@@ -187,7 +187,10 @@ angular.module('driverapp.controllers.home', [])
     })
 
     $rootScope.batteryAlarm = false
-
+    $scope.changeBattery = function () {
+      $scope.modalBatteries.hide();
+      $scope.modalMaintenance.show();
+    }
     $scope.openBatteryMonitor = function () {
       $ionicModal.fromTemplateUrl('templates/app_modal_batteries.html', {
         scope: $scope,
@@ -227,7 +230,8 @@ angular.module('driverapp.controllers.home', [])
 
       WSNSrv.disableMaintenanceProcedure().then(
         function () {
-          $scope.modalMaintenance.hide()
+          $scope.modalMaintenance.hide();
+          $rootScope.showTutorial = false;
         },
         function (error) {
           Utils.toast('Non è possibile fermare la procedura di manutenzione')
@@ -259,8 +263,8 @@ angular.module('driverapp.controllers.home', [])
   }
 })
 
-.controller('MaintenanceCtrl', function ($scope, $ionicSlideBoxDelegate) {
-  $scope.showTutorial = false;
+.controller('MaintenanceCtrl', function ($scope, $rootScope, $ionicSlideBoxDelegate) {
+  $rootScope.showTutorial = false;
   $scope.pager = {
     total: 5,
     current: 0
@@ -281,7 +285,7 @@ angular.module('driverapp.controllers.home', [])
       text: 'Togli la scheda e il cuscinetto di protezione dalla busta trasparente.'
     }, {
       image: 'img/4.png',
-      text: 'Estrai la batterla dalla scheda e sostituiscila con la nuovai controlla che i segni \'+\' delle battena e dell\'alloggiamento baneria combecino.'
+      text: 'Estrai la batteria dalla scheda e sostituiscila con la nuova, controlla che i segni \'+\' delle batteria e dell\'alloggiamento batteria combacino.'
     }, {
       image: 'img/5.png',
       text: 'Quando il led rosso smette di lampeggiare il nodo è pronto (potrebbe lampeggiare solo una volta). Riassembla i componenti, reinserendoli nella busta trasparente e di seguito nel gadget.'
@@ -293,7 +297,7 @@ angular.module('driverapp.controllers.home', [])
     $scope.currentText = $scope.tutorialSlides[index].text;
   }
   $scope.visualizeTutorial = function () {
-    $scope.showTutorial = true;
+    $rootScope.showTutorial = true;
     $scope.startTutorial = true;
 
   }
