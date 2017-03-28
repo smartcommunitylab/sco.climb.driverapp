@@ -14,8 +14,10 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Environment;
@@ -77,6 +79,10 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         super.onCreate();
         Log.i(TAG, "ClimbService created");
 
+        // Register broadcasts receiver for bluetooth state change
+        IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        registerReceiver(mBluetoothStateReceiver, filter);
+
         mBinder = new LocalBinder();
 
         initialize_bluetooth(); //TODO: handle error somehow
@@ -103,6 +109,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
             } catch (IOException e) {
             }
         }
+        unregisterReceiver(mBluetoothStateReceiver);
     }
 
     @Override
@@ -133,6 +140,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothLeScanner mBluetoothLeScanner;
     private BluetoothLeAdvertiser mBluetoothLeAdvertiser;
+    private int bluetoothState = BluetoothAdapter.STATE_OFF;
 
     private final static int TEXAS_INSTRUMENTS_MANUFACTER_ID = 0x000D;
     private static String getNodeIdFromRawPacket(byte[] manufSpecField) {
@@ -169,6 +177,12 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         mBluetoothAdapter = mBluetoothManager.getAdapter();
         if (mBluetoothAdapter == null) {
             Log.e(TAG, "Unable to obtain a BluetoothAdapter.");
+            return false;
+        }
+
+        bluetoothState = mBluetoothAdapter.getState();
+        if(bluetoothState != BluetoothAdapter.STATE_ON){
+            Log.e(TAG, "The bluetooth seems to be not enabled.");
             return false;
         }
 
@@ -211,12 +225,17 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
                 if(mScanCallback == null) {
                     mLeScanCallback = new myLeScanCallback();
                 }
-                if (!mBluetoothAdapter.startLeScan(mLeScanCallback)) {
+                if (bluetoothState == BluetoothAdapter.STATE_ON) {
+                    if (mBluetoothAdapter.startLeScan(mLeScanCallback)) {
+                        return 1;
+                    } else {
+                        Log.e(TAG, "startLeScan returned false!.");
+                        return 0;
+                    }
+                } else {
+                    Log.w(TAG,"Bluetooth is not ON");
                     return 0;
-                }else{
-                    Log.e(TAG, "startLeScan returned false!.");
                 }
-
             } else {
                 //prepare filter
 
@@ -230,11 +249,19 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
                     mScanCallback = new myScanCallback();
                     mBluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
                     if (mBluetoothLeScanner == null) {
+                        mScanCallback = null;
                         Log.e(TAG, "Unable to obtain a mBluetoothLeScanner.");
                         return 0;
                     }
                 }
-                mBluetoothLeScanner.startScan(mScanFilterList, mScanSettings, mScanCallback);
+
+                if(bluetoothState == BluetoothAdapter.STATE_ON) {
+                    mBluetoothLeScanner.startScan(mScanFilterList, mScanSettings, mScanCallback);
+                    return 1;
+                }else{
+                    return 0;
+                }
+
             }
         }
         return 1;
@@ -243,11 +270,11 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
     private int StopMonitoring(){
         if(mBluetoothAdapter != null) {
             if (Build.VERSION.SDK_INT < 21) {
-                if (mBluetoothAdapter != null) {
+                if (mBluetoothAdapter != null && bluetoothState == BluetoothAdapter.STATE_ON ) {
                     mBluetoothAdapter.stopLeScan(mLeScanCallback);
                 }
             } else {
-                if (mBluetoothLeScanner != null) {
+                if (mBluetoothLeScanner != null && bluetoothState == BluetoothAdapter.STATE_ON) {
                     mBluetoothLeScanner.stopScan(mScanCallback);
                 }
             }
@@ -263,6 +290,20 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         }
         return 1;
     }
+
+    private final BroadcastReceiver mBluetoothStateReceiver = new BroadcastReceiver() { //the app should subscribe to this, calling init() as soon it receives BluetoothAdapter.STATE_ON
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+
+            if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+                final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
+                insertTag("Bluetooth_State_change, new state: " + state);
+                Log.i(TAG,"Bluetooth_State_change, new state: " + state);
+                bluetoothState = state;
+            }
+        }
+    };
 
     void updateChild(String id) {
         long nowMillis = System.currentTimeMillis();
@@ -325,7 +366,7 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
                     rssi +
                     " " + manufString +
                     "\n";
-            //TODO: AGGIUNGERE RSSI
+
             //mBufferedWriter.write(timestamp + " " + nowMillis);
             //mBufferedWriter.write(" " + result.getDevice().getAddress()); //MAC ADDRESS
             //mBufferedWriter.write(" " + result.getDevice().getName() + " "); //NAME
