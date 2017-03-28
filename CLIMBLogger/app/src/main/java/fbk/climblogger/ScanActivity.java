@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.TimePickerDialog;
+import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -64,6 +65,8 @@ public class ScanActivity extends Activity {
     static private boolean firstServiceConnection = true;
     private static ServiceConnection mServiceConnection = null;
     private static String fileName = null;
+    private int bluetoothState = BluetoothAdapter.STATE_OFF;
+    private boolean libraryInitialized = false;
     ExpandableListView expandableListView;
     MyExpandableListAdapter expandableListAdapter;
     List<fbk.climblogger.ClimbNode> expandableListTitle;
@@ -207,6 +210,34 @@ public class ScanActivity extends Activity {
                 }else{
 
                 }
+            } else if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+                final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
+                Log.i(TAG,"Bluetooth_State_change, new state: " + state);
+                switch (state) {
+                    case BluetoothAdapter.STATE_OFF:
+                        if (bluetoothState != state) {
+                            if(mClimbService != null) {
+                                if(mClimbService.deinit()){
+                                    libraryInitialized = false;
+                                }
+                            }
+                        }
+                        break;
+                    case BluetoothAdapter.STATE_TURNING_OFF:
+                        break;
+                    case BluetoothAdapter.STATE_ON:
+                        if (bluetoothState != state) {
+                            if(mClimbService != null) {
+                                if(mClimbService.init()){
+                                    libraryInitialized = true;
+                                }
+                            }
+                        }
+                        break;
+                    case BluetoothAdapter.STATE_TURNING_ON:
+                        break;
+                }
+                bluetoothState = state;
             }
         }
     };
@@ -216,7 +247,8 @@ public class ScanActivity extends Activity {
     View.OnClickListener initButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
             if(mClimbService != null){
-                if (mClimbService.init()) {
+                libraryInitialized = mClimbService.init();
+                if (libraryInitialized) {
                     mVibrator.vibrate(fbk.climblogger.ConfigVals.vibrationTimeout);
                     Log.i(TAG, "Service, ble and logging initialized!");
                     log("Service, ble and logging initialized!");
@@ -238,7 +270,9 @@ public class ScanActivity extends Activity {
             if(mClimbService != null){
                 mVibrator.vibrate(fbk.climblogger.ConfigVals.vibrationTimeout);
                 Log.i(TAG, java.util.Arrays.toString(mClimbService.getLogFiles()));
-                mClimbService.deinit();
+                if(mClimbService.deinit()){ //deinit() returns true if the deinitialization was successful
+                    libraryInitialized = false;
+                }
                 Log.i(TAG, "Stop scan!");
                 log("Stop scan command sent!");
             }else{
@@ -686,14 +720,7 @@ public class ScanActivity extends Activity {
                 if(expandableListAdapter.getGroupCount() > 0) { //automatically open the first group
                     expandableListView.expandGroup(0);
                 }
-/*
-            //crea un adapter per gestire la listView
-            adapter = new ArrayAdapter<ListView>(mContext, android.R.layout.simple_list_item_1, android.R.id.text1,climbNodeList);
 
-            // Assign adapter to ListView
-            listView.setAdapter(adapter);
-            adapter.notifyDataSetChanged();
-*/
                 Log.i(TAG, "Service connected!");
 
                 if(firstServiceConnection) {
@@ -748,6 +775,9 @@ public class ScanActivity extends Activity {
 
         //stopService(new Intent(ScanActivity.this, ClimbService.class));
         //climbNodeList = null;
+        if (mClimbService != null) {
+            mClimbService.deinit();
+        }
         unbindService(mServiceConnection);
         mServiceConnection = null;
         //mClimbService = null;
@@ -862,6 +892,7 @@ public class ScanActivity extends Activity {
         intentFilter.addAction(fbk.climblogger.ClimbServiceInterface.ACTION_NODE_ALERT);
         intentFilter.addAction(fbk.climblogger.ClimbServiceInterface.STATE_CHECKEDIN_CHILD);
         intentFilter.addAction(fbk.climblogger.ClimbServiceInterface.STATE_CHECKEDOUT_CHILD);
+        intentFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         return intentFilter;
     }
 
