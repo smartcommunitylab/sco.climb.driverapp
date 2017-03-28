@@ -225,6 +225,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
                 if(mScanCallback == null) {
                     mLeScanCallback = new myLeScanCallback();
                 }
+                bluetoothState = mBluetoothAdapter.getState();
                 if (bluetoothState == BluetoothAdapter.STATE_ON) {
                     if (mBluetoothAdapter.startLeScan(mLeScanCallback)) {
                         return 1;
@@ -254,7 +255,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
                         return 0;
                     }
                 }
-
+                bluetoothState = mBluetoothAdapter.getState();
                 if(bluetoothState == BluetoothAdapter.STATE_ON) {
                     mBluetoothLeScanner.startScan(mScanFilterList, mScanSettings, mScanCallback);
                     return 1;
@@ -270,10 +271,12 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
     private int StopMonitoring(){
         if(mBluetoothAdapter != null) {
             if (Build.VERSION.SDK_INT < 21) {
+                bluetoothState = mBluetoothAdapter.getState();
                 if (mBluetoothAdapter != null && bluetoothState == BluetoothAdapter.STATE_ON ) {
                     mBluetoothAdapter.stopLeScan(mLeScanCallback);
                 }
             } else {
+                bluetoothState = mBluetoothAdapter.getState();
                 if (mBluetoothLeScanner != null && bluetoothState == BluetoothAdapter.STATE_ON) {
                     mBluetoothLeScanner.stopScan(mScanCallback);
                 }
@@ -833,24 +836,32 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
     public ErrorCode enableMaintenanceProcedure(int wakeUP_year, int wakeUP_month, int wakeUP_day, int wakeUP_hour, int wakeUP_minute) {
         if (Build.VERSION.SDK_INT < 21) {
             Log.w(TAG, "Build.VERSION.SDK_INT < 21");
+            insertTag("Cannot_enable_advertise,Build.VERSION.SDK_INT<21");
             return ErrorCode.ANDROID_VERSION_NOT_COMPATIBLE_ERROR;
         }
         if (mBluetoothAdapter == null) {
             Log.w(TAG, "mBluetoothAdapter == null");
+            insertTag("Cannot_enable_advertise,mBluetoothAdapter==null");
             disableMaintenanceProcedure();
             return ErrorCode.INTERNAL_ERROR; //internal error
         }
-
+        if(bluetoothState != BluetoothAdapter.STATE_ON){
+            Log.w(TAG, "the bluetooth is not enabled");
+            insertTag("Cannot_enable_advertise,bluetoothState!=BluetoothAdapter.STATE_ON");
+            return ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR; //wrong BLE name, the  setName can't update it!
+        }
         mBluetoothLeAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
 
         if (mBluetoothLeAdvertiser == null ) {
             Log.w(TAG, "mBluetoothLeAdvertiser == null");
+            insertTag("Cannot_enable_advertise,mBluetoothLeAdvertiser==null");
             disableMaintenanceProcedure();
             return ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR;
         }
 
         if (!mBluetoothAdapter.isMultipleAdvertisementSupported()) { //it seems we need multiple advertising to make it work.
             Log.w(TAG, "multiple advertisement not supported");
+            insertTag("Cannot_enable_advertise,multiple_advertisement_not_supported");
             disableMaintenanceProcedure();
             //return ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR;
         }
@@ -867,12 +878,14 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
         if(deviceName != null && !deviceName.equals(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {
             if(!mBluetoothAdapter.setName(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {
                 Log.w(TAG, "the method setName returned false");
+                insertTag("Cannot_set_name_advertise_not_enabled");
                 return ErrorCode.WRONG_BLE_NAME_ERROR; //wrong BLE name, the  setName can't update it!
             }
             //check the name string after the setting it....not strictly needed.
             deviceName = mBluetoothAdapter.getName();
             if(deviceName != null && !deviceName.equals(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {
                 Log.w(TAG, "BLE name check failed! Name not changed");
+                insertTag("Cannot_set_name_advertise_not_enabled");
                 mBluetoothAdapter.setName(originalDeviceName);
                 return ErrorCode.WRONG_BLE_NAME_ERROR;
             }
@@ -897,10 +910,12 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
             }else{
                 disableMaintenanceProcedure();
                 Log.w(TAG, "Wake up date is too far from now or an overflow has been detected");
+                insertTag("Cannot_enable_advertise,WakeUpDate_too_far");
                 return ErrorCode.INVALID_DATE_ERROR;
             }
         }else{
             Log.w(TAG, "Wake up date is before now");
+            insertTag("Cannot_enable_advertise,invalid_WakeUpDate");
             disableMaintenanceProcedure();
             return ErrorCode.INVALID_DATE_ERROR;
         }
@@ -910,12 +925,13 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
     public ErrorCode disableMaintenanceProcedure(){
         if(Build.VERSION.SDK_INT >= 21){
             if(maintenanceProcedureEnabled) {
+                insertTag("disabling_advertise");
                 maintenanceProcedureEnabled = false;
                 mBluetoothLeAdvertiser.stopAdvertising(mAdvCallback);
-                insertTag("disabling_advertise");
                 if(originalDeviceName != null) {
                     if(!mBluetoothAdapter.setName(originalDeviceName)){
                         Log.w(TAG, "Not able to restored the original BLE name");
+                        insertTag("Cannot_restore_the_original_name");
                     }else{
                         Log.i(TAG, "Original name restored");
                     }
