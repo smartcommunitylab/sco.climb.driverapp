@@ -486,7 +486,7 @@ public class ScanActivity extends Activity {
                     }
                     Log.i(TAG, "maintenance enabled!");
                     return;
-                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.WRONG_BLE_NAME_ERROR){  //wrong BLE name TODO: parametrize the error codes
+                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.WRONG_BLE_NAME_ERROR){
                     mMaintenanceCheckBox.setChecked(false);
                     String alertString = "Maintenance non enabled - WRONG_BLE_NAME_ERROR!!!";
                     Toast.makeText(getApplicationContext(),
@@ -494,7 +494,7 @@ public class ScanActivity extends Activity {
                             Toast.LENGTH_LONG).show();
                     Log.i(TAG, "Maintenance non enabled - WRONG_BLE_NAME_ERROR!!!");
                     log("Maintenance non enabled - WRONG_BLE_NAME_ERROR!!!");
-                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR){ //mBluetoothLeAdvertiser = null, probably not compatible TODO: parametrize the error codes
+                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR){
                     mMaintenanceCheckBox.setChecked(false);
                     String alertString = "Maintenance non enabled - ADVERTISER_NOT_AVAILABLE_ERROR!!!";
                     Toast.makeText(getApplicationContext(),
@@ -502,7 +502,7 @@ public class ScanActivity extends Activity {
                             Toast.LENGTH_LONG).show();
                     Log.i(TAG, "Maintenance non enabled - ADVERTISER_NOT_AVAILABLE_ERROR!!!");
                     log("Maintenance non enabled - ADVERTISER_NOT_AVAILABLE_ERROR!!!");
-                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.INTERNAL_ERROR){ //internal error TODO: parametrize the error codes
+                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.INTERNAL_ERROR){
                     mMaintenanceCheckBox.setChecked(false);
                     String alertString = "Maintenance non enabled - INTERNAL_ERROR!!!";
                     Toast.makeText(getApplicationContext(),
@@ -510,7 +510,7 @@ public class ScanActivity extends Activity {
                             Toast.LENGTH_LONG).show();
                     Log.i(TAG, "Maintenance non enabled - INTERNAL_ERROR!!!");
                     log("Maintenance non enabled - INTERNAL_ERROR!!!");
-                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.ANDROID_VERSION_NOT_COMPATIBLE_ERROR){ //not compatible TODO: parametrize the error codes
+                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.ANDROID_VERSION_NOT_COMPATIBLE_ERROR){
                     mMaintenanceCheckBox.setChecked(false);
                     String alertString = "Maintenance non enabled - ANDROID_VERSION_NOT_COMPATIBLE_ERROR!!!";
                     Toast.makeText(getApplicationContext(),
