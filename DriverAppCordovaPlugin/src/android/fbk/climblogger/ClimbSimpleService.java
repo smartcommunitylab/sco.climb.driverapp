@@ -272,13 +272,13 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         if(mBluetoothAdapter != null) {
             if (Build.VERSION.SDK_INT < 21) {
                 bluetoothState = mBluetoothAdapter.getState();
-                if (mBluetoothAdapter != null && bluetoothState == BluetoothAdapter.STATE_ON ) {
+                if (mBluetoothAdapter != null && bluetoothState == BluetoothAdapter.STATE_ON ) { //if the stopLeScan doesn't throw IllegalStateException on API < 21, the second check can be removed. Now I don't have a smartphone to check
                     mBluetoothAdapter.stopLeScan(mLeScanCallback);
                 }
             } else {
                 bluetoothState = mBluetoothAdapter.getState();
                 if (mBluetoothLeScanner != null && bluetoothState == BluetoothAdapter.STATE_ON) {
-                    mBluetoothLeScanner.stopScan(mScanCallback);
+                    mBluetoothLeScanner.stopScan(mScanCallback); // some devices throws IllegalStateException. Not documented
                 }
             }
 
