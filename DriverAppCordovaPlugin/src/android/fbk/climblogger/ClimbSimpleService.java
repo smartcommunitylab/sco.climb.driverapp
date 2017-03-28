@@ -213,8 +213,10 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
                 }
                 if (!mBluetoothAdapter.startLeScan(mLeScanCallback)) {
                     return 0;
+                }else{
+                    Log.e(TAG, "startLeScan returned false!.");
                 }
-                ;
+
             } else {
                 //prepare filter
 
@@ -350,7 +352,9 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
         public void onBatchScanResults(List<ScanResult> results){}
 
         @Override
-        public void onScanFailed(int errorCode){}
+        public void onScanFailed(int errorCode){
+            Log.e( TAG, "Error while starting the scan. ErrorCode: " + errorCode );
+        }
 
         @Override
         public void onScanResult(int callbackType, ScanResult result){  //public for SO, not for upper layer!
@@ -787,9 +791,11 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
 
     public ErrorCode enableMaintenanceProcedure(int wakeUP_year, int wakeUP_month, int wakeUP_day, int wakeUP_hour, int wakeUP_minute) {
         if (Build.VERSION.SDK_INT < 21) {
+            Log.w(TAG, "Build.VERSION.SDK_INT < 21");
             return ErrorCode.ANDROID_VERSION_NOT_COMPATIBLE_ERROR;
         }
         if (mBluetoothAdapter == null) {
+            Log.w(TAG, "mBluetoothAdapter == null");
             disableMaintenanceProcedure();
             return ErrorCode.INTERNAL_ERROR; //internal error
         }
@@ -797,11 +803,13 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
         mBluetoothLeAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
 
         if (mBluetoothLeAdvertiser == null ) {
+            Log.w(TAG, "mBluetoothLeAdvertiser == null");
             disableMaintenanceProcedure();
             return ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR;
         }
 
         if (!mBluetoothAdapter.isMultipleAdvertisementSupported()) { //it seems we need multiple advertising to make it work.
+            Log.w(TAG, "multiple advertisement not supported");
             disableMaintenanceProcedure();
             //return ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR;
         }
@@ -809,17 +817,21 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
         if (!maintenanceProcedureEnabled){ //don't overwrite the original device name if successive calls to enableMaintenanceProcedure are performed without calling disableMaintenanceProcedure
             disableMaintenanceProcedure();
             originalDeviceName = mBluetoothAdapter.getName();
+        }else{
+            Log.i(TAG, "maintenance procedure already enabled");
         }
 
         String deviceName = mBluetoothAdapter.getName();
 
         if(deviceName != null && !deviceName.equals(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {
             if(!mBluetoothAdapter.setName(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {
+                Log.w(TAG, "the method setName returned false");
                 return ErrorCode.WRONG_BLE_NAME_ERROR; //wrong BLE name, the  setName can't update it!
             }
             //check the name string after the setting it....not strictly needed.
             deviceName = mBluetoothAdapter.getName();
             if(deviceName != null && !deviceName.equals(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {
+                Log.w(TAG, "BLE name check failed! Name not changed");
                 mBluetoothAdapter.setName(originalDeviceName);
                 return ErrorCode.WRONG_BLE_NAME_ERROR;
             }
@@ -843,9 +855,11 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
                 }
             }else{
                 disableMaintenanceProcedure();
+                Log.w(TAG, "Wake up date is too far from now or an overflow has been detected");
                 return ErrorCode.INVALID_DATE_ERROR;
             }
         }else{
+            Log.w(TAG, "Wake up date is before now");
             disableMaintenanceProcedure();
             return ErrorCode.INVALID_DATE_ERROR;
         }
@@ -859,15 +873,21 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
                 mBluetoothLeAdvertiser.stopAdvertising(mAdvCallback);
                 insertTag("disabling_advertise");
                 if(originalDeviceName != null) {
-                    mBluetoothAdapter.setName(originalDeviceName);
+                    if(!mBluetoothAdapter.setName(originalDeviceName)){
+                        Log.w(TAG, "Not able to restored the original BLE name");
+                    }else{
+                        Log.i(TAG, "Original name restored");
+                    }
                     originalDeviceName = null;
                 }
                 mAdvCallback = null;
                 return ErrorCode.NO_ERROR;
             }else{ //maintenance non enabled, don't react but do not generate errors
+                Log.i(TAG, "maintenance procedure not enabled, cannot disable it");
                 return ErrorCode.NO_ERROR;
             }
         }else { // (Build.VERSION.SDK_INT >= 21)
+            Log.i(TAG, "Build.VERSION.SDK_INT < 21");
             return ErrorCode.ANDROID_VERSION_NOT_COMPATIBLE_ERROR;
         }
     }
