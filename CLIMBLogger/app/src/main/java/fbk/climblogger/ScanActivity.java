@@ -65,7 +65,6 @@ public class ScanActivity extends Activity {
     static private boolean firstServiceConnection = true;
     private static ServiceConnection mServiceConnection = null;
     private static String fileName = null;
-    private int bluetoothState = BluetoothAdapter.STATE_OFF;
     private boolean libraryInitialized = false;
     ExpandableListView expandableListView;
     MyExpandableListAdapter expandableListAdapter;
@@ -215,29 +214,24 @@ public class ScanActivity extends Activity {
                 Log.i(TAG,"Bluetooth_State_change, new state: " + state);
                 switch (state) {
                     case BluetoothAdapter.STATE_OFF:
-                        if (bluetoothState != state) {
-                            if(mClimbService != null) {
-                                if(mClimbService.deinit()){
-                                    libraryInitialized = false;
-                                }
+                        if(mClimbService != null) {
+                            if(mClimbService.deinit()){
+                                libraryInitialized = false;
                             }
                         }
                         break;
                     case BluetoothAdapter.STATE_TURNING_OFF:
                         break;
                     case BluetoothAdapter.STATE_ON:
-                        if (bluetoothState != state) {
-                            if(mClimbService != null) {
-                                if(mClimbService.init()){
-                                    libraryInitialized = true;
-                                }
+                        if(mClimbService != null) {
+                            if(mClimbService.init()){
+                                libraryInitialized = true;
                             }
                         }
                         break;
                     case BluetoothAdapter.STATE_TURNING_ON:
                         break;
                 }
-                bluetoothState = state;
             }
         }
     };
@@ -486,7 +480,7 @@ public class ScanActivity extends Activity {
                     }
                     Log.i(TAG, "maintenance enabled!");
                     return;
-                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.WRONG_BLE_NAME_ERROR){  //wrong BLE name TODO: parametrize the error codes
+                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.WRONG_BLE_NAME_ERROR){
                     mMaintenanceCheckBox.setChecked(false);
                     String alertString = "Maintenance non enabled - WRONG_BLE_NAME_ERROR!!!";
                     Toast.makeText(getApplicationContext(),
@@ -494,7 +488,7 @@ public class ScanActivity extends Activity {
                             Toast.LENGTH_LONG).show();
                     Log.i(TAG, "Maintenance non enabled - WRONG_BLE_NAME_ERROR!!!");
                     log("Maintenance non enabled - WRONG_BLE_NAME_ERROR!!!");
-                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR){ //mBluetoothLeAdvertiser = null, probably not compatible TODO: parametrize the error codes
+                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR){
                     mMaintenanceCheckBox.setChecked(false);
                     String alertString = "Maintenance non enabled - ADVERTISER_NOT_AVAILABLE_ERROR!!!";
                     Toast.makeText(getApplicationContext(),
@@ -502,7 +496,7 @@ public class ScanActivity extends Activity {
                             Toast.LENGTH_LONG).show();
                     Log.i(TAG, "Maintenance non enabled - ADVERTISER_NOT_AVAILABLE_ERROR!!!");
                     log("Maintenance non enabled - ADVERTISER_NOT_AVAILABLE_ERROR!!!");
-                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.INTERNAL_ERROR){ //internal error TODO: parametrize the error codes
+                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.INTERNAL_ERROR){
                     mMaintenanceCheckBox.setChecked(false);
                     String alertString = "Maintenance non enabled - INTERNAL_ERROR!!!";
                     Toast.makeText(getApplicationContext(),
@@ -510,7 +504,7 @@ public class ScanActivity extends Activity {
                             Toast.LENGTH_LONG).show();
                     Log.i(TAG, "Maintenance non enabled - INTERNAL_ERROR!!!");
                     log("Maintenance non enabled - INTERNAL_ERROR!!!");
-                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.ANDROID_VERSION_NOT_COMPATIBLE_ERROR){ //not compatible TODO: parametrize the error codes
+                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.ANDROID_VERSION_NOT_COMPATIBLE_ERROR){
                     mMaintenanceCheckBox.setChecked(false);
                     String alertString = "Maintenance non enabled - ANDROID_VERSION_NOT_COMPATIBLE_ERROR!!!";
                     Toast.makeText(getApplicationContext(),
