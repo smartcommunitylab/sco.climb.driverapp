@@ -214,16 +214,12 @@ public class ScanActivity extends Activity {
                 Log.i(TAG,"Bluetooth_State_change, new state: " + state);
                 switch (state) {
                     case BluetoothAdapter.STATE_OFF:
-                        if(mClimbService != null) {
-                            if(mClimbService.deinit()){
-                                libraryInitialized = false;
-                            }
-                        }
                         break;
                     case BluetoothAdapter.STATE_TURNING_OFF:
                         break;
                     case BluetoothAdapter.STATE_ON:
                         if(mClimbService != null) {
+                            mClimbService.deinit(); //workaround. deinit() should be called on STATE_TURNING_OFF or STATE_OFF events, but stopScan on some devices throws 'IllegalStateException: BT Adapter is not turned ON'
                             if(mClimbService.init()){
                                 libraryInitialized = true;
                             }
@@ -241,8 +237,8 @@ public class ScanActivity extends Activity {
     View.OnClickListener initButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
             if(mClimbService != null){
-                libraryInitialized = mClimbService.init();
-                if (libraryInitialized) {
+                if (mClimbService.init()) {
+                    libraryInitialized = true;
                     mVibrator.vibrate(fbk.climblogger.ConfigVals.vibrationTimeout);
                     Log.i(TAG, "Service, ble and logging initialized!");
                     log("Service, ble and logging initialized!");
