@@ -96,7 +96,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
     }
 
     @Override
-    public void onDestroy() {
+    public void onDestroy() { //not always called!!!
         super.onDestroy();
         Log.i(TAG, "ClimbSimpleService onDestroy");
         insertTag("climb_simple_service_destroyed");
@@ -319,6 +319,9 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
                 insertTag("Bluetooth_State_change, new state: " + state);
                 Log.i(TAG,"Bluetooth_State_change, new state: " + state);
                 bluetoothState = state;
+                if((bluetoothState == BluetoothAdapter.STATE_TURNING_OFF || bluetoothState == BluetoothAdapter.STATE_OFF) && maintenanceProcedureEnabled){
+                    disableMaintenanceProcedure();
+                }
             }
         }
     };
@@ -857,32 +860,27 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
         if (mBluetoothAdapter == null) {
             Log.w(TAG, "mBluetoothAdapter == null");
             insertTag("Cannot_enable_advertise,mBluetoothAdapter==null");
-            disableMaintenanceProcedure();
             return ErrorCode.INTERNAL_ERROR; //internal error
         }
         if(bluetoothState != BluetoothAdapter.STATE_ON){
             Log.w(TAG, "the bluetooth is not enabled");
             insertTag("Cannot_enable_advertise,bluetoothState!=BluetoothAdapter.STATE_ON");
-            return ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR; //wrong BLE name, the  setName can't update it!
+            return ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR;
         }
         mBluetoothLeAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
 
         if (mBluetoothLeAdvertiser == null ) {
             Log.w(TAG, "mBluetoothLeAdvertiser == null");
             insertTag("Cannot_enable_advertise,mBluetoothLeAdvertiser==null");
-            disableMaintenanceProcedure();
             return ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR;
         }
 
-        if (!mBluetoothAdapter.isMultipleAdvertisementSupported()) { //it seems we need multiple advertising to make it work.
+        if (!mBluetoothAdapter.isMultipleAdvertisementSupported()) {
             Log.w(TAG, "multiple advertisement not supported");
-            insertTag("Cannot_enable_advertise,multiple_advertisement_not_supported");
-            disableMaintenanceProcedure();
-            //return ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR;
+            //return ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR; //do not return for this. Try to change the name anyway, eventually it will return with WRONG_BLE_NAME_ERROR
         }
 
-        if (!maintenanceProcedureEnabled){ //don't overwrite the original device name if successive calls to enableMaintenanceProcedure are performed without calling disableMaintenanceProcedure
-            disableMaintenanceProcedure();
+        if (!maintenanceProcedureEnabled){ //don't overwrite the originalDeviceName if successive calls to enableMaintenanceProcedure are performed without calling disableMaintenanceProcedure
             originalDeviceName = mBluetoothAdapter.getName();
         }else{
             Log.i(TAG, "maintenance procedure already enabled");
