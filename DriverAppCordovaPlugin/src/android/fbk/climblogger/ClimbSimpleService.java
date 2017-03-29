@@ -113,6 +113,22 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
     }
 
     @Override
+    public void onTaskRemoved(Intent rootIntent){
+        super.onTaskRemoved(rootIntent);
+        Log.i(TAG, "ClimbSimpleService onTaskRemoved");
+
+        deinit();
+
+        if (mBufferedWriter != null) {
+            try {
+                mBufferedWriter.flush();
+            } catch (IOException e) {
+            }
+        }
+        unregisterReceiver(mBluetoothStateReceiver);
+    }
+
+    @Override
     public boolean onUnbind(Intent intent) {
         Log.i(TAG, "ClimbService onUnbind");
 
@@ -130,8 +146,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(TAG, "Received start id " + startId + ": " + intent);
-
-        return START_STICKY; // run until explicitly stopped.
+        return START_NOT_STICKY;
     }
 
     //--- BlueTooth -----------------------------------------------
