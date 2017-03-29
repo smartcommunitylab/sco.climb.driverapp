@@ -753,8 +753,11 @@ public class ScanActivity extends Activity {
     protected void onPause() {
         Log.i(TAG, "ScanActivity.onPause() called.");
         log("ScanActivity.onPause() called.");
-        super.onPause();
         unregisterReceiver(mClimbUpdateReceiver);
+        unbindService(mServiceConnection);
+        mServiceConnection = null;
+
+        super.onPause();
     }
 
     @Override
@@ -763,16 +766,7 @@ public class ScanActivity extends Activity {
         Log.i(TAG, "ScanActivity.onDestroy() called.");
         log("ScanActivity.onDestroy() called.");
 
-        //stopService(new Intent(ScanActivity.this, ClimbService.class));
-        //climbNodeList = null;
-        if (mClimbService != null) {
-            mClimbService.deinit();
-        }
-        unbindService(mServiceConnection);
-        mServiceConnection = null;
-        //mClimbService = null;
-        //expandableListDetail = null;
-        //expandableListAdapter = null;
+        //stopService(new Intent(ScanActivity.this, fbk.climblogger.ClimbSimpleService.class)); //this stops the service also if the screen is rotated!
     }
 
     @Override
