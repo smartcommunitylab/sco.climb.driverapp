@@ -394,6 +394,20 @@
   visibility: hidden;
 }
 
+.hwPopup .hardware-icon {
+  color: #b0bec5;
+  font-size: 22px;
+}
+
+.hwPopup .popup-title {
+  color: #438699;
+}
+
+.hwPopup .popup-buttons .button {
+  background-color: #438699;
+  color: white;
+}
+
 
 /* Route components */
 
