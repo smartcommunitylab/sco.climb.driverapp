@@ -191,7 +191,7 @@ angular.module('driverapp.controllers.home', [])
       var date = new Date()
       date.setSeconds(0)
       date.setMinutes(0)
-      date.setHours(Utils.isDST() ? 6 : 7) // just to handle DST
+      date.setHours(Utils.isDST() ? 7 : 6) // just to handle DST
       if (date.getTime() < new Date().getTime()) {
         date.setDate(date.getDate() + 1)
       }
@@ -221,7 +221,7 @@ angular.module('driverapp.controllers.home', [])
       var date = new Date()
       date.setSeconds(0)
       date.setMinutes(0)
-      date.setHours(Utils.isDST() ? 6 : 7) // just to handle DST
+      date.setHours(Utils.isDST() ? 7 : 6) // just to handle DST
       if (date.getTime() < new Date().getTime()) {
         date.setDate(date.getDate() + 1)
       }
