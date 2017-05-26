@@ -1,0 +1,28 @@
+{
+  "commitish" : "1.2.2",
+  "iOS" : [
+    {
+      "hash" : "d77706bc616933bf8d944f394591c392821536b1ef6560d3976a07070cd06acd",
+      "name" : "SwiftyBeaver"
+    }
+  ],
+  "xcodeVersion" : "Xcode 8.3.2\nBuild version 8E2002",
+  "watchOS" : [
+    {
+      "hash" : "4dde010a438371c744a3bb8283e4ae6c8ed9649f70d7456f7aa9f9243c298299",
+      "name" : "SwiftyBeaver"
+    }
+  ],
+  "tvOS" : [
+    {
+      "hash" : "e94b89942e4b4636f92ba8819cef82521e48bd7f3f34bd175d08e593e90f1782",
+      "name" : "SwiftyBeaver"
+    }
+  ],
+  "Mac" : [
+    {
+      "hash" : "31b9b086ed241f01c2ccad5343db970e8fb7f0dbe5f33a7f0b86e186f22ca44b",
+      "name" : "SwiftyBeaver"
+    }
+  ]
+}
