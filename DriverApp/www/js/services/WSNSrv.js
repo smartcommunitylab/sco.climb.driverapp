@@ -23,7 +23,7 @@ angular.module('driverapp.services.wsn', [])
     wsnService.init = function () {
       var deferred = $q.defer()
 
-      if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+      if (Utils.wsnPluginEnabled()) {
         window.DriverAppPlugin.init(
           function (response) {
             console.log('init: ' + response)
@@ -42,7 +42,7 @@ angular.module('driverapp.services.wsn', [])
     wsnService.deinit = function () {
       var deferred = $q.defer()
 
-      if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+      if (Utils.wsnPluginEnabled()) {
         window.DriverAppPlugin.deinit(
           function (response) {
             console.log('deinit: ' + response)
@@ -61,7 +61,7 @@ angular.module('driverapp.services.wsn', [])
     wsnService.startListener = function () {
       var deferred = $q.defer()
 
-      if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+      if (Utils.wsnPluginEnabled()) {
         window.DriverAppPlugin.startListener(
           function (response) {
             if (response.action === wsnService.STATE_CONNECTED_TO_CLIMB_MASTER) {
@@ -114,7 +114,7 @@ angular.module('driverapp.services.wsn', [])
     wsnService.stopListener = function () {
       var deferred = $q.defer()
 
-      if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+      if (Utils.wsnPluginEnabled()) {
         window.DriverAppPlugin.getMasters(
           function (response) {
             wsnService.stopNetworkStateInterval()
@@ -133,7 +133,7 @@ angular.module('driverapp.services.wsn', [])
     wsnService.getMasters = function () {
       var deferred = $q.defer()
 
-      if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+      if (Utils.wsnPluginEnabled()) {
         window.DriverAppPlugin.getMasters(
           function (masters) {
             console.log('getMasters: ' + masters)
@@ -152,7 +152,7 @@ angular.module('driverapp.services.wsn', [])
     wsnService.connectMaster = function (masterId) {
       var deferred = $q.defer()
 
-      if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+      if (Utils.wsnPluginEnabled()) {
         window.DriverAppPlugin.connectMaster(
           masterId,
           function (procedureStarted) {
@@ -174,7 +174,7 @@ angular.module('driverapp.services.wsn', [])
     wsnService.setNodeList = function (list) {
       var deferred = $q.defer()
 
-      if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+      if (Utils.wsnPluginEnabled()) {
         window.DriverAppPlugin.setNodeList(
           list,
           function (procedureStarted) {
@@ -194,7 +194,7 @@ angular.module('driverapp.services.wsn', [])
     wsnService.getNetworkState = function () {
       var deferred = $q.defer()
 
-      if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+      if (Utils.wsnPluginEnabled()) {
         window.DriverAppPlugin.getNetworkState(
           function (networkState) {
             var nsIds = []
@@ -227,7 +227,7 @@ angular.module('driverapp.services.wsn', [])
 
     wsnService.startNetworkStateInterval = function () {
       var deferred = $q.defer()
-      if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+      if (Utils.wsnPluginEnabled()) {
         if (!wsnService.intervalGetNetworkState) {
           wsnService.intervalGetNetworkState = $interval(function () {
             wsnService.getNetworkState()
@@ -239,7 +239,7 @@ angular.module('driverapp.services.wsn', [])
 
     wsnService.stopNetworkStateInterval = function () {
       var deferred = $q.defer()
-      if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+      if (Utils.wsnPluginEnabled()) {
         if (wsnService.intervalGetNetworkState) {
           if ($interval.cancel(wsnService.intervalGetNetworkState)) {
             wsnService.intervalGetNetworkState = null
@@ -252,7 +252,7 @@ angular.module('driverapp.services.wsn', [])
     wsnService.checkinChild = function (childId) {
       var deferred = $q.defer()
 
-      if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+      if (Utils.wsnPluginEnabled()) {
         window.DriverAppPlugin.checkinChild(
           childId,
           function (procedureStarted) {
@@ -272,7 +272,7 @@ angular.module('driverapp.services.wsn', [])
     wsnService.checkinChildren = function (childrenIds) {
       var deferred = $q.defer()
 
-      if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+      if (Utils.wsnPluginEnabled()) {
         window.DriverAppPlugin.checkinChildren(
           childrenIds,
           function (procedureStarted) {
@@ -292,7 +292,7 @@ angular.module('driverapp.services.wsn', [])
     wsnService.checkoutChild = function (childId) {
       var deferred = $q.defer()
 
-      if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+      if (Utils.wsnPluginEnabled()) {
         window.DriverAppPlugin.checkoutChild(
           childId,
           function (procedureStarted) {
@@ -312,7 +312,7 @@ angular.module('driverapp.services.wsn', [])
     wsnService.checkoutChildren = function (childrenIds) {
       var deferred = $q.defer()
 
-      if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+      if (Utils.wsnPluginEnabled()) {
         window.DriverAppPlugin.checkoutChildren(
           childrenIds,
           function (procedureStarted) {
@@ -332,7 +332,7 @@ angular.module('driverapp.services.wsn', [])
     wsnService.getLogFiles = function () {
       var deferred = $q.defer()
 
-      if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+      if (Utils.wsnPluginEnabled()) {
         window.DriverAppPlugin.getLogFiles(
           function (response) {
             console.log('getLogFiles: ' + response)
@@ -352,7 +352,7 @@ angular.module('driverapp.services.wsn', [])
     wsnService.test = function (text) {
       var deferred = $q.defer()
 
-      if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+      if (Utils.wsnPluginEnabled()) {
         window.DriverAppPlugin.test(
           text,
           function (response) {
@@ -428,7 +428,7 @@ angular.module('driverapp.services.wsn', [])
     wsnService.enableMaintenanceProcedure = function (wakeUpYear, wakeUpMonth, wakeUpDay, wakeUpHour, wakeUpMinutes) {
       var deferred = $q.defer()
 
-      if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+      if (Utils.wsnPluginEnabled()) {
         window.DriverAppPlugin.enableMaintenanceProcedure(wakeUpYear, wakeUpMonth, wakeUpDay, wakeUpHour, wakeUpMinutes,
           function (response) {
             console.log('enableMaintenanceProcedure: ' + response)
@@ -453,7 +453,7 @@ angular.module('driverapp.services.wsn', [])
     wsnService.disableMaintenanceProcedure = function () {
       var deferred = $q.defer()
 
-      if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+      if (Utils.wsnPluginEnabled()) {
         window.DriverAppPlugin.disableMaintenanceProcedure(
           function (response) {
             console.log('disableMaintenanceProcedure: ' + response)

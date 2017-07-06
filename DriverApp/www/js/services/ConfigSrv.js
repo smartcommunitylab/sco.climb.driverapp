@@ -44,6 +44,14 @@ angular.module('driverapp.services.config', [])
       }
     }
 
+    config.imagesDir = function() {
+      if (ionic.Platform.isAndroid()) {
+        return cordova.file.externalRootDirectory + config.IMAGES_DIR;
+      } else {
+        return cordova.file.cacheDirectory  + config.IMAGES_DIR;
+      }
+    }
+
     config.getHttpConfig = function () {
       var httpcfg = angular.copy(config.HTTP_CONFIG)
       httpcfg.headers['X-ACCESS-TOKEN'] = config.IDENTITY.X_ACCESS_TOKEN

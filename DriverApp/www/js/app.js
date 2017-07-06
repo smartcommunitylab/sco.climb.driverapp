@@ -19,7 +19,7 @@ angular.module('driverapp', [
   'driverapp.controllers.batteries'
 ])
 
-  .run(function ($ionicPlatform, $rootScope, $state, $ionicHistory, $ionicPopup, $window, Config, Utils, StorageSrv, LogSrv, WSNSrv, APISrv) {
+  .run(function ($ionicPlatform, $rootScope, $state, $ionicHistory, $ionicPopup, $window, Config, Utils, StorageSrv, LogSrv, WSNSrv, APISrv, GeoSrv) {
     $ionicPlatform.ready(function () {
       // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
       // for form inputs)
@@ -36,6 +36,8 @@ angular.module('driverapp', [
       if (window.logToFile && ionic.Platform.isAndroid()) {
         LogSrv.init()
       }
+
+      GeoSrv.geolocalize();
 
       /*
        * Check Internet connection
@@ -152,8 +154,13 @@ angular.module('driverapp', [
               LogSrv.log('--- LOGOUT ---')
               Config.resetIdentity()
               StorageSrv.clearIdentityIndex()
-              ionic.Platform.exitApp()
-
+              if (ionic.Platform.isIOS()) {
+                $state.go('app.wizard').then(function () {
+                    window.location.reload(true);
+                });
+              } else {
+                ionic.Platform.exitApp()
+              }
               /*
               $state.go('app.wizard').then(function () {
                   window.location.reload(true);

@@ -6,7 +6,7 @@ angular.module('driverapp.services.geo', [])
     var watchId = null;
     var position = null;
 
-    var geolocalize = function () {
+    Geo.geolocalize = function () {
         watchId = navigator.geolocation.watchPosition(function (p) {
             position = p;
         }, function () {}, {
@@ -14,13 +14,12 @@ angular.module('driverapp.services.geo', [])
         });
     };
 
-    geolocalize();
 
     var geoInterval = null;
 
     Geo.startWatchingPosition = function (successCb, errorCb, delay) {
         if (!watchId) {
-            geolocalize();
+            Geo.geolocalize();
         }
 
         if (geoInterval === null && typeof successCb === 'function') {

@@ -41,7 +41,7 @@
     "cordova-plugin-file-transfer",
     "cordova-plugin-network-information",
     "cordova-plugin-crosswalk-webview",
-    "cordova plugin add cordova.plugins.diagnostic"
+    "cordova.plugins.diagnostic"
   ],
   "cordovaPlatforms": [
     "android",

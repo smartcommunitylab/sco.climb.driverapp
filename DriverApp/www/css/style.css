@@ -1,9 +1,19 @@
 .bar-sub-subheader {
   top: 88px;
   display: block;
-  height: 44px;
+  height: 44px !important;
 }
 
+.platform-ios.platform-cordova:not(.fullscreen) .bar-header:not(.bar-subheader).bar-sub-subheader {
+  top: 108px !important;  
+}
+.platform-ios.platform-cordova:not(.fullscreen) .bar-header:not(.bar-subheader).bar-sub-subheader > * {
+  margin-top: 0 !important;
+}
+
+.platform-ios.platform-cordova:not(.fullscreen) .has-sub-subheader {
+  top: 152px !important;  
+}
 .has-sub-subheader {
   top: 132px;
 }

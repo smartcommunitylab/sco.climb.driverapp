@@ -213,10 +213,10 @@ angular.module('driverapp.controllers.wizard', [])
 
   }
   $scope.checkHardwarePopup = function () {
-    cordova.plugins.diagnostic.hasBluetoothLESupport(function (supported) {
+    Utils.isBLESupported(function (supported) {
       //if supported check, else don't care
       if (supported) {
-        cordova.plugins.diagnostic.isBluetoothEnabled(function (BTenabled) {
+        Utils.isBluetoothEnabled(function (BTenabled) {
           if (BTenabled) {
             $scope.bluetoothEnabled = true;
           } else {
@@ -229,6 +229,8 @@ angular.module('driverapp.controllers.wizard', [])
               $scope.locationEnabled = false;
             }
             if (!$scope.bluetoothEnabled || !$scope.locationEnabled) {
+              console.log('---- BT enabled: '+ $scope.bluetoothEnabled);
+              console.log('---- LOCATION enabled: '+ $scope.locationEnabled);
               showHardwarePopup();
             }
           }, function (error) {
