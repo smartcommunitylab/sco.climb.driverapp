@@ -56,5 +56,3 @@ var serviceName = 'DriverAppPlugin'
    }
  }
 
-});
-

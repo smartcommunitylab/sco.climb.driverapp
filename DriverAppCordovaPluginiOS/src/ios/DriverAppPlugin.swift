@@ -90,7 +90,7 @@ import CoreBluetooth
         return true
     }
     
-    @objc(getNetworkState:)
+    //@objc(getNetworkState:)
     open func getNetworkState(command: CDVInvokedUrlCommand) -> [NodeState] {
         return peripherals.map { toNodeState(peripheral: $0)! }
     }
@@ -119,7 +119,7 @@ import CoreBluetooth
         return children.map{ toggleChildStatus(child: $0, isCheckin: false) }.contains(false) ? false : true
     }
     
-    @objc(enableMaintenanceProcedure:)
+    //@objc(enableMaintenanceProcedure:)
     open func enableMaintenanceProcedure(wakeupTime: Int) -> ErrorCode? {
         let wakeupData = buildAdvertisementData(wakeupTime: wakeupTime)
         let advertisementData = [CBAdvertisementDataLocalNameKey : wakeupData]
@@ -131,7 +131,7 @@ import CoreBluetooth
         return nil
     }
     
-    @objc(disableMaintenanceProcedure:)
+    //@objc(disableMaintenanceProcedure:)
     open func disableMaintenanceProcedure(command: CDVInvokedUrlCommand) -> ErrorCode? {
         peripheralManager?.stopAdvertising()
         logger.maintenanceModeDisabled()
