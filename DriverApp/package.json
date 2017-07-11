@@ -37,7 +37,6 @@
       "id": "cordova-plugin-geolocation"
     },
     "cordova-plugin-x-toast",
-    "cordova-plugin-logtofile",
     "cordova-plugin-file-transfer",
     "cordova-plugin-network-information",
     "cordova-plugin-crosswalk-webview",

@@ -29,7 +29,6 @@ angular.module('driverapp.services.config', [])
     config.DATE_FORMAT = 'YYYY-MM-DD'
     config.WIZARD_SLIDER_OPTIONS = {}
 
-    config.LOGFILE_PATH = '/CLIMB_log_data/aelog.txt'
     config.IMAGES_DIR = '/CLIMB_log_data/images/'
 
     config.setIdentity = function (index) {

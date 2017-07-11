@@ -1,5 +1,5 @@
 angular.module('driverapp.services.ae', [])
-  .factory('AESrv', function ($rootScope, $q, $interval, Config, Utils, StorageSrv, LogSrv, APISrv, GeoSrv, WSNSrv) {
+  .factory('AESrv', function ($rootScope, $q, $interval, Config, Utils, StorageSrv, APISrv, GeoSrv, WSNSrv) {
     var AE = {
       NODE_IN_RANGE: 101,
       NODE_CHECKIN: 102,
@@ -82,7 +82,6 @@ angular.module('driverapp.services.ae', [])
       geolocalizeEvent(event)
       aeInstance.driver = volunteer
       aeInstance.events.push(event)
-      LogSrv.log(JSON.stringify(event))
       return event
     }
 
@@ -100,7 +99,6 @@ angular.module('driverapp.services.ae', [])
 
       geolocalizeEvent(event)
       aeInstance.events.push(event)
-      LogSrv.log(JSON.stringify(event))
       return event
     }
 
@@ -118,7 +116,6 @@ angular.module('driverapp.services.ae', [])
 
       geolocalizeEvent(event)
       aeInstance.events.push(event)
-      LogSrv.log(JSON.stringify(event))
       return event
     }
 
@@ -136,7 +133,6 @@ angular.module('driverapp.services.ae', [])
 
       geolocalizeEvent(event)
       aeInstance.events.push(event)
-      LogSrv.log(JSON.stringify(event))
       return event
     }
 
@@ -154,7 +150,6 @@ angular.module('driverapp.services.ae', [])
 
       geolocalizeEvent(event)
       aeInstance.events.push(event)
-      LogSrv.log(JSON.stringify(event))
       return event
     }
 
@@ -172,7 +167,6 @@ angular.module('driverapp.services.ae', [])
 
       geolocalizeEvent(event)
       aeInstance.events.push(event)
-      LogSrv.log(JSON.stringify(event))
 
       WSNSrv.deinit().then(
         function () {
@@ -228,7 +222,6 @@ angular.module('driverapp.services.ae', [])
 
       geolocalizeEvent(event)
       aeInstance.events.push(event)
-      LogSrv.log(JSON.stringify(event))
       return event
     }
 
@@ -254,7 +247,6 @@ angular.module('driverapp.services.ae', [])
 
       geolocalizeEvent(event)
       aeInstance.events.push(event)
-      LogSrv.log(JSON.stringify(event))
       return event
     }
 
@@ -280,7 +272,6 @@ angular.module('driverapp.services.ae', [])
 
       geolocalizeEvent(event)
       aeInstance.events.push(event)
-      LogSrv.log(JSON.stringify(event))
       return event
     }
 
@@ -299,7 +290,6 @@ angular.module('driverapp.services.ae', [])
 
       geolocalizeEvent(event)
       aeInstance.events.push(event)
-      LogSrv.log(JSON.stringify(event))
       return event
     }
 
@@ -329,7 +319,6 @@ angular.module('driverapp.services.ae', [])
       }
 
       aeInstance.events.push(event)
-      LogSrv.log(JSON.stringify(event))
       return event
     }
 
@@ -349,7 +338,6 @@ angular.module('driverapp.services.ae', [])
 
       geolocalizeEvent(event)
       aeInstance.events.push(event)
-      LogSrv.log(JSON.stringify(event))
 
       return event
     }
