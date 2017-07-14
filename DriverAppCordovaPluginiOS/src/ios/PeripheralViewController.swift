@@ -34,7 +34,7 @@ class PeripheralViewController: UIViewController {
         super.viewDidLoad()
         
         logger = ClimbLogger.shared
-        climbService = DriverAppPlugin(centralManagerDelegateVC: self, peripheralManagerDelegateVC: self)
+        climbService = DriverAppPlugin()
     
         //let _ = climbService.initialize()
         

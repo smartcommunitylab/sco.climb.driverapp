@@ -8,39 +8,38 @@ import Foundation
 import UIKit
 import CoreBluetooth
 
+
 //@objc(DriverAppPlugin) class DriverAppPlugin: CDVPlugin, ClimbService {
 //open class ClimbServiceImpl: ClimbService {
 @objc(DriverAppPlugin) class DriverAppPlugin: CDVPlugin{
     
-    fileprivate var logger: ClimbLogger
-    fileprivate var centralManagerDelegateVC: CBCentralManagerDelegate
-    fileprivate var peripheralManagerDelegateVC: CBPeripheralManagerDelegate
+    fileprivate var logger: ClimbLogger!
     
     var centralManager: CBCentralManager?
     var peripheralManager: CBPeripheralManager?
     
-    var peripherals: [DisplayPeripheral]
-    var maintenanceModeEnabled: Bool
+    var peripherals: [DisplayPeripheral]!
+    var maintenanceModeEnabled: Bool!
     var isScanning: Bool {
         return centralManager?.isScanning ?? false
     }
     
-    init(centralManagerDelegateVC: CBCentralManagerDelegate, peripheralManagerDelegateVC: CBPeripheralManagerDelegate) {
-        self.logger = ClimbLogger.shared
-        self.centralManagerDelegateVC = centralManagerDelegateVC
-        self.peripheralManagerDelegateVC = peripheralManagerDelegateVC
-        
-        peripherals = [DisplayPeripheral]()
-        maintenanceModeEnabled = false
-    }
-    
     @objc(initialize:)
     open func initialize(command: CDVInvokedUrlCommand) -> Bool {
-        logger.startDataLog()
-        self.centralManager = CBCentralManager(delegate: centralManagerDelegateVC, queue: nil)
-        self.peripheralManager = CBPeripheralManager(delegate: peripheralManagerDelegateVC, queue: nil)
-        //cordova stuff
-        let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK);
+        let message = "Initialized";
+        
+        self.logger = ClimbLogger.shared
+        peripherals = [DisplayPeripheral]()
+        maintenanceModeEnabled = false
+        logger.startDataLog()//enable data logging
+        
+        //enable BLE and scanning
+        self.centralManager = CBCentralManager(delegate: nil, queue: nil)
+        self.peripheralManager = CBPeripheralManager(delegate: nil, queue: nil)
+        startScanning()
+
+        //cordova callbacks
+        let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: message);
         pluginResult?.setKeepCallbackAs(true);
         commandDelegate.send(pluginResult, callbackId: command.callbackId);
 
@@ -52,6 +51,7 @@ import CoreBluetooth
         centralManager = nil
         peripheralManager = nil
         logger.stopDataLog()
+        stopScanning()
         return true
     }
     
@@ -90,8 +90,12 @@ import CoreBluetooth
         return true
     }
     
-    //@objc(getNetworkState:)
+    @objc(getNetworkState:)
     open func getNetworkState(command: CDVInvokedUrlCommand) -> [NodeState] {
+        let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK);
+        pluginResult?.setKeepCallbackAs(true);
+        commandDelegate.send(pluginResult, callbackId: command.callbackId);
+        
         return peripherals.map { toNodeState(peripheral: $0)! }
     }
     
@@ -119,8 +123,8 @@ import CoreBluetooth
         return children.map{ toggleChildStatus(child: $0, isCheckin: false) }.contains(false) ? false : true
     }
     
-    //@objc(enableMaintenanceProcedure:)
-    open func enableMaintenanceProcedure(wakeupTime: Int) -> ErrorCode? {
+    @objc(enableMaintenanceProcedure:)
+    open func enableMaintenanceProcedure(wakeupTime: Int) -> Bool {
         let wakeupData = buildAdvertisementData(wakeupTime: wakeupTime)
         let advertisementData = [CBAdvertisementDataLocalNameKey : wakeupData]
         
@@ -128,16 +132,16 @@ import CoreBluetooth
         peripheralManager?.startAdvertising(advertisementData)
         
         maintenanceModeEnabled = true
-        return nil
+        return true
     }
     
-    //@objc(disableMaintenanceProcedure:)
-    open func disableMaintenanceProcedure(command: CDVInvokedUrlCommand) -> ErrorCode? {
+    @objc(disableMaintenanceProcedure:)
+    open func disableMaintenanceProcedure(command: CDVInvokedUrlCommand) -> Bool {
         peripheralManager?.stopAdvertising()
         logger.maintenanceModeDisabled()
         
         maintenanceModeEnabled = false
-        return nil
+        return true
     }
     
     @objc(getLogFiles:)
@@ -188,7 +192,7 @@ import CoreBluetooth
             return nil
         }
         
-        var nodeState: NodeState = NodeState()
+        let nodeState: NodeState = NodeState()
         nodeState.nodeId = peripheral.nodeId
         nodeState.state = Int(peripheral.nodeState!.rawValue)
         nodeState.lastSteen = peripheral.lastSeen!.currentTimeMillis

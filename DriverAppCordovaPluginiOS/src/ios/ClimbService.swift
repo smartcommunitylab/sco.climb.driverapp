@@ -87,12 +87,12 @@ protocol ClimbService {
     ///
     /// - Parameter wakeupTime: the wakeup time to be advertised, expressed using the UNIX epoch format (millis from 1970). 
     /// - Returns: nil if the maintenance mode was succesfully enabled, an `ErrorCode` otherwise, describing the error type.
-    func enableMaintenanceProcedure(wakeupTime: Int) -> ErrorCode?
+    func enableMaintenanceProcedure(wakeupTime: Int) -> Bool?
     
     /// Disable maintenance procedure.
     ///
     /// - Returns: nil if the maintenance mode was succesfully disabled , an `ErrorCode` otherwise, describing the error type.
-    func disableMaintenanceProcedure() -> ErrorCode?
+    func disableMaintenanceProcedure() -> Bool?
     
     /// Get all log files paths.
     ///
@@ -106,9 +106,8 @@ protocol ClimbService {
 
 }
 
-public enum ErrorCode {}
-
-public struct NodeState {
+//public struct NodeState {
+    public class NodeState: NSObject {
     var nodeId: String!
     var state: Int!
     var lastSteen: Int!
