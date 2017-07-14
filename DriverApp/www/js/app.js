@@ -5,7 +5,6 @@ angular.module('driverapp', [
   'driverapp.services.storage',
   'driverapp.services.config',
   'driverapp.services.utils',
-  'driverapp.services.log',
   'driverapp.services.wsn',
   'driverapp.services.geo',
   'driverapp.services.ae',
