@@ -1,17 +1,9 @@
-//
-//  ClimbServiceImpl.swift
-//  BLEScanner
-//
-
-
 import Foundation
 import UIKit
 import CoreBluetooth
 
-
-//@objc(DriverAppPlugin) class DriverAppPlugin: CDVPlugin, ClimbService {
-//open class ClimbServiceImpl: ClimbService {
-@objc(DriverAppPlugin) class DriverAppPlugin: CDVPlugin{
+@objc(DriverAppPlugin)
+class DriverAppPlugin: CDVPlugin, CBCentralManagerDelegate, CBPeripheralManagerDelegate {
     
     fileprivate var logger: ClimbLogger!
     
@@ -34,15 +26,15 @@ import CoreBluetooth
         logger.startDataLog()//enable data logging
         
         //enable BLE and scanning
-        self.centralManager = CBCentralManager(delegate: nil, queue: nil)
-        self.peripheralManager = CBPeripheralManager(delegate: nil, queue: nil)
+        self.centralManager = CBCentralManager(delegate: self, queue: nil)
+        self.peripheralManager = CBPeripheralManager(delegate: self, queue: nil)
         startScanning()
-
+        
         //cordova callbacks
         let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: message);
         pluginResult?.setKeepCallbackAs(true);
         commandDelegate.send(pluginResult, callbackId: command.callbackId);
-
+        
         return true
     }
     
@@ -153,10 +145,6 @@ import CoreBluetooth
         // Stub
         return true
     }
-//}
-//
-//// MARK: - CoreBluetooth API calls and state management, used by UI
-//extension ClimbServiceImpl {
     
     func startScanning() {
         logger.logExtraInfo(message: "Start scanning...")
@@ -178,10 +166,102 @@ import CoreBluetooth
     func insertTag() {
         logger.logExtraInfo(message: "Manually inserted tag")
     }
-//}
-
-// MARK: - Utilities
-//extension ClimbServiceImpl {
+    
+    internal func centralManagerDidUpdateState(_ central: CBCentralManager) {
+        
+        switch (central.state) {
+        case .poweredOn:
+            logger.logExtraInfo(message: "Bluetooth CentralManager is now on")
+            break
+        case .poweredOff:
+            logger.logExtraInfo(message: "Bluetooth Bluetooth CentralManager is now off!")
+            break
+        default:
+            logger.logExtraInfo(message: "Unsupported CentralManager state: \(central.state)")
+        }
+    }
+    
+    internal func peripheralManagerDidUpdateState(_ peripheral: CBPeripheralManager) {
+        switch (peripheral.state) {
+        case .poweredOn:
+            logger.logExtraInfo(message: "Bluetooth PeripheralManager is now on")
+            break
+        case .poweredOff:
+            logger.logExtraInfo(message: "Bluetooth PeripheralManager is now off!")
+            break
+        default:
+            logger.logExtraInfo(message: "Unsupported Bluetooth PeripheralManager state: \(peripheral.state)")
+        }
+    }
+    
+    internal func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber){
+        
+        // Only care about SensorTag, do nothing when other bluetooth devices are discovered
+        guard peripheral.name == "CLIMBC" else {
+            return
+        }
+        
+        var displayPeripheral: DisplayPeripheral
+        
+        // Check if the current device was already discovered
+        let peripheralToUpdateIndex = peripherals.index{ $0.peripheral!.identifier == peripheral.identifier }
+        
+        if let peripheralToUpdateIndex = peripheralToUpdateIndex {
+            displayPeripheral = peripherals[peripheralToUpdateIndex]
+        } else {
+            displayPeripheral = DisplayPeripheral()
+            peripherals.append(displayPeripheral)
+            displayPeripheral.peripheral = peripheral
+            displayPeripheral.isConnectable = advertisementData[CBAdvertisementDataIsConnectable] as? Bool
+        }
+        
+        displayPeripheral.lastRSSI = Int(RSSI)
+        displayPeripheral.lastSeen = Date()
+        
+        if let manufacturerData = advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data {
+            updateAdvertisementData(peripheral: displayPeripheral, advertisementData: manufacturerData)
+        } else {
+            displayPeripheral.nodeId = peripheral.identifier.uuidString
+            displayPeripheral.nodeState = DisplayPeripheralState.error
+        }
+        
+        logger.deviceDiscovered(id: peripheral.identifier.uuidString,
+                                name: peripheral.name ?? "No Device Name",
+                                rssi: displayPeripheral.lastRSSI!,
+                                manufacturerString: displayPeripheral.manufacturerData ?? "")
+        
+    }
+    
+    internal func peripheralManagerDidStartAdvertising(_ peripheral: CBPeripheralManager, error: Error?) {
+        logger.logExtraInfo(message: "Started advertising")
+    }
+    
+    private func updateAdvertisementData(peripheral: DisplayPeripheral, advertisementData: Data) {
+        
+        guard advertisementData.count >= 7 else {
+            return
+        }
+        
+        // TI manufacturer ID -> 0D00
+        let manufacturerID = UInt16(advertisementData[0]) + UInt16(advertisementData[1]) << 8 // Constructing 2-byte data as little endian (as TI's manufacturer ID is 0x000D)
+        // CLIMB CHILD node ID -> FE
+        let nodeID = advertisementData[2]
+        // CLIMB CHILD node state -> 05
+        let state = advertisementData[3]
+        // CLIMB CHILD node battery voltage
+        let batteryVoltage = UInt16(advertisementData[4]) << 8 + UInt16(advertisementData[5]) // Constructing 2-byte data as big endian (as done in the Java code)
+        let voltageInDecimals = Int(batteryVoltage)
+        // Becon packet counter
+        let packetCounter = advertisementData[6] //resets after 255
+        let packetInDecimals = Int(packetCounter)
+        
+        peripheral.manufacturerData = Data(advertisementData[2..<advertisementData.count]).hexEncodedString()
+        peripheral.manufacturerId = String(format: "%04X", manufacturerID)
+        peripheral.nodeId = String(format: "%02X", nodeID)
+        peripheral.nodeState = DisplayPeripheralState(rawValue: String(format: "%02X", state))
+        peripheral.batteryVoltage = voltageInDecimals
+        peripheral.packetCount = packetInDecimals
+    }
     
     fileprivate func getPeripheralBy(nodeId: String) -> DisplayPeripheral? {
         return peripherals.first { $0.nodeId == nodeId }
@@ -218,4 +298,3 @@ import CoreBluetooth
         return data
     }
 }
-//}
