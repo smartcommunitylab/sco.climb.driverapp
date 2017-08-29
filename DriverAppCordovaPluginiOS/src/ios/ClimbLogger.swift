@@ -8,7 +8,7 @@ import Foundation
 import UIKit
 import SwiftyBeaver
 import CoreBluetooth
-
+//logging to Xcode Console using swiftybeaver
 let log = SwiftyBeaver.self
 
 class ClimbLogger {
@@ -27,6 +27,12 @@ class ClimbLogger {
         dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "dd_hh.mm.ss"
         isLogging = false
+        
+        //custom logging to Xcode Console using swiftybeaver
+        let console = ConsoleDestination()
+        console.format = "$Dyyyy-MM-dd HH:mm:ss$d $C$L$c: $M"
+        log.addDestination(console)
+        
     }
     
     func getAllLogFilePaths() -> [String] {

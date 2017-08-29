@@ -16,25 +16,20 @@ class DriverAppPlugin: CDVPlugin, CBCentralManagerDelegate, CBPeripheralManagerD
         return centralManager?.isScanning ?? false
     }
     
+    //--- CLIMB API -----------------------------------------------
+
     @objc(initialize:)
     open func initialize(command: CDVInvokedUrlCommand) -> Bool {
-        let message = "Initialized";
-        
         self.logger = ClimbLogger.shared
         peripherals = [DisplayPeripheral]()
         maintenanceModeEnabled = false
         logger.startDataLog()//enable data logging
         
-        //enable BLE and scanning
+        //enable BLE
         self.centralManager = CBCentralManager(delegate: self, queue: nil)
         self.peripheralManager = CBPeripheralManager(delegate: self, queue: nil)
-        startScanning()
-        
         //cordova callbacks
-        let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: message);
-        pluginResult?.setKeepCallbackAs(true);
-        commandDelegate.send(pluginResult, callbackId: command.callbackId);
-        
+        sendSuccess(command: command, result: "Initialized", keepCallback: true);
         return true
     }
     
@@ -44,105 +39,142 @@ class DriverAppPlugin: CDVPlugin, CBCentralManagerDelegate, CBPeripheralManagerD
         peripheralManager = nil
         logger.stopDataLog()
         stopScanning()
+        
+        sendSuccess(command: command, result: "Deinitialized", keepCallback: true);
         return true
     }
     
     @objc(startListener:)
     open func startListener(command: CDVInvokedUrlCommand) -> Bool {
-        // Stub
+        let pluginResult = CDVPluginResult(status: CDVCommandStatus_NO_RESULT);
+        pluginResult?.setKeepCallbackAs(true);
+        self.commandDelegate!.send(pluginResult,callbackId: command.callbackId)
         return true
     }
     
     @objc(stopListener:)
     open func stopListener(command: CDVInvokedUrlCommand) -> Bool {
-        // Stub
+        sendOk(command: command, keepCallback: true);
         return true
     }
     
     @objc(getMasters:)
-    open func getMasters(command: CDVInvokedUrlCommand) -> [String] {
-        // Stub
-        return [String]()
+    open func getMasters(command: CDVInvokedUrlCommand) -> String {
+        //let masters = "[]"
+        sendSuccessWithArray(command: command, result: [], keepCallback: true);
+        return "[]" // empty json array since there are no masters now
     }
     
+    let master = String()
     @objc(connectMaster:)
-    open func connectMaster(master: String) -> Bool {
-        // Stub
-        return true
+    //open func connectMaster(command: CDVInvokedUrlCommand, master: String) -> String {
+    open func connectMaster(command: CDVInvokedUrlCommand) -> String {
+        let procedureStarted = "\(true)"
+        sendSuccess(command: command, result: procedureStarted, keepCallback: true);
+        //return "\(true)"
+        
+        return procedureStarted
     }
     
-    open func disconnectMaster() -> Bool {
-        // Stub
-        return true
+    open func disconnectMaster() -> String {
+        return "\(true)"
     }
     
     @objc(setNodeList:)
-    open func setNodeList(children: [String]) -> Bool {
-        // Stub
-        return true
+    open func setNodeList(command: CDVInvokedUrlCommand) -> String {
+        sendSuccessWithBoolean(command: command, result: true, keepCallback: true);
+        return "\(true)"
     }
     
     @objc(getNetworkState:)
-    open func getNetworkState(command: CDVInvokedUrlCommand) -> [NodeState] {
-        let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK);
-        pluginResult?.setKeepCallbackAs(true);
-        commandDelegate.send(pluginResult, callbackId: command.callbackId);
+    open func getNetworkState(command: CDVInvokedUrlCommand) -> String {
+        let networkStateJSON = peripherals.map { toNodeState(peripheral: $0)! }.toJson()
+        sendSuccess(command: command, result: networkStateJSON, keepCallback: true);
         
-        return peripherals.map { toNodeState(peripheral: $0)! }
+        return networkStateJSON
+        
+        //return peripherals.map { toNodeState(peripheral: $0)! }.toJson()
     }
     
-    open func getNodeState(child: String) -> NodeState? {
-        return toNodeState(peripheral: getPeripheralBy(nodeId: child))
+    open func getNodeState(child: String) -> String {
+        return toNodeState(peripheral: getPeripheralBy(nodeId: child))?.toJSON() ?? ""
     }
     
+    let child = String()
     @objc(checkinChild:)
-    open func checkinChild(child: String) -> Bool {
-        return toggleChildStatus(child: child, isCheckin: true)
+    open func checkinChild(command: CDVInvokedUrlCommand) -> String {
+        
+        let procedureStarted = "\(toggleChildStatus(child: child, isCheckin: true))"
+        sendSuccess(command: command, result: procedureStarted, keepCallback: true);
+        
+        //return "\(toggleChildStatus(child: child, isCheckin: true))"
+        return procedureStarted
     }
     
     @objc(checkoutChild:)
-    open func checkoutChild(child: String) -> Bool {
-        return toggleChildStatus(child: child, isCheckin: false)
+    open func checkoutChild(command: CDVInvokedUrlCommand) -> String {
+        let procedureStarted = "\(toggleChildStatus(child: child, isCheckin: false))"
+        sendSuccess(command: command, result: procedureStarted, keepCallback: true);
+        
+        //return "\(toggleChildStatus(child: child, isCheckin: false))"
+        return procedureStarted
     }
     
+    let children = [String]()
     @objc(checkinChildren:)
-    open func checkinChildren(children: [String]) -> Bool {
-        return children.map{ toggleChildStatus(child: $0, isCheckin: true) }.contains(false) ? false : true
+    open func checkinChildren(command: CDVInvokedUrlCommand) -> String {
+        let procedureStarted = "\(children.map{ toggleChildStatus(child: $0, isCheckin: true) }.contains(false) ? false : true)"
+        sendSuccess(command: command, result: procedureStarted, keepCallback: true);
+        
+        //return "\(children.map{ toggleChildStatus(child: $0, isCheckin: true) }.contains(false) ? false : true)"
+        return procedureStarted
     }
     
     @objc(checkoutChildren:)
-    open func checkoutChildren(children: [String]) -> Bool {
-        return children.map{ toggleChildStatus(child: $0, isCheckin: false) }.contains(false) ? false : true
+    open func checkoutChildren(command: CDVInvokedUrlCommand) -> String {
+        let procedureStarted = "\(children.map{ toggleChildStatus(child: $0, isCheckin: false) }.contains(false) ? false : true)"
+        sendSuccess(command: command, result: procedureStarted, keepCallback: true);
+        
+        //return "\(children.map{ toggleChildStatus(child: $0, isCheckin: false) }.contains(false) ? false : true)"
+        return procedureStarted
     }
     
-    @objc(enableMaintenanceProcedure:)
-    open func enableMaintenanceProcedure(wakeupTime: Int) -> Bool {
+    @objc(command: enableMaintenanceProcedure:)
+    open func enableMaintenanceProcedure(command: CDVInvokedUrlCommand, wakeupTime: Int) -> String {
         let wakeupData = buildAdvertisementData(wakeupTime: wakeupTime)
         let advertisementData = [CBAdvertisementDataLocalNameKey : wakeupData]
         
         logger.maintenanceModeEnabled(advertisementData: advertisementData)
         peripheralManager?.startAdvertising(advertisementData)
-        
         maintenanceModeEnabled = true
-        return true
+        sendSuccessWithBoolean(command: command, result: true, keepCallback: true);
+        return "\(true)"
     }
     
     @objc(disableMaintenanceProcedure:)
-    open func disableMaintenanceProcedure(command: CDVInvokedUrlCommand) -> Bool {
+    open func disableMaintenanceProcedure(command: CDVInvokedUrlCommand) -> String {
         peripheralManager?.stopAdvertising()
         logger.maintenanceModeDisabled()
         
         maintenanceModeEnabled = false
-        return true
+        sendSuccessWithBoolean(command: command, result: true, keepCallback: true);
+        return "\(true)"
     }
     
     @objc(getLogFiles:)
-    open func getLogFiles(command: CDVInvokedUrlCommand) -> [String] {
-        return logger.getAllLogFilePaths()
+    open func getLogFiles(command: CDVInvokedUrlCommand) -> String {
+        
+        let logFilePathsJSON  = logger.getAllLogFilePaths().toJson()
+        sendSuccess(command: command, result: logFilePathsJSON, keepCallback: true);
+        
+        //return logger.getAllLogFilePaths().toJson()
+        
+        return logFilePathsJSON
     }
     
-    open func test(name: String) -> Bool {
-        // Stub
+    @objc(test:)
+    open func test(command: CDVInvokedUrlCommand) -> Bool {
+        sendSuccess(command: command, result: "Hello test", keepCallback: true);
         return true
     }
     
@@ -167,14 +199,15 @@ class DriverAppPlugin: CDVPlugin, CBCentralManagerDelegate, CBPeripheralManagerD
         logger.logExtraInfo(message: "Manually inserted tag")
     }
     
+    //Receive the update of central manager’s state and scan for peripherals
     internal func centralManagerDidUpdateState(_ central: CBCentralManager) {
-        
         switch (central.state) {
         case .poweredOn:
             logger.logExtraInfo(message: "Bluetooth CentralManager is now on")
+            startScanning()
             break
         case .poweredOff:
-            logger.logExtraInfo(message: "Bluetooth Bluetooth CentralManager is now off!")
+            logger.logExtraInfo(message: "Bluetooth CentralManager is now off!")
             break
         default:
             logger.logExtraInfo(message: "Unsupported CentralManager state: \(central.state)")
@@ -194,9 +227,11 @@ class DriverAppPlugin: CDVPlugin, CBCentralManagerDelegate, CBPeripheralManagerD
         }
     }
     
+    //receive the results of scan
     internal func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber){
         
         // Only care about SensorTag, do nothing when other bluetooth devices are discovered
+        //“guard” statement makes early exits possible
         guard peripheral.name == "CLIMBC" else {
             return
         }
@@ -297,4 +332,35 @@ class DriverAppPlugin: CDVPlugin, CBCentralManagerDelegate, CBPeripheralManagerD
         data.append(Data(bytes: toByteArray(wakeupTime).reversed()[2..<8]))
         return data
     }
+    
+    //--- Cordova Callbacks -----------------------------------------------
+    
+    func sendSuccess(command: CDVInvokedUrlCommand, result: String, keepCallback: Bool) {
+        let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: result);
+        pluginResult?.setKeepCallbackAs(keepCallback);
+        self.commandDelegate!.send(pluginResult,callbackId: command.callbackId);
+
+    }
+    
+    func sendOk(command: CDVInvokedUrlCommand, keepCallback: Bool) {
+        let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK);
+        pluginResult?.setKeepCallbackAs(keepCallback);
+        self.commandDelegate!.send(pluginResult,callbackId: command.callbackId);
+        
+    }
+    
+    func sendSuccessWithArray(command: CDVInvokedUrlCommand, result: Array<Dictionary<String, AnyObject>>, keepCallback: Bool) {
+        let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: result);
+        pluginResult?.setKeepCallbackAs(keepCallback);
+        self.commandDelegate!.send(pluginResult,callbackId: command.callbackId);
+        
+    }
+    
+    func sendSuccessWithBoolean(command: CDVInvokedUrlCommand, result: Bool, keepCallback: Bool) {
+        let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: result);
+        pluginResult?.setKeepCallbackAs(keepCallback);
+        self.commandDelegate!.send(pluginResult,callbackId: command.callbackId);
+        
+    }
+    
 }
