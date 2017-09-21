@@ -15,7 +15,7 @@ class DisplayPeripheral{
     
     var manufacturerData: String?
     var manufacturerId: String?
-    var nodeId: String?
+    var nodeID: String?
     var nodeState: DisplayPeripheralState?
     var batteryVoltage: Int?
     var packetCount: Int?

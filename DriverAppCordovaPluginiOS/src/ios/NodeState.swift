@@ -1,11 +1,11 @@
 public class NodeState: NSObject {
-    var nodeId: String!
+    var nodeID: String!
     var state: Int!
-    var lastSteen: Int!
+    var lastSeen: Int!
     var batteryVoltage_mV: Int!
     
     func toJSON() -> String {
-        return "{\"nodeId\": \"\(nodeId!)\", \"state\": \(state!), \"lastSteen\": \(lastSteen!), \"batteryVoltage_mV\": \(batteryVoltage_mV!)}"
+        return "{\"nodeID\": \"\(nodeID!)\", \"state\": \(state!), \"lastSeen\": \(lastSeen!), \"batteryVoltage_mV\": \(batteryVoltage_mV!)}"
     }
 }
 
