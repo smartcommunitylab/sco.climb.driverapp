@@ -16,6 +16,8 @@ class DriverAppPlugin: CDVPlugin, CBCentralManagerDelegate, CBPeripheralManagerD
         return centralManager?.isScanning ?? false
     }
     
+    var pluginResult = CDVPluginResult( status: CDVCommandStatus_ERROR)
+    
     //--- CLIMB API -----------------------------------------------
 
     @objc(initialize:)
@@ -46,10 +48,20 @@ class DriverAppPlugin: CDVPlugin, CBCentralManagerDelegate, CBPeripheralManagerD
     
     @objc(startListener:)
     open func startListener(command: CDVInvokedUrlCommand) -> Bool {
-        let pluginResult = CDVPluginResult(status: CDVCommandStatus_NO_RESULT);
-        pluginResult?.setKeepCallbackAs(true);
-        self.commandDelegate!.send(pluginResult,callbackId: command.callbackId)
-        return true
+        
+        // ALM: this listener is no longer needed by the ios plugin
+        // but the Cordova side requires it to be invoked once to start the process to call getNetworkState
+        // so, we fake the message that we are connected to the master, and never call the listener again
+        
+        let message = "fbk.climblogger.ClimbService.STATE_CONNECTED_TO_CLIMB_MASTER";
+
+        let responseAsDict: [String: AnyObject] = [
+            "action": message  as AnyObject
+        ];
+        
+        sendSuccessWithDictionary(command: command, result: responseAsDict, keepCallback: true);
+        
+    return true
     }
     
     @objc(stopListener:)
@@ -88,10 +100,27 @@ class DriverAppPlugin: CDVPlugin, CBCentralManagerDelegate, CBPeripheralManagerD
     
     @objc(getNetworkState:)
     open func getNetworkState(command: CDVInvokedUrlCommand) -> String {
-        let networkStateJSON = peripherals.map { toNodeState(peripheral: $0)! }.toJson()
-        sendSuccess(command: command, result: networkStateJSON, keepCallback: true);
         
-        return networkStateJSON
+        // make an array of the children nodes to pass up to the application
+        var networkStateDict = Array<Dictionary<String, AnyObject>>.init();
+        for p in peripherals {
+            // for each child, make a dictionary object analogous to the JSON describing the node
+            let childAsDict: [String: AnyObject] = [
+                "nodeID": p.nodeID as AnyObject,
+                "state": (String)(describing: p.nodeState) as AnyObject,
+                "lastSeen": p.lastSeen!.currentTimeMillis as AnyObject ,
+                "batteryVoltage_mV": p.batteryVoltage as AnyObject
+  
+            ];
+            // add the child to the array sent back
+            networkStateDict.append(childAsDict);
+            
+        }
+        //send the array of children nodes
+        sendSuccessWithArray(command: command, result: networkStateDict, keepCallback: true);
+
+
+        return "\(true)"
         
         //return peripherals.map { toNodeState(peripheral: $0)! }.toJson()
     }
@@ -256,7 +285,7 @@ class DriverAppPlugin: CDVPlugin, CBCentralManagerDelegate, CBPeripheralManagerD
         if let manufacturerData = advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data {
             updateAdvertisementData(peripheral: displayPeripheral, advertisementData: manufacturerData)
         } else {
-            displayPeripheral.nodeId = peripheral.identifier.uuidString
+            displayPeripheral.nodeID = peripheral.identifier.uuidString
             displayPeripheral.nodeState = DisplayPeripheralState.error
         }
         
@@ -292,14 +321,14 @@ class DriverAppPlugin: CDVPlugin, CBCentralManagerDelegate, CBPeripheralManagerD
         
         peripheral.manufacturerData = Data(advertisementData[2..<advertisementData.count]).hexEncodedString()
         peripheral.manufacturerId = String(format: "%04X", manufacturerID)
-        peripheral.nodeId = String(format: "%02X", nodeID)
+        peripheral.nodeID = String(format: "%02X", nodeID)
         peripheral.nodeState = DisplayPeripheralState(rawValue: String(format: "%02X", state))
         peripheral.batteryVoltage = voltageInDecimals
         peripheral.packetCount = packetInDecimals
     }
     
     fileprivate func getPeripheralBy(nodeId: String) -> DisplayPeripheral? {
-        return peripherals.first { $0.nodeId == nodeId }
+        return peripherals.first { $0.nodeID == nodeId }
     }
     
     fileprivate func toNodeState(peripheral: DisplayPeripheral?) -> NodeState? {
@@ -308,13 +337,15 @@ class DriverAppPlugin: CDVPlugin, CBCentralManagerDelegate, CBPeripheralManagerD
         }
         
         let nodeState: NodeState = NodeState()
-        nodeState.nodeId = peripheral.nodeId
+        nodeState.nodeID = peripheral.nodeID
         nodeState.state = Int(peripheral.nodeState!.rawValue)
-        nodeState.lastSteen = peripheral.lastSeen!.currentTimeMillis
+        nodeState.lastSeen = peripheral.lastSeen!.currentTimeMillis
         nodeState.batteryVoltage_mV = peripheral.batteryVoltage
         
         return nodeState
     }
+    
+
     
     fileprivate func toggleChildStatus(child: String, isCheckin: Bool) -> Bool {
         let peripheral = getPeripheralBy(nodeId: child)
@@ -336,6 +367,7 @@ class DriverAppPlugin: CDVPlugin, CBCentralManagerDelegate, CBPeripheralManagerD
     //--- Cordova Callbacks -----------------------------------------------
     
     func sendSuccess(command: CDVInvokedUrlCommand, result: String, keepCallback: Bool) {
+        print("sendSuccess with a string:"+result);
         let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: result);
         pluginResult?.setKeepCallbackAs(keepCallback);
         self.commandDelegate!.send(pluginResult,callbackId: command.callbackId);
@@ -354,6 +386,12 @@ class DriverAppPlugin: CDVPlugin, CBCentralManagerDelegate, CBPeripheralManagerD
         pluginResult?.setKeepCallbackAs(keepCallback);
         self.commandDelegate!.send(pluginResult,callbackId: command.callbackId);
         
+    }
+    
+    func sendSuccessWithDictionary (command: CDVInvokedUrlCommand, result: Dictionary<String, AnyObject>, keepCallback: Bool) {
+        let pluginResult = CDVPluginResult (status: CDVCommandStatus_OK, messageAs: result);
+        pluginResult?.setKeepCallbackAs (keepCallback);
+        self.commandDelegate!.send(pluginResult, callbackId: command.callbackId);
     }
     
     func sendSuccessWithBoolean(command: CDVInvokedUrlCommand, result: Bool, keepCallback: Bool) {
