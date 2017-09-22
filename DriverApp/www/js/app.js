@@ -2,6 +2,7 @@ angular.module('driverapp', [
   'ionic',
   'ionic.wizard',
   'ngCordova',
+  'pascalprecht.translate',
   'driverapp.services.storage',
   'driverapp.services.config',
   'driverapp.services.utils',
@@ -11,6 +12,8 @@ angular.module('driverapp', [
   'driverapp.services.ae',
   'driverapp.services.api',
   'driverapp.services.route',
+  'driverapp.services.login',
+  'driverapp.controllers.login',
   'driverapp.controllers.home',
   'driverapp.controllers.wizard',
   'driverapp.controllers.routes',
@@ -19,7 +22,7 @@ angular.module('driverapp', [
   'driverapp.controllers.batteries'
 ])
 
-  .run(function ($ionicPlatform, $rootScope, $state, $ionicHistory, $ionicPopup, $window, Config, Utils, StorageSrv, LogSrv, WSNSrv, APISrv) {
+  .run(function ($ionicPlatform, $rootScope, $state, $translate, $ionicHistory, $ionicPopup, $window, Config, Utils, StorageSrv, LogSrv, WSNSrv, APISrv, LoginService) {
     $ionicPlatform.ready(function () {
       // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
       // for form inputs)
@@ -36,7 +39,24 @@ angular.module('driverapp', [
       if (window.logToFile && ionic.Platform.isAndroid()) {
         LogSrv.init()
       }
-
+      if (typeof navigator.globalization !== "undefined") {
+        navigator.globalization.getPreferredLanguage(function (language) {
+          $translate.use((language.value).split("-")[0]).then(function (data) {
+            console.log("SUCCESS -> " + data);
+          }, function (error) {
+            console.log("ERROR -> " + error);
+          });
+        }, null);
+      }
+      // Config.init().then(function () {
+        LoginService.init({
+          loginType: LoginService.LOGIN_TYPE.AAC,
+          googleWebClientId: Config.webclientid,
+          clientId: Config.cliendID,
+          clientSecret: Config.clientSecID,
+          aacUrl: Config.AACURL
+        });
+      // });
       /*
        * Check Internet connection
        */
@@ -58,13 +78,13 @@ angular.module('driverapp', [
 
       if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
         WSNSrv.init().then(
-          function (response) {},
-          function (reason) {}
+          function (response) { },
+          function (reason) { }
         )
 
         WSNSrv.startListener().then(
-          function (response) {},
-          function (reason) {}
+          function (response) { },
+          function (reason) { }
         )
 
         /*
@@ -72,37 +92,37 @@ angular.module('driverapp', [
          */
         $rootScope.WSNSrvGetMasters = function () {
           WSNSrv.getMasters().then(
-            function (masters) {},
-            function (reason) {}
+            function (masters) { },
+            function (reason) { }
           )
         }
 
         $rootScope.WSNSrvConnectMaster = function (masterId) {
           WSNSrv.connectMaster(masterId).then(
-            function (procedureStarted) {},
-            function (reason) {}
+            function (procedureStarted) { },
+            function (reason) { }
           )
         }
 
         $rootScope.WSNSrvSetNodeList = function () {
           var childrenWsnIds = WSNSrv.getNodeListByType('child')
           WSNSrv.setNodeList(childrenWsnIds).then(
-            function (procedureStarted) {},
-            function (reason) {}
+            function (procedureStarted) { },
+            function (reason) { }
           )
         }
 
         $rootScope.WSNSrvGetNetworkState = function () {
           WSNSrv.getNetworkState().then(
-            function (networkState) {},
-            function (reason) {}
+            function (networkState) { },
+            function (reason) { }
           )
         }
 
         $rootScope.WSNSrvCheckMaster = function () {
           WSNSrv.connectMaster($rootScope.driver.wsnId).then(
-            function (procedureStarted) {},
-            function (reason) {}
+            function (procedureStarted) { },
+            function (reason) { }
           )
         }
 
@@ -188,13 +208,41 @@ angular.module('driverapp', [
     })
   })
 
-  .config(function ($stateProvider, $urlRouterProvider) {
+  .config(function ($stateProvider, $urlRouterProvider, $translateProvider) {
     $stateProvider.state('app', {
       url: '/app',
       abstract: true,
       templateUrl: 'templates/menu.html',
       controller: 'AppCtrl'
     })
+      .state('app.login', {
+        cache: false,
+        url: "/login",
+        views: {
+          'menuContent': {
+            templateUrl: "templates/login.html",
+            controller: 'LoginCtrl'
+          }
+        }
+      })
+      .state('app.signup', {
+        url: '/signup',
+        views: {
+          'menuContent': {
+            templateUrl: 'templates/signup.html',
+            controller: 'RegisterCtrl'
+          }
+        }
+      })
+      .state('app.signupsuccess', {
+        url: '/signupsuccess',
+        views: {
+          'menuContent': {
+            templateUrl: 'templates/signupsuccess.html',
+            controller: 'RegisterCtrl'
+          }
+        }
+      })
       .state('app.wizard', {
         url: '/wizard',
         cache: false,
@@ -251,5 +299,33 @@ angular.module('driverapp', [
         }
       })
 
-    $urlRouterProvider.otherwise('/app/wizard')
+    $urlRouterProvider.otherwise('/app/login')
+    $translateProvider.translations('it', {
+      login_title: 'CLIMB',
+      login_signin: 'ENTRA',
+      login_signup: 'REGISTRATI',
+      signin_title: 'Accedi con le tue credenziali',
+      signin_pwd_reset: 'Password dimenticata?',
+      signup_name: 'Nome',
+      signup_surname: 'Cognome',
+      signup_email: 'Email',
+      signup_pwd: 'Password',
+      error_required_fields: 'Tutti i campi sono obbligatori',
+      error_password_short: 'La lunghezza della password deve essere di almeno 6 caratteri',
+      signup_success_title: 'Registrazione completata!',
+      signup_success_text: 'Completa la registrazione cliccando sul link che trovi nella email che ti abbiamo inviato.',
+      signup_resend: 'Re-inviare l\'email di conferma',
+      error_signin: 'Username/password non validi',
+      signup_signup: 'Registrati',
+      signup_title: 'Registrati con',
+      text_login_use: 'oppure accedi con',
+      error_popup_title: 'Errore',
+      error_generic: 'La registrazione non è andata a buon fine. Riprova più tardi.',
+      error_email_inuse: 'L\'indirizzo email è già in uso.'
+
+
+    });
+
+    $translateProvider.preferredLanguage(DEFAULT_LANG);
+    $translateProvider.fallbackLanguage(DEFAULT_LANG);
   })

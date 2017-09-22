@@ -1,72 +1,176 @@
 /* global FileUploadOptions, FileTransfer */
 angular.module('driverapp.services.api', [])
-  .factory('APISrv', function ($rootScope, $http, $q, Config, Utils, WSNSrv) {
+  .factory('APISrv', function ($rootScope, $http, $q, Config, LoginService, Utils, WSNSrv) {
     var ERROR_TYPE = 'errorType'
     var ERROR_MSG = 'errorMsg'
 
     var APIService = {}
 
-    APIService.getSchools = function () {
+    APIService.getProfile = function () {
       var deferred = $q.defer()
-
-      $http.get(Config.SERVER_URL + '/school/' + Config.IDENTITY.OWNER_ID, Config.getHttpConfig()).then(
-        function (response) {
-          deferred.resolve(response.data)
-        },
-        function (reason) {
-          deferred.reject('[' + reason.headers(ERROR_TYPE) + '] ' + reason.headers(ERROR_MSG))
-        }
-      )
-
+      LoginService.getValidAACtoken().then(
+        function (token) {
+          $http({
+            method: 'GET',
+            url: Config.SERVER_URL + '/profile',
+            headers: {
+              'Authorization': 'Bearer ' + token,
+              'appId': Config.APPID,
+            },
+            timeout: Config.getHttpConfig().timeout
+          })
+            // $http.get(Config.SERVER_URL + '/profile', Config.getHttpConfig()).then(
+            .success(
+            function (response) {
+              deferred.resolve(response)
+            }).error(
+            function (reason) {
+              deferred.reject(reason)
+            })
+        })
       return deferred.promise
     }
 
-    APIService.getRouteById = function (routeId) {
+
+    APIService.getInstituteByOwnerId = function (ownerId) {
       var deferred = $q.defer()
-
-      if (!routeId) {
-        deferred.reject('Invalid routeId')
-        return deferred.promise
-      }
-
-      $http.get(Config.SERVER_URL + '/route/' + Config.IDENTITY.OWNER_ID + '/' + routeId, Config.getHttpConfig()).then(
-        function (response) {
-          deferred.resolve(response.data)
-        },
-        function (reason) {
-          deferred.reject('[' + reason.headers(ERROR_TYPE) + '] ' + reason.headers(ERROR_MSG))
-        }
-      )
-
+      LoginService.getValidAACtoken().then(
+        function (token) {
+          $http({
+            method: 'GET',
+            url: Config.SERVER_URL + '/institute/' + ownerId,
+            headers: {
+              'Authorization': 'Bearer ' + token,
+              'appId': Config.APPID,
+            },
+            timeout: Config.getHttpConfig().timeout
+          })
+            // $http.get(Config.SERVER_URL + '/profile', Config.getHttpConfig()).then(
+            .success(
+            function (response) {
+              deferred.resolve(response)
+            }).error(
+            function (reason) {
+              deferred.reject(reason)
+            })
+        })
       return deferred.promise
     }
 
-    APIService.getRoutesBySchool = function (schoolId, date) {
+
+    APIService.getSchooldById = function (ownerId, instituteId) {
       var deferred = $q.defer()
-
-      if (!schoolId) {
-        deferred.reject('Invalid schoolId')
-        return deferred.promise
-      }
-
-      var httpConfigWithParams = angular.copy(Config.getHttpConfig())
-      httpConfigWithParams.params = {}
-
-      if (Utils.isValidDate(date)) {
-        httpConfigWithParams.params['date'] = date
-      }
-
-      $http.get(Config.SERVER_URL + '/route/' + Config.IDENTITY.OWNER_ID + '/school/' + schoolId, httpConfigWithParams).then(
-        function (response) {
-          deferred.resolve(response.data)
-        },
-        function (reason) {
-          deferred.reject('[' + reason.headers(ERROR_TYPE) + '] ' + reason.headers(ERROR_MSG))
-        }
-      )
-
+      LoginService.getValidAACtoken().then(
+        function (token) {
+          $http({
+            method: 'GET',
+            url: Config.SERVER_URL + '/school/' + ownerId + '/' + instituteId,
+            headers: {
+              'Authorization': 'Bearer ' + token,
+              'appId': Config.APPID,
+            },
+            timeout: Config.getHttpConfig().timeout
+          })
+            // $http.get(Config.SERVER_URL + '/profile', Config.getHttpConfig()).then(
+            .success(
+            function (response) {
+              deferred.resolve(response)
+            }).error(
+            function (reason) {
+              deferred.reject(reason)
+            })
+        })
       return deferred.promise
     }
+
+
+
+    APIService.getRoute = function (ownerId, instituteId, schoolId) {
+      var deferred = $q.defer()
+      LoginService.getValidAACtoken().then(
+        function (token) {
+          $http({
+            method: 'GET',
+            url: Config.SERVER_URL + '/route/' + ownerId + '/' + instituteId + '/' + schoolId,
+            headers: {
+              'Authorization': 'Bearer ' + token,
+              'appId': Config.APPID,
+            },
+            timeout: Config.getHttpConfig().timeout
+          })
+            .success(
+            function (response) {
+              deferred.resolve(response)
+            }).error(
+            function (reason) {
+              deferred.reject(reason)
+            })
+        })
+      return deferred.promise
+    }
+
+
+    // APIService.getSchools = function () {
+    //   var deferred = $q.defer()
+
+    //   $http.get(Config.SERVER_URL + '/school/' + Config.IDENTITY.OWNER_ID, Config.getHttpConfig()).then(
+    //     function (response) {
+    //       deferred.resolve(response.data)
+    //     },
+    //     function (reason) {
+    //       deferred.reject('[' + reason.headers(ERROR_TYPE) + '] ' + reason.headers(ERROR_MSG))
+    //     }
+    //   )
+
+    //   return deferred.promise
+    // }
+
+    // APIService.getRouteById = function (routeId) {
+    //   var deferred = $q.defer()
+
+    //   if (!routeId) {
+    //     deferred.reject('Invalid routeId')
+    //     return deferred.promise
+    //   }
+
+    //   $http.get(Config.SERVER_URL + '/route/' + Config.IDENTITY.OWNER_ID + '/' + routeId, Config.getHttpConfig()).then(
+    //     function (response) {
+    //       deferred.resolve(response.data)
+    //     },
+    //     function (reason) {
+    //       deferred.reject('[' + reason.headers(ERROR_TYPE) + '] ' + reason.headers(ERROR_MSG))
+    //     }
+    //   )
+
+    //   return deferred.promise
+    // }
+
+    // APIService.getRoutesBySchool = function (schoolId, date) {
+    //   var deferred = $q.defer()
+
+    //   if (!schoolId) {
+    //     deferred.reject('Invalid schoolId')
+    //     return deferred.promise
+    //   }
+
+    //   var httpConfigWithParams = angular.copy(Config.getHttpConfig())
+    //   httpConfigWithParams.params = {}
+
+    //   if (Utils.isValidDate(date)) {
+    //     httpConfigWithParams.params['date'] = date
+    //   }
+
+    //   $http.get(Config.SERVER_URL + '/route/' + Config.IDENTITY.OWNER_ID + '/school/' + schoolId, httpConfigWithParams).then(
+    //     function (response) {
+    //       deferred.resolve(response.data)
+    //     },
+    //     function (reason) {
+    //       deferred.reject('[' + reason.headers(ERROR_TYPE) + '] ' + reason.headers(ERROR_MSG))
+    //     }
+    //   )
+
+    //   return deferred.promise
+    // }
 
     APIService.getStopsByRoute = function (routeId) {
       var deferred = $q.defer()
@@ -199,15 +303,30 @@ angular.module('driverapp.services.api', [])
         deferred.reject('Invalid schoolId')
         return deferred.promise
       }
-
-      $http.get(Config.SERVER_URL + '/volunteer/' + Config.IDENTITY.OWNER_ID + '/' + schoolId, Config.getHttpConfig()).then(
-        function (response) {
-          deferred.resolve(response.data)
-        },
-        function (reason) {
-          deferred.reject('[' + reason.headers(ERROR_TYPE) + '] ' + reason.headers(ERROR_MSG))
-        }
-      )
+ $http({
+            method: 'GET',
+            url: Config.SERVER_URL + '/volunteer/' + ownerId + '/' + instituteId + '/' + schoolId,
+            headers: {
+              'Authorization': 'Bearer ' + token,
+              'appId': Config.APPID,
+            },
+            timeout: Config.getHttpConfig().timeout
+          })
+            .success(
+            function (response) {
+              deferred.resolve(response)
+            }).error(
+            function (reason) {
+              deferred.reject(reason)
+            })
+      // $http.get(Config.SERVER_URL + '/volunteer/' + Config.IDENTITY.OWNER_ID + '/' + schoolId, Config.getHttpConfig()).then(
+      //   function (response) {
+      //     deferred.resolve(response.data)
+      //   },
+      //   function (reason) {
+      //     deferred.reject('[' + reason.headers(ERROR_TYPE) + '] ' + reason.headers(ERROR_MSG))
+      //   }
+      // )
 
       return deferred.promise
     }

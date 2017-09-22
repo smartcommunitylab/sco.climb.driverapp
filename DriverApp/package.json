@@ -10,6 +10,7 @@
     "gulp-rename": "^1.2.0"
   },
   "devDependencies": {
+    "angular-translate": "^2.15.2",
     "bower": "^1.3.3",
     "gulp-util": "^2.2.14",
     "shelljs": "^0.3.0"
@@ -38,7 +39,22 @@
     "cordova-plugin-file-transfer",
     "cordova-plugin-network-information",
     "cordova-plugin-crosswalk-webview",
-    "cordova plugin add cordova.plugins.diagnostic"
+    "cordova plugin add cordova.plugins.diagnostic",
+    {
+      "variables": {
+        "REVERSED_CLIENT_ID": "com.googleusercontent.apps.453601816446-tvtmoe6oftsqjnbj5blcgee6qjqq42ku"
+      },
+      "locator": "https://github.com/EddyVerbruggen/cordova-plugin-googleplus",
+      "id": "cordova-plugin-googleplus"
+    },
+    {
+      "variables": {
+        "APP_ID": "493172441063173",
+        "APP_NAME": "CLIMB"
+      },
+      "locator": "cordova-plugin-facebook4@1.7.4",
+      "id": "cordova-plugin-facebook4"
+    }
   ],
   "cordovaPlatforms": [
     "android"

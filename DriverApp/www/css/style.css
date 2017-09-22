@@ -912,3 +912,96 @@
   height: 300px;
   overflow-y: scroll;
 }
+
+
+/* Login pages */
+.login-page {
+    background-image: url("../img/background_login.jpg");
+    height: 100%;
+}
+.login-title {
+    padding-top: 10%;
+    padding-bottom: 20px;
+    color: #B1B1B1;
+    font-size: 50px;
+    width: 100%;
+    text-align: center;
+}
+
+.login .login-buttons {
+    position: relative;
+    text-align: center;
+}
+
+.login .login-buttons .stuffcontainer {
+    padding: 0 2em;
+}
+
+.login .item {
+    border: 0;
+}
+
+.login label input {
+    background-color: #fff;
+    padding-left: 5px;
+}
+
+.login .login-title h1,
+.login .login-title h3 {
+    color: #fff;
+}
+
+.login .login-buttons h3,
+.login .login-buttons h4,
+.login-buttons span {
+    color: #FFF;
+}
+
+.login-buttons .row,
+.login-buttons .col {
+    padding: 0;
+}
+
+.login-buttons .col:first-child {
+    padding-right: 5px;
+}
+
+.login-buttons .button {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+}
+
+.login .login-button-google {
+    text-transform: uppercase;
+    border-color: #DB4437;
+    background-color: #DB4437;
+    color: #FFFFFF;
+}
+
+.login .login-button-facebook {
+    text-transform: uppercase;
+    border-color: #3a5795;
+    background-color: #3a5795;
+    color: #FFFFFF;
+}
+
+.login .login-button-internal {
+    text-transform: uppercase;
+    border-color: #4EB0E6;
+    background-color: #4EB0E6;
+    color: #FFFFFF;
+}
+
+.login .login-button-signup {
+    border-color: #fff;
+    background-color: transparent;
+    color: #fff;
+    box-shadow: none;
+}
+
+.login .login-link {
+    display: block;
+    color: #fff;
+    padding: 0 1em;
+}

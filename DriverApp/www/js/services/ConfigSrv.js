@@ -1,12 +1,17 @@
 /* global CONF */
 angular.module('driverapp.services.config', [])
-  .factory('Config', function ($rootScope, $http, $q, StorageSrv) {
+  .factory('Config', function ($rootScope, $http, $ionicLoading, $timeout, $q, StorageSrv) {
     var config = {}
+    var mapJsonConfig = null;
 
     config.SERVER_URL = CONF.SERVER_URL
+    config.webclientid = CONF.webclientid
+    config.cliendID = CONF.cliendID
+    config.clientSecID = CONF.clientSecID
+    config.AACURL = CONF.AACURL
     config.EVENTS_SERVER_URL = CONF.EVENTS_SERVER_URL
-
     config.IDENTITIES = CONF.IDENTITIES
+    config.APPID = CONF.APPID
     config.IDENTITY = {
       'OWNER_ID': '',
       'X-ACCESS-TOKEN': '',
@@ -21,8 +26,9 @@ angular.module('driverapp.services.config', [])
     config.HTTP_CONFIG = {
       timeout: 10000,
       headers: {
-        'Content-Type': 'application/json',
-        'X-ACCESS-TOKEN': config.IDENTITY.X_ACCESS_TOKEN
+        'Content-Type': 'application/json'
+        // ,
+        // 'X-ACCESS-TOKEN': config.IDENTITY.X_ACCESS_TOKEN
       }
     }
 
@@ -43,12 +49,47 @@ angular.module('driverapp.services.config', [])
         'PWD': ''
       }
     }
+    // config.init = function () {
 
+    //   var configDeferred = $q.defer();
+    //   if (mapJsonConfig != null) configDeferred.resolve(true);
+    //   else $http.get('data/config.json').success(function (response) {
+    //     mapJsonConfig = response;
+    //     // $http.defaults.headers.common.appId = mapJsonConfig["appid"];
+    //        configDeferred.resolve(true);
+    //   });
+    //   return configDeferred.promise;
+    // }
     config.getHttpConfig = function () {
       var httpcfg = angular.copy(config.HTTP_CONFIG)
-      httpcfg.headers['X-ACCESS-TOKEN'] = config.IDENTITY.X_ACCESS_TOKEN
+      // httpcfg.headers['X-ACCESS-TOKEN'] = config.IDENTITY.X_ACCESS_TOKEN
       return httpcfg
     }
+    config.getAppId = function () {
+      return mapJsonConfig["appid"];
+    }
+  // config.getAACURL = function () {
+  //   return mapJsonConfig["AACURL"];
+  // }
 
+  // config.getRedirectUri = function () {
+  //   return mapJsonConfig["redirectURL"];
+  // }
+  // config.getClientId = function () {
+  //   return mapJsonConfig["cliendID"];
+  // }
+  // config.getClientSecKey = function () {
+  //   return mapJsonConfig["clientSecID"];
+  // }
+  // config.getWebClientId = function () {
+  //   return mapJsonConfig["webclientid"];
+  // }
+
+  config.loading = function () {
+    $ionicLoading.show();
+  }
+            config.loaded = function () {
+    $timeout($ionicLoading.hide);
+  }
     return config
   })
