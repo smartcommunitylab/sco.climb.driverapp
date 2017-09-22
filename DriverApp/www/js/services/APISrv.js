@@ -250,7 +250,7 @@ angular.module('driverapp.services.api', [])
 
       if (ionic.Platform.isWebView()) {
         var sourceUrl = Config.SERVER_URL + '/image/download/jpg/' + Config.IDENTITY.OWNER_ID + '/' + childId
-        var targetFile = cordova.file.externalRootDirectory + Config.IMAGES_DIR + childId + '.jpg'
+        var targetFile = Config.imagesDir() + childId + '.jpg'
 
         var ft = new FileTransfer()
         ft.download(

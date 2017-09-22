@@ -1,6 +1,6 @@
 /* global Connection */
 angular.module('driverapp.services.utils', [])
-  .factory('Utils', function ($rootScope, $filter, $timeout, $ionicPopup, $ionicLoading, $interval, Config) {
+  .factory('Utils', function ($rootScope, $filter, $q, $timeout, $ionicPopup, $ionicLoading, $interval, Config) {
     var Utils = {}
     this.drivername = ''
 
@@ -104,6 +104,40 @@ angular.module('driverapp.services.utils', [])
         return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset())
       }
       return now.getTimezoneOffset() < stdTimezoneOffset()
+    }
+
+    Utils.isBLESupported = function(cbs, cbe){
+      if (ionic.Platform.isAndroid()) {
+        cordova.plugins.diagnostic.hasBluetoothLESupport(cbs,cbe);
+      } else if (ionic.Platform.isIOS()){
+        var version = ionic.Platform.version();
+        console.log('Platform version: '+version);
+        cbs(version >= 8);
+      } else {
+        cbs(false);
+      }
+    }
+    Utils.isBluetoothEnabled = function(cbs, cbe, norepeat){
+      cordova.plugins.diagnostic.getBluetoothState(function(state){
+        if (state === cordova.plugins.diagnostic.bluetoothState.POWERED_ON) cbs(true);
+        else {
+          // wait couple of seconds, initialization is slow
+          if (!norepeat) {
+            $timeout(function(){
+              Utils.isBluetoothEnabled(cbs, cbe, true);
+            }, 2000);
+          } else {
+            cbs(false);
+          }
+        }
+      }, function(error) {
+        console.error('Error retrieving BT state', error);
+        cbe(error);
+      });
+    }
+
+    Utils.wsnPluginEnabled = function() {
+      return window.DriverAppPlugin && (ionic.Platform.isAndroid() || ionic.Platform.isIOS());
     }
 
     return Utils

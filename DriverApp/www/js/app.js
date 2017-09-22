@@ -6,7 +6,6 @@ angular.module('driverapp', [
   'driverapp.services.storage',
   'driverapp.services.config',
   'driverapp.services.utils',
-  'driverapp.services.log',
   'driverapp.services.wsn',
   'driverapp.services.geo',
   'driverapp.services.ae',
@@ -22,7 +21,7 @@ angular.module('driverapp', [
   'driverapp.controllers.batteries'
 ])
 
-  .run(function ($ionicPlatform, $rootScope, $state, $translate, $ionicHistory, $ionicPopup, $window, Config, Utils, StorageSrv, LogSrv, WSNSrv, APISrv, LoginService) {
+  .run(function ($ionicPlatform, $rootScope, $state, $translate, $ionicHistory, $ionicPopup, $window, Config, Utils, StorageSrv,  WSNSrv, APISrv, LoginService) {
     $ionicPlatform.ready(function () {
       // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
       // for form inputs)
@@ -36,9 +35,9 @@ angular.module('driverapp', [
         window.StatusBar.styleDefault()
       }
 
-      if (window.logToFile && ionic.Platform.isAndroid()) {
-        LogSrv.init()
-      }
+      // if (window.logToFile && ionic.Platform.isAndroid()) {
+      //   LogSrv.init()
+      // }
       if (typeof navigator.globalization !== "undefined") {
         navigator.globalization.getPreferredLanguage(function (language) {
           $translate.use((language.value).split("-")[0]).then(function (data) {
@@ -57,6 +56,7 @@ angular.module('driverapp', [
           aacUrl: Config.AACURL
         });
       // });
+      GeoSrv.geolocalize();
       /*
        * Check Internet connection
        */
@@ -71,12 +71,11 @@ angular.module('driverapp', [
         })
 
           .then(function (result) {
-            LogSrv.log('--- APPLICATION CLOSED ---')
             ionic.Platform.exitApp()
           })
       }
 
-      if (window.DriverAppPlugin && ionic.Platform.isAndroid()) {
+      if (window.DriverAppPlugin) {
         WSNSrv.init().then(
           function (response) { },
           function (reason) { }
@@ -126,16 +125,6 @@ angular.module('driverapp', [
           )
         }
 
-        $rootScope.uploadLogFile = function () {
-          APISrv.uploadLog(Config.LOGFILE_PATH).then(
-            function (response) {
-              console.log(response)
-            },
-            function (reason) {
-              console.log(reason)
-            }
-          )
-        }
       }
 
       $rootScope.exitApp = function () {
@@ -150,7 +139,6 @@ angular.module('driverapp', [
 
           .then(function (result) {
             if (result) {
-              LogSrv.log('--- APPLICATION CLOSED ---')
               Utils.setMenuDriverTitle(null) // clear driver name in menu
               ionic.Platform.exitApp()
             }
@@ -169,11 +157,15 @@ angular.module('driverapp', [
 
           .then(function (result) {
             if (result) {
-              LogSrv.log('--- LOGOUT ---')
               Config.resetIdentity()
               StorageSrv.clearIdentityIndex()
-              ionic.Platform.exitApp()
-
+              if (ionic.Platform.isIOS()) {
+                $state.go('app.wizard').then(function () {
+                    window.location.reload(true);
+                });
+              } else {
+                ionic.Platform.exitApp()
+              }
               /*
               $state.go('app.wizard').then(function () {
                   window.location.reload(true);

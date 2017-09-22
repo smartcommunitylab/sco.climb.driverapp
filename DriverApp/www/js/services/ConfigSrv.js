@@ -35,7 +35,6 @@ angular.module('driverapp.services.config', [])
     config.DATE_FORMAT = 'YYYY-MM-DD'
     config.WIZARD_SLIDER_OPTIONS = {}
 
-    config.LOGFILE_PATH = '/CLIMB_log_data/aelog.txt'
     config.IMAGES_DIR = '/CLIMB_log_data/images/'
 
     config.setIdentity = function (index) {
@@ -51,15 +50,15 @@ angular.module('driverapp.services.config', [])
     }
     // config.init = function () {
 
-    //   var configDeferred = $q.defer();
-    //   if (mapJsonConfig != null) configDeferred.resolve(true);
-    //   else $http.get('data/config.json').success(function (response) {
-    //     mapJsonConfig = response;
-    //     // $http.defaults.headers.common.appId = mapJsonConfig["appid"];
-    //        configDeferred.resolve(true);
-    //   });
-    //   return configDeferred.promise;
-    // }
+
+    config.imagesDir = function() {
+      if (ionic.Platform.isAndroid()) {
+        return cordova.file.externalRootDirectory + config.IMAGES_DIR;
+      } else {
+        return cordova.file.cacheDirectory  + config.IMAGES_DIR;
+      }
+    }
+
     config.getHttpConfig = function () {
       var httpcfg = angular.copy(config.HTTP_CONFIG)
       // httpcfg.headers['X-ACCESS-TOKEN'] = config.IDENTITY.X_ACCESS_TOKEN
