@@ -926,7 +926,8 @@
 
 /* Login pages */
 .login-page {
-    background-image: url("../img/background_login.jpg");
+    /*background-image: url("../img/background_login.jpg");*/
+    background-color: #f39c12;
     height: 100%;
 }
 .login-title {
@@ -936,6 +937,10 @@
     font-size: 50px;
     width: 100%;
     text-align: center;
+}
+.login-title>img {
+  width: 70%;
+  background-color: white;
 }
 
 .login .login-buttons {

@@ -14,14 +14,13 @@ angular.module('driverapp', [
   'driverapp.services.login',
   'driverapp.controllers.login',
   'driverapp.controllers.home',
-  'driverapp.controllers.wizard',
   'driverapp.controllers.routes',
   'driverapp.controllers.route',
   'driverapp.controllers.volunteers',
   'driverapp.controllers.batteries'
 ])
 
-  .run(function ($ionicPlatform, $rootScope, $state, $translate, $ionicHistory, $ionicPopup, $window, Config, Utils, StorageSrv,  WSNSrv, APISrv, LoginService) {
+  .run(function ($ionicPlatform, $rootScope, $state, $translate, $ionicHistory, $ionicPopup, $window, GeoSrv,Config, Utils, StorageSrv,  WSNSrv, APISrv, LoginService) {
     $ionicPlatform.ready(function () {
       // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
       // for form inputs)
@@ -158,14 +157,15 @@ angular.module('driverapp', [
           .then(function (result) {
             if (result) {
               Config.resetIdentity()
-              StorageSrv.clearIdentityIndex()
-              if (ionic.Platform.isIOS()) {
-                $state.go('app.wizard').then(function () {
-                    window.location.reload(true);
+              StorageSrv.clearIdentity()
+              // if (ionic.Platform.isIOS()) {
+                LoginService.logout();
+                $state.go('app.login').then(function () {
+                    // window.location.reload(true);
                 });
-              } else {
-                ionic.Platform.exitApp()
-              }
+              // } else {
+              //   ionic.Platform.exitApp()
+              // }
               /*
               $state.go('app.wizard').then(function () {
                   window.location.reload(true);
@@ -235,18 +235,9 @@ angular.module('driverapp', [
           }
         }
       })
-      .state('app.wizard', {
-        url: '/wizard',
-        cache: false,
-        views: {
-          'menuContent': {
-            templateUrl: 'templates/wizard.html',
-            controller: 'WizardCtrl'
-          }
-        }
-      })
       .state('app.home', {
         url: '/home',
+        cache: false,
         views: {
           'menuContent': {
             templateUrl: 'templates/home.html',
@@ -269,6 +260,7 @@ angular.module('driverapp', [
         cache: false,
         params: {
           fromWizard: false,
+          ownerId:"",
           route: {},
           driver: {},
           helpers: []
@@ -313,7 +305,14 @@ angular.module('driverapp', [
       text_login_use: 'oppure accedi con',
       error_popup_title: 'Errore',
       error_generic: 'La registrazione non è andata a buon fine. Riprova più tardi.',
-      error_email_inuse: 'L\'indirizzo email è già in uso.'
+      error_email_inuse: 'L\'indirizzo email è già in uso.',
+      home_get_profile:'Ottenendo il profilo',
+      home_get_school:'Ottenendo la scuola',
+      home_get_institute:'Ottenendo l\'istituto',
+      home_get_route:'Ottenendo i percorsi',
+      home_get_vol:'Ottenendo i volontari',
+      home_get_children:'Ottenendo i bambini',
+      user_check:'Verifica credenziali'
 
 
     });

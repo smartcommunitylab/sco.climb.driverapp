@@ -11,7 +11,7 @@ angular.module('driverapp.services.config', [])
     config.AACURL = CONF.AACURL
     config.EVENTS_SERVER_URL = CONF.EVENTS_SERVER_URL
     config.IDENTITIES = CONF.IDENTITIES
-    config.APPID = CONF.APPID
+    config.APPID = CONF.APP_ID
     config.IDENTITY = {
       'OWNER_ID': '',
       'X-ACCESS-TOKEN': '',

@@ -1,6 +1,6 @@
 angular.module('driverapp.controllers.login', [])
 
-    .controller('LoginCtrl', function ($scope, $ionicSideMenuDelegate, $ionicLoading, $ionicPlatform, $state, $ionicHistory, $ionicPopup, $timeout, $filter, Config, LoginService, Utils) {
+    .controller('LoginCtrl', function ($scope, $ionicSideMenuDelegate, $ionicLoading, $ionicPlatform, $state, $ionicHistory, $ionicPopup, $timeout, $filter, Config, LoginService, Utils,StorageSrv) {
         $ionicSideMenuDelegate.canDragContent(false);
 
 
@@ -19,9 +19,11 @@ angular.module('driverapp.controllers.login', [])
             // }, 3000);
             LoginService.login(LoginService.PROVIDER.GOOGLE).then(function (profile) {
                 //                                       check if user is valid
+                $ionicLoading.hide();
                 $ionicLoading.show({
                     template: $filter('translate')('user_check')
                 });
+               StorageSrv.saveIdentity('a');
                 $state.go('app.home');
                 $ionicHistory.nextViewOptions({
                     disableBack: true,
@@ -42,9 +44,12 @@ angular.module('driverapp.controllers.login', [])
             }, 3000);
             LoginService.login(LoginService.PROVIDER.FACEBOOK).then(function (profile) {
                 //                                       check if user is valid
+                $ionicLoading.hide();
                 $ionicLoading.show({
-                    template: "Verifica utente"
+                    template: $filter('translate')('user_check')
                 });
+                                    StorageSrv.saveIdentity('a');
+
                 $state.go('app.home');
                 $ionicHistory.nextViewOptions({
                     disableBack: true,
@@ -76,22 +81,24 @@ angular.module('driverapp.controllers.login', [])
             if (window.cordova && window.cordova.plugins.screenorientation && screen.lockOrientation) {
                 screen.lockOrientation('portrait');
             }
-            $ionicLoading.show();
-            LoginService.getValidAACtoken().then(function (validToken) {
-                $ionicLoading.hide();
-                // var profile = LoginService.getUserProfile();
-                $state.go('app.home');
-                $ionicHistory.nextViewOptions({
-                    disableBack: true,
-                    historyRoot: true
-                });
+            if (StorageSrv.getIdentity()) {
+                $ionicLoading.show();
+                LoginService.getValidAACtoken().then(function (validToken) {
+                    $ionicLoading.hide();
+                    // var profile = LoginService.getUserProfile();
+                     //StorageSrv.saveIdentity('a');
+                    $state.go('app.home');
+                    $ionicHistory.nextViewOptions({
+                        disableBack: true,
+                        historyRoot: true
+                    });
 
-            }, function (err) {
-                $ionicLoading.hide();
-                var profile = LoginService.getUserProfile();
-            })
-            // });
-
+                }, function (err) {
+                    $ionicLoading.hide();
+                    var profile = LoginService.getUserProfile();
+                })
+                // });
+            }
         });
 
         $scope.goRegister = function () {
@@ -105,9 +112,12 @@ angular.module('driverapp.controllers.login', [])
             Config.loading();
             LoginService.login(LoginService.PROVIDER.INTERNAL, $scope.user).then(
                 function (profile) {
+                    $ionicLoading.hide();
                     $ionicLoading.show({
                         template: $filter('translate')('user_check')
                     });
+                                        StorageSrv.saveIdentity('a');
+
                     $state.go('app.home');
                     $ionicHistory.nextViewOptions({
                         disableBack: true,

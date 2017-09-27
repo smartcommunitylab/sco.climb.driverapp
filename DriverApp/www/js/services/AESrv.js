@@ -154,7 +154,7 @@ angular.module('driverapp.services.ae', [])
     }
 
     /* end route */
-    aeService.endRoute = function (stop) {
+    aeService.endRoute = function (stop,ownerId,routeId) {
       var event = {
         routeId: aeInstance.routeId,
         wsnNodeId: stop.wsnId,
@@ -171,7 +171,7 @@ angular.module('driverapp.services.ae', [])
       WSNSrv.deinit().then(
         function () {
           var uploadWsnLogFiles = function () {
-            APISrv.uploadWsnLogs(aeInstance.routeId).then(
+            APISrv.uploadWsnLogs(aeInstance.routeId,ownerId).then(
               function () {
                 Utils.loaded()
                 console.log('[WSN Logs] Successfully uploaded to the server.')
@@ -186,7 +186,7 @@ angular.module('driverapp.services.ae', [])
           StorageSrv.saveEAs(aeInstance.events).then(
             function (eas) {
               Utils.loading()
-              APISrv.addEvents(eas).then(
+              APISrv.addEvents(eas,ownerId,routeId).then(
                 function (response) {
                   console.log('[Events] Successfully uploaded to the server.')
                   uploadWsnLogFiles()

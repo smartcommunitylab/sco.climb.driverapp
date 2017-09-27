@@ -52,7 +52,7 @@ angular.module('driverapp.controllers.route', [])
 
       if ($stateParams['route']) {
         $rootScope.route = $stateParams['route']
-
+        $scope.routeId = $rootScope.route.objectId;
         aesInstance = AESrv.startInstance($rootScope.route.objectId)
         WSNSrv.updateNodeList(StorageSrv.getChildren(), 'child', true)
 
@@ -60,7 +60,10 @@ angular.module('driverapp.controllers.route', [])
           $scope.driver = $stateParams['driver']
           AESrv.setDriver($scope.driver)
         }
-
+        if ($stateParams['ownerId']) {
+          $scope.ownerId = $stateParams['ownerId']
+          StorageSrv.setOwnerId($scope.ownerId);
+        }
         if ($stateParams['helpers']) {
           $scope.helpersTemp = $stateParams['helpers']
           /*
@@ -159,14 +162,16 @@ angular.module('driverapp.controllers.route', [])
         $rootScope.route = $stateParams['route']
       } else if ($stateParams['routeId']) {
         $rootScope.route = StorageSrv.getRouteById($stateParams['routeId'])
+
       }
+      $scope.routeId = $rootScope.route.objectId;
     }
 
     /*
      * populate stops
      */
     Utils.loading()
-    APISrv.getStopsByRoute($stateParams['routeId']).then(
+    APISrv.getStopsByRoute($stateParams['ownerId'], $stateParams['routeId']).then(
       function (stops) {
         $scope.stops = stops
         // get children images
@@ -184,7 +189,7 @@ angular.module('driverapp.controllers.route', [])
             })
           })
           angular.forEach(childrenByRoute, function (child) {
-            APISrv.getChildImage(child.objectId).then(
+            APISrv.getChildImage(child.objectId, $scope.ownerId).then(
               function () {
                 downloaded++
                 counter++
@@ -337,7 +342,7 @@ angular.module('driverapp.controllers.route', [])
               WSNSrv.checkoutChildren(childrenWsnIds)
             }
 
-            AESrv.endRoute($scope.stops[$scope.enRoutePos])
+            AESrv.endRoute($scope.stops[$scope.enRoutePos], $scope.ownerId, $scope.routeId)
 
             GeoSrv.stopWatchingPosition()
             WSNSrv.stopListener()
@@ -617,31 +622,31 @@ angular.module('driverapp.controllers.route', [])
     }
 
     $scope.selectHelpersPopup = function () {
-      var calendars = StorageSrv.getVolunteersCalendars()
-      var sortedVolunteers = $filter('orderBy')(StorageSrv.getVolunteers(), ['checked', 'name'])
-      // sort using calendars
-      for (var j = 0; j < calendars.length; j++) {
-        var cal = calendars[j]
-        if (cal.schoolId === StorageSrv.getSchoolId() && cal.routeId === $rootScope.route.objectId) {
-          // helpers
-          if (!!cal.helperList && cal.helperList.length > 0) {
-            var counter = 0
-            cal.helperList.forEach(function (helperId) {
-              for (var i = 0; i < sortedVolunteers.length; i++) {
-                if (sortedVolunteers[i].objectId === helperId) {
-                  Utils.moveInArray(sortedVolunteers, i, counter)
-                  // console.log('Helper ' + sortedVolunteers[counter].name + ' moved to position ' + counter);
-                  counter++
-                  i = sortedVolunteers.length
-                }
-              }
-            })
-          }
-          j = calendars.length
-        }
-      }
-      $scope.volunteers = sortedVolunteers
-
+      // var calendars = StorageSrv.getVolunteersCalendars()
+      // var sortedVolunteers = $filter('orderBy')(StorageSrv.getVolunteers(), ['checked', 'name'])
+      // // sort using calendars
+      // for (var j = 0; j < calendars.length; j++) {
+      //   var cal = calendars[j]
+      //   if (cal.schoolId === StorageSrv.getSchoolId() && cal.routeId === $rootScope.route.objectId) {
+      //     // helpers
+      //     if (!!cal.helperList && cal.helperList.length > 0) {
+      //       var counter = 0
+      //       cal.helperList.forEach(function (helperId) {
+      //         for (var i = 0; i < sortedVolunteers.length; i++) {
+      //           if (sortedVolunteers[i].objectId === helperId) {
+      //             Utils.moveInArray(sortedVolunteers, i, counter)
+      //             // console.log('Helper ' + sortedVolunteers[counter].name + ' moved to position ' + counter);
+      //             counter++
+      //             i = sortedVolunteers.length
+      //           }
+      //         }
+      //       })
+      //     }
+      //     j = calendars.length
+      //   }
+      // }
+      // $scope.volunteers = sortedVolunteers
+      $scope.volunteers = StorageSrv.getVolunteers();
       $scope.helpers = $filter('orderBy')($scope.helpers, ['checked', 'name'])
       $scope.helpersTemp = $filter('orderBy')($scope.helpersTemp, ['checked', 'name'])
       var hs = $scope.helpers.concat($scope.helpersTemp)

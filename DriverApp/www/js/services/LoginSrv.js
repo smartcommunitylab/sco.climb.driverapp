@@ -822,7 +822,31 @@ angular.module('driverapp.services.login', [])
 								deferred.resolve(msg);
 							},
 							function (error) {
-								deferred.reject();
+								console.error('Error logging out from Google: ' + error);
+								window.plugins.googleplus.trySilentLogin(
+									{
+									},
+									function (obj) {
+										console.error('Google trySilentLogin success');
+										//try logout again
+										window.plugins.googleplus.logout(
+											function (msg) {
+												console.error('Google logout success');
+												deferred.resolve(msg);
+											},
+											function (err) {
+												console.error('Error logging out from Google for the 2nd time: ' + err);
+												deferred.reject(err);
+
+											}
+										);
+									},
+									function (err) {
+										console.error('Google trySilentLogin error: ' + err);
+										deferred.reject(err);
+									}
+								);
+
 							}
 						);
 						break;

@@ -74,7 +74,7 @@ angular.module('driverapp.controllers.home', [])
       }
     }
 
-    $rootScope.loadAllBySchool = function (schoolId) {
+    $scope.loadAllBySchool = function (schoolId) {
       var deferred = $q.defer()
 
       APISrv.getRoutesBySchool(schoolId, moment().format(Config.DATE_FORMAT)).then(
@@ -259,98 +259,686 @@ angular.module('driverapp.controllers.home', [])
 
   })
 
-  .controller('HomeCtrl', function ($scope, Utils, StorageSrv, APISrv) {
+  .controller('HomeCtrl', function ($ionicPlatform, $scope, $ionicLoading, $q, $rootScope, $state, $window, $ionicPopup, $ionicModal, $ionicHistory, $ionicSlideBoxDelegate, $timeout, $filter, Utils, StorageSrv, Config, APISrv, WSNSrv) {
     StorageSrv.reset()
 
     $scope.schools = null
     $scope.school = null
 
-    // APISrv.getSchools().then(
-    //   function (schools) {
-    //     $scope.schools = schools
-    //   },
-    //   function (error) {
-    //     console.log(error)
+    $scope.swiperOptions = Config.WIZARD_SLIDER_OPTIONS;
+    $ionicPlatform.ready(function () {
+      if ($scope.checkHardwarePopup) {
+        $scope.checkHardwarePopup();
+      }
+    });
+
+    var INDEXES = {
+      'schools': 0,
+      'volunteers': 1,
+      'helpers': 2
+    };
+
+    $scope.schools = [];
+    $scope.routes = [];
+    $scope.volunteers = null;
+
+    var calendars = [];
+
+    $scope.wizard = {
+      school: null,
+      driver: null,
+      route: null,
+      helpers: []
+    };
+
+    $scope.resizeHelpersList = function () {
+      $scope.helpersListStyle = {};
+      /* 44 header, 60 helptext, 44 footer */
+      var logoHeight = angular.element(document.querySelector('.dapp-logo'))[0].offsetHeight;
+      var helpTextHeight = angular.element(document.querySelector('#helptext-helpers'))[0].offsetHeight;
+      var height = $window.innerHeight - (44 + logoHeight + helpTextHeight + 44);
+      $scope.helpersListStyle['height'] = height + 'px';
+    };
+
+    var loadDataBySchool = function (schoolId) {
+      Utils.loading();
+      $scope.loadAllBySchool(schoolId).then(
+        function () {
+          $scope.routes = StorageSrv.getRoutes();
+          if ($scope.routes != null && $scope.routes.length == 1) {
+            $scope.wizard.route = $scope.routes[0];
+          }
+          $scope.volunteers = StorageSrv.getVolunteers();
+          calendars = StorageSrv.getVolunteersCalendars();
+          $ionicSlideBoxDelegate.update();
+          Utils.loaded();
+        },
+        function (error) {
+          console.log(error);
+        }
+      );
+    };
+
+    // $scope.$on("wizard:IndexChanged", function (e, wizardIndex, wizardCount) {
+    //   /*if (wizardIndex == INDEXES.schools) {
+    //       $scope.schools = [StorageSrv.getSchool()];
+  
+    //       if ($scope.schools !== null && $scope.schools.length == 1) {
+    //           $scope.wizard.school = $scope.schools[0];
+    //       }
+  
+    //       if ($scope.wizard.school !== null) {
+    //           loadDataBySchool($scope.wizard.school.objectId);
+    //       }
+    //   }*/
+    //   if (wizardIndex == INDEXES.volunteers) {
+    //     /*
+    //      * sort volunteers only if route exists but not a driver
+    //      */
+    //     var route = $scope.wizard.route;
+    //     var sortedVolunteers = $filter('orderBy')(StorageSrv.getVolunteers(), ['checked', 'name']);
+    //     // TODO sort using calendars
+    //     for (var j = 0; j < calendars.length; j++) {
+    //       var cal = calendars[j]
+    //       if (cal.schoolId == StorageSrv.getSchoolId() && cal.routeId == route.objectId) {
+    //         // driver
+    //         var driverOnTop = false;
+    //         if (!!cal.driverId) {
+    //           for (var i = 0; i < sortedVolunteers.length; i++) {
+    //             if (sortedVolunteers[i].objectId == cal.driverId) {
+    //               Utils.moveInArray(sortedVolunteers, i, 0);
+    //               //console.log('Driver ' + sortedVolunteers[counter].name + ' moved on top');
+    //               driverOnTop = true;
+    //               i = sortedVolunteers.length;
+    //             }
+    //           }
+    //         }
+
+    //         // helpers
+    //         if (!!cal.helperList && cal.helperList.length > 0) {
+    //           var counter = driverOnTop ? 1 : 0;
+    //           cal.helperList.forEach(function (helperId) {
+    //             for (var i = 0; i < sortedVolunteers.length; i++) {
+    //               if (sortedVolunteers[i].objectId == helperId) {
+    //                 Utils.moveInArray(sortedVolunteers, i, counter);
+    //                 //console.log('Helper ' + sortedVolunteers[counter].name + ' moved to position ' + counter);
+    //                 counter++;
+    //                 i = sortedVolunteers.length;
+    //               }
+    //             }
+    //           });
+    //         }
+    //         j = calendars.length;
+    //       }
+    //     }
+    //     $scope.volunteers = sortedVolunteers;
+    //   } else if (wizardIndex == INDEXES.helpers) {
+    //     if (!$scope.wizard.driver.wsnId) {
+    //       $scope.wizard.driver.wsnId = CONF.DEV_MASTER;
+    //     }
+    //     $rootScope.driver = $scope.wizard.driver;
+
+    //     if ($scope.wizard.driver.wsnId !== null && $scope.wizard.driver.wsnId.length > 0) {
+    //       WSNSrv.connectMaster($scope.wizard.driver.wsnId).then(
+    //         function (procedureStarted) { },
+    //         function (reason) {
+    //           // TODO toast for failure
+    //           //Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
+    //         }
+    //       );
+    //     }
+    //     // $scope.resizeHelpersList();
     //   }
-    // )
+    // });
+
+    function showHardwarePopup() {
+      var hardwarePopup = $ionicPopup.show({
+        templateUrl: 'templates/hardwarePopup.html',
+        cssClass: 'hwPopup',
+        title: 'ATTENZIONE',
+        scope: $scope,
+        buttons: [{
+          text: 'HO CAPITO',
+          type: 'button-stable'
+        }]
+      });
+
+    }
+    $scope.checkHardwarePopup = function () {
+      Utils.isBLESupported(function (supported) {
+        //if supported check, else don't care
+        if (supported) {
+          Utils.isBluetoothEnabled(function (BTenabled) {
+            if (BTenabled) {
+              $scope.bluetoothEnabled = true;
+            } else {
+              $scope.bluetoothEnabled = false;
+            }
+            cordova.plugins.diagnostic.isLocationEnabled(function (LocationEnabled) {
+              if (LocationEnabled) {
+                $scope.locationEnabled = true;
+              } else {
+                $scope.locationEnabled = false;
+              }
+              if (!$scope.bluetoothEnabled || !$scope.locationEnabled) {
+                console.log('---- BT enabled: ' + $scope.bluetoothEnabled);
+                console.log('---- LOCATION enabled: ' + $scope.locationEnabled);
+                showHardwarePopup();
+              }
+            }, function (error) {
+              console.error("The following error occurred: " + error);
+            });
+          }, function (error) {
+            console.error("The following error occurred: " + error);
+          });
+        }
+      }, function (error) {
+        console.error("The following error occurred: " + error);
+      });
+    }
+
+    $scope.saveWizardChoices = function () {
+      // TODO save volunteer in storage after password verification
+      $scope.volunteers.forEach(function (vol) {
+        if (vol.checked) {
+          $scope.wizard.helpers.push(vol);
+        }
+      });
+      Utils.setMenuDriverTitle($scope.wizard.driver.name);
+
+      $ionicHistory.nextViewOptions({
+        historyRoot: true
+      });
+      $state.go('app.route', {
+        routeId: $scope.wizard.route.objectId,
+        fromWizard: true,
+        driver: $scope.wizard.driver,
+        route: $scope.wizard.route,
+        helpers: $scope.wizard.helpers
+      }, {
+          reload: true
+        });
+    };
+
+    loadingWithMessage = function (label) {
+      $ionicLoading.show({
+        template: '<ion-spinner></ion-spinner> <br/> ' + label
+      });
+    }
+    hideLoading = function () {
+      $ionicLoading.hide();
+    }
+    goWithChildren = function () {
+      loadingWithMessage($filter('translate')('home_get_children'));
+      APISrv.getChildrenBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId).then(
+        function (children) {
+          hideLoading();
+          StorageSrv.saveChildren(children).then(
+            function (children) {
+              WSNSrv.updateNodeList(children, 'child')
+              //deferred.resolve()
+
+              // $scope.routes = StorageSrv.getRoutes();
+              // if ($scope.routes != null && $scope.routes.length == 1) {
+              //   $scope.wizard.route = $scope.routes[0];
+              // }
+              // $scope.volunteers = StorageSrv.getVolunteers();
+              // calendars = StorageSrv.getVolunteersCalendars();
+              $ionicSlideBoxDelegate.update();
+              Utils.loaded();
+              // Utils.setMenuDriverTitle($scope.wizard.driver.name);
+
+              $ionicHistory.nextViewOptions({
+                historyRoot: true
+              });
+              $state.go('app.route', {
+                ownerId: $scope.ownerId,
+                routeId: $scope.route.objectId,
+                fromWizard: true,
+                driver: $scope.driver,
+                route: $scope.route,
+                helpers: $scope.helpers
+              }, {
+                  reload: true
+                });
+            })
+        }, function (err) {
+          hideLoading();
+        }
+      )
+    }
+    selectedHelpers = function () {
+      if (!$scope.driver.wsnId) {
+        $scope.driver.wsnId = CONF.DEV_MASTER;
+      }
+      $rootScope.driver = $scope.driver;
+
+      if ($scope.driver.wsnId !== null && $scope.driver.wsnId.length > 0) {
+        WSNSrv.connectMaster($scope.driver.wsnId).then(
+          function (procedureStarted) { },
+          function (reason) {
+            // TODO toast for failure
+            //Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
+          }
+        );
+      }
+      // $scope.resizeHelpersList();
+    }
+
+    selectHelpers = function () {
+      //show popup of selection and go on after selection
+      var deferred = $q.defer();
+      var volunteerPopup = $ionicPopup.show({
+        templateUrl: 'templates/home_popup_helpers.html',
+        title: 'Seleziona con chi vai',
+        scope: $scope,
+        buttons: [{
+          text: 'Annulla',
+          type: 'button-stable'
+        }, {
+          text: 'ok',
+          type: 'button-stable',
+          onTap: function (e) {
+            $scope.helpers = [];
+            var items = 0;
+            $scope.volunteers.forEach(function (vol, index, array) {
+              if (vol.checked) {
+                $scope.helpers.push(vol);
+              }
+              items++;
+              if (items == array.length) {
+                deferred.resolve();
+                volunteerPopup.close();
+              }
+            });
+          }
+        }]
+      });
+
+      return deferred.promise;
+    }
+    goWithHelpers = function () {
+      selectHelpers().then(
+        function () {
+          selectedHelpers();
+          goWithChildren();
+        }
+      )
+    }
+
+
+    sortedVolunteers = function () {
+      /*
+       * sort volunteers only if route exists but not a driver
+       */
+      var route = $scope.wizard.route;
+      var sortedVolunteers = $filter('orderBy')(StorageSrv.getVolunteers(), ['checked', 'name']);
+      // TODO sort using calendars
+      for (var j = 0; j < calendars.length; j++) {
+        var cal = calendars[j]
+        if (cal.schoolId == StorageSrv.getSchoolId() && cal.routeId == route.objectId) {
+          // driver
+          var driverOnTop = false;
+          if (!!cal.driverId) {
+            for (var i = 0; i < sortedVolunteers.length; i++) {
+              if (sortedVolunteers[i].objectId == cal.driverId) {
+                Utils.moveInArray(sortedVolunteers, i, 0);
+                //console.log('Driver ' + sortedVolunteers[counter].name + ' moved on top');
+                driverOnTop = true;
+                i = sortedVolunteers.length;
+              }
+            }
+          }
+
+          // helpers
+          if (!!cal.helperList && cal.helperList.length > 0) {
+            var counter = driverOnTop ? 1 : 0;
+            cal.helperList.forEach(function (helperId) {
+              for (var i = 0; i < sortedVolunteers.length; i++) {
+                if (sortedVolunteers[i].objectId == helperId) {
+                  Utils.moveInArray(sortedVolunteers, i, counter);
+                  //console.log('Helper ' + sortedVolunteers[counter].name + ' moved to position ' + counter);
+                  counter++;
+                  i = sortedVolunteers.length;
+                }
+              }
+            });
+          }
+          j = calendars.length;
+        }
+      }
+      $scope.volunteers = sortedVolunteers;
+    }
+
+
+    selectDriver = function () {
+      //show popup of selection and go on after selection
+      var deferred = $q.defer();
+      var volunteerPopup = $ionicPopup.show({
+        templateUrl: 'templates/home_popup_driver.html',
+        title: 'Seleziona chi sei',
+        scope: $scope,
+        buttons: [{
+          text: 'Annulla',
+          type: 'button-stable'
+        }]
+      });
+
+      $scope.selectVolunteer = function (volunteer) {
+        $scope.driver = volunteer;
+        deferred.resolve();
+        volunteerPopup.close();
+      };
+      return deferred.promise;
+    }
+    goWithDriver = function () {
+      loadingWithMessage($filter('translate')('home_get_vol'));
+      APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId).then(
+        function (volunteers) {
+          console.log(volunteers);
+          hideLoading();
+          $scope.volunteers = volunteers;
+          sortedVolunteers();
+          StorageSrv.saveVolunteers(volunteers).then(function (volunteers) {
+            if ($scope.volunteers.length == 1) {
+              $scope.driver = $scope.volunteers[0];
+              goWithChildren()
+            } else {
+              selectDriver().then(
+                function () {
+                  goWithHelpers();
+                }
+              )
+            }
+          }
+          )
+        },
+        function (err) {
+          console.log(err);
+          hideLoading();
+        });
+    }
+
+    selectRoute = function () {
+      //show popup of selection and go on after selection
+      var deferred = $q.defer();
+      var institutePopup = $ionicPopup.show({
+        templateUrl: 'templates/home_popup_routes.html',
+        title: 'Seleziona la linea',
+        scope: $scope,
+        buttons: [{
+          text: 'Annulla',
+          type: 'button-stable'
+        }]
+      });
+
+      $scope.selectRoute = function (route) {
+        $scope.route = route;
+        deferred.resolve(route);
+        institutePopup.close();
+      };
+      return deferred.promise;
+    }
+    goWithRoutes = function (instituteId) {
+      loadingWithMessage($filter('translate')('home_get_route'));
+      APISrv.getRoute($scope.ownerId, $scope.institute.objectId, $scope.school.objectId).then(
+        function (routes) {
+          console.log(routes);
+          hideLoading();
+          $scope.routes = routes;
+          StorageSrv.saveRoutes(routes).then(function (routes) {
+            // get institute by ownerId
+            if ($scope.routes.length == 1) {
+              $scope.route = $scope.routes[0];
+              goWithDriver();
+            } else {
+              selectRoute().then(
+                function (route) {
+                  goWithDriver()
+                }
+              )
+            }
+          })
+        },
+        function (err) {
+          console.log(err);
+          hideLoading();
+        });
+    }
+
+
+    selectSchool = function () {
+      //show popup of selection and go on after selection
+      var deferred = $q.defer();
+      var institutePopup = $ionicPopup.show({
+        templateUrl: 'templates/home_popup_schools.html',
+        title: 'Seleziona la scuola',
+        scope: $scope,
+        buttons: [{
+          text: 'Annulla',
+          type: 'button-stable'
+        }]
+      });
+
+      $scope.selectSchool = function (school) {
+        $scope.school = school;
+        deferred.resolve(school.objectId);
+        institutePopup.close();
+      };
+      return deferred.promise;
+    }
+    goWithSchool = function (instituteId) {
+      loadingWithMessage($filter('translate')('home_get_school'));
+      APISrv.getSchooldById($scope.ownerId, $scope.institute.objectId).then(
+        function (schools) {
+          console.log(schools);
+          hideLoading();
+          $scope.schools = schools;
+          // get institute by ownerId
+          if ($scope.schools.length == 1) {
+            $scope.school = $scope.schools[0];
+            goWithRoutes($scope.schools[0].objectId)
+          } else {
+            selectSchool().then(
+              function (schoolId) {
+                goWithRoutes(schoolId);
+              }
+            )
+          }
+        },
+        function (err) {
+          console.log(err);
+          hideLoading();
+        });
+    }
+
+    selectInstitute = function () {
+      //show popup of selection and go on after selection
+      var deferred = $q.defer();
+      var institutePopup = $ionicPopup.show({
+        templateUrl: 'templates/home_popup_institute.html',
+        title: 'Seleziona l\'istituto',
+        scope: $scope,
+        buttons: [{
+          text: 'Annulla',
+          type: 'button-stable'
+        }]
+      });
+
+      $scope.selectInstitute = function (institute) {
+        $scope.institute = institute;
+        deferred.resolve(instituteId.objectId);
+        institutePopup.close();
+      };
+      return deferred.promise;
+    }
+    goWithInstitute = function (ownerId) {
+      loadingWithMessage($filter('translate')('home_get_institute'));
+      APISrv.getInstituteByOwnerId(ownerId).then(
+        function (institutes) {
+          hideLoading();
+          console.log(institutes);
+          $scope.institutes = institutes;
+          // get institute by ownerId
+          if ($scope.institutes.length == 1) {
+            $scope.institute = $scope.institutes[0];
+            goWithSchool($scope.institutes[0].objectId)
+          } else {
+            selectInstitute().then(
+              function (schoolId) {
+                goWithSchool(schoolId);
+              }
+            )
+          }
+        },
+        function (err) {
+          console.log(err);
+          hideLoading();
+        });
+    }
+    selectOwnerId = function () {
+      //show popup of selection and go on after selection
+      var deferred = $q.defer();
+      var ownerPopup = $ionicPopup.show({
+        templateUrl: 'templates/home_popup_owner.html',
+        title: 'Seleziona il profile',
+        scope: $scope,
+        buttons: [{
+          text: 'Annulla',
+          type: 'button-stable'
+        }]
+      });
+
+      $scope.selectOwner = function (ownerId) {
+        $scope.ownerId = ownerId;
+        deferred.resolve(ownerId);
+        ownerPopup.close();
+      };
+      return deferred.promise;
+    }
     $scope.initProfile = function () {
       //get profile
+      loadingWithMessage($filter('translate')('home_get_profile'));
       APISrv.getProfile().then(function (profile) {
         console.log(profile);
+        hideLoading();
         $scope.ownerIds = profile.ownerIds;
         // get institute by ownerId
-        APISrv.getInstituteByOwnerId($scope.ownerIds[0]).then(function (institute) {
-          console.log(institute);
-          $scope.instituteId = institute[0].objectId;
-          APISrv.getSchooldById($scope.ownerIds[0], $scope.instituteId).then(function (school) {
-            console.log(school);
-            $scope.schoolId = school[0].objectId;
-            APISrv.getRoute($scope.ownerIds[0], $scope.instituteId, $scope.schoolId).then(
-              function (routes) {
-                StorageSrv.saveRoutes(routes).then(function (routes) {
-                  APISrv.getVolunteersBySchool($scope.ownerIds[0], $scope.instituteId, $scope.schoolId).then(
-                    function (volunteers) {
-                      StorageSrv.saveVolunteers(volunteers).then(function (volunteers) {
-                        var dateFrom = moment().format(Config.DATE_FORMAT)
-                        var dateTo = moment().format(Config.DATE_FORMAT);
-                        APISrv.getVolunteersCalendarsBySchool($scope.schoolId, dateFrom, dateTo).then(
-                          function (cals) {
-                            StorageSrv.saveVolunteersCalendars(cals).then(function (calendars) {
-                              APISrv.getChildrenBySchool($scope.schoolId).then(
-                                function (children) {
-                                  StorageSrv.saveChildren(children).then(
-                                    function (children) {
-                                      WSNSrv.updateNodeList(children, 'child')
-                                      deferred.resolve()
-
-
-                                    }
-                                  )
-                                  // deferred.resolve();
-                                },
-                                function (error) {
-                                  // TODO handle error
-                                  console.log(error)
-                                  // deferred.reject(error)
-                                }
-                              )
-                            })
-                          },
-                          function (error) {
-                            // TODO handle error
-                            console.log(error)
-                            // deferred.reject(error)
-                          }
-                        )
-                      })
-                    },
-                    function (error) {
-                      // StorageSrv.saveSchool(CONF.DEV_SCHOOL)
-                      // TODO handle error
-                      console.log(error)
-                      // deferred.reject(error)
-                    }
-                  )
-                })
-              }, function (err) {
-                console.log(error)
-                // deferred.reject(error)
-              })
-          }, function (err) {
-            console.log(error)
-            // deferred.reject(error)
-          })
-        }, function (err) {
-          console.log(error)
-          // deferred.reject(error)
-        })
+        if ($scope.ownerIds.length == 1) {
+          goWithInstitute($scope.ownerIds[0])
+        } else {
+          selectOwnerId().then(
+            function (instituteId) {
+              goWithInstitute(instituteId);
+            }
+          )
+        }
       }, function (err) {
-        console.log(error)
-        // deferred.reject(error)
-      });
-      //get school by institute
-      //get route with all the data
+        hideLoading();
+      })
     }
+    // $scope.initProfile = function () {
+    //   //get profile
+    //   APISrv.getProfile().then(function (profile) {
+    //     console.log(profile);
+    //     $scope.ownerIds = profile.ownerIds;
+    //     // get institute by ownerId
+    //     APISrv.getInstituteByOwnerId($scope.ownerIds[0]).then(function (institute) {
+    //       console.log(institute);
+    //       $scope.instituteId = institute[0].objectId;
+    //       APISrv.getSchooldById($scope.ownerIds[0], $scope.instituteId).then(function (school) {
+    //         console.log(school);
+    //         $scope.schoolId = school[0].objectId;
+    //         APISrv.getRoute($scope.ownerIds[0], $scope.instituteId, $scope.schoolId).then(
+    //           function (routes) {
+    //             StorageSrv.saveRoutes(routes).then(function (routes) {
+    //               APISrv.getVolunteersBySchool($scope.ownerIds[0], $scope.instituteId, $scope.schoolId).then(
+    //                 function (volunteers) {
+    //                   StorageSrv.saveVolunteers(volunteers).then(function (volunteers) {
+    //                     var dateFrom = moment().format(Config.DATE_FORMAT)
+    //                     var dateTo = moment().format(Config.DATE_FORMAT);
+    //                     // APISrv.getVolunteersCalendarsBySchool($scope.ownerIds[0], $scope.instituteId, $scope.schoolId, dateFrom, dateTo).then(
+    //                     APISrv.getVolunteersBySchool($scope.ownerIds[0], $scope.instituteId, $scope.schoolId).then(
+    //                       function (vol) {
+    //                         // StorageSrv.saveVolunteersCalendars(cals).then(function (calendars) {
+    //                         APISrv.getChildrenBySchool($scope.ownerIds[0], $scope.instituteId, $scope.schoolId).then(
+    //                           function (children) {
+    //                             StorageSrv.saveChildren(children).then(
+    //                               function (children) {
+    //                                 WSNSrv.updateNodeList(children, 'child')
+    //                                 //deferred.resolve()
+
+    //                                 $scope.routes = StorageSrv.getRoutes();
+    //                                 if ($scope.routes != null && $scope.routes.length == 1) {
+    //                                   $scope.wizard.route = $scope.routes[0];
+    //                                 }
+    //                                 $scope.volunteers = StorageSrv.getVolunteers();
+    //                                 calendars = StorageSrv.getVolunteersCalendars();
+    //                                 $ionicSlideBoxDelegate.update();
+    //                                 Utils.loaded();
+    //                                 // Utils.setMenuDriverTitle($scope.wizard.driver.name);
+
+    //                                 $ionicHistory.nextViewOptions({
+    //                                   historyRoot: true
+    //                                 });
+    //                                 $state.go('app.route', {
+    //                                   ownerId: $scope.ownerIds[0],
+    //                                   routeId: routes[0].objectId,
+    //                                   fromWizard: true,
+    //                                   driver: vol[0],
+    //                                   route: routes[0],
+    //                                   helpers: vol[0]
+    //                                 }, {
+    //                                     reload: true
+    //                                   });
+    //                               }
+    //                             )
+    //                             // deferred.resolve();
+    //                           },
+    //                           function (error) {
+    //                             // TODO handle error
+    //                             console.log(error)
+    //                             // deferred.reject(error)
+    //                           }
+    //                         )
+    //                         // })
+    //                       },
+    //                       function (error) {
+    //                         // TODO handle error
+    //                         console.log(error)
+    //                         // deferred.reject(error)
+    //                       }
+    //                     )
+    //                   })
+    //                 },
+    //                 function (error) {
+    //                   // StorageSrv.saveSchool(CONF.DEV_SCHOOL)
+    //                   // TODO handle error
+    //                   console.log(error)
+    //                   // deferred.reject(error)
+    //                 }
+    //               )
+    //             })
+    //           }, function (error) {
+    //             console.log(error)
+    //             // deferred.reject(error)
+    //           })
+    //       }, function (error) {
+    //         console.log(error)
+    //         // deferred.reject(error)
+    //       })
+    //     }, function (error) {
+    //       console.log(error)
+    //       // deferred.reject(error)
+    //     })
+    //   }, function (error) {
+    //     console.log(error)
+    //     // deferred.reject(error)
+    //   });
+    //   //get school by institute
+    //   //get route with all the data
+    // }
+
     $scope.initProfile();
 
     $scope.chooseSchool = function (school) {
