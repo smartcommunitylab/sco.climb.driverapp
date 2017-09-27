@@ -11,6 +11,41 @@
             <clobbers target="DriverAppPlugin" />
         </js-module>
 
+        <platform name="ios">
+            <config-file target="config.xml" parent="/*">
+                <feature name="DriverAppPlugin">
+                    <param name="ios-package" value="DriverAppPlugin" />
+                    <!-- <param name="ios-package" value="it.smartcommunitylab.climb.dap.DriverAppPlugin" /> -->
+                    <param name="onload" value="true" />
+                </feature>
+            </config-file>
+            <!-- iOS source files for the plugin -->
+            <header-file src="src/ios/Bridging-Header.h" />
+            <source-file src="src/ios/Utilities.swift" />
+            <source-file src="src/ios/DisplayPeripheral.swift" />
+            <source-file src="src/ios/ClimbLogger.swift" />
+            <source-file src="src/ios/DriverAppPlugin.swift" />
+            <source-file src="src/ios/NodeState.swift" />
+
+            <source-file src="src/ios/AES256CBC.swift" />
+            <source-file src="src/ios/Base64.swift" />
+            <source-file src="src/ios/BaseDestination.swift" />
+            <source-file src="src/ios/ConsoleDestination.swift" />
+            <source-file src="src/ios/FileDestination.swift" />
+            <source-file src="src/ios/Filter.swift" />
+            <source-file src="src/ios/GoogleCloudDestination.swift" />
+            <source-file src="src/ios/SBPlatformDestination.swift" />
+            <source-file src="src/ios/SwiftyBeaver.swift" />
+
+            <framework src="CoreBluetooth.framework" />
+
+            <config-file target="*-Info.plist" parent="UIBackgroundModes">
+              <array>
+                <string>BLEScanner</string>
+              </array>
+            </config-file>
+        </platform>
+
         <platform name="android">
             <config-file target="AndroidManifest.xml" parent="/manifest/application">
           		<service android:name="fbk.climblogger.ClimbSimpleService" android:enabled="true" android:exported="false"></service>

@@ -65,6 +65,8 @@ angular.module('driverapp', [
 
         /*
          * WSN Functions!
+         * 
+         * NOT USED
          */
         $rootScope.WSNSrvGetMasters = function () {
           WSNSrv.getMasters().then(
@@ -73,6 +75,9 @@ angular.module('driverapp', [
           )
         }
 
+        /**
+         * NOT USED
+         */
         $rootScope.WSNSrvConnectMaster = function (masterId) {
           WSNSrv.connectMaster(masterId).then(
             function (procedureStarted) {},
@@ -80,6 +85,9 @@ angular.module('driverapp', [
           )
         }
 
+        /**
+         * NOT USED
+         */
         $rootScope.WSNSrvSetNodeList = function () {
           var childrenWsnIds = WSNSrv.getNodeListByType('child')
           WSNSrv.setNodeList(childrenWsnIds).then(
@@ -88,6 +96,9 @@ angular.module('driverapp', [
           )
         }
 
+        /**
+         * NOT USED
+         */
         $rootScope.WSNSrvGetNetworkState = function () {
           WSNSrv.getNetworkState().then(
             function (networkState) {},

@@ -55,14 +55,14 @@ public class DriverAppPlugin extends CordovaPlugin {
 	public boolean execute(String action, JSONArray data, CallbackContext callbackContext) throws JSONException {
 		Log.w(LOG_TAG, "action: " + action);
 
-		if (action.equals("init")) {
+		if (action.equals("initialize")) {
 			mClimbService.init();
 			// TODO handle success
 			callbackContext.success();
 			return true;
 		}
 
-		if (action.equals("deinit")) {
+		if (action.equals("deinitialize")) {
 			mClimbService.deinit();
 			// TODO handle success
 			callbackContext.success();
