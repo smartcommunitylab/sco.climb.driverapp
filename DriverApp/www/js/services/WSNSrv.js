@@ -130,6 +130,9 @@ angular.module('driverapp.services.wsn', [])
       return deferred.promise
     }
 
+    /**
+     * NOT EFFECTIVELY USED
+     */
     wsnService.getMasters = function () {
       var deferred = $q.defer()
 

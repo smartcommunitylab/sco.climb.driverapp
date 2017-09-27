@@ -1,12 +1,15 @@
 /* global cordova, module */
+'use strict';
+var argscheck = require('cordova/argscheck');
+var exec = require('cordova/exec');
 var serviceName = 'DriverAppPlugin'
 
 module.exports = {
   'init': function (successCallback, errorCallback) {
-    cordova.exec(successCallback, errorCallback, serviceName, 'init', [])
+     cordova.exec(successCallback, errorCallback, serviceName, 'initialize', [])
   },
   'deinit': function (successCallback, errorCallback) {
-    cordova.exec(successCallback, errorCallback, serviceName, 'deinit', [])
+     cordova.exec(successCallback, errorCallback, serviceName, 'deinitialize', [])
   },
   'startListener': function (successCallback, errorCallback) {
     cordova.exec(successCallback, errorCallback, serviceName, 'startListener', [])
