@@ -1,0 +1,15 @@
+{
+  "cordova": {
+    "id": "CLIMBDriverAppPlugin",
+    "platforms": [
+      "ios","android"
+    ]
+  },
+  "dependencies": {},
+  "description": "CLIMB BT Plugin",
+  "directories": {},
+  "license": "Apache-2.0",
+  "name": "CLIMBDriverAppPlugin",
+  "optionalDependencies": {},
+  "version": "0.1.0"
+}
