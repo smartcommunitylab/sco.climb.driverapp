@@ -105,12 +105,15 @@ class DriverAppPlugin: CDVPlugin, CBCentralManagerDelegate, CBPeripheralManagerD
         var networkStateDict = Array<Dictionary<String, AnyObject>>.init();
         for p in peripherals {
             // for each child, make a dictionary object analogous to the JSON describing the node
+                        // for each child, make a dictionary object analogous to the JSON describing the node
             let childAsDict: [String: AnyObject] = [
                 "nodeID": p.nodeID as AnyObject,
                 "state": (String)(describing: p.nodeState) as AnyObject,
-                "lastSeen": p.lastSeen!.currentTimeMillis as AnyObject ,
-                "batteryVoltage_mV": p.batteryVoltage as AnyObject
-  
+                "lastSeen": p.lastSeen!.currentTimeMillis as AnyObject,
+                // ALM: lastStateChange is no longer used, so we are returning it for backward compatibility
+                "lastStateChange": p.lastSeen!.currentTimeMillis as AnyObject,
+                "batteryVoltage_mV": p.batteryVoltage as AnyObject,
+                "batteryLevel" : p.getBatteryLevel() as AnyObject,
             ];
             // add the child to the array sent back
             networkStateDict.append(childAsDict);
