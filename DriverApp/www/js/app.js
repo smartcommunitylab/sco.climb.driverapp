@@ -97,15 +97,15 @@ angular.module('driverapp', [
           )
         }
 
-        /**
-         * NOT USED
-         */
-        $rootScope.WSNSrvConnectMaster = function (masterId) {
-          WSNSrv.connectMaster(masterId).then(
-            function (procedureStarted) { },
-            function (reason) { }
-          )
-        }
+        // /**
+        //  * NOT USED
+        //  */
+        // $rootScope.WSNSrvConnectMaster = function (masterId) {
+        //   WSNSrv.connectMaster(masterId).then(
+        //     function (procedureStarted) { },
+        //     function (reason) { }
+        //   )
+        // }
 
         /**
          * NOT USED
@@ -128,12 +128,12 @@ angular.module('driverapp', [
           )
         }
 
-        $rootScope.WSNSrvCheckMaster = function () {
-          WSNSrv.connectMaster($rootScope.driver.wsnId).then(
-            function (procedureStarted) { },
-            function (reason) { }
-          )
-        }
+        // $rootScope.WSNSrvCheckMaster = function () {
+        //   WSNSrv.connectMaster($rootScope.driver.wsnId).then(
+        //     function (procedureStarted) { },
+        //     function (reason) { }
+        //   )
+        // }
 
       }
 
@@ -323,7 +323,9 @@ angular.module('driverapp', [
       home_get_route:'Ottenendo i percorsi',
       home_get_vol:'Ottenendo i volontari',
       home_get_children:'Ottenendo i bambini',
-      user_check:'Verifica credenziali'
+      user_check:'Verifica credenziali',
+      error_exit_template:'Errore nell\'inizializzazione. Verifica la connessione e riavvia l\'applicazione',
+      error_exit_title:'Errore'
 
 
     });

@@ -34,6 +34,7 @@
             "moment"
         ]
     },
+<<<<<<< HEAD
     "cordovaPlugins": [
         "cordova-plugin-device",
         "cordova-plugin-console",
@@ -91,3 +92,16 @@
         }
     }
 }
+=======
+    "cordova.plugins.diagnostic",
+    "cordova-plugin-globalization"
+  ],
+  "cordovaPlatforms": [
+    "android",
+    "ios"
+  ],
+  "cordova": {
+    "platforms": []
+  }
+}
+>>>>>>> 59e2bd25dbe643d520e73db776e52ebbaedf32db

@@ -20,23 +20,7 @@ angular.module('driverapp.controllers.home', [])
     if (StorageSrv.getIdentityIndex() != null) {
       Config.setIdentity(StorageSrv.getIdentityIndex())
     }
-    // $ionicModal.fromTemplateUrl('templates/wizard_modal_login.html', {
-    //   scope: $scope,
-    //   animation: 'slide-in-up',
-    //   backdropClickToClose: false,
-    //   hardwareBackButtonClose: false
-    // }).then(function (modal) {
-    //   $rootScope.modalLogin = modal
 
-    //   // FIXME dev purpose only!
-    //   // StorageSrv.saveIdentityIndex(0);
-
-    //   if (StorageSrv.getIdentityIndex() == null) {
-    //     $rootScope.modalLogin.show()
-    //   } else {
-    //     Config.setIdentity(StorageSrv.getIdentityIndex())
-    //   }
-    // })
 
     $scope.selectIdentityPopup = function () {
       $scope.login.identities = Config.IDENTITIES
@@ -74,93 +58,7 @@ angular.module('driverapp.controllers.home', [])
       }
     }
 
-    $scope.loadAllBySchool = function (schoolId) {
-      var deferred = $q.defer()
 
-      APISrv.getRoutesBySchool(schoolId, moment().format(Config.DATE_FORMAT)).then(
-        function (routes) {
-          StorageSrv.saveRoutes(routes).then(function (routes) {
-            APISrv.getVolunteersBySchool(schoolId).then(
-              function (volunteers) {
-                StorageSrv.saveVolunteers(volunteers).then(function (volunteers) {
-                  var dateFrom = moment().format(Config.DATE_FORMAT)
-                  var dateTo = moment().format(Config.DATE_FORMAT)
-                  // FIXME remove hardcoded dates!
-                  // dateFrom = '2016-03-22';
-                  // dateTo = '2016-03-22';
-                  APISrv.getVolunteersCalendarsBySchool(schoolId, dateFrom, dateTo).then(
-                    function (cals) {
-                      StorageSrv.saveVolunteersCalendars(cals).then(function (calendars) {
-                        APISrv.getChildrenBySchool(schoolId).then(
-                          function (children) {
-                            StorageSrv.saveChildren(children).then(
-                              function (children) {
-                                WSNSrv.updateNodeList(children, 'child')
-                                deferred.resolve()
-
-                                /* if (Utils.isConnectionFastEnough()) {
-                                    // download children images
-                                    var counter = 0;
-                                    var downloaded = 0;
-                                    angular.forEach(children, function (child) {
-                                        APISrv.getChildImage(child.objectId).then(
-                                            function () {
-                                                downloaded++;
-                                                counter++;
-                                                console.log('Downloaded images: ' + downloaded + ' (Total: ' + counter + '/' + children.length + ')');
-                                                if (counter == children.length) {
-                                                    deferred.resolve();
-                                                }
-                                            },
-                                            function () {
-                                                counter++;
-                                                if (counter == children.length) {
-                                                    deferred.resolve();
-                                                }
-                                            }
-                                        );
-                                    });
-                                } else {
-                                    deferred.resolve();
-                                } */
-                              }
-                            )
-                            // deferred.resolve();
-                          },
-                          function (error) {
-                            // TODO handle error
-                            console.log(error)
-                            deferred.reject(error)
-                          }
-                        )
-                      })
-                    },
-                    function (error) {
-                      // TODO handle error
-                      console.log(error)
-                      deferred.reject(error)
-                    }
-                  )
-                })
-              },
-              function (error) {
-                // StorageSrv.saveSchool(CONF.DEV_SCHOOL)
-                // TODO handle error
-                console.log(error)
-                deferred.reject(error)
-              }
-            )
-          })
-        },
-        function (error) {
-          // TODO handle error
-          console.log(error)
-          deferred.reject(error)
-        }
-      )
-
-      return deferred.promise
-    }
 
     // FIXME load schools
     // StorageSrv.saveSchool(CONF.DEV_SCHOOL);
@@ -227,17 +125,17 @@ angular.module('driverapp.controllers.home', [])
       }
 
       // TODO
-      // $scope.modalMaintenance.show()
+      $scope.modalMaintenance.show()
 
-      WSNSrv.enableMaintenanceProcedure(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 0).then(
-        function () {
-          $scope.modalMaintenance.show()
-        },
-        function (error) {
-          Utils.toast('Non è possibile avviare la procedura di manutenzione')
-          console.log(error)
-        }
-      )
+      // WSNSrv.enableMaintenanceProcedure(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 0).then(
+      //   function () {
+      //     $scope.modalMaintenance.show()
+      //   },
+      //   function (error) {
+      //     Utils.toast('Non è possibile avviare la procedura di manutenzione')
+      //     console.log(error)
+      //   }
+      // )
     }
 
     $scope.stopMaintenanceMode = function () {
@@ -270,6 +168,7 @@ angular.module('driverapp.controllers.home', [])
       if ($scope.checkHardwarePopup) {
         $scope.checkHardwarePopup();
       }
+      
     });
 
     var INDEXES = {
@@ -300,96 +199,8 @@ angular.module('driverapp.controllers.home', [])
       $scope.helpersListStyle['height'] = height + 'px';
     };
 
-    var loadDataBySchool = function (schoolId) {
-      Utils.loading();
-      $scope.loadAllBySchool(schoolId).then(
-        function () {
-          $scope.routes = StorageSrv.getRoutes();
-          if ($scope.routes != null && $scope.routes.length == 1) {
-            $scope.wizard.route = $scope.routes[0];
-          }
-          $scope.volunteers = StorageSrv.getVolunteers();
-          calendars = StorageSrv.getVolunteersCalendars();
-          $ionicSlideBoxDelegate.update();
-          Utils.loaded();
-        },
-        function (error) {
-          console.log(error);
-        }
-      );
-    };
 
-    // $scope.$on("wizard:IndexChanged", function (e, wizardIndex, wizardCount) {
-    //   /*if (wizardIndex == INDEXES.schools) {
-    //       $scope.schools = [StorageSrv.getSchool()];
-  
-    //       if ($scope.schools !== null && $scope.schools.length == 1) {
-    //           $scope.wizard.school = $scope.schools[0];
-    //       }
-  
-    //       if ($scope.wizard.school !== null) {
-    //           loadDataBySchool($scope.wizard.school.objectId);
-    //       }
-    //   }*/
-    //   if (wizardIndex == INDEXES.volunteers) {
-    //     /*
-    //      * sort volunteers only if route exists but not a driver
-    //      */
-    //     var route = $scope.wizard.route;
-    //     var sortedVolunteers = $filter('orderBy')(StorageSrv.getVolunteers(), ['checked', 'name']);
-    //     // TODO sort using calendars
-    //     for (var j = 0; j < calendars.length; j++) {
-    //       var cal = calendars[j]
-    //       if (cal.schoolId == StorageSrv.getSchoolId() && cal.routeId == route.objectId) {
-    //         // driver
-    //         var driverOnTop = false;
-    //         if (!!cal.driverId) {
-    //           for (var i = 0; i < sortedVolunteers.length; i++) {
-    //             if (sortedVolunteers[i].objectId == cal.driverId) {
-    //               Utils.moveInArray(sortedVolunteers, i, 0);
-    //               //console.log('Driver ' + sortedVolunteers[counter].name + ' moved on top');
-    //               driverOnTop = true;
-    //               i = sortedVolunteers.length;
-    //             }
-    //           }
-    //         }
 
-    //         // helpers
-    //         if (!!cal.helperList && cal.helperList.length > 0) {
-    //           var counter = driverOnTop ? 1 : 0;
-    //           cal.helperList.forEach(function (helperId) {
-    //             for (var i = 0; i < sortedVolunteers.length; i++) {
-    //               if (sortedVolunteers[i].objectId == helperId) {
-    //                 Utils.moveInArray(sortedVolunteers, i, counter);
-    //                 //console.log('Helper ' + sortedVolunteers[counter].name + ' moved to position ' + counter);
-    //                 counter++;
-    //                 i = sortedVolunteers.length;
-    //               }
-    //             }
-    //           });
-    //         }
-    //         j = calendars.length;
-    //       }
-    //     }
-    //     $scope.volunteers = sortedVolunteers;
-    //   } else if (wizardIndex == INDEXES.helpers) {
-    //     if (!$scope.wizard.driver.wsnId) {
-    //       $scope.wizard.driver.wsnId = CONF.DEV_MASTER;
-    //     }
-    //     $rootScope.driver = $scope.wizard.driver;
-
-    //     if ($scope.wizard.driver.wsnId !== null && $scope.wizard.driver.wsnId.length > 0) {
-    //       WSNSrv.connectMaster($scope.wizard.driver.wsnId).then(
-    //         function (procedureStarted) { },
-    //         function (reason) {
-    //           // TODO toast for failure
-    //           //Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
-    //         }
-    //       );
-    //     }
-    //     // $scope.resizeHelpersList();
-    //   }
-    // });
 
     function showHardwarePopup() {
       var hardwarePopup = $ionicPopup.show({
@@ -437,29 +248,6 @@ angular.module('driverapp.controllers.home', [])
       });
     }
 
-    $scope.saveWizardChoices = function () {
-      // TODO save volunteer in storage after password verification
-      $scope.volunteers.forEach(function (vol) {
-        if (vol.checked) {
-          $scope.wizard.helpers.push(vol);
-        }
-      });
-      Utils.setMenuDriverTitle($scope.wizard.driver.name);
-
-      $ionicHistory.nextViewOptions({
-        historyRoot: true
-      });
-      $state.go('app.route', {
-        routeId: $scope.wizard.route.objectId,
-        fromWizard: true,
-        driver: $scope.wizard.driver,
-        route: $scope.wizard.route,
-        helpers: $scope.wizard.helpers
-      }, {
-          reload: true
-        });
-    };
-
     loadingWithMessage = function (label) {
       $ionicLoading.show({
         template: '<ion-spinner></ion-spinner> <br/> ' + label
@@ -467,6 +255,17 @@ angular.module('driverapp.controllers.home', [])
     }
     hideLoading = function () {
       $ionicLoading.hide();
+    }
+
+    $scope.showErrorAndExit = function () {
+      var alertPopup = $ionicPopup.alert({
+        title: $filter('translate')('error_exit_title'),
+        template: $filter('translate')('error_exit_template')
+      });
+
+      alertPopup.then(function (res) {
+        ionic.Platform.exitApp();
+      });
     }
     goWithChildren = function () {
       loadingWithMessage($filter('translate')('home_get_children'));
@@ -491,6 +290,7 @@ angular.module('driverapp.controllers.home', [])
               $ionicHistory.nextViewOptions({
                 historyRoot: true
               });
+              $scope.deregisterBackButton();
               $state.go('app.route', {
                 ownerId: $scope.ownerId,
                 routeId: $scope.route.objectId,
@@ -501,9 +301,13 @@ angular.module('driverapp.controllers.home', [])
               }, {
                   reload: true
                 });
+            }, function (err) {
+              $scope.showErrorAndExit();
             })
         }, function (err) {
           hideLoading();
+          $scope.showErrorAndExit();
+
         }
       )
     }
@@ -513,16 +317,6 @@ angular.module('driverapp.controllers.home', [])
       }
       $rootScope.driver = $scope.driver;
 
-      if ($scope.driver.wsnId !== null && $scope.driver.wsnId.length > 0) {
-        WSNSrv.connectMaster($scope.driver.wsnId).then(
-          function (procedureStarted) { },
-          function (reason) {
-            // TODO toast for failure
-            //Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
-          }
-        );
-      }
-      // $scope.resizeHelpersList();
     }
 
     selectHelpers = function () {
@@ -533,9 +327,6 @@ angular.module('driverapp.controllers.home', [])
         title: 'Seleziona con chi vai',
         scope: $scope,
         buttons: [{
-          text: 'Annulla',
-          type: 'button-stable'
-        }, {
           text: 'ok',
           type: 'button-stable',
           onTap: function (e) {
@@ -618,10 +409,7 @@ angular.module('driverapp.controllers.home', [])
         templateUrl: 'templates/home_popup_driver.html',
         title: 'Seleziona chi sei',
         scope: $scope,
-        buttons: [{
-          text: 'Annulla',
-          type: 'button-stable'
-        }]
+        buttons: []
       });
 
       $scope.selectVolunteer = function (volunteer) {
@@ -650,12 +438,16 @@ angular.module('driverapp.controllers.home', [])
                 }
               )
             }
-          }
-          )
+          }, function (err) {
+            $scope.showErrorAndExit();
+
+          })
         },
         function (err) {
           console.log(err);
           hideLoading();
+          $scope.showErrorAndExit();
+
         });
     }
 
@@ -666,10 +458,7 @@ angular.module('driverapp.controllers.home', [])
         templateUrl: 'templates/home_popup_routes.html',
         title: 'Seleziona la linea',
         scope: $scope,
-        buttons: [{
-          text: 'Annulla',
-          type: 'button-stable'
-        }]
+        buttons: []
       });
 
       $scope.selectRoute = function (route) {
@@ -698,11 +487,14 @@ angular.module('driverapp.controllers.home', [])
                 }
               )
             }
+          }, function (err) {
+            $scope.showErrorAndExit();
           })
         },
         function (err) {
           console.log(err);
           hideLoading();
+          $scope.showErrorAndExit()
         });
     }
 
@@ -714,10 +506,7 @@ angular.module('driverapp.controllers.home', [])
         templateUrl: 'templates/home_popup_schools.html',
         title: 'Seleziona la scuola',
         scope: $scope,
-        buttons: [{
-          text: 'Annulla',
-          type: 'button-stable'
-        }]
+        buttons: []
       });
 
       $scope.selectSchool = function (school) {
@@ -749,6 +538,7 @@ angular.module('driverapp.controllers.home', [])
         function (err) {
           console.log(err);
           hideLoading();
+          $scope.showErrorAndExit();
         });
     }
 
@@ -759,10 +549,7 @@ angular.module('driverapp.controllers.home', [])
         templateUrl: 'templates/home_popup_institute.html',
         title: 'Seleziona l\'istituto',
         scope: $scope,
-        buttons: [{
-          text: 'Annulla',
-          type: 'button-stable'
-        }]
+        buttons: []
       });
 
       $scope.selectInstitute = function (institute) {
@@ -794,6 +581,7 @@ angular.module('driverapp.controllers.home', [])
         function (err) {
           console.log(err);
           hideLoading();
+          $scope.showErrorAndExit();
         });
     }
     selectOwnerId = function () {
@@ -803,10 +591,7 @@ angular.module('driverapp.controllers.home', [])
         templateUrl: 'templates/home_popup_owner.html',
         title: 'Seleziona il profile',
         scope: $scope,
-        buttons: [{
-          text: 'Annulla',
-          type: 'button-stable'
-        }]
+        buttons: []
       });
 
       $scope.selectOwner = function (ownerId) {
@@ -818,6 +603,7 @@ angular.module('driverapp.controllers.home', [])
     }
     $scope.initProfile = function () {
       //get profile
+      $scope.deregisterBackButton = $ionicPlatform.registerBackButtonAction(function(e){}, 401);
       loadingWithMessage($filter('translate')('home_get_profile'));
       APISrv.getProfile().then(function (profile) {
         console.log(profile);
@@ -835,109 +621,9 @@ angular.module('driverapp.controllers.home', [])
         }
       }, function (err) {
         hideLoading();
+        $scope.showErrorAndExit();
       })
     }
-    // $scope.initProfile = function () {
-    //   //get profile
-    //   APISrv.getProfile().then(function (profile) {
-    //     console.log(profile);
-    //     $scope.ownerIds = profile.ownerIds;
-    //     // get institute by ownerId
-    //     APISrv.getInstituteByOwnerId($scope.ownerIds[0]).then(function (institute) {
-    //       console.log(institute);
-    //       $scope.instituteId = institute[0].objectId;
-    //       APISrv.getSchooldById($scope.ownerIds[0], $scope.instituteId).then(function (school) {
-    //         console.log(school);
-    //         $scope.schoolId = school[0].objectId;
-    //         APISrv.getRoute($scope.ownerIds[0], $scope.instituteId, $scope.schoolId).then(
-    //           function (routes) {
-    //             StorageSrv.saveRoutes(routes).then(function (routes) {
-    //               APISrv.getVolunteersBySchool($scope.ownerIds[0], $scope.instituteId, $scope.schoolId).then(
-    //                 function (volunteers) {
-    //                   StorageSrv.saveVolunteers(volunteers).then(function (volunteers) {
-    //                     var dateFrom = moment().format(Config.DATE_FORMAT)
-    //                     var dateTo = moment().format(Config.DATE_FORMAT);
-    //                     // APISrv.getVolunteersCalendarsBySchool($scope.ownerIds[0], $scope.instituteId, $scope.schoolId, dateFrom, dateTo).then(
-    //                     APISrv.getVolunteersBySchool($scope.ownerIds[0], $scope.instituteId, $scope.schoolId).then(
-    //                       function (vol) {
-    //                         // StorageSrv.saveVolunteersCalendars(cals).then(function (calendars) {
-    //                         APISrv.getChildrenBySchool($scope.ownerIds[0], $scope.instituteId, $scope.schoolId).then(
-    //                           function (children) {
-    //                             StorageSrv.saveChildren(children).then(
-    //                               function (children) {
-    //                                 WSNSrv.updateNodeList(children, 'child')
-    //                                 //deferred.resolve()
-
-    //                                 $scope.routes = StorageSrv.getRoutes();
-    //                                 if ($scope.routes != null && $scope.routes.length == 1) {
-    //                                   $scope.wizard.route = $scope.routes[0];
-    //                                 }
-    //                                 $scope.volunteers = StorageSrv.getVolunteers();
-    //                                 calendars = StorageSrv.getVolunteersCalendars();
-    //                                 $ionicSlideBoxDelegate.update();
-    //                                 Utils.loaded();
-    //                                 // Utils.setMenuDriverTitle($scope.wizard.driver.name);
-
-    //                                 $ionicHistory.nextViewOptions({
-    //                                   historyRoot: true
-    //                                 });
-    //                                 $state.go('app.route', {
-    //                                   ownerId: $scope.ownerIds[0],
-    //                                   routeId: routes[0].objectId,
-    //                                   fromWizard: true,
-    //                                   driver: vol[0],
-    //                                   route: routes[0],
-    //                                   helpers: vol[0]
-    //                                 }, {
-    //                                     reload: true
-    //                                   });
-    //                               }
-    //                             )
-    //                             // deferred.resolve();
-    //                           },
-    //                           function (error) {
-    //                             // TODO handle error
-    //                             console.log(error)
-    //                             // deferred.reject(error)
-    //                           }
-    //                         )
-    //                         // })
-    //                       },
-    //                       function (error) {
-    //                         // TODO handle error
-    //                         console.log(error)
-    //                         // deferred.reject(error)
-    //                       }
-    //                     )
-    //                   })
-    //                 },
-    //                 function (error) {
-    //                   // StorageSrv.saveSchool(CONF.DEV_SCHOOL)
-    //                   // TODO handle error
-    //                   console.log(error)
-    //                   // deferred.reject(error)
-    //                 }
-    //               )
-    //             })
-    //           }, function (error) {
-    //             console.log(error)
-    //             // deferred.reject(error)
-    //           })
-    //       }, function (error) {
-    //         console.log(error)
-    //         // deferred.reject(error)
-    //       })
-    //     }, function (error) {
-    //       console.log(error)
-    //       // deferred.reject(error)
-    //     })
-    //   }, function (error) {
-    //     console.log(error)
-    //     // deferred.reject(error)
-    //   });
-    //   //get school by institute
-    //   //get route with all the data
-    // }
 
     $scope.initProfile();
 
