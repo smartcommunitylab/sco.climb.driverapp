@@ -227,17 +227,17 @@ angular.module('driverapp.controllers.home', [])
       }
 
       // TODO
-      // $scope.modalMaintenance.show()
+      $scope.modalMaintenance.show()
 
-      WSNSrv.enableMaintenanceProcedure(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 0).then(
-        function () {
-          $scope.modalMaintenance.show()
-        },
-        function (error) {
-          Utils.toast('Non è possibile avviare la procedura di manutenzione')
-          console.log(error)
-        }
-      )
+      // WSNSrv.enableMaintenanceProcedure(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 0).then(
+      //   function () {
+      //     $scope.modalMaintenance.show()
+      //   },
+      //   function (error) {
+      //     Utils.toast('Non è possibile avviare la procedura di manutenzione')
+      //     console.log(error)
+      //   }
+      // )
     }
 
     $scope.stopMaintenanceMode = function () {
@@ -513,15 +513,15 @@ angular.module('driverapp.controllers.home', [])
       }
       $rootScope.driver = $scope.driver;
 
-      if ($scope.driver.wsnId !== null && $scope.driver.wsnId.length > 0) {
-        WSNSrv.connectMaster($scope.driver.wsnId).then(
-          function (procedureStarted) { },
-          function (reason) {
-            // TODO toast for failure
-            //Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
-          }
-        );
-      }
+      // if ($scope.driver.wsnId !== null && $scope.driver.wsnId.length > 0) {
+      //   WSNSrv.connectMaster($scope.driver.wsnId).then(
+      //     function (procedureStarted) { },
+      //     function (reason) {
+      //       // TODO toast for failure
+      //       //Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
+      //     }
+      //   );
+      // }
       // $scope.resizeHelpersList();
     }
 

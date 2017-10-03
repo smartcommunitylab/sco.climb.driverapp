@@ -56,7 +56,8 @@
       "locator": "cordova-plugin-facebook4@1.7.4",
       "id": "cordova-plugin-facebook4"
     },
-    "cordova.plugins.diagnostic"
+    "cordova.plugins.diagnostic",
+    "cordova-plugin-globalization"
   ],
   "cordovaPlatforms": [
     "android",

@@ -97,15 +97,15 @@ angular.module('driverapp', [
           )
         }
 
-        /**
-         * NOT USED
-         */
-        $rootScope.WSNSrvConnectMaster = function (masterId) {
-          WSNSrv.connectMaster(masterId).then(
-            function (procedureStarted) { },
-            function (reason) { }
-          )
-        }
+        // /**
+        //  * NOT USED
+        //  */
+        // $rootScope.WSNSrvConnectMaster = function (masterId) {
+        //   WSNSrv.connectMaster(masterId).then(
+        //     function (procedureStarted) { },
+        //     function (reason) { }
+        //   )
+        // }
 
         /**
          * NOT USED
@@ -128,12 +128,12 @@ angular.module('driverapp', [
           )
         }
 
-        $rootScope.WSNSrvCheckMaster = function () {
-          WSNSrv.connectMaster($rootScope.driver.wsnId).then(
-            function (procedureStarted) { },
-            function (reason) { }
-          )
-        }
+        // $rootScope.WSNSrvCheckMaster = function () {
+        //   WSNSrv.connectMaster($rootScope.driver.wsnId).then(
+        //     function (procedureStarted) { },
+        //     function (reason) { }
+        //   )
+        // }
 
       }
 
