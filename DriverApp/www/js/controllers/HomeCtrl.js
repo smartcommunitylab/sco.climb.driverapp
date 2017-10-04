@@ -426,7 +426,7 @@ angular.module('driverapp.controllers.home', [])
           console.log(volunteers);
           hideLoading();
           $scope.volunteers = volunteers;
-          sortedVolunteers();
+          //sortedVolunteers();
           StorageSrv.saveVolunteers(volunteers).then(function (volunteers) {
             if ($scope.volunteers.length == 1) {
               $scope.driver = $scope.volunteers[0];
