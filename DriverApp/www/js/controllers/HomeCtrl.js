@@ -668,7 +668,7 @@ angular.module('driverapp.controllers.home', [])
         text: 'Estrai la batteria dalla scheda e sostituiscila con la nuova, controlla che i segni \'+\' delle batteria e dell\'alloggiamento batteria combacino.'
       }, {
         image: 'img/5.png',
-        text: 'Quando il led rosso smette di lampeggiare il nodo è pronto (potrebbe lampeggiare solo una volta). Riassembla i componenti, reinserendoli nella busta trasparente e di seguito nel gadget.'
+        text: 'Il Led rosso lampeggerà per 30 secondi, dopodiché il dispositivo è pronto. Riassembla i componenti, reinserendoli nella busta trasparente e di seguito nel case plastico.'
       }
     ]
     $scope.currentText = $scope.tutorialSlides[0].text;
