@@ -317,6 +317,16 @@ angular.module('driverapp.controllers.home', [])
       }
       $rootScope.driver = $scope.driver;
 
+      if ($scope.driver.wsnId !== null && $scope.driver.wsnId.length > 0) {
+        WSNSrv.connectMaster($scope.driver.wsnId).then(
+          function (procedureStarted) { },
+          function (reason) {
+            // TODO toast for failure
+            //Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
+          }
+        );
+      }
+      //$scope.resizeHelpersList();
     }
 
     selectHelpers = function () {
@@ -611,6 +621,7 @@ angular.module('driverapp.controllers.home', [])
         $scope.ownerIds = profile.ownerIds;
         // get institute by ownerId
         if ($scope.ownerIds.length == 1) {
+          $scope.ownerId = $scope.ownerIds[0];
           goWithInstitute($scope.ownerIds[0])
         } else {
           selectOwnerId().then(

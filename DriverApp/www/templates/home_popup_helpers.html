@@ -6,7 +6,7 @@
 					<ion-scroll ng-style="helpersListStyle">
 						<!--<div class="wiz-scroll-panel">-->
 						<div class="list">
-							<ion-checkbox class="checkbox-dapp" ng-repeat="volunteer in volunteers" ng-if="volunteer !== driver" ng-model="volunteer.checked">
+							<ion-checkbox class="checkbox-dapp" ng-repeat="volunteer in volunteers| orderBy:'name'" ng-if="volunteer !== driver" ng-model="volunteer.checked">
 								{{volunteer.name}}
 							</ion-checkbox>
 						</div>
