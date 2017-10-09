@@ -93,16 +93,18 @@ angular.module('driverapp.controllers.home', [])
       if (date.getTime() < new Date().getTime()) {
         date.setDate(date.getDate() + 1)
       }
-      WSNSrv.enableMaintenanceProcedure(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 0).then(
-        function () {
-          $scope.modalBatteries.hide();
+      $scope.modalBatteries.hide();
           $scope.modalMaintenance.show();
-        },
-        function (error) {
-          Utils.toast('Non è possibile avviare la procedura di manutenzione')
-          console.log(error)
-        }
-      )
+      // WSNSrv.enableMaintenanceProcedure(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 0).then(
+      //   function () {
+      //     $scope.modalBatteries.hide();
+      //     $scope.modalMaintenance.show();
+      //   },
+      //   function (error) {
+      //     Utils.toast('Non è possibile avviare la procedura di manutenzione')
+      //     console.log(error)
+      //   }
+      // )
 
     }
     $scope.openBatteryMonitor = function () {
