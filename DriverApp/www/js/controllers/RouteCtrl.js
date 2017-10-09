@@ -287,15 +287,15 @@ angular.module('driverapp.controllers.route', [])
           AESrv.startRoute($scope.stops[$scope.enRoutePos])
           // timer for automatic arrive
           console.log('Automatic "Arrive" timeout started!')
-          $timeout(function () {
-            // Arriva in maniera automatica
-            if (!$scope.enRouteArrived) {
-              $scope.nextStop()
-              console.log('Automatically arrived!')
-            } else {
-              console.log('Automatic "Arrive" not necessary')
-            }
-          }, Config.AUTOFINISH_DELAY)
+          // $timeout(function () {
+          //   // Arriva in maniera automatica
+          //   if (!$scope.enRouteArrived) {
+          //     $scope.nextStop()
+          //     console.log('Automatically arrived!')
+          //   } else {
+          //     console.log('Automatic "Arrive" not necessary')
+          //   }
+          // }, Config.AUTOFINISH_DELAY)
         }
 
         handleChildrenAndHelpers()
