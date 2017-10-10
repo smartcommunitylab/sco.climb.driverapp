@@ -27,7 +27,9 @@ angular.module('driverapp.services.api', [])
             function (reason) {
               deferred.reject(reason)
             })
-        })
+        },function (reason) {
+              deferred.reject(reason)
+            })
       return deferred.promise
     }
 
@@ -53,6 +55,8 @@ angular.module('driverapp.services.api', [])
             function (reason) {
               deferred.reject(reason)
             })
+        },function (reason) {
+          deferred.reject(reason)
         })
       return deferred.promise
     }
@@ -79,6 +83,8 @@ angular.module('driverapp.services.api', [])
             function (reason) {
               deferred.reject(reason)
             })
+        },function (reason) {
+          deferred.reject(reason)
         })
       return deferred.promise
     }
@@ -105,7 +111,9 @@ angular.module('driverapp.services.api', [])
             function (reason) {
               deferred.reject(reason)
             })
-        })
+        },function (reason) {
+              deferred.reject(reason)
+            })
       return deferred.promise
     }
     APIService.getAnchors = function () {
@@ -149,6 +157,8 @@ angular.module('driverapp.services.api', [])
             function (reason) {
               deferred.reject(reason)
             })
+        },function (reason) {
+          deferred.reject(reason)
         })
 
 
@@ -179,6 +189,8 @@ angular.module('driverapp.services.api', [])
             function (reason) {
               deferred.reject(reason)
             })
+        },function (reason) {
+          deferred.reject(reason)
         })
 
 
@@ -214,6 +226,8 @@ angular.module('driverapp.services.api', [])
             function (reason) {
               deferred.reject(reason)
             })
+        },function (reason) {
+          deferred.reject(reason)
         })
       return deferred.promise
 
@@ -245,6 +259,8 @@ angular.module('driverapp.services.api', [])
             function (reason) {
               deferred.reject(reason)
             })
+        },function (reason) {
+          deferred.reject(reason)
         })
       return deferred.promise
 
@@ -278,6 +294,8 @@ angular.module('driverapp.services.api', [])
             function (reason) {
               deferred.reject(reason)
             })
+        },function (reason) {
+          deferred.reject(reason)
         })
       return deferred.promise
     }
@@ -324,6 +342,8 @@ angular.module('driverapp.services.api', [])
               },
               options
             )
+          },function (reason) {
+            deferred.reject(reason)
           })
       } else {
         deferred.reject('cordova is not defined')
@@ -399,6 +419,8 @@ angular.module('driverapp.services.api', [])
                 }
               }
             )
+          },function (reason) {
+            deferred.reject(reason)
           })
       } else {
         deferred.reject()
