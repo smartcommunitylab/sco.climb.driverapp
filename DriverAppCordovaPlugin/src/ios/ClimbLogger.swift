@@ -36,14 +36,37 @@ class ClimbLogger {
     }
     
     func getAllLogFilePaths() -> [String] {
-        var result = [String]()
-        do {
-            let urls = try FileManager.default.contentsOfDirectory(at: logsFolder, includingPropertiesForKeys: nil, options: [FileManager.DirectoryEnumerationOptions.skipsSubdirectoryDescendants])
-            result = urls.map({ $0.relativePath })
-        } catch {
-            // Impossible to read log files paths, could not do anything
+        
+        //sort all the files in the logs directory by date
+        var allFiles : [String]!;
+        if let urlArray = try? FileManager.default.contentsOfDirectory(at: logsFolder,
+                                                                       includingPropertiesForKeys: [.contentModificationDateKey],
+                                                                       options:.skipsHiddenFiles) {
+            
+            allFiles =  urlArray.map { url in
+                (url.path, (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? Date.distantPast)
+                }
+                .sorted(by: { $0.1 > $1.1 }) // sort descending modification dates
+                .map { $0.0 } // extract file names
+            
         }
-        return result
+        // remove the most recent files that are not log files
+        while (allFiles.last?.hasSuffix(".log")==false){
+            allFiles.removeLast();
+        }
+        // return the most recent log file
+        return [allFiles.popLast()!];
+        
+        /*
+         do {
+         let urls = try FileManager.default.contentsOfDirectory(at: logsFolder, includingPropertiesForKeys: nil, options: [FileManager.DirectoryEnumerationOptions.skipsSubdirectoryDescendants])
+         if (urls.map({$0.relativePath}).hasSuffix(".log"))
+         result = urls.map({ $0.relativePath })
+         } catch {
+         // Impossible to read log files paths, could not do anything
+         }
+         return result
+         */
     }
     
     func startDataLog() {

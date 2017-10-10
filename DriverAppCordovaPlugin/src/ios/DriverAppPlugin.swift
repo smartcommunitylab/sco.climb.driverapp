@@ -136,39 +136,44 @@ class DriverAppPlugin: CDVPlugin, CBCentralManagerDelegate, CBPeripheralManagerD
     @objc(checkinChild:)
     open func checkinChild(command: CDVInvokedUrlCommand) -> String {
         
-        let procedureStarted = "\(toggleChildStatus(child: child, isCheckin: true))"
+        let procedureStarted = "\(true)"
         sendSuccess(command: command, result: procedureStarted, keepCallback: true);
         
         //return "\(toggleChildStatus(child: child, isCheckin: true))"
-        return procedureStarted
+        //return procedureStarted
+	return "\(true)"
     }
     
     @objc(checkoutChild:)
     open func checkoutChild(command: CDVInvokedUrlCommand) -> String {
-        let procedureStarted = "\(toggleChildStatus(child: child, isCheckin: false))"
+        let procedureStarted = "\(true)"
         sendSuccess(command: command, result: procedureStarted, keepCallback: true);
         
         //return "\(toggleChildStatus(child: child, isCheckin: false))"
-        return procedureStarted
+        //return procedureStarted
+	return "\(true)"
     }
     
     let children = [String]()
     @objc(checkinChildren:)
     open func checkinChildren(command: CDVInvokedUrlCommand) -> String {
-        let procedureStarted = "\(children.map{ toggleChildStatus(child: $0, isCheckin: true) }.contains(false) ? false : true)"
+        let procedureStarted = "\(true)"
         sendSuccess(command: command, result: procedureStarted, keepCallback: true);
         
         //return "\(children.map{ toggleChildStatus(child: $0, isCheckin: true) }.contains(false) ? false : true)"
-        return procedureStarted
+        //return procedureStarted
+	return "\(true)"
     }
     
     @objc(checkoutChildren:)
     open func checkoutChildren(command: CDVInvokedUrlCommand) -> String {
-        let procedureStarted = "\(children.map{ toggleChildStatus(child: $0, isCheckin: false) }.contains(false) ? false : true)"
+        let procedureStarted = "\(true)"
         sendSuccess(command: command, result: procedureStarted, keepCallback: true);
         
         //return "\(children.map{ toggleChildStatus(child: $0, isCheckin: false) }.contains(false) ? false : true)"
-        return procedureStarted
+       // return procedureStarted
+	return "\(true)"
+
     }
     
     @objc(command: enableMaintenanceProcedure:)
@@ -194,14 +199,18 @@ class DriverAppPlugin: CDVPlugin, CBCentralManagerDelegate, CBPeripheralManagerD
     }
     
     @objc(getLogFiles:)
-    open func getLogFiles(command: CDVInvokedUrlCommand) -> String {
+    open func getLogFiles(command: CDVInvokedUrlCommand) -> [String] {
         
-        let logFilePathsJSON  = logger.getAllLogFilePaths().toJson()
-        sendSuccess(command: command, result: logFilePathsJSON, keepCallback: true);
+        let logFilePathsArray  = logger.getAllLogFilePaths();
+        //send the array of files names
+        sendSuccessWithPlainArray(command: command, result: logFilePathsArray, keepCallback: true);
+        return logFilePathsArray;
+
         
-        //return logger.getAllLogFilePaths().toJson()
+        //        let logFilePathsJSON  = logger.getAllLogFilePaths().toJson()
+        //        sendSuccess(command: command, result: logFilePathsJSON, keepCallback: true);
         
-        return logFilePathsJSON
+        // return logFilePathsArray
     }
     
     @objc(test:)
@@ -398,6 +407,12 @@ class DriverAppPlugin: CDVPlugin, CBCentralManagerDelegate, CBPeripheralManagerD
     }
     
     func sendSuccessWithBoolean(command: CDVInvokedUrlCommand, result: Bool, keepCallback: Bool) {
+        let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: result);
+        pluginResult?.setKeepCallbackAs(keepCallback);
+        self.commandDelegate!.send(pluginResult,callbackId: command.callbackId);
+        
+    }
+func sendSuccessWithPlainArray(command: CDVInvokedUrlCommand, result: Array<String>, keepCallback: Bool) {
         let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: result);
         pluginResult?.setKeepCallbackAs(keepCallback);
         self.commandDelegate!.send(pluginResult,callbackId: command.callbackId);
