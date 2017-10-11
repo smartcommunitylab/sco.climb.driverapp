@@ -149,8 +149,24 @@ angular.module('driverapp', [
 
           .then(function (result) {
             if (result) {
+              if (window.DriverAppPlugin) {
+                WSNSrv.init().then(
+                  function (response) { },
+                  function (reason) { }
+                )
+        
+                WSNSrv.startListener().then(
+                  function (response) { },
+                  function (reason) { }
+                )
+              }
               Utils.setMenuDriverTitle(null) // clear driver name in menu
-              ionic.Platform.exitApp()
+              $state.go('app.home');
+              $ionicHistory.nextViewOptions({
+                  disableBack: true,
+                  historyRoot: true
+              });
+              //ionic.Platform.exitApp()
             }
           })
       }
