@@ -142,18 +142,19 @@ angular.module('driverapp.controllers.home', [])
 
     $scope.stopMaintenanceMode = function () {
       // TODO
-      // $scope.modalMaintenance.hide()
+      $scope.modalMaintenance.hide();
+      $rootScope.showTutorial = false;
 
-      WSNSrv.disableMaintenanceProcedure().then(
-        function () {
-          $scope.modalMaintenance.hide();
-          $rootScope.showTutorial = false;
-        },
-        function (error) {
-          Utils.toast('Non è possibile fermare la procedura di manutenzione')
-          console.log(error)
-        }
-      )
+      // WSNSrv.disableMaintenanceProcedure().then(
+      //   function () {
+      //     $scope.modalMaintenance.hide();
+      //     $rootScope.showTutorial = false;
+      //   },
+      //   function (error) {
+      //     Utils.toast('Non è possibile fermare la procedura di manutenzione')
+      //     console.log(error)
+      //   }
+      // )
     }
 
 
