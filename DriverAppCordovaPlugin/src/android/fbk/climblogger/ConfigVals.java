@@ -36,6 +36,10 @@ public class ConfigVals {
     public final static String CLIMB_CHILD_DEVICE_NAME = "CLIMBC";
     public final static String CLIMB_MASTER_DEVICE_NAME = "CLIMBM";
 
+    public final static int INVALID_BATTERY_VOLTAGE = 0xFFFFFFFF;
+
+    public final static UUID BLE_BASE_UUID =  UUID.fromString("00000000-0000-1000-8000-00805F9B34FB");
+
     public static class Service {
         final static public UUID CLIMB                = UUID.fromString("0000FFF0-0000-1000-8000-00805f9b34fb");
     };

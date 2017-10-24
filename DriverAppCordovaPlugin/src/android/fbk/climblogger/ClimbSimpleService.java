@@ -28,11 +28,11 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.nio.charset.Charset;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import java.io.BufferedWriter;
@@ -43,12 +43,50 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
+import java.util.UUID;
 
 public class ClimbSimpleService extends Service implements fbk.climblogger.ClimbServiceInterface {
     public final static String ACTION_DATALOG_ACTIVE ="fbk.climblogger.ClimbSimpleService.ACTION_DATALOG_ACTIVE";
     public final static String ACTION_DATALOG_INACTIVE ="fbk.climblogger.ClimbSimpleService.ACTION_DATALOG_INACTIVE";
     public final static String EXTRA_STRING ="fbk.climblogger.ClimbSimpleService.EXTRA_STRING";
+
+    private final static byte BLE_GAP_AD_TYPE_NULL                               = (byte)0x00; /**< Used to cut zeros.... */
+    private final static byte BLE_GAP_AD_TYPE_FLAGS                              = (byte)0x01; /**< Flags for discoverability. */
+    private final static byte BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_MORE_AVAILABLE  = (byte)0x02; /**< Partial list of 16 bit service UUIDs. */
+    private final static byte BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_COMPLETE        = (byte)0x03; /**< Complete list of 16 bit service UUIDs. */
+    private final static byte BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_MORE_AVAILABLE  = (byte)0x04; /**< Partial list of 32 bit service UUIDs. */
+    private final static byte BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_COMPLETE        = (byte)0x05; /**< Complete list of 32 bit service UUIDs. */
+    private final static byte BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_MORE_AVAILABLE = (byte)0x06; /**< Partial list of 128 bit service UUIDs. */
+    private final static byte BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_COMPLETE       = (byte)0x07; /**< Complete list of 128 bit service UUIDs. */
+    private final static byte BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME                   = (byte)0x08; /**< Short local device name. */
+    private final static byte BLE_GAP_AD_TYPE_COMPLETE_LOCAL_NAME                = (byte)0x09; /**< Complete local device name. */
+    private final static byte BLE_GAP_AD_TYPE_TX_POWER_LEVEL                     = (byte)0x0A; /**< Transmit power level. */
+    private final static byte BLE_GAP_AD_TYPE_CLASS_OF_DEVICE                    = (byte)0x0D; /**< Class of device. */
+    private final static byte BLE_GAP_AD_TYPE_SIMPLE_PAIRING_HASH_C              = (byte)0x0E; /**< Simple Pairing Hash C. */
+    private final static byte BLE_GAP_AD_TYPE_SIMPLE_PAIRING_RANDOMIZER_R        = (byte)0x0F; /**< Simple Pairing Randomizer R. */
+    private final static byte BLE_GAP_AD_TYPE_SECURITY_MANAGER_TK_VALUE          = (byte)0x10; /**< Security Manager TK Value. */
+    private final static byte BLE_GAP_AD_TYPE_SECURITY_MANAGER_OOB_FLAGS         = (byte)0x11; /**< Security Manager Out Of Band Flags. */
+    private final static byte BLE_GAP_AD_TYPE_SLAVE_CONNECTION_INTERVAL_RANGE    = (byte)0x12; /**< Slave Connection Interval Range. */
+    private final static byte BLE_GAP_AD_TYPE_SOLICITED_SERVICE_UUIDS_16BIT      = (byte)0x14; /**< List of 16-bit Service Solicitation UUIDs. */
+    private final static byte BLE_GAP_AD_TYPE_SOLICITED_SERVICE_UUIDS_128BIT     = (byte)0x15; /**< List of 128-bit Service Solicitation UUIDs. */
+    private final static byte BLE_GAP_AD_TYPE_SERVICE_DATA                       = (byte)0x16; /**< Service Data - 16-bit UUID. */
+    private final static byte BLE_GAP_AD_TYPE_PUBLIC_TARGET_ADDRESS              = (byte)0x17; /**< Public Target Address. */
+    private final static byte BLE_GAP_AD_TYPE_RANDOM_TARGET_ADDRESS              = (byte)0x18; /**< Random Target Address. */
+    private final static byte BLE_GAP_AD_TYPE_APPEARANCE                         = (byte)0x19; /**< Appearance. */
+    private final static byte BLE_GAP_AD_TYPE_ADVERTISING_INTERVAL               = (byte)0x1A; /**< Advertising Interval. */
+    private final static byte BLE_GAP_AD_TYPE_LE_BLUETOOTH_DEVICE_ADDRESS        = (byte)0x1B; /**< LE Bluetooth Device Address. */
+    private final static byte BLE_GAP_AD_TYPE_LE_ROLE                            = (byte)0x1C; /**< LE Role. */
+    private final static byte BLE_GAP_AD_TYPE_SIMPLE_PAIRING_HASH_C256           = (byte)0x1D; /**< Simple Pairing Hash C-256. */
+    private final static byte BLE_GAP_AD_TYPE_SIMPLE_PAIRING_RANDOMIZER_R256     = (byte)0x1E; /**< Simple Pairing Randomizer R-256. */
+    private final static byte BLE_GAP_AD_TYPE_SERVICE_DATA_32BIT_UUID            = (byte)0x20; /**< Service Data - 32-bit UUID. */
+    private final static byte BLE_GAP_AD_TYPE_SERVICE_DATA_128BIT_UUID           = (byte)0x21; /**< Service Data - 128-bit UUID. */
+    private final static byte BLE_GAP_AD_TYPE_LESC_CONFIRMATION_VALUE            = (byte)0x22; /**< LE Secure Connections Confirmation Value */
+    private final static byte BLE_GAP_AD_TYPE_LESC_RANDOM_VALUE                  = (byte)0x23; /**< LE Secure Connections Random Value */
+    private final static byte BLE_GAP_AD_TYPE_URI                                = (byte)0x24; /**< URI */
+    private final static byte BLE_GAP_AD_TYPE_3D_INFORMATION_DATA                = (byte)0x3D; /**< 3D Information Data. */
+    private final static byte BLE_GAP_AD_TYPE_MANUFACTURER_SPECIFIC_DATA         = (byte)0xFF; /**< Manufacturer Specific Data. */
 
     public String dirName, file_name_log;
     File root;
@@ -56,16 +94,15 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
     private FileWriter mFileWriter = null;
     private BufferedWriter mBufferedWriter = null;
     private boolean logEnabled;
-    //private ArrayList<ClimbNode> nodeList;
     private boolean initialized = false;
     private long lastMaintainaceCallTime_millis = 0;
     private long lastWakeUpTimeoutSet_sec = 0;
     private boolean maintenanceProcedureEnabled = false;
     private String originalDeviceName = null;
+
     //--- Service -----------------------------------------------
 
     private final String TAG = "ClimbSimpleService";
-
     private IBinder mBinder;
 
     public class LocalBinder extends Binder {
@@ -158,8 +195,14 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
     private int bluetoothState = BluetoothAdapter.STATE_OFF;
 
     private final static int TEXAS_INSTRUMENTS_MANUFACTER_ID = 0x000D;
+    private final static ParcelUuid EDDYSTONE_SERVICE_UUID = ParcelUuid.fromString("0000FEAA-0000-1000-8000-00805F9B34FB");
+    private final static int APPLE_MANUFACTER_ID = 0x004c;
+    private final static String CLIMB_NAMESPACE_EDDYSTONE = null;
     private static String getNodeIdFromRawPacket(byte[] manufSpecField) {
         if(manufSpecField != null && manufSpecField.length > 1) {
+            if(manufSpecField[0] == 0x00){ //0x00 is invalid as id
+                return null;
+            }
             return String.format("%02X", manufSpecField[0]);
         }else{
             return null;
@@ -205,11 +248,6 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
     }
 
     private int StartScanning(boolean enableDatalog) {
-
-       /* if(mBluetoothAdapter == null) {
-            return false;
-        }
-*/
         if(mBluetoothAdapter != null) {
             if(enableDatalog) {
                 startDataLog();
@@ -253,14 +291,37 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
                     return 0;
                 }
             } else {
-                //prepare filter
+                //Prepara il filtro
+                List<ScanFilter> mScanFilterList = new ArrayList<ScanFilter>();
 
-                    List<ScanFilter> mScanFilterList = new ArrayList<ScanFilter>();
-                    mScanFilterList.add(new ScanFilter.Builder().setDeviceName(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME).build());
-                    mScanFilterList.add(new ScanFilter.Builder().setDeviceName(fbk.climblogger.ConfigVals.CLIMB_CHILD_DEVICE_NAME).build());
+                //Permette tutti i beacon con nome 'CLIMBM' o 'CLIMBC'
+                mScanFilterList.add(new ScanFilter.Builder().setDeviceName(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME).build());
+                mScanFilterList.add(new ScanFilter.Builder().setDeviceName(fbk.climblogger.ConfigVals.CLIMB_CHILD_DEVICE_NAME).build());
+                //mScanFilterList.add(new ScanFilter.Builder().setDeviceAddress("B0:B4:48:BA:60:05").build());  //Climb child beacon 0x25
 
-                    //imposta i settings di scan. vedere dentro la clase ScanSettings le opzioni disponibili
-                    ScanSettings mScanSettings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
+                //Permette tutti i beacon con Service UUID di EddyStone
+                mScanFilterList.add(new ScanFilter.Builder().setServiceUuid(EDDYSTONE_SERVICE_UUID).build());
+
+                /* Permette tutti i beacon EddyStone con namespace che inizia per 'ED',
+                 * vedi https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder.html#setServiceData(android.os.ParcelUuid, byte[])
+                 * E' possibile filtrare per namespace o anche per instance
+                 * Funziona SOLO con pacchetti Eddystone-UID, blocca il passaggio di tutti gli altri tipi (come EddyStone-TLM)
+                */
+/*
+                byte[] serviceData = new byte[] {-19, -47}; //-19 == E; -27 == D
+                mScanFilterList.add(new ScanFilter.Builder().setServiceData(EDDYSTONE_SERVICE_UUID, serviceData).build());
+*/
+                /* Permette tutti i beacon iBeacon (manufacturerId=0x004c; inizio pacchetto: 0x004c 0x02 0x15),
+                 * vedi https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder.html#setManufacturerData(android.os.ParcelUuid, byte[])
+                 * E' possibile filtrare anche per UUID, per major o minor
+                 */
+                //0x004c == appleId; 2 == 0x02; 21 == 0x15
+//                byte[] iBeaconServiceData = new byte[] {2, 21}; //See https://stackoverflow.com/questions/43301395/does-an-ibeacon-have-to-use-apples-company-id-if-not-how-to-identify-an-ibeac
+//                mScanFilterList.add(new ScanFilter.Builder().setManufacturerData(APPLE_MANUFACTER_ID, iBeaconServiceData).build());
+
+                //Imposta i settings di scan. Vedere dentro la clase ScanSettings le opzioni disponibili
+                ScanSettings mScanSettings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
+
                 if(mScanCallback == null) {
                     mScanCallback = new myScanCallback();
                     mBluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
@@ -273,8 +334,9 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
                 bluetoothState = mBluetoothAdapter.getState();
                 if(bluetoothState == BluetoothAdapter.STATE_ON) {
                     mBluetoothLeScanner.startScan(mScanFilterList, mScanSettings, mScanCallback);
+                    //mBluetoothLeScanner.startScan(mScanCallback);     //Allow all bluetooth devices, skip filter
                     return 1;
-                }else{
+                } else {
                     return 0;
                 }
 
@@ -326,7 +388,20 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         }
     };
 
-    void updateChild(String id) {
+    private fbk.climblogger.ClimbServiceInterface.NodeState find_matching_bd_addr_node(String bd_address){
+        Iterator it = seenChildren.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            fbk.climblogger.ClimbServiceInterface.NodeState node = (fbk.climblogger.ClimbServiceInterface.NodeState)pair.getValue();
+            if(node.bdAddress.equals(bd_address)){
+                return node;
+            }
+            //it.remove(); // avoids a ConcurrentModificationException, but it breaks everything in ClimbSimpleService!
+        }
+        return null;
+    }
+
+    void updateChild(String id, String bd_address, String beacon_type) {
         long nowMillis = System.currentTimeMillis();
         fbk.climblogger.ClimbServiceInterface.NodeState s = seenChildren.get(id);
         if (s == null) {
@@ -337,17 +412,21 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
             s.lastSeen = nowMillis;
             s.batteryVoltage_mV = 0;
             s.batteryLevel = 0;
+            s.firstSeen = nowMillis;
+            s.bdAddress = bd_address;
+            s.beaconType = beacon_type;
+            s.batteryVoltage_mV = fbk.climblogger.ConfigVals.INVALID_BATTERY_VOLTAGE;
+            s.batteryLevel = 0;
             seenChildren.put(id,s);
         } else {
             s.lastSeen = nowMillis;
-            s.batteryVoltage_mV = 0;
-            s.batteryLevel = 0;
+            s.bdAddress = bd_address;
         }
         //broadcastUpdate(ACTION_METADATA_CHANGED,id);
     }
 
-    void updateChild(String id, int batteryVoltage) {
-        updateChild(id);
+    void updateChild(String id, String bd_address, String beacon_type, int batteryVoltage) {
+        updateChild(id, bd_address, beacon_type);
         NodeState s = seenChildren.get(id);
         //only update battery voltage, the other stuff is updated in updateChild(String id)
         s.batteryVoltage_mV = batteryVoltage;
@@ -360,52 +439,89 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         }else if(batteryVoltage >= 2500){ //TODO: parametrize levels boundaries in function of the type of battery
             s.batteryLevel = 3;
         }
-
         //broadcastUpdate(ACTION_METADATA_CHANGED,id);
     }
 
-    
-private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] manufacterData, long nowMillis) {
-    boolean ret = false;
-    if (mBufferedWriter != null) { // questo significa che il log � stato abilitato
-        final String timestamp = new SimpleDateFormat("yyyy MM dd HH mm ss").format(new Date()); // salva il timestamp per il log
-        String manufString = "";
 
-        if (manufacterData != null) {
-            for (int i = 0; i < manufacterData.length; i++) {
-                manufString = manufString + String.format("%02X", manufacterData[i]);
-                
+    private boolean logScanResult(long nowMillis, String db_address, int rssi, String packetType, String packet) {
+        boolean ret = false;
+
+        if (mBufferedWriter != null) { //Se il log è abilitato
+            final String timestamp = new SimpleDateFormat("yyyy MM dd HH mm ss").format(new Date()); //Salva il timestamp per il log
+
+            try {
+                String logLine = "" + timestamp;
+                    logLine += " " + nowMillis;
+                    logLine += " " + db_address;
+                    logLine += " " + packetType;
+                    logLine += " ADV";
+                    logLine += " " + rssi;
+                    logLine += " " + packet;
+                    logLine += "\n";
+
+                if (packetType.startsWith("EDDYSTONE"))
+                    packetType = "EDDYSTONE";
+
+                Log.i(TAG, logLine);
+                mBufferedWriter.write(logLine);
+                mBufferedWriter.flush();
+                ret = true;
+
+            } catch (IOException e) {
+                Log.w(TAG, "Exception throwed while writing data to file.");
+            }
+        }
+        return ret;
+    }
+
+    //Scorre la lista dei beacon ed elimina quelli non più presenti dopo 'MaxTime' secondi
+    private void node_timeout_check()
+    {
+        Iterator entries = seenChildren.entrySet().iterator();
+        long MaxTime = fbk.climblogger.ConfigVals.MON_NODE_TIMEOUT;
+        int checkTimeout = 1000;
+        long nowmillis = System.currentTimeMillis();
+
+        while (entries.hasNext())
+        {
+            Map.Entry entry = (Map.Entry) entries.next();
+            NodeState node = (NodeState) entry.getValue();
+
+            long lastSeen = node.lastSeen;
+
+            if(nowmillis - lastSeen > MaxTime)
+            {
+                Log.i(TAG,"Node with ID: "+node.nodeID+" removed!");
+                entries.remove();
             }
         }
 
-        try {
-            String logLine = "" + timestamp +
-                    " " + nowMillis +
-                    " " + device.getAddress() +
-                    " " + device.getName() +
-                    " ADV " +
-                    rssi +
-                    " " + manufString +
-                    "\n";
-
-            //mBufferedWriter.write(timestamp + " " + nowMillis);
-            //mBufferedWriter.write(" " + result.getDevice().getAddress()); //MAC ADDRESS
-            //mBufferedWriter.write(" " + result.getDevice().getName() + " "); //NAME
-            //mBufferedWriter.write(" " + "ADV data" + " ");
-            Log.i(TAG, logLine);
-            mBufferedWriter.write(logLine);
-            mBufferedWriter.flush();
-            ret = true;
-
-        } catch (IOException e) {
-            Log.w(TAG, "Exception throwed while writing data to file.");
+        if(initialized) {
+            Handler h = new Handler();
+            h.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    node_timeout_check();
+                }
+            }, checkTimeout);
         }
     }
-    return ret;
-}
 
+    private String toHexString(byte[] bytes) {
+        final char[] HEX = "0123456789ABCDEF".toCharArray();
+        if (bytes.length == 0) {
+            return "";
+        }
+        char[] chars = new char[bytes.length * 2];
+        for (int i = 0; i < bytes.length; i++) {
+            int c = bytes[i] & 0xFF;
+            chars[i * 2] = HEX[c >>> 4];
+            chars[i * 2 + 1] = HEX[c & 0x0F];
+        }
+        return new String(chars).toUpperCase();
+    }
 
-    // --- Android 5.x specific code ---
+    // --- Android 5+ specific code ---
     private ScanCallback mScanCallback;
     @TargetApi(21)
     class myScanCallback extends ScanCallback {
@@ -415,36 +531,15 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
 
         @Override
         public void onScanFailed(int errorCode){
-            Log.e( TAG, "Error while starting the scan. ErrorCode: " + errorCode );
+            Log.e( TAG, "Error while starting the scan. ErrorCode: " + errorCode);
         }
 
         @Override
-        public void onScanResult(int callbackType, ScanResult result){  //public for SO, not for upper layer!
+        public void onScanResult(int callbackType, ScanResult result)  //public for SO, not for upper layer!
+        {
             if(callbackType == ScanSettings.CALLBACK_TYPE_ALL_MATCHES) {
-                long nowMillis = System.currentTimeMillis();
-                String id;
-                byte[] manufSpecDataPacket;
-                int batteryVoltage = 0;
-                if (logEnabled) {
-                    logScanResult(result.getDevice(),
-                            result.getRssi(),
-                            result.getScanRecord().getManufacturerSpecificData(TEXAS_INSTRUMENTS_MANUFACTER_ID),
-                            nowMillis);
-                }
-                if (result.getDevice().getName().equals(fbk.climblogger.ConfigVals.CLIMB_CHILD_DEVICE_NAME)) {
-                    manufSpecDataPacket = result.getScanRecord().getManufacturerSpecificData(TEXAS_INSTRUMENTS_MANUFACTER_ID);
-                    id = getNodeIdFromRawPacket(manufSpecDataPacket);
-                    if(id != null) {
-                        batteryVoltage = getNodeBatteryVoltageFromRawPacket(manufSpecDataPacket);
-                        updateChild(id, batteryVoltage);
-                    }else{
-                        id = result.getDevice().getAddress();
-                        updateChild(id);
-                    }
-                } else {
-                    id = result.getDevice().getAddress();
-                    updateChild(id);
-                }
+                byte[] raw_packet = adv_report_parse(BLE_GAP_AD_TYPE_NULL, result.getScanRecord().getBytes());
+                processNewAdvPacket(result.getDevice(), result.getRssi(), raw_packet);
             }
         }
     };
@@ -470,59 +565,275 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
     class myLeScanCallback implements BluetoothAdapter.LeScanCallback {
         @Override
         public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
-            String id;
-            long nowMillis = System.currentTimeMillis();
-            byte[] manufSpecDataPacket = extractManufacturerSpecificData(scanRecord, TEXAS_INSTRUMENTS_MANUFACTER_ID);
-            int batteryVoltage = 0;
+            byte[] raw_packet = adv_report_parse(BLE_GAP_AD_TYPE_NULL, scanRecord);
+            processNewAdvPacket(device, rssi, raw_packet);
+        }
+    };
 
-            if (device != null) {
-                if (logEnabled && device.getName().equals(fbk.climblogger.ConfigVals.CLIMB_CHILD_DEVICE_NAME)) {
-                    logScanResult(device,
-                            rssi,
-                            manufSpecDataPacket,
-                            nowMillis);
-                }
-                if (device.getName() != null && device.getName().equals(fbk.climblogger.ConfigVals.CLIMB_CHILD_DEVICE_NAME)) {
-                    id = getNodeIdFromRawPacket(manufSpecDataPacket);
-                    //id = getNodeIdFromRawPacket(Arrays.copyOfRange(scanRecord,12,scanRecord.length));  //not sure if this works, scanRecord in android 4.x does ot support getManufacturerSpecificData
-                    if(id != null) {
-                        batteryVoltage = getNodeBatteryVoltageFromRawPacket(manufSpecDataPacket);
-                        updateChild(id, batteryVoltage);
-                    }else{
-                        id = device.getAddress();
-                        updateChild(id);
-                    }
-                } else {
-                    id = device.getAddress();
-                    updateChild(id);
-                }
+    //--- Callbacks helpers -----------------------------------------------
+    private enum PacketType {
+        NOT_A_NODE,
+        CLIMB_SENSORTAG,
+        EDDYSTONE_UID,
+        EDDYSTONE_EID,
+        EDDYSTONE_URL,
+        EDDYSTONE_TLM,
+        IBEACON
+    }
+
+    private void processNewAdvPacket(BluetoothDevice device, int rssi, byte[] raw_packet){
+        PacketType mPacketType = getFrameType(raw_packet);
+
+        switch(mPacketType){
+            case CLIMB_SENSORTAG:
+                processClimbSensortagPkt(device, rssi, raw_packet);
+                break;
+
+            case EDDYSTONE_UID:
+                processEddystoneUidPkt(device, rssi, raw_packet);
+                break;
+
+            case EDDYSTONE_TLM:
+                processEddystoneTlmPkt(device, rssi, raw_packet);
+                break;
+
+            case IBEACON:
+                processIbeaconPkt(device, rssi, raw_packet);    //not sure that the ibeacon adv is correctly detected....anyway the processIbeaconPkt(...) returns just for now
+                break;
+            case EDDYSTONE_URL:
+            case EDDYSTONE_EID:
+            case NOT_A_NODE:
+                processUnknownPkt(device, rssi, raw_packet);
+            default:
+                return;
+        }
+    }
+
+    private PacketType getFrameType(byte[] raw_packet){
+        List<ParcelUuid> eddyStoneServiceUUID = new ArrayList<ParcelUuid>();  //Necessario per il controllo sottostante
+        eddyStoneServiceUUID.add(EDDYSTONE_SERVICE_UUID);
+
+        String deviceName = adv_get_name(raw_packet);
+        List<ParcelUuid> ADV_UUIDS = adv_get_16bit_service_uuids(raw_packet);
+        byte[] manuf_specific_data_apple = adv_get_manufacturer_specific_data(APPLE_MANUFACTER_ID,raw_packet);
+
+        if (deviceName != null && deviceName.equals(fbk.climblogger.ConfigVals.CLIMB_CHILD_DEVICE_NAME))
+        {
+            if(adv_get_flags(raw_packet) == null) {
+                return PacketType.CLIMB_SENSORTAG;
+            }else{
+                return PacketType.NOT_A_NODE; //in this case it is a CLIMBC in maintainance mode, do not add it to the list of kids!
             }
         }
+        else if (ADV_UUIDS != null && ADV_UUIDS.equals(eddyStoneServiceUUID))
+        {
+            byte[] frameEdd = adv_get_16bit_uuid_service_data(EDDYSTONE_SERVICE_UUID,raw_packet);
+            if (frameEdd[0] == 0x00)    //EddyStone-UID
+            {
+                return PacketType.EDDYSTONE_UID;
+            }else if (frameEdd[0] == 0x10)   //EddyStone-URL
+            {
+                return PacketType.EDDYSTONE_URL;
+            }
+            else if (frameEdd[0] == 0x20)   //EddyStone-TLM
+            {
+                return PacketType.EDDYSTONE_TLM;
+            }
+            else if (frameEdd[0] == 0x30)   //EddyStone-EID. E' necessario essere connessi ad internet per decriptare il pacchetto.
+            {
+                return PacketType.EDDYSTONE_EID;
+            }
+        }
+        else if (manuf_specific_data_apple != null)   //76 == 0x004c == appleID
+        {
+            return PacketType.IBEACON;
+        }
+        return PacketType.NOT_A_NODE;
+    }
 
-        private byte[] extractManufacturerSpecificData(byte[] scanRecord, int manufacturer_id){
+    private void processClimbSensortagPkt(BluetoothDevice device, int rssi, byte[] raw_packet){
+        long nowMillis = System.currentTimeMillis();
 
-            if(scanRecord != null) {
-                int ptr = 0;
-                while (ptr < scanRecord.length && scanRecord[ptr] != 0) {
-                    int field_length = scanRecord[ptr];
-                    if (scanRecord[ptr + 1] == (byte) (0xFF)) { //this is true when the manufacturer specific data field has been found
-                        if (((scanRecord[ptr + 3] << 8) + scanRecord[ptr + 2]) == manufacturer_id) {
-                            byte[] manufacturerSpecificData = new byte[field_length - 3];
-                            System.arraycopy(scanRecord, ptr + 4, manufacturerSpecificData, 0, field_length - 3);
-                            return manufacturerSpecificData;
-                        }
-                    }
-                    ptr += (field_length + 1);
-                }
-                return null;
+        if (logEnabled) {
+            logScanResult(nowMillis, device.getAddress(), rssi, "CLIMBC", toHexString(raw_packet));
+        }
+
+        byte[] manufSpecDataPacket = adv_get_manufacturer_specific_data(TEXAS_INSTRUMENTS_MANUFACTER_ID, raw_packet);//result.getScanRecord().getManufacturerSpecificData(TEXAS_INSTRUMENTS_MANUFACTER_ID);
+        String id = getNodeIdFromRawPacket(manufSpecDataPacket);
+        if(id == null){
+            return;
+        }
+        int batteryVoltage = getNodeBatteryVoltageFromRawPacket(manufSpecDataPacket);
+        updateChild("0x" + id, device.getAddress(), "SENSORTAG", batteryVoltage); //Aggiorna la UI
+    }
+    private void processEddystoneUidPkt(BluetoothDevice device, int rssi, byte[] raw_packet){
+        long nowMillis = System.currentTimeMillis();
+
+        byte[] frameEdd = adv_get_16bit_uuid_service_data(EDDYSTONE_SERVICE_UUID,raw_packet);   //Frame EddyStone vero e proprio
+
+        int txPower = (int) frameEdd[1];  //Potenza di trasmissione a 0 metri
+        double distance = Math.pow(10, ((txPower - rssi) - 41) / 20.0);
+        distance = Math.round(distance * 100.0) / 100.0;    //Arrotonda a 2 cifre decimali
+
+        String hexValues = toHexString(Arrays.copyOfRange(frameEdd, 2, 18));
+        String namespace = hexValues.substring(0, 20);
+        String instance = hexValues.substring(20, 32);
+
+        if(CLIMB_NAMESPACE_EDDYSTONE != null && namespace.equals(CLIMB_NAMESPACE_EDDYSTONE)){ //discar all eddystone which are not climb nodes!
+            return;
+        }
+        if (logEnabled)
+            logScanResult(nowMillis, device.getAddress(), rssi, "EDDYSTONE-UID",  toHexString(raw_packet));
+
+        updateChild("0x" + instance, device.getAddress(), "EDDYSTONE"); //Aggiorna la UI
+
+    }
+
+    private void processEddystoneTlmPkt(BluetoothDevice device, int rssi, byte[] raw_packet){
+        long nowMillis = System.currentTimeMillis();
+
+        fbk.climblogger.ClimbServiceInterface.NodeState node = find_matching_bd_addr_node(device.getAddress());
+        if(node == null)
+            return;
+
+        byte[] frameEdd = adv_get_16bit_uuid_service_data(EDDYSTONE_SERVICE_UUID,raw_packet);    //Frame EddyStone vero e proprio
+        if(frameEdd == null)
+            return;
+
+        ByteBuffer buf = ByteBuffer.wrap(frameEdd);
+        buf.get();  //Avanza di un byte
+        buf.get();  //I primi due byte non ci interessano
+        short voltage = buf.getShort(); //Avanza di 2 bytes
+        //int temp = (int) (buf.get() + ((buf.get() & 0xff) / 256.0f));
+        //int advCnt = buf.getInt();  //Avanza di 4 bytes
+        //int upTime = buf.getInt();
+
+        if (logEnabled)
+            logScanResult(nowMillis, device.getAddress(), rssi, "EDDYSTONE-TLM", toHexString(raw_packet));
+
+        updateChild(node.nodeID, node.bdAddress, "EDDYSTONE",voltage); //Aggiorna la UI
+    }
+
+    private void processIbeaconPkt(BluetoothDevice device, int rssi, byte[] raw_packet){
+        return;
+//        return; //not defined how to use ibeacon in climb for now
+//        long nowMillis = System.currentTimeMillis();
+//
+//        byte[] manufSpecDataPacket = adv_get_manufacturer_specific_data(APPLE_MANUFACTER_ID, raw_packet);
+//
+//        if (logEnabled)
+//            logScanResultRawPacket(nowMillis, device.getAddress(), rssi, "IBEACON", toHexString(raw_packet));
+//
+//        String uuid = toHexString(Arrays.copyOfRange(manufSpecDataPacket, 2, 18));
+//
+//        ByteBuffer buf = ByteBuffer.wrap(Arrays.copyOfRange(manufSpecDataPacket, 18, 23));
+//        int major = buf.getShort() & 0xffff;
+//        int minor = buf.getShort() & 0xffff;
+//        byte txPower = buf.get();
+//        updateChild(device.getAddress(), rssi, uuid, String.valueOf(major), String.valueOf(minor), String.valueOf(txPower), "IBEACON");
+    }
+
+    private void processUnknownPkt(BluetoothDevice device, int rssi, byte[] raw_packet) {
+        return;
+//            long nowMillis = System.currentTimeMillis();
+//            String packetHex = toHexString(result.getScanRecord().getBytes());  //Pacchetto grezzo codificato in base 16
+//
+//            if (logEnabled)
+//                logScanResultRawPacket(nowMillis, result.getDevice(), result.getRssi(), "UNKNOWN!", packetHex);
+//
+//            updateChild(result.getDevice().getAddress(), result.getRssi(), "UNKNOWN!");
+    }
+
+    private byte[] adv_get_flags(byte[] raw_record){
+        return adv_report_parse(BLE_GAP_AD_TYPE_FLAGS, raw_record);
+    }
+
+    private String adv_get_name(byte[] raw_record){
+        byte[] name_raw_bytes = adv_report_parse(BLE_GAP_AD_TYPE_COMPLETE_LOCAL_NAME, raw_record);
+        if(name_raw_bytes == null){
+            return null;
+        }
+        try {
+            return new String(name_raw_bytes, "UTF-8");
+        }catch (Exception e){
+            return null;
+        }
+    }
+
+    private byte[] adv_get_manufacturer_specific_data(int manufacturer_id, byte[] raw_record){
+        byte[] manuf_raw_bytes = adv_report_parse(BLE_GAP_AD_TYPE_MANUFACTURER_SPECIFIC_DATA, raw_record);
+        if(manuf_raw_bytes != null && manuf_raw_bytes.length >= 2) {
+            if (((manuf_raw_bytes[1] << 8) + manuf_raw_bytes[0]) == manufacturer_id){
+                byte[] ret_array = new byte[manuf_raw_bytes.length - 2];
+                System.arraycopy(manuf_raw_bytes, 2, ret_array, 0, manuf_raw_bytes.length - 2);
+                return ret_array;
+            }
+        }
+        return null;
+    }
+
+    private byte[] adv_get_16bit_uuid_service_data(ParcelUuid target_uuid, byte[] raw_record){
+        List<ParcelUuid> uuid_list = adv_get_16bit_service_uuids(raw_record);
+        boolean is_uuid_present = uuid_list.contains(target_uuid);
+        if(is_uuid_present){
+            byte[] data_raw_bytes = adv_report_parse(BLE_GAP_AD_TYPE_SERVICE_DATA, raw_record);
+
+            long uuid_16bit = ((((data_raw_bytes[1]<<8)&0xFF00) + (data_raw_bytes[0]&0x00FF))&0xFFFF);
+            long high = fbk.climblogger.ConfigVals.BLE_BASE_UUID.getMostSignificantBits() + (uuid_16bit<<32) ; //THIS DOESN'T WORK AS EXPECTED!!!
+            long low = fbk.climblogger.ConfigVals.BLE_BASE_UUID.getLeastSignificantBits();
+
+
+            ParcelUuid complete_uuid = new ParcelUuid(new UUID(high, low));
+            if(complete_uuid.equals(target_uuid)) {
+                byte[] ret_array = new byte[data_raw_bytes.length - 2];
+                System.arraycopy( data_raw_bytes, 2, ret_array, 0, data_raw_bytes.length - 2 );
+                return ret_array;
             }else{
                 return null;
             }
         }
-    };
+        return null;
+    }
 
+    private List<ParcelUuid> adv_get_16bit_service_uuids(byte[] raw_record){ //ATTENZIONE!! QUESTO CERCA SOLO IL PRIMO UUID!!!
+        byte[] uuid_raw_bytes = adv_report_parse(BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_COMPLETE, raw_record);
+        if(uuid_raw_bytes == null){
+            return null;
+        }
 
-    //--- Callbacks helpers -----------------------------------------------
+        long uuid_16bit = ((((uuid_raw_bytes[1]<<8)&0xFF00) + (uuid_raw_bytes[0]&0x00FF))&0xFFFF);
+        long high = fbk.climblogger.ConfigVals.BLE_BASE_UUID.getMostSignificantBits() + (uuid_16bit<<32) ;
+        long low = fbk.climblogger.ConfigVals.BLE_BASE_UUID.getLeastSignificantBits();
+        List<ParcelUuid> UUIDS = new ArrayList<ParcelUuid>();
+        UUIDS.add(new ParcelUuid(new UUID(high, low)));
+        return UUIDS;
+    }
+
+    private byte[] adv_report_parse(byte taget_type, byte[] raw_record)
+    {
+        int index = 0;
+        while (index + 1 < raw_record.length && raw_record[index] != 0)
+        {
+            byte field_length = raw_record[index];
+            byte field_type   = raw_record[index + 1];
+
+            if (field_type == taget_type && field_type != BLE_GAP_AD_TYPE_NULL)
+            {
+                byte[] ret_array = new byte[field_length - 1];
+                System.arraycopy( raw_record, index + 2, ret_array, 0, field_length - 1 );
+                return ret_array;
+            }
+            index += field_length + 1;
+        }
+
+        if(taget_type == BLE_GAP_AD_TYPE_NULL){
+            byte[] ret_array = new byte[index];
+            System.arraycopy( raw_record, 0, ret_array, 0, index );
+            return ret_array;
+        }
+        return null;
+    }
+
     private void broadcastUpdate(final String action) {
         final Intent intent = new Intent(action);
         //Log.v(TAG, "Sending broadcast, action = " + action);
@@ -573,6 +884,7 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
                                 tagDescriptiveString +
                                 "\n";
                         Log.i(TAG, tagDescriptiveString);
+
                         mBufferedWriter.write(tagString);
                         mBufferedWriter.flush();
                         return true;
@@ -650,23 +962,18 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
         } // (Build.VERSION.SDK_INT >= 21)
         return;
     }
-
     //--- CLIMB API -----------------------------------------------
 
     private String[] allowedChildren = new String[0];
     private HashMap<String, fbk.climblogger.ClimbServiceInterface.NodeState> seenChildren = new HashMap<String, fbk.climblogger.ClimbServiceInterface.NodeState>();
 
     public boolean init() {
-
-       // insertTag("Initializing");
-       // return StartScanning();
-
         boolean ret = (StartScanning(true) == 1);
         initialized = ret;
         insertTag("init: " + ret);
         Log.i(TAG, "Initializing: ret = " + ret);
+        node_timeout_check();
         return ret;
-
     }
 
     public boolean deinit() {
@@ -675,6 +982,7 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
         seenChildren = new HashMap<String, fbk.climblogger.ClimbServiceInterface.NodeState>(); //empty node list!
         broadcastUpdate(ACTION_METADATA_CHANGED);
         initialized = false;
+        logEnabled = false;
         insertTag("deinit: " + ret);
         Log.i(TAG, "deInitializing: ret = " + ret);
         return ret;
@@ -733,7 +1041,7 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
     }
 
     public NodeState[] getNetworkState() {
-        return seenChildren.values().toArray(new NodeState[0]); //TODO: deep clone
+        return seenChildren.values().toArray(new NodeState[0]);
     }
 
     public boolean checkinChild(String child) {
@@ -775,15 +1083,14 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
     }
 
     private String startDataLog(){
-        //TODO:se il file c'� gi� non crearlo, altrimenti creane un'altro
+        //TODO:se il file c'è già non crearlo, altrimenti creane un'altro
         if(mBufferedWriter == null){ // il file non � stato creato, quindi crealo
-            if( get_log_num() == 1 ){
+            if( get_log_num() == 1) {
                 return file_name_log;
             }
         } else{
             return null;
         }
-
         return null;
     }
     private String stopDataLog(){
@@ -851,6 +1158,7 @@ private boolean logScanResult(final BluetoothDevice device, int rssi, byte[] man
         return 1;
     }
 
+    @TargetApi(21)
     public ErrorCode enableMaintenanceProcedure(int wakeUP_year, int wakeUP_month, int wakeUP_day, int wakeUP_hour, int wakeUP_minute) {
         if (Build.VERSION.SDK_INT < 21) {
             Log.w(TAG, "Build.VERSION.SDK_INT < 21");

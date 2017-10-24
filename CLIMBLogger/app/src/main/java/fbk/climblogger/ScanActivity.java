@@ -38,6 +38,7 @@ import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -60,7 +61,7 @@ public class ScanActivity extends Activity {
     private EditText mConsole = null;
     private long lastBroadcastMessageSentMillis = 0;
     private int wakeUP_year = 0, wakeUP_month = 0, wakeUP_day = 0, wakeUP_hour = 0, wakeUP_minute = 0;
-    static final int BATTERY_CHECK_INTERVAL_MS = 5000;
+    static final int BATTERY_CHECK_INTERVAL_MS = 50000;
     static final int UI_UPDATE_INTERVAL_MS = 100;
     static private boolean firstServiceConnection = true;
     private static ServiceConnection mServiceConnection = null;
@@ -68,8 +69,6 @@ public class ScanActivity extends Activity {
     private boolean libraryInitialized = false;
     ExpandableListView expandableListView;
     MyExpandableListAdapter expandableListAdapter;
-    List<fbk.climblogger.ClimbNode> expandableListTitle;
-    HashMap<fbk.climblogger.ClimbNode, List<String>> expandableListDetail;
 
     // Handles various events fired by the Service.
     // ACTION_GATT_CONNECTED: connected to a GATT server.
@@ -259,7 +258,7 @@ public class ScanActivity extends Activity {
 
             if(mClimbService != null){
                 mVibrator.vibrate(fbk.climblogger.ConfigVals.vibrationTimeout);
-                Log.i(TAG, java.util.Arrays.toString(mClimbService.getLogFiles()));
+                Log.i(TAG, Arrays.toString(mClimbService.getLogFiles()));
                 if(mClimbService.deinit()){ //deinit() returns true if the deinitialization was successful
                     libraryInitialized = false;
                 }
@@ -697,12 +696,12 @@ public class ScanActivity extends Activity {
 
         // Code to manage Service lifecycle.
         mServiceConnection = new ServiceConnection() {
-            @Override //Questa � usata per ritornare l'oggetto IBinder (c'� solo nei bound services)
+            @Override //Questa è usata per ritornare l'oggetto IBinder (c'è solo nei bound services)
             public void onServiceConnected(ComponentName componentName, IBinder service) {
                 //la prossima istruzione ritorna l'oggetto BluetoothLeService
                 //mClimbService = ((ClimbSimpleService.LocalBinder)service).getService();
                 mClimbService = ((fbk.climblogger.ClimbSimpleService.LocalBinder) service).getService();
-                mClimbService.setContext(getApplicationContext());
+                mClimbService.setContext(mContext);
                 //IN QUESTO PUNTO RICHIEDI LA LISTA DI DISPOSITIVI INIZIALI PER INSERIRLA NELLA LISTVIEW
                 expandableListAdapter = new MyExpandableListAdapter(mContext, mClimbService);
                 expandableListView.setAdapter(expandableListAdapter);
