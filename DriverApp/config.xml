@@ -76,18 +76,32 @@
     </platform>
     <icon src="resources/android/icon/drawable-xhdpi-icon.png" />
     <preference name="SplashShowOnlyFirstTime" value="false" />
-    <engine name="android" spec="~6.1.2" />
-    <engine name="ios" spec="~4.3.1" />
-    <plugin name="cordova-plugin-add-swift-support" spec="~1.7.0" />
+    <engine name="ios" spec="^4.3.1" />
+    <plugin name="cordova-plugin-add-swift-support" spec="^1.7.1" />
+    <plugin name="cordova-plugin-compat" spec="^1.2.0" />
+    <plugin name="cordova-plugin-console" spec="^1.0.7" />
+    <plugin name="cordova-plugin-crosswalk-webview" spec="^2.3.0" />
+    <plugin name="cordova-plugin-device" spec="^1.1.6" />
     <plugin name="cordova-plugin-facebook4" spec="^1.7.4">
         <variable name="APP_ID" value="493172441063173" />
         <variable name="APP_NAME" value="CLIMB" />
     </plugin>
-    <plugin name="cordova-plugin-globalization" spec="~1.0.7" />
-    <plugin name="cordova-plugin-googleplus" spec="^5.1.1">
+    <plugin name="cordova-plugin-file" spec="^4.3.3" />
+    <plugin name="cordova-plugin-file-transfer" spec="^1.6.3" />
+    <plugin name="cordova-plugin-geolocation" spec="^4.0.1" />
+    <plugin name="cordova-plugin-globalization" spec="^1.0.9" />
+    <plugin name="cordova-plugin-googleplus" spec="^5.2.1">
         <variable name="REVERSED_CLIENT_ID" value="com.googleusercontent.apps.453601816446-tvtmoe6oftsqjnbj5blcgee6qjqq42ku" />
         <variable name="APP_ID" value="493172441063173" />
         <variable name="APP_NAME" value="CLIMB" />
     </plugin>
-    <plugin name="it.smartcommunitylab.climb.dap" spec="/Users/admin/Documents/Projects/climb/sco.climb.driverapp/DriverAppCordovaPlugin" />
+    <plugin name="cordova-plugin-logtofile" spec="^1.1.2" />
+    <plugin name="cordova-plugin-network-information" spec="^1.3.3" />
+    <plugin name="cordova-plugin-splashscreen" spec="^4.0.3" />
+    <plugin name="cordova-plugin-statusbar" spec="^2.2.3" />
+    <plugin name="cordova-plugin-whitelist" spec="^1.3.2" />
+    <plugin name="cordova-plugin-x-toast" spec="^2.6.0" />
+    <plugin name="cordova.plugins.diagnostic" spec="^3.6.5" />
+    <plugin name="ionic-plugin-keyboard" spec="^2.2.1" />
+    <plugin name="it.smartcommunitylab.climb.dap" spec="../DriverAppCordovaPlugin" />
 </widget>
