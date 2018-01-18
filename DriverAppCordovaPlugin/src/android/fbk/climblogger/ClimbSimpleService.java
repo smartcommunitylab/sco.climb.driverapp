@@ -198,7 +198,8 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
     private final static int TEXAS_INSTRUMENTS_MANUFACTER_ID = 0x000D;
     private final static ParcelUuid EDDYSTONE_SERVICE_UUID = ParcelUuid.fromString("0000FEAA-0000-1000-8000-00805F9B34FB");
     private final static int APPLE_MANUFACTER_ID = 0x004c;
-    private final static String CLIMB_NAMESPACE_EDDYSTONE = null;
+    private final static String CLIMB_NAMESPACE_EDDYSTONE = "3906bf230e2885338f44";
+
     private static String getNodeIdFromRawPacket(byte[] manufSpecField) {
         if(manufSpecField != null && manufSpecField.length > 1) {
             if(manufSpecField[0] == 0x00){ //0x00 is invalid as id
@@ -684,13 +685,13 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         String namespace = hexValues.substring(0, 20);
         String instance = hexValues.substring(20, 32);
 
-        if(CLIMB_NAMESPACE_EDDYSTONE != null && namespace.equals(CLIMB_NAMESPACE_EDDYSTONE)){ //discar all eddystone which are not climb nodes!
+        if(CLIMB_NAMESPACE_EDDYSTONE != null && !namespace.toUpperCase().equals(CLIMB_NAMESPACE_EDDYSTONE.toUpperCase())){ //discar all eddystone which are not climb nodes!
             return;
         }
         if (logEnabled && packetLogEnabled)
             logScanResult(nowMillis, device.getAddress(), rssi, "EDDYSTONE-UID",  toHexString(raw_packet));
 
-        updateChild("0x" + instance, device.getAddress(), "EDDYSTONE"); //Aggiorna la UI
+        updateChild("0x" + namespace + instance, device.getAddress(), "EDDYSTONE"); //Aggiorna la UI
 
     }
 
