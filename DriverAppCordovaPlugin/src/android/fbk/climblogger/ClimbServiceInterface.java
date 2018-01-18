@@ -2,8 +2,6 @@ package fbk.climblogger;
 
 import android.content.Context;
 
-import java.util.ArrayList;
-
 public interface ClimbServiceInterface {
 
     public enum State {
@@ -25,8 +23,11 @@ public interface ClimbServiceInterface {
     public class NodeState{
         public String nodeID;
         public int state;
-        public long lastSeen;   //local time in millisec
-        public long lastStateChange; //local time in millisec
+        public long firstSeen;
+        public long lastSeen;           //local time in millisec
+        public long lastStateChange;    //local time in millisec
+        public String beaconType;
+        public String bdAddress;
         public int batteryVoltage_mV; //battery voltage
         public int batteryLevel; //battery level (0: not applicable, 1: very low, 2: mid, 3: good)
     }
