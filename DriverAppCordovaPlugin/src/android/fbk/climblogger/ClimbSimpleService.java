@@ -94,6 +94,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
     private FileWriter mFileWriter = null;
     private BufferedWriter mBufferedWriter = null;
     private boolean logEnabled;
+    private boolean packetLogEnabled = false;
     private boolean initialized = false;
     private long lastMaintainaceCallTime_millis = 0;
     private long lastWakeUpTimeoutSet_sec = 0;
@@ -444,6 +445,10 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
 
 
     private boolean logScanResult(long nowMillis, String db_address, int rssi, String packetType, String packet) {
+        if(!packetLogEnabled){
+            return false;
+        }
+
         boolean ret = false;
 
         if (mBufferedWriter != null) { //Se il log è abilitato
@@ -654,7 +659,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
     private void processClimbSensortagPkt(BluetoothDevice device, int rssi, byte[] raw_packet){
         long nowMillis = System.currentTimeMillis();
 
-        if (logEnabled) {
+        if (logEnabled && packetLogEnabled) {
             logScanResult(nowMillis, device.getAddress(), rssi, "CLIMBC", toHexString(raw_packet));
         }
 
@@ -682,7 +687,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         if(CLIMB_NAMESPACE_EDDYSTONE != null && namespace.equals(CLIMB_NAMESPACE_EDDYSTONE)){ //discar all eddystone which are not climb nodes!
             return;
         }
-        if (logEnabled)
+        if (logEnabled && packetLogEnabled)
             logScanResult(nowMillis, device.getAddress(), rssi, "EDDYSTONE-UID",  toHexString(raw_packet));
 
         updateChild("0x" + instance, device.getAddress(), "EDDYSTONE"); //Aggiorna la UI
@@ -708,7 +713,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         //int advCnt = buf.getInt();  //Avanza di 4 bytes
         //int upTime = buf.getInt();
 
-        if (logEnabled)
+        if (logEnabled && packetLogEnabled)
             logScanResult(nowMillis, device.getAddress(), rssi, "EDDYSTONE-TLM", toHexString(raw_packet));
 
         updateChild(node.nodeID, node.bdAddress, "EDDYSTONE",voltage); //Aggiorna la UI
@@ -721,7 +726,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
 //
 //        byte[] manufSpecDataPacket = adv_get_manufacturer_specific_data(APPLE_MANUFACTER_ID, raw_packet);
 //
-//        if (logEnabled)
+//        if (logEnabled && packetLogEnabled)
 //            logScanResultRawPacket(nowMillis, device.getAddress(), rssi, "IBEACON", toHexString(raw_packet));
 //
 //        String uuid = toHexString(Arrays.copyOfRange(manufSpecDataPacket, 2, 18));
@@ -738,7 +743,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
 //            long nowMillis = System.currentTimeMillis();
 //            String packetHex = toHexString(result.getScanRecord().getBytes());  //Pacchetto grezzo codificato in base 16
 //
-//            if (logEnabled)
+//            if (logEnabled && packetLogEnabled)
 //                logScanResultRawPacket(nowMillis, result.getDevice(), result.getRssi(), "UNKNOWN!", packetHex);
 //
 //            updateChild(result.getDevice().getAddress(), result.getRssi(), "UNKNOWN!");
