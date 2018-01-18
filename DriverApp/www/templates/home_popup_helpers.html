@@ -1,15 +1,12 @@
-
-				<div class="padding-horizontal">
-					<div id="helptext-helpers" class="helptext">
-						Ciao <strong>{{driver.name}}</strong>! Oggi accompagnerai la <strong>{{route.name}}</strong> assieme a:
+<div class="padding-horizontal">
+			<div id="helptext-helpers" class="helptext">
+				Ciao <strong>{{driver.name}}</strong>! Oggi accompagnerai la <strong>{{route.name}}</strong> assieme a:
 					</div>
-					<ion-scroll ng-style="helpersListStyle">
-						<!--<div class="wiz-scroll-panel">-->
-						<div class="list">
+						<ion-list>
+							<ion-item>
 							<ion-checkbox class="checkbox-dapp" ng-repeat="volunteer in volunteers| orderBy:'name'" ng-if="volunteer !== driver" ng-model="volunteer.checked">
 								{{volunteer.name}}
 							</ion-checkbox>
-						</div>
-						<!--</div>-->
-					</ion-scroll>
+						</ion-item>
+						</ion-list>
 				</div>
