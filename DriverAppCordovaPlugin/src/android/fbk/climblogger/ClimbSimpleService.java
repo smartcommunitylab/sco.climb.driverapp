@@ -670,7 +670,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
             return;
         }
         int batteryVoltage = getNodeBatteryVoltageFromRawPacket(manufSpecDataPacket);
-        updateChild("0x" + id, device.getAddress(), "SENSORTAG", batteryVoltage); //Aggiorna la UI
+        updateChild(id, device.getAddress(), "SENSORTAG", batteryVoltage); //Aggiorna la UI
     }
     private void processEddystoneUidPkt(BluetoothDevice device, int rssi, byte[] raw_packet){
         long nowMillis = System.currentTimeMillis();
@@ -691,7 +691,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         if (logEnabled && packetLogEnabled)
             logScanResult(nowMillis, device.getAddress(), rssi, "EDDYSTONE-UID",  toHexString(raw_packet));
 
-        updateChild("0x" + namespace + instance, device.getAddress(), "EDDYSTONE"); //Aggiorna la UI
+        updateChild(namespace + instance, device.getAddress(), "EDDYSTONE"); //Aggiorna la UI
 
     }
 
