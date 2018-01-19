@@ -3,7 +3,7 @@
   "version": "1.1.1",
   "description": "CLIMB DriverApp",
   "dependencies": {
-    "CLIMBDriverAppPlugin": "file:///Users/admin/Documents/Projects/climb/sco.climb.driverapp/DriverAppCordovaPlugin",
+    "CLIMBDriverAppPlugin": "file:../DriverAppCordovaPlugin",
     "cordova-android": "6.3.0",
     "cordova-android-play-services-gradle-release": "^1.2.0",
     "cordova-ios": "4.5.4",
@@ -89,11 +89,11 @@
         "APP_NAME": "CLIMB"
       },
       "cordova-plugin-globalization": {},
-      "it.smartcommunitylab.climb.dap": {},
       "cordova-android-play-services-gradle-release": {
         "PLAY_SERVICES_VERSION": "11.+"
       },
-      "cordova-plugin-compat": {}
+      "cordova-plugin-compat": {},
+      "it.smartcommunitylab.climb.dap": {}
     }
   }
 }

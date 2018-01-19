@@ -90,10 +90,10 @@
         <variable name="APP_NAME" value="CLIMB" />
     </plugin>
     <plugin name="cordova-plugin-globalization" spec="~1.0.7" />
-    <plugin name="it.smartcommunitylab.climb.dap" spec="../DriverAppCordovaPlugin" />
     <plugin name="cordova-android-play-services-gradle-release" spec="^1.2.0">
         <variable name="PLAY_SERVICES_VERSION" value="11.+" />
     </plugin>
     <plugin name="cordova-plugin-compat" spec="^1.2.0" />
+    <plugin name="it.smartcommunitylab.climb.dap" spec="../DriverAppCordovaPlugin" />
     <engine name="android" spec="~6.3.0" />
 </widget>
