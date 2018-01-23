@@ -25,8 +25,9 @@
             <source-file src="src/ios/DisplayPeripheral.swift" />
             <source-file src="src/ios/ClimbLogger.swift" />
             <source-file src="src/ios/DriverAppPlugin.swift" />
-            <source-file src="src/ios/NodeState.swift" />
-
+            <source-file src="src/ios/ClimbBeaconService.swift" />
+            <source-file src="src/ios/Eddystone.swift" />
+            <source-file src="src/ios/ClimbNode.swift" />
             <source-file src="src/ios/AES256CBC.swift" />
             <source-file src="src/ios/Base64.swift" />
             <source-file src="src/ios/BaseDestination.swift" />

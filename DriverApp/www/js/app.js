@@ -58,6 +58,7 @@ angular.module('driverapp', [
       /*
        * Check Internet connection
        */
+      if  (ionic.Platform.isAndroid()) {
       cordova.plugins.diagnostic.requestExternalStorageAuthorization(function(status){
         GeoSrv.geolocalize();
 
@@ -65,6 +66,9 @@ angular.module('driverapp', [
     }, function(error){
         console.error(error);
     });
+  } else {
+    GeoSrv.geolocalize();
+  }
       if (Utils.isConnectionDown()) {
         Utils.loaded()
 

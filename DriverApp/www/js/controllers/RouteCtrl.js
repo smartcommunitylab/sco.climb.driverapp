@@ -406,7 +406,7 @@ angular.module('driverapp.controllers.route', [])
       if (!!$scope.sel.stop && !!$scope.sel.stop.passengers) {
         for (var i = 0; i < $scope.sel.stop.passengers.length; i++) {
           var passenger = $scope.sel.stop.passengers[i]
-          if (passenger.wsnId === childWsnId) {
+          if (passenger.wsnId && passenger.wsnId.toUpperCase() === childWsnId) {
             child = passenger
             i = $scope.sel.stop.passengers.length
           }

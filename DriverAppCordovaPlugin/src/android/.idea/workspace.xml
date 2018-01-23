@@ -34,7 +34,7 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ClimbSimpleService.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="ClimbSimpleService.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/fbk/climblogger/ClimbSimpleService.java">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="183">
@@ -44,7 +44,7 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="DriverAppPlugin.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="DriverAppPlugin.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/it/smartcommunitylab/climb/dap/DriverAppPlugin.java">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="343">

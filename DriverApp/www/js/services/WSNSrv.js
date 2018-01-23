@@ -385,8 +385,8 @@ angular.module('driverapp.services.wsn', [])
       var nl = reset ? {} : angular.copy(wsnService.networkState)
       var changed = false
       nodes.forEach(function (node) {
-        if (!!node.wsnId && !nl[node.wsnId]) {
-          nl[node.wsnId] = {
+        if (!!node.wsnId && !nl[node.wsnId.toUpperCase()]) {
+          nl[node.wsnId.toUpperCase()] = {
             type: type,
             object: node,
             timestamp: -1,

@@ -95,6 +95,6 @@
         <variable name="PLAY_SERVICES_VERSION" value="11.+" />
     </plugin>
     <plugin name="cordova-plugin-compat" spec="^1.2.0" />
-    <plugin name="it.smartcommunitylab.climb.dap" spec="../DriverAppCordovaPlugin" />
     <plugin name="cordova-plugin-file" spec="~4.3.3" />
+    <plugin name="it.smartcommunitylab.climb.dap" spec="../DriverAppCordovaPlugin" />
 </widget>
