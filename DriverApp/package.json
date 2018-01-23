@@ -17,7 +17,8 @@
     "gulp-minify-css": "^0.3.0",
     "gulp-rename": "^1.2.0",
     "gulp-sass": "^2.0.4",
-    "it.smartcommunitylab.climb.dap": "../DriverAppCordovaPlugin"
+    "it.smartcommunitylab.climb.dap": "../DriverAppCordovaPlugin",
+    "cordova-plugin-file": "~4.3.3"
   },
   "devDependencies": {
     "angular-translate": "^2.15.2",
@@ -93,7 +94,8 @@
         "PLAY_SERVICES_VERSION": "11.+"
       },
       "cordova-plugin-compat": {},
-      "it.smartcommunitylab.climb.dap": {}
+      "it.smartcommunitylab.climb.dap": {},
+      "cordova-plugin-file": {}
     }
   }
 }

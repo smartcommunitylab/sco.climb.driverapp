@@ -79,6 +79,7 @@
     <icon src="resources/android/icon/drawable-xhdpi-icon.png" />
     <preference name="SplashShowOnlyFirstTime" value="false" />
     <engine name="ios" spec="4.5.4" />
+    <engine name="android" spec="6.3.0" />
     <plugin name="cordova-plugin-add-swift-support" spec="~1.7.0" />
     <plugin name="cordova-plugin-googleplus" spec="^5.1.1">
         <variable name="REVERSED_CLIENT_ID" value="com.googleusercontent.apps.453601816446-tvtmoe6oftsqjnbj5blcgee6qjqq42ku" />
@@ -95,5 +96,5 @@
     </plugin>
     <plugin name="cordova-plugin-compat" spec="^1.2.0" />
     <plugin name="it.smartcommunitylab.climb.dap" spec="../DriverAppCordovaPlugin" />
-    <engine name="android" spec="~6.3.0" />
+    <plugin name="cordova-plugin-file" spec="~4.3.3" />
 </widget>
