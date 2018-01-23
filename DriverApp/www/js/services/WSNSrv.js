@@ -204,13 +204,14 @@ angular.module('driverapp.services.wsn', [])
             var ns = angular.copy(wsnService.networkState)
             networkState.forEach(function (nodeState) {
               nsIds.push(nodeState.nodeID)
-              if (ns[nodeState.nodeID]) {
-                if (ns[nodeState.nodeID].status === '') {
-                  ns[nodeState.nodeID].status = wsnService.STATUS_NEW
+              var upId=nodeState.nodeID.toUpperCase();
+              if (!!nodeState.nodeID && ns[upId]) {
+                if (ns[upId].status === '') {
+                  ns[upId].status = wsnService.STATUS_NEW
                 }
-                ns[nodeState.nodeID].timestamp = nodeState[wsnService.NODESTATE_LASTSEEN]
-                ns[nodeState.nodeID].batteryLevel = nodeState[wsnService.NODESTATE_BATTERYLEVEL]
-                ns[nodeState.nodeID].batteryVoltage_mV = nodeState[wsnService.NODESTATE_BATTERYVOLTAGE_MV]
+                ns[upId].timestamp = nodeState[wsnService.NODESTATE_LASTSEEN]
+                ns[upId].batteryLevel = nodeState[wsnService.NODESTATE_BATTERYLEVEL]
+                ns[upId].batteryVoltage_mV = nodeState[wsnService.NODESTATE_BATTERYVOLTAGE_MV]
               }
             })
             wsnService.networkState = ns
