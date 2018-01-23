@@ -42,7 +42,8 @@ public class Utils {
             charArray[charIndex++] = HEX[(currentByte >> 4) & 0x0f];
             charArray[charIndex++] = HEX[currentByte & 0x0f];
         }
-        return new String(charArray);
+        String ret = new String(charArray);
+        return ret;
     }
 
     public static byte[] toByteArray(String s) {

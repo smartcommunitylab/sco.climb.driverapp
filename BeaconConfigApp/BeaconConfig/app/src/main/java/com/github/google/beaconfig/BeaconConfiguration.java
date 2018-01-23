@@ -24,9 +24,20 @@ import java.util.List;
 public class BeaconConfiguration {
     private String configurationName;
     private List<Slot> slots;
+    private String unlockPassword;
+    private String newPassword;
 
     public BeaconConfiguration(String configurationName) {
         this.configurationName = configurationName;
+        unlockPassword = null;
+        newPassword = null;
+        slots = new ArrayList<>();
+    }
+
+    public BeaconConfiguration(String configurationName, String m_unlockPassword, String m_newPassword) {
+        this.configurationName = configurationName;
+        unlockPassword = m_unlockPassword;
+        newPassword = m_newPassword;
         slots = new ArrayList<>();
     }
 
@@ -67,6 +78,14 @@ public class BeaconConfiguration {
 
     public int getAdvIntervalForSlot(int slotNumber) {
         return slots.get(slotNumber).advInterval;
+    }
+
+    public String getUnlockPassword(){
+        return unlockPassword;
+    }
+
+    public String getNewPassword(){
+        return newPassword;
     }
 
     public void setName(String newConfigurationName) {
