@@ -18,6 +18,7 @@ class DriverAppPlugin: CDVPlugin {
     open func initialize(command: CDVInvokedUrlCommand) -> Bool {
         ClimbBeaconService.shared().climbInitalize();
         self.logger = ClimbLogger.shared;
+        logger.startDataLog();
         //cordova callbacks
         sendSuccess(command: command, result: "Initialized", keepCallback: true);
         return true
@@ -158,6 +159,7 @@ class DriverAppPlugin: CDVPlugin {
     open func getLogFiles(command: CDVInvokedUrlCommand) -> [String] {
         
         let logFilePathsArray  = logger.getAllLogFilePaths();
+        print("files:"+logFilePathsArray.description);
         //send the array of files names
         sendSuccessWithPlainArray(command: command, result: logFilePathsArray, keepCallback: true);
         return logFilePathsArray;

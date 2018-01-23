@@ -50,13 +50,33 @@ class ClimbLogger {
                 .map { $0.0 } // extract file names
             
         }
-        // remove the most recent files that are not log files
+
+        // find newest log file
+        var done = false;
+        var i = 0;
+        while (!done) {
+            if (allFiles[i].hasSuffix(".log")) {
+                done = true;
+            } else {
+                i = i + 1;
+            }
+        }
+        
+        return [allFiles[i]];
+  /*
+        
+        // remove from the list the files that are not log files
         while (allFiles.last?.hasSuffix(".log")==false){
             allFiles.removeLast();
         }
+        print ("size of allFiles:"+String(allFiles.count))
+        for f in allFiles {
+            print("f:"+f.description)
+        }
         // return the most recent log file
-        return [allFiles.popLast()!];
-        
+        return [allFiles[0]];
+        return [allFiles.popLast()!]; // rajeev was returning the last, which had the oldest date. we actually need the first
+    */
         /*
          do {
          let urls = try FileManager.default.contentsOfDirectory(at: logsFolder, includingPropertiesForKeys: nil, options: [FileManager.DirectoryEnumerationOptions.skipsSubdirectoryDescendants])
@@ -74,7 +94,9 @@ class ClimbLogger {
         // Set file logging parameters
         let fileName = "log_\(dateFormatter.string(from: Date())).log"
         let filePath = logsFolder.appendingPathComponent(fileName)
-        
+
+        print("Date:"+dateFormatter.string(from:Date()))
+        print("filePath:"+filePath.description)
         fileDestination.logFileURL = filePath
         fileDestination.format = "$Dyyyy MM dd HH mm ss$d $M"
         
