@@ -94,7 +94,7 @@
             android:id="@+id/filenameTextview"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="File:"
+            android:text="File: ND"
             android:textSize="14dp"
             android:textColor="@color/textColorPrimary" />
         <View
