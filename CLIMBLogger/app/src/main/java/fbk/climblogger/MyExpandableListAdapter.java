@@ -55,7 +55,7 @@ public class MyExpandableListAdapter extends BaseExpandableListAdapter {
         if(ns != null) {
             String expandedListText;
 
-            expandedListText = "bd_addr: " + ns.bdAddress + "\nID: " + ns.nodeID + "\nState: " + ns.state + "\nLast seen: " + (System.currentTimeMillis() - ns.lastSeen + "ms ago") + "\nBeacon Type: " + ns.beaconType;
+            expandedListText = "bd_addr: " + ns.bdAddress + "\nID (0x): " + ns.nodeID + "\nState: " + ns.state + "\nLast seen: " + (System.currentTimeMillis() - ns.lastSeen + "ms ago") + "\nBeacon Type: " + ns.beaconType;
 
             if (ns.batteryVoltage_mV != fbk.climblogger.ConfigVals.INVALID_BATTERY_VOLTAGE) {
                 expandedListText += "\nBattery voltage: " + ns.batteryVoltage_mV + "mV, Level: " + ns.batteryLevel;
