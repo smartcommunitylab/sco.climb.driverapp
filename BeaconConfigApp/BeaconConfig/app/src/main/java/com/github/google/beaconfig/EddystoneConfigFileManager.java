@@ -131,7 +131,7 @@ public class EddystoneConfigFileManager{
                 if (validSlot[slotNo]) {
                     int beaconAdvInt = Integer.parseInt(parts[slotNo*4 + 4]);
                     int beaconTxPwr = Integer.parseInt(parts[slotNo*4 + 5]);
-                    String slotType = parts[slotNo*4 + 4];
+                    String slotType = parts[slotNo*4 + 6];
 
                     if (slotType.equals("UID")) {
 
