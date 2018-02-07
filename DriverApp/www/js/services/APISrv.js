@@ -439,6 +439,15 @@ angular.module('driverapp.services.api', [])
       .then(function (success) {
         // success
         console.log('ok');
+        $cordovaFile.checkFile(cordova.file.documentsDirectory, filename)
+        .then(function (success) {
+          // success
+          console.log("kml file found");
+        }, function (error) {
+           // error
+           console.log("kml file NOT found");
+        });
+
       }, function (error) {
         // error
         console.log('err');

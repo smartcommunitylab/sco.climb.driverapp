@@ -4,10 +4,12 @@
   "description": "CLIMB DriverApp",
   "dependencies": {
     "CLIMBDriverAppPlugin": "file:../DriverAppCordovaPlugin",
-    "cordova-android": "6.3.0",
+    "android-versions": "^1.3.0",
+    "cordova": "^8.0.0",
+    "cordova-android": "^6.4.0",
     "cordova-android-play-services-gradle-release": "^1.2.0",
-    "cordova-ios": "4.5.4",
-    "cordova-plugin-add-swift-support": "~1.7.0",
+    "cordova-ios": "^4.5.4",
+    "cordova-plugin-add-swift-support": "^1.7.1",
     "cordova-plugin-compat": "^1.2.0",
     "cordova-plugin-facebook4": "^1.7.4",
     "cordova-plugin-file": "~4.3.3",
@@ -74,12 +76,8 @@
     "ios"
   ],
   "cordova": {
-    "platforms": [
-      "ios",
-      "android"
-    ],
+    "platforms": [],
     "plugins": {
-      "cordova-plugin-add-swift-support": {},
       "cordova-plugin-googleplus": {
         "REVERSED_CLIENT_ID": "com.googleusercontent.apps.453601816446-tvtmoe6oftsqjnbj5blcgee6qjqq42ku",
         "APP_ID": "493172441063173",
@@ -95,7 +93,8 @@
       },
       "cordova-plugin-compat": {},
       "cordova-plugin-file": {},
-      "it.smartcommunitylab.climb.dap": {}
+      "it.smartcommunitylab.climb.dap": {},
+      "cordova-plugin-add-swift-support": {}
     }
   }
 }
