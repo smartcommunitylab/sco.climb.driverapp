@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="it.smartcommunitylab.climb.driverapp" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="it.smartcommunitylab.climb.driverapp" version="1.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>CLIMB Driver App</name>
     <description>
       The Driver App of the CLIMB Project
@@ -19,6 +19,7 @@
     <preference name="SplashScreen" value="screen" />
     <preference name="SplashScreenDelay" value="3000" />
     <preference name="orientation" value="portrait" />
+    <preference name="SplashShowOnlyFirstTime" value="false" />
     <feature name="StatusBar">
         <param name="ios-package" onload="true" value="CDVStatusBar" />
     </feature>
@@ -35,12 +36,6 @@
         <splash density="port-xhdpi" src="resources/android/splash/drawable-port-xhdpi-screen.png" />
         <splash density="port-xxhdpi" src="resources/android/splash/drawable-port-xxhdpi-screen.png" />
         <splash density="port-xxxhdpi" src="resources/android/splash/drawable-port-xxxhdpi-screen.png" />
-        <splash density="land-ldpi" src="resources/android/splash/drawable-land-ldpi-screen.png" />
-        <splash density="land-mdpi" src="resources/android/splash/drawable-land-mdpi-screen.png" />
-        <splash density="land-hdpi" src="resources/android/splash/drawable-land-hdpi-screen.png" />
-        <splash density="land-xhdpi" src="resources/android/splash/drawable-land-xhdpi-screen.png" />
-        <splash density="land-xxhdpi" src="resources/android/splash/drawable-land-xxhdpi-screen.png" />
-        <splash density="land-xxxhdpi" src="resources/android/splash/drawable-land-xxxhdpi-screen.png" />
     </platform>
     <platform name="ios">
         <icon height="57" src="resources/ios/icon/icon.png" width="57" />
@@ -75,19 +70,29 @@
         <splash height="480" src="resources/ios/splash/Default~iphone.png" width="320" />
     </platform>
     <icon src="resources/android/icon/drawable-xhdpi-icon.png" />
-    <preference name="SplashShowOnlyFirstTime" value="false" />
-    <engine name="android" spec="~6.1.2" />
-    <engine name="ios" spec="~4.3.1" />
     <plugin name="cordova-plugin-add-swift-support" spec="~1.7.0" />
-    <plugin name="cordova-plugin-facebook4" spec="^1.7.4">
-        <variable name="APP_ID" value="493172441063173" />
-        <variable name="APP_NAME" value="CLIMB" />
-    </plugin>
     <plugin name="cordova-plugin-globalization" spec="~1.0.7" />
-    <plugin name="cordova-plugin-googleplus" spec="^5.1.1">
+    <plugin name="it.smartcommunitylab.climb.dap" spec="/Users/admin/Documents/Projects/climb/sco.climb.driverapp/DriverAppCordovaPlugin" />
+    <plugin name="cordova-plugin-device" spec="^2.0.1" />
+    <plugin name="cordova-plugin-console" spec="^1.1.0" />
+    <plugin name="cordova-plugin-whitelist" spec="^1.3.3" />
+    <plugin name="cordova-plugin-splashscreen" spec="^5.0.1" />
+    <plugin name="cordova-plugin-statusbar" spec="^2.4.1" />
+    <plugin name="ionic-plugin-keyboard" spec="^2.2.1" />
+    <plugin name="cordova-plugin-geolocation" spec="https://github.com/apache/cordova-plugin-geolocation.git" />
+    <plugin name="cordova-plugin-x-toast" spec="^2.6.0" />
+    <plugin name="cordova-plugin-file-transfer" spec="^1.7.0" />
+    <plugin name="cordova-plugin-network-information" spec="^2.0.1" />
+    <plugin name="cordova-plugin-googleplus" spec="https://github.com/EddyVerbruggen/cordova-plugin-googleplus">
         <variable name="REVERSED_CLIENT_ID" value="com.googleusercontent.apps.453601816446-tvtmoe6oftsqjnbj5blcgee6qjqq42ku" />
         <variable name="APP_ID" value="493172441063173" />
         <variable name="APP_NAME" value="CLIMB" />
     </plugin>
-    <plugin name="it.smartcommunitylab.climb.dap" spec="/Users/admin/Documents/Projects/climb/sco.climb.driverapp/DriverAppCordovaPlugin" />
+    <plugin name="cordova-plugin-facebook4" spec="^1.9.1">
+        <variable name="APP_ID" value="493172441063173" />
+        <variable name="APP_NAME" value="CLIMB" />
+    </plugin>
+    <plugin name="cordova.plugins.diagnostic" spec="^3.9.1" />
+    <engine name="ios" spec="^4.3.1" />
+    <engine name="android" spec="^6.4.0" />
 </widget>
