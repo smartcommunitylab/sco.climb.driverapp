@@ -68,13 +68,21 @@ angular.module('driverapp.controllers.home', [])
       return $scope.driverName
     }
 
-    $ionicModal.fromTemplateUrl('templates/app_modal_volunteers.html', {
-      scope: $scope,
-      animation: 'slide-in-up'
-    }).then(function (modal) {
-      $scope.modalVolunteers = modal
-    })
+ 
+    $scope.showModalVolunteers = function () {
+      if (!$scope.modalVolunteers) {
+        $ionicModal.fromTemplateUrl('templates/app_modal_volunteers.html', {
+          scope: $scope,
+          animation: 'slide-in-up'
+        }).then(function (modal) {
+          $scope.modalVolunteers = modal
+          $scope.modalVolunteers.show();
 
+        })
+      } else {
+      $scope.modalVolunteers.show();
+      }
+    }
     $ionicModal.fromTemplateUrl('templates/app_modal_maintenance.html', {
       scope: $scope,
       animation: 'slide-in-up',

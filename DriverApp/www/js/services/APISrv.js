@@ -1,9 +1,9 @@
 /* global FileUploadOptions, FileTransfer */
 angular.module('driverapp.services.api', [])
-  .factory('APISrv', function ($rootScope, $http, $q, Config, LoginService, Utils, WSNSrv) {
+  .factory('APISrv', function ($rootScope, $http, $q, Config, LoginService, Utils, WSNSrv,$cordovaFile) {
     var ERROR_TYPE = 'errorType'
     var ERROR_MSG = 'errorMsg'
-
+   var OLDER_THAN_DAYS = 30;
     var APIService = {}
 
     APIService.getProfile = function () {
@@ -352,16 +352,192 @@ angular.module('driverapp.services.api', [])
       return deferred.promise
     }
 
+    function deleteFileAndroid(longName){
+      longName = 'file://'+longName;
+      var ext = new String(cordova.file.externalRootDirectory);
+      var index = ext.length;
+      var filename = longName.substr(index,longName.length);
+      var directory = longName.substr(0,index);
+
+      console.log('filename'+filename);
+      console.log('directory'+directory);
+      $cordovaFile.removeFile(cordova.file.externalRootDirectory, filename)
+      .then(function (success) {
+        // success
+        console.log('ok');
+      }, function (error) {
+        // error
+        console.log('err');
+      });
+    }
+
+    function listAndRemoveDirAndroid(path){ 
+
+    window.resolveLocalFileSystemURL(path,
+      function (fileSystem) {
+        var entries = [];
+        var dirReader = fileSystem.createReader();
+        function toArray(list) {
+          return Array.prototype.slice.call(list || [], 0);
+        }
+        
+        function listResults(entries) {
+          var fragment = document.createDocumentFragment();
+        
+          entries.forEach(function(entry, i) {
+            console.log(entry.name);
+            entry.getMetadata(function(metadata){
+              console.log("Last Modified: " + metadata.modificationTime);
+              //check if it is one month old
+               if (moment(metadata.modificationTime).isAfter(moment().subtract(OLDER_THAN_DAYS,'days').startOf('day')))
+              {
+                //it is newer 
+              }
+              else {
+                //it is older  
+                entry.removeRecursively(function() {
+                  console.log('Directory removed.');
+                }, function(err){
+                  console.log(err);
+                });
+              }
+            },function(err){
+              console.log(err);
+            })
+          });
+        
+        }
+
+          // Call the reader.readEntries() until no more results are returned.
+  var readEntries = function() {
+    dirReader.readEntries (function(results) {
+     if (!results.length) {
+       listResults(entries.sort());
+     } else {
+       entries = entries.concat(toArray(results));
+       readEntries();
+     }
+   }, function(err){
+     console.log(err);
+   });
+ };
+
+ readEntries(); // Start reading dirs.
+      });
+    }
+   
+    function deleteFileiOS(longName){
+      longName = longName;
+      var ext = new String(cordova.file.documentsDirectory);
+      var index = ext.length;
+      var filename = longName.substr(index+1,longName.length);
+      var directory = longName.substr(0,index);
+
+      console.log('filename'+filename);
+      console.log('directory'+directory);
+      $cordovaFile.removeFile(cordova.file.documentsDirectory, filename)
+      .then(function (success) {
+        // success
+        console.log('ok');
+        $cordovaFile.checkFile(cordova.file.documentsDirectory, filename)
+        .then(function (success) {
+          // success
+          console.log("kml file found");
+        }, function (error) {
+           // error
+           console.log("kml file NOT found");
+        });
+
+      }, function (error) {
+        // error
+        console.log('err');
+      });
+    }
+    function listAndRemoveDiriOS(path){ 
+
+      window.resolveLocalFileSystemURL(path,
+        function (fileSystem) {
+          var entries = [];
+          var dirReader = fileSystem.createReader();
+          function toArray(list) {
+            return Array.prototype.slice.call(list || [], 0);
+          }
+          
+          function listResults(entries) {
+            var fragment = document.createDocumentFragment();
+          
+            entries.forEach(function(entry, i) {
+              console.log(entry.name);
+              if (entry.name.endsWith('log')){
+              entry.getMetadata(function(metadata){
+                console.log("Last Modified: " + metadata.modificationTime);
+                //check if it is one month old
+                 if (moment(metadata.modificationTime).isAfter(moment().subtract(OLDER_THAN_DAYS,'days').startOf('day')))
+                {
+                  //it is newer 
+                }
+                else {
+                  //it is older  
+                  entry.remove(function() {
+                    console.log('Directory removed.');
+                  }, function(err){
+                    console.log(err);
+                  });
+                }
+              },function(err){
+                console.log(err);
+              })
+            }
+            });
+          
+          }
+  
+            // Call the reader.readEntries() until no more results are returned.
+    var readEntries = function() {
+      dirReader.readEntries (function(results) {
+       if (!results.length) {
+         listResults(entries.sort());
+       } else {
+         entries = entries.concat(toArray(results));
+         readEntries();
+       }
+     }, function(err){
+       console.log(err);
+     });
+   };
+  
+   readEntries(); // Start reading dirs.
+        });
+      }
+
+    function deleteOldFilesAndroid(){
+      listAndRemoveDirAndroid(cordova.file.externalRootDirectory+'CLIMB_log_data/')
+    }
+    function deleteOldFilesiOS(){
+      listAndRemoveDiriOS(cordova.file.documentsDirectory)
+
+    }
+    function deleteFiles(logFilePath) {
+      if (ionic.Platform.isAndroid()) {
+        deleteFileAndroid(logFilePath);
+        deleteOldFilesAndroid();
+        }
+        if (ionic.Platform.isIOS()) {
+          deleteFileiOS(logFilePath);
+          deleteOldFilesiOS();
+          }
+    }
     APIService.uploadWsnLogs = function (routeId, ownerId) {
       var deferred = $q.defer()
-
       if (ionic.Platform.isWebView()) {
         WSNSrv.getLogFiles().then(
           function (logFilesPaths) {
             angular.forEach(logFilesPaths, function (logFilePath) {
               APIService.uploadLog(logFilePath, routeId, ownerId).then(
                 function (r) {
+                  deleteFiles(logFilePath);
                   deferred.resolve(r)
+
                 },
                 function (error) {
                   deferred.reject(error)

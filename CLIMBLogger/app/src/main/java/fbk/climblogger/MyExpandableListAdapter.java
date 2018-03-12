@@ -1,22 +1,20 @@
 package fbk.climblogger;
 
 
-import java.util.HashMap;
-import java.util.List;
 import android.content.Context;
 import android.graphics.Typeface;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.TextView;
 
-import fbk.climblogger.ClimbSimpleService;
-
 public class MyExpandableListAdapter extends BaseExpandableListAdapter {
 
     private fbk.climblogger.ClimbServiceInterface service;
     private Context context;
+    private String TAG = "MyExpandableListAdapter";
 
     public String[] getMasters() {
         return service.getMasters();
@@ -29,7 +27,12 @@ public class MyExpandableListAdapter extends BaseExpandableListAdapter {
 
     @Override
     public Object getChild(int listPosition, int expandedListPosition) {
-        return service.getNetworkState()[expandedListPosition];
+        try {
+            return service.getNetworkState()[expandedListPosition];
+        }catch(Exception e){
+            Log.d(TAG,"Exeption caught!");
+            return null;
+        }
     }
 
     @Override
@@ -40,21 +43,28 @@ public class MyExpandableListAdapter extends BaseExpandableListAdapter {
     @Override
     public View getChildView(int listPosition, final int expandedListPosition,
                              boolean isLastChild, View convertView, ViewGroup parent) {
-        fbk.climblogger.ClimbServiceInterface.NodeState ns = (fbk.climblogger.ClimbServiceInterface.NodeState) getChild(listPosition, expandedListPosition);
-        final String expandedListText;
-        if( ns.batteryLevel != 0) {
-            expandedListText = "ID: " + ns.nodeID + "\nState: " + ns.state + "\nBattery Voltage: " + ns.batteryVoltage_mV + "mV, Level: " + ns.batteryLevel  + "\nLast seen: " + (System.currentTimeMillis() - ns.lastSeen + "ms ago");
-        }else{
-            expandedListText = "ID: " + ns.nodeID + "\nState: " + ns.state + "\nLast seen: " + (System.currentTimeMillis() - ns.lastSeen + "ms ago");
-        }
+
         if (convertView == null) {
             LayoutInflater layoutInflater = (LayoutInflater) this.context
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             convertView = layoutInflater.inflate(R.layout.list_item, null);
         }
-        TextView expandedListTextView = (TextView) convertView
-                .findViewById(R.id.expandedListItem);
-        expandedListTextView.setText(expandedListText);
+
+        fbk.climblogger.ClimbServiceInterface.NodeState ns = (fbk.climblogger.ClimbServiceInterface.NodeState) getChild(listPosition, expandedListPosition);
+
+        if(ns != null) {
+            String expandedListText;
+
+            expandedListText = "bd_addr: " + ns.bdAddress + "\nID: " + ns.nodeID + "\nState: " + ns.state + "\nLast seen: " + (System.currentTimeMillis() - ns.lastSeen + "ms ago") + "\nBeacon Type: " + ns.beaconType;
+
+            if (ns.batteryVoltage_mV != fbk.climblogger.ConfigVals.INVALID_BATTERY_VOLTAGE) {
+                expandedListText += "\nBattery voltage: " + ns.batteryVoltage_mV + "mV, Level: " + ns.batteryLevel;
+            }
+
+            TextView expandedListTextView = (TextView) convertView
+                    .findViewById(R.id.expandedListItem);
+            expandedListTextView.setText(expandedListText);
+        }
         return convertView;
     }
 
