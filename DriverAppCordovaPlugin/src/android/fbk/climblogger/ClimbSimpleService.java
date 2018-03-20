@@ -968,6 +968,15 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         } // (Build.VERSION.SDK_INT >= 21)
         return;
     }
+
+    public void enablePacketLog(){
+        packetLogEnabled=true;
+    }
+
+    public void disablePacketLog(){
+        packetLogEnabled=false;
+    }
+
     //--- CLIMB API -----------------------------------------------
 
     private String[] allowedChildren = new String[0];
