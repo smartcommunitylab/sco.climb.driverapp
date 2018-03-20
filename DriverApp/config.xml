@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="it.smartcommunitylab.climb.driverapp" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="it.smartcommunitylab.climb.driverapp" android-versionCode="100013" version="1.0.2" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>CLIMB Driver App</name>
     <description>
       The Driver App of the CLIMB Project
@@ -73,21 +73,26 @@
         <splash height="1024" src="resources/ios/splash/Default-Portrait~ipad.png" width="768" />
         <splash height="960" src="resources/ios/splash/Default@2x~iphone.png" width="640" />
         <splash height="480" src="resources/ios/splash/Default~iphone.png" width="320" />
+        <icon height="1024" src="resources/ios/icon/icon-1024.png" width="1024" />
+        <splash height="2732" src="resources/ios/splash/Default@2x~universal~anyany.png" width="2732" />
     </platform>
     <icon src="resources/android/icon/drawable-xhdpi-icon.png" />
     <preference name="SplashShowOnlyFirstTime" value="false" />
-    <engine name="android" spec="~6.1.2" />
-    <engine name="ios" spec="~4.3.1" />
-    <plugin name="cordova-plugin-add-swift-support" spec="~1.7.0" />
-    <plugin name="cordova-plugin-facebook4" spec="^1.7.4">
-        <variable name="APP_ID" value="493172441063173" />
-        <variable name="APP_NAME" value="CLIMB" />
-    </plugin>
-    <plugin name="cordova-plugin-globalization" spec="~1.0.7" />
     <plugin name="cordova-plugin-googleplus" spec="^5.1.1">
         <variable name="REVERSED_CLIENT_ID" value="com.googleusercontent.apps.453601816446-tvtmoe6oftsqjnbj5blcgee6qjqq42ku" />
         <variable name="APP_ID" value="493172441063173" />
         <variable name="APP_NAME" value="CLIMB" />
     </plugin>
-    <plugin name="it.smartcommunitylab.climb.dap" spec="/Users/admin/Documents/Projects/climb/sco.climb.driverapp/DriverAppCordovaPlugin" />
+    <plugin name="cordova-plugin-facebook4" spec="^1.7.4">
+        <variable name="APP_ID" value="493172441063173" />
+        <variable name="APP_NAME" value="CLIMB" />
+    </plugin>
+    <plugin name="cordova-plugin-globalization" spec="~1.0.7" />
+    <plugin name="cordova-android-play-services-gradle-release" spec="^1.2.0">
+        <variable name="PLAY_SERVICES_VERSION" value="11.+" />
+    </plugin>
+    <plugin name="cordova-plugin-compat" spec="^1.2.0" />
+    <plugin name="cordova-plugin-file" spec="~4.3.3" />
+    <plugin name="it.smartcommunitylab.climb.dap" spec="../DriverAppCordovaPlugin" />
+    <plugin name="cordova-plugin-add-swift-support" spec="^1.7.1" />
 </widget>

@@ -55,10 +55,20 @@ angular.module('driverapp', [
           aacUrl: Config.AACURL
         });
       // });
-      GeoSrv.geolocalize();
       /*
        * Check Internet connection
        */
+      if  (ionic.Platform.isAndroid()) {
+      cordova.plugins.diagnostic.requestExternalStorageAuthorization(function(status){
+        GeoSrv.geolocalize();
+
+        console.log("Authorization request for external storage use was " + (status == cordova.plugins.diagnostic.permissionStatus.GRANTED ? "granted" : "denied"));
+    }, function(error){
+        console.error(error);
+    });
+  } else {
+    GeoSrv.geolocalize();
+  }
       if (Utils.isConnectionDown()) {
         Utils.loaded()
 

@@ -3,7 +3,7 @@
         <h1 class="title">Volontari</h1>
         <button class="button button-positive icon ion-close" ng-click="modalVolunteers.hide()"></button>
     </ion-header-bar>
-    <ion-content class="has-header" ng-controller="VolunteersCtrl">
+    <ion-content class="has-header" ng-controller="VolunteersCtrl" ng-init="init()">
         <ion-list>
             <ion-item class="item-button-right item-volunteers" ng-repeat="v in volunteers | orderBy : ['surname', 'name']" ng-click="showVolunteerDetails(v)">
                 {{v.name}}

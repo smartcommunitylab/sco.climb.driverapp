@@ -1,9 +1,9 @@
 angular.module('driverapp.controllers.volunteers', [])
   .controller('VolunteersCtrl', function ($scope, $ionicPopup, Config, StorageSrv, APISrv) {
-    $scope.volunteers = StorageSrv.getVolunteers()
-
-    if ($scope.volunteers == null) {
-      APISrv.getVolunteersBySchool(StorageSrv.getSchoolId()).then(
+    $scope.init = function () {
+      $scope.volunteers = StorageSrv.getVolunteers()
+      if ($scope.volunteers == null || $scope.volunteers == undefined) {
+       APISrv.getVolunteersBySchool(StorageSrv.getSchoolId()).then(
         function (volunteers) {
           StorageSrv.saveVolunteers(volunteers)
           $scope.volunteers = volunteers
@@ -14,6 +14,7 @@ angular.module('driverapp.controllers.volunteers', [])
         }
       )
     }
+  }
 
     /*
      * Child details popup
