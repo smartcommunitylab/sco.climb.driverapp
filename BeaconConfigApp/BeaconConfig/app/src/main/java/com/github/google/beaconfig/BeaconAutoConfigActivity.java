@@ -286,6 +286,12 @@ public class BeaconAutoConfigActivity extends AppCompatActivity {
                 log("Attempt to automatically unlock");
                 ArrayList<String> commonPasswords = new ArrayList<>();
                 BeaconConfiguration conf = mEddystoneConfigFileManager.getConfig(beaconNo);
+                if(conf == null){
+                    Log.d(TAG, "No configuration found in the file with Beacon Number: "+beaconNo);
+                    log("No configuration found in the file with Beacon Number: "+beaconNo);
+
+                    return;
+                }
                 String unlock_password = conf.getUnlockPassword();
                 if(unlock_password != null) {
                     commonPasswords.add(unlock_password);
@@ -432,6 +438,9 @@ public class BeaconAutoConfigActivity extends AppCompatActivity {
             log("Writing remain connectable characteristic... mRemainConnectable = " + mRemainConnectable[0]);
             gattClient.writeRemainConnectable(mRemainConnectable);
 
+            byte mAccelConfig = conf.getAccelConfig();
+            log("Writing accel config characteristic... mAccelConfig = " + mAccelConfig);
+            gattClient.writeAccelConfig(mAccelConfig);
 
             if (unlockCode != null) {
                 String newPassw = conf.getNewPassword();

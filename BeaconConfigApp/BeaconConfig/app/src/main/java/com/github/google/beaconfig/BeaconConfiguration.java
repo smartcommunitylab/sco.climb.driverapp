@@ -17,6 +17,8 @@ package com.github.google.beaconfig;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.github.google.beaconfig.Constants.ACCEL_MODE_DEFAULT;
+
 /**Keeps one configuration of a beacon. This includes all the slots specific
  * information, tx power, adv tx power and advertised interval. This class only holds
  * slot information about UID, URL and TLM frames. EID frames will not be saved.
@@ -26,11 +28,13 @@ public class BeaconConfiguration {
     private List<Slot> slots;
     private String unlockPassword;
     private String newPassword;
+    private byte accelConfig;
 
     public BeaconConfiguration(String configurationName) {
         this.configurationName = configurationName;
         unlockPassword = null;
         newPassword = null;
+        accelConfig = ACCEL_MODE_DEFAULT;
         slots = new ArrayList<>();
     }
 
@@ -38,9 +42,17 @@ public class BeaconConfiguration {
         this.configurationName = configurationName;
         unlockPassword = m_unlockPassword;
         newPassword = m_newPassword;
+        accelConfig = ACCEL_MODE_DEFAULT;
         slots = new ArrayList<>();
     }
 
+    public BeaconConfiguration(String configurationName, String m_unlockPassword, String m_newPassword, byte m_accelConfig) {
+        this.configurationName = configurationName;
+        unlockPassword = m_unlockPassword;
+        newPassword = m_newPassword;
+        accelConfig = m_accelConfig;
+        slots = new ArrayList<>();
+    }
     /**
      * Saved this information about a beacon's slot. It does not save EID configured slots.
      *
@@ -86,6 +98,10 @@ public class BeaconConfiguration {
 
     public String getNewPassword(){
         return newPassword;
+    }
+
+    public byte getAccelConfig(){
+        return accelConfig;
     }
 
     public void setName(String newConfigurationName) {

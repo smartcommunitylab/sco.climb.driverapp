@@ -13,6 +13,8 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Scanner;
 
+import static com.github.google.beaconfig.Constants.ACCEL_MODE_DEFAULT;
+
 /**
  * Created by giova on 21/09/2017.
  */
@@ -66,7 +68,7 @@ public class EddystoneConfigFileManager{
             }
 
             //Check slots validity (just check)
-            int numberOfSlots = (parts.length-4)/4 + 1;
+            int numberOfSlots = (parts.length-5)/4;
             boolean validSlot[] = new boolean[numberOfSlots];
             for(int slotNo = 0; slotNo < numberOfSlots; slotNo++ ){
                 boolean advInterval_ok = false;
@@ -113,6 +115,7 @@ public class EddystoneConfigFileManager{
             String beaconName = parts[1];
             String unlockPassword;
             String newPassword;
+            Byte accelMode=0;
 
             if(!parts[2].isEmpty() & parts[2].length() == 32){
                 unlockPassword = parts[2];
@@ -126,7 +129,14 @@ public class EddystoneConfigFileManager{
                 newPassword = unlockPassword;
             }
 
-            BeaconConfiguration config = new BeaconConfiguration(beaconName,unlockPassword,newPassword);
+            if(parts.length>20 & !parts[20].isEmpty() & parts[20].length() == 1){
+                accelMode = Byte.parseByte(parts[20]);
+            }else{
+                accelMode = ACCEL_MODE_DEFAULT;
+            }
+
+            BeaconConfiguration config = new BeaconConfiguration(beaconName,unlockPassword,newPassword,accelMode);
+
             for(int slotNo = 0; slotNo < numberOfSlots; slotNo++ ) {
                 if (validSlot[slotNo]) {
                     int beaconAdvInt = Integer.parseInt(parts[slotNo*4 + 4]);
