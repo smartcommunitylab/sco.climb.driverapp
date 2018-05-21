@@ -76,6 +76,7 @@ public class GattClient {
     private BluetoothGattCharacteristic cAdvSlotData;
     private BluetoothGattCharacteristic cFactoryReset;
     private BluetoothGattCharacteristic cRemainConnectable;
+    private BluetoothGattCharacteristic cAccelConfig;
 
     // Callbacks in BluetoothGattCallback are delivered on a thread pool that the system owns.
     // Don't try to use a newSingleThreadExecutor service here -- trying to read the Future<>
@@ -145,6 +146,7 @@ public class GattClient {
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothGatt bluetoothGatt;
     private boolean isEddystoneGattServicePresent = false;
+    private boolean isBlueupGattServicePresent = false;
     private List<UUID> missingCharacteristics = new ArrayList<>();
 
     // Basic blocking queue of size 1. Every operation through this client is synchronous. It's the
@@ -249,8 +251,31 @@ public class GattClient {
                         Log.d(TAG, GattConstants.getReadableName(uuid) + " missing");
                     }
                 }
-                break;
             }
+
+            if (service.getUuid().equals(Constants.BLUEUP_CONFIGURATION_UUID.getUuid())) {
+                isBlueupGattServicePresent = true;
+                Log.d(TAG, "this is the blueup service");
+
+                for (BluetoothGattCharacteristic c : service.getCharacteristics()) {
+                    String uuid = c.getUuid().toString();
+                    if (uuid.equalsIgnoreCase(GattConstants.CHAR_ACCEL_CFG)) {
+                        cAccelConfig = c;
+                    }
+                }
+
+                Log.d(TAG, "Checking BLUEUP characteristics");
+
+                for (UUID uuid : GattConstants.BLUEUP_PROPRIETARTY_CHAR_UUIDS) {
+                    if (service.getCharacteristic(uuid) == null) {
+                        missingCharacteristics.add(uuid);
+                        Log.d(TAG, GattConstants.getReadableName(uuid) + " missing");
+                    }
+                }
+            }
+
+            if(isBlueupGattServicePresent && isEddystoneGattServicePresent)
+                break;
         }
     }
 
@@ -377,6 +402,16 @@ public class GattClient {
     public byte[] writeRemainConnectable(byte[] data)
             throws GattClientException, GattOperationException {
         return write(cRemainConnectable, data);
+    }
+
+    public byte[] readAccelConfig() throws GattClientException, GattOperationException {
+        return read(cAccelConfig);
+    }
+
+    public byte[] writeAccelConfig(byte data)
+            throws GattClientException, GattOperationException {
+        byte[] dataArr={data};
+        return write(cAccelConfig, dataArr);
     }
 
     private byte[] read(BluetoothGattCharacteristic characteristic)

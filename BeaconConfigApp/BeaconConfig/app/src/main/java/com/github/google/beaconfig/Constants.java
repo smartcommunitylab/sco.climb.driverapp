@@ -35,6 +35,8 @@ public class Constants {
             ParcelUuid.fromString("0000FEAA-0000-1000-8000-00805F9B34FB");
     public static final ParcelUuid EDDYSTONE_CONFIGURATION_UUID =
     ParcelUuid.fromString("a3c87500-8ed3-4bdf-8a39-a01bebede295");
+    public static final ParcelUuid BLUEUP_CONFIGURATION_UUID =
+            ParcelUuid.fromString("a3c88800-8ed3-4bdf-8a39-a01bebede295");
 
     /**
      * Eddystone-UID frame type value.
@@ -78,4 +80,6 @@ public class Constants {
     public static final int RSSI_THRESHOLD_MAX = -20;
 
     public static final int RSSI_THRESHOLD_DEFAULT = (RSSI_THRESHOLD_MAX + RSSI_THRESHOLD_MIN)/2;
+
+    public static final byte ACCEL_MODE_DEFAULT=0;
 }

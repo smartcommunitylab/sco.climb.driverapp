@@ -140,9 +140,9 @@ public class ScanActivity extends Activity {
                 String id = intent.getStringExtra(fbk.climblogger.ClimbServiceInterface.INTENT_EXTRA_ID);
                 Boolean success = intent.getBooleanExtra(fbk.climblogger.ClimbServiceInterface.INTENT_EXTRA_SUCCESS, true);
 
-                Toast.makeText(getApplicationContext(),
-                        "Connected with GATT? " + success,
-                        Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getApplicationContext(),
+//                        "Connected with GATT? " + success,
+//                        Toast.LENGTH_SHORT).show();
                 expandableListAdapter.notifyDataSetChanged();
                 Log.i(TAG,"Connected with GATT? " + success);
                 if (success) {
@@ -555,6 +555,7 @@ public class ScanActivity extends Activity {
     };*/
 
     ExpandableListView.OnGroupExpandListener mOnGroupExpandListener = new ExpandableListView.OnGroupExpandListener() {
+
         @Override
         public void onGroupExpand(int groupPosition) {
             Log.i(TAG, "Group expanded, position: " + groupPosition);
@@ -562,7 +563,16 @@ public class ScanActivity extends Activity {
             if (! mClimbService.connectMaster(clickedNode)) {
                 Log.w(TAG, "connect failed immediately to " + clickedNode);
             }
+            //mVibrator.vibrate(fbk.climblogger.ConfigVals.vibrationTimeout);
+        }
+    };
+
+    ExpandableListView.OnGroupClickListener mOnGroupClickListener = new ExpandableListView.OnGroupClickListener() {
+
+        @Override
+        public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
             mVibrator.vibrate(fbk.climblogger.ConfigVals.vibrationTimeout);
+            return false;
         }
     };
 
@@ -658,6 +668,7 @@ public class ScanActivity extends Activity {
         mFilenameTextView = (TextView)findViewById(R.id.filenameTextBox);
 
         expandableListView.setOnGroupExpandListener( mOnGroupExpandListener );
+        expandableListView.setOnGroupClickListener( mOnGroupClickListener );
 
         expandableListView.setOnGroupCollapseListener( mOnGroupCollapseListener );
 
@@ -711,6 +722,8 @@ public class ScanActivity extends Activity {
                 }
 
                 Log.i(TAG, "Service connected!");
+
+                ((fbk.climblogger.ClimbSimpleService)mClimbService).enablePacketLog(); //this function is not exposed with the CLIMB API
 
                 if(firstServiceConnection) {
                     firstServiceConnection = false;

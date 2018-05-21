@@ -41,6 +41,7 @@ public class GattConstants {
     public static final String CHAR_ADV_SLOT_DATA = "a3c8750a-8ed3-4bdf-8a39-a01bebede295";
     public static final String CHAR_FACTORY_RESET = "a3c8750b-8ed3-4bdf-8a39-a01bebede295";
     public static final String CHAR_REMAIN_CONNECTABLE = "a3c8750c-8ed3-4bdf-8a39-a01bebede295";
+    public static final String CHAR_ACCEL_CFG = "a3c88806-8ed3-4bdf-8a39-a01bebede295";
     public static final List<UUID> CHAR_UUIDS = new ArrayList<>();
     static {
         CHAR_UUIDS.add(UUID.fromString(CHAR_BROADCAST_CAPABILITIES));
@@ -55,6 +56,11 @@ public class GattConstants {
         CHAR_UUIDS.add(UUID.fromString(CHAR_ADV_SLOT_DATA));
         CHAR_UUIDS.add(UUID.fromString(CHAR_FACTORY_RESET));
         CHAR_UUIDS.add(UUID.fromString(CHAR_REMAIN_CONNECTABLE));
+        CHAR_UUIDS.add(UUID.fromString(CHAR_ACCEL_CFG));
+    }
+    public static final List<UUID> BLUEUP_PROPRIETARTY_CHAR_UUIDS = new ArrayList<>();
+    static {
+        CHAR_UUIDS.add(UUID.fromString(CHAR_ACCEL_CFG));
     }
     static {
         attributes.put(ES_CONFIGURATION_SERVICE_UUID, "Eddystone Configuration Service");

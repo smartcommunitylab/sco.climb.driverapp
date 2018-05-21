@@ -57,11 +57,11 @@
 
             <Button
                 android:id="@+id/programConfigButton"
-                android:layout_width="wrap_content"
+                android:layout_width="fill_parent"
                 android:layout_height="100dp"
                 android:text="Program!"
                 android:textStyle="bold"
-                android:textSize="30sp"
+                android:textSize="40sp"
                 android:layout_weight="1"
                 />
         </LinearLayout>

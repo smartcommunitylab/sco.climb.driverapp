@@ -71,6 +71,8 @@ public class BeaconAutoConfigActivity extends AppCompatActivity {
 
     Intent startingIntent = null;
 
+    private static final boolean auto_return = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -112,7 +114,12 @@ public class BeaconAutoConfigActivity extends AppCompatActivity {
                         }
                     });
 
-                    programBeacon(beaconNo);
+                    executor.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            programBeacon(beaconNo);
+                        }
+                    });
                 }else{
                     Toast.makeText(getApplicationContext(),
                             "Beacon still locked!",
@@ -262,7 +269,7 @@ public class BeaconAutoConfigActivity extends AppCompatActivity {
                     }
                 });
                 isReadyToProgram = true;
-                log("Beacon unlocked, ready to program!");
+                log("Beacon ready to program!");
                 //setupBeaconInformationDisplay();
                 // READY TO BE PROGRAMMED!!!
             }
@@ -278,9 +285,23 @@ public class BeaconAutoConfigActivity extends AppCompatActivity {
                 Log.d(TAG, "Attempt to automatically unlock");
                 log("Attempt to automatically unlock");
                 ArrayList<String> commonPasswords = new ArrayList<>();
-                commonPasswords.add("00000000000000000000000000000000");
-                commonPasswords.add("ffffffffffffffffffffffffffffffff");
-                commonPasswords.add("000102030405060708090A0B0C0D0E0F");
+                BeaconConfiguration conf = mEddystoneConfigFileManager.getConfig(beaconNo);
+                if(conf == null){
+                    Log.d(TAG, "No configuration found in the file with Beacon Number: "+beaconNo);
+                    log("No configuration found in the file with Beacon Number: "+beaconNo);
+
+                    return;
+                }
+                String unlock_password = conf.getUnlockPassword();
+                if(unlock_password != null) {
+                    commonPasswords.add(unlock_password);
+                }else{
+                    commonPasswords.add("b2687b1cb09da0bffece543ae61ac2f5"); //blueup default
+                    commonPasswords.add("00000000000000000000000000000000");
+                    commonPasswords.add("ffffffffffffffffffffffffffffffff");
+                    commonPasswords.add("000102030405060708090A0B0C0D0E0F");
+                }
+
 //                commonPasswords.add("00102030405060708090A0B0C0D0E0F0");
 //                commonPasswords.add("F0E0D0C0B0A090807096050403020100");
 //                commonPasswords.add("0F0E0D0C0B0A09080709605040302010");
@@ -302,9 +323,9 @@ public class BeaconAutoConfigActivity extends AppCompatActivity {
 
                 for (String password : commonPasswords) {
                     if (gattClient.unlock(Utils.toByteArray(password))) {
-                        Log.d(TAG, "Beacon unlocked automatically");
-                        log("Beacon unlocked automatically!");
                         unlockCode = password;
+                        Log.d(TAG, "Beacon unlocked automatically");
+                        log("Beacon unlocked automatically with password: " + unlockCode);
                         runnable.run();
                         return;
                     }
@@ -384,46 +405,53 @@ public class BeaconAutoConfigActivity extends AppCompatActivity {
     private boolean programBeacon(int m_beaconNo) {
         try {
             BeaconConfiguration conf = mEddystoneConfigFileManager.getConfig(m_beaconNo);
-            log("Programming beacon with name: "+conf.getName());
+            log("Programming beacon with name: " + conf.getName());
             byte[] broadCastCap = gattClient.readBroadcastCapabilities();
             int slotNo = 0;
-            while(slotNo < broadCastCap[1]){
-                if(slotNo < conf.getNumberOfConfiguredSlots()) {
-                    log("Writing active slot characteristic... slotNo = "+slotNo);
+            while (slotNo < broadCastCap[1]) {
+                if (slotNo < conf.getNumberOfConfiguredSlots()) {
+                    log("Writing active slot characteristic... slotNo = " + slotNo);
                     gattClient.writeActiveSlot(slotNo);
                     int advInt = conf.getAdvIntervalForSlot(slotNo);
-                    log("Writing advertise interval characteristic... advInt = "+advInt);
+                    log("Writing advertise interval characteristic... advInt = " + advInt);
                     gattClient.writeAdvertisingInterval(advInt);
                     int txPwr = conf.getAdvTxPowerForSlot(slotNo);
-                    log("Writing tx power characteristic... txPwr = "+txPwr);
+                    log("Writing tx power characteristic... txPwr = " + txPwr);
                     gattClient.writeRadioTxPower(txPwr);
-                    byte [] data = conf.getSlotDataForSlot(slotNo);
-                    log("Writing data characteristic... data[] = "+Utils.byteArrayToHexString(data));
+                    byte[] data = conf.getSlotDataForSlot(slotNo);
+                    log("Writing data characteristic... data[] = " + Utils.byteArrayToHexString(data));
                     gattClient.writeAdvSlotData(data);
-                }else{
+                } else {
                     gattClient.writeActiveSlot(slotNo);
-                    log("Writing active slot characteristic... slotNo = "+slotNo);
+                    log("Writing active slot characteristic... slotNo = " + slotNo);
                     //gattClient.writeAdvertisingInterval(0);
                     //gattClient.writeRadioTxPower(0);
-                    byte [] advOFFSlotDataDefault = new byte[1];
+                    byte[] advOFFSlotDataDefault = new byte[1];
                     advOFFSlotDataDefault[0] = 0x00; //frame type (UID)
-                    log("Disabling the slot... advOFFSlotDataDefault[] = "+Utils.byteArrayToHexString(advOFFSlotDataDefault));
+                    log("Disabling the slot... advOFFSlotDataDefault[] = " + Utils.byteArrayToHexString(advOFFSlotDataDefault));
                     gattClient.writeAdvSlotData(advOFFSlotDataDefault);
                 }
                 slotNo++;
             }
 
-            byte [] mRemainConnectable = {1};  //SET THIS TO 0 TO MAKE THE BEACON NON CONNECTABLE
+            byte[] mRemainConnectable = {0};  //SET THIS TO 0 TO MAKE THE BEACON NON CONNECTABLE
+            log("Writing remain connectable characteristic... mRemainConnectable = " + mRemainConnectable[0]);
             gattClient.writeRemainConnectable(mRemainConnectable);
 
+            byte mAccelConfig = conf.getAccelConfig();
+            log("Writing accel config characteristic... mAccelConfig = " + mAccelConfig);
+            gattClient.writeAccelConfig(mAccelConfig);
 
-            if( unlockCode != null ){
-                String newPassw = "00000000000000000000000000000000";
+            if (unlockCode != null) {
+                String newPassw = conf.getNewPassword();
                 log("Locking beacon with new password...");
-                gattClient.lockWithNewPassword(Utils.toByteArray(unlockCode),Utils.toByteArray(newPassw));
-                log("Beacon locked with password: (0x)"+ newPassw);
+                if(gattClient.lockWithNewPassword(Utils.toByteArray(unlockCode), Utils.toByteArray(newPassw))) {
+                    log("Beacon locked with password: (0x)" + newPassw);
+                }else{
+                    log("Error while locking with password: (0x)" + newPassw);
+                }
 
-            }else {
+            } else {
                 //byte[] lockData = {GattConstants.LOCK_STATE_UNLOCKED_AND_AUTOMATIC_RELOCK_DISABLED};
                 //lockedNotificationString = "Unlocked and automatic relock disabled.";
 //                byte[] lockData = {GattConstants.LOCK_STATE_LOCKED};
@@ -432,35 +460,45 @@ public class BeaconAutoConfigActivity extends AppCompatActivity {
             }
             gattClient.disconnect();
 
-//            runOnUiThread(new Runnable() {
-//                @Override
-//                public void run() {
-//                        mDummyTextview.setText("Beacon No: " + beaconNo + "\nProgrammed ok!\n" + lockedNotificationString);
-//
-//                }
-//            });
+            log("Beacon with name: " + conf.getName() + " programmed and ready to be released");
+            setResult(RESULT_OK);
 
-            setResult (RESULT_OK);
+            if (auto_return){
+                Handler h = new Handler();
+                returnToParent = true;
+                returnToParentRunnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        if (returnToParent) {
+                            finish();
+                        }
+                    }
+                };
+                h.postDelayed(returnToParentRunnable, 2000);
+            }else{
 
-            Handler h = new Handler();
-            returnToParent = true;
-            returnToParentRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    if(returnToParent) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mProgramConfigButton.setText("DONE");
+                        mProgramConfigButton.setEnabled(true);
+                    }
+                });
+
+                mProgramConfigButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
                         finish();
                     }
-                }
-            };
-            h.postDelayed(returnToParentRunnable, 2000);
-
+                });
+            }
             return true;
         }catch(Exception e){
 
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        //mDummyTextview.setText("Beacon No: " + beaconNo + " NOT Programmed!!!\nConfiguration not valid!");
+                        log("Beacon No: " + beaconNo + " NOT Programmed!!!\nConfiguration not valid!");
                         mProgramConfigButton.setText("PROGRAM!");
                         mProgramConfigButton.setEnabled(true);
                     }

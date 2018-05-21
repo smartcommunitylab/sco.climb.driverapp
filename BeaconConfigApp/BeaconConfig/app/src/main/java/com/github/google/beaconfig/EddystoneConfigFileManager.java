@@ -13,6 +13,8 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Scanner;
 
+import static com.github.google.beaconfig.Constants.ACCEL_MODE_DEFAULT;
+
 /**
  * Created by giova on 21/09/2017.
  */
@@ -61,65 +63,94 @@ public class EddystoneConfigFileManager{
                 }
             }
 
-            if(parts.length < 8){ //check if at least one slot is defined in the file
+            if(parts.length < 3){ //check if at least one slot is defined in the file
                 return null;
             }
 
-            //Check slots validity
-            int numberOfSlots = (parts.length-2)/6;
+            //Check slots validity (just check)
+            int numberOfSlots = (parts.length-5)/4;
             boolean validSlot[] = new boolean[numberOfSlots];
             for(int slotNo = 0; slotNo < numberOfSlots; slotNo++ ){
                 boolean advInterval_ok = false;
-                if(!parts[slotNo*6 + 2].isEmpty() && Integer.parseInt(parts[slotNo*6 + 2]) > 100){
+                boolean txPwr_ok = false;
+                boolean data_ok = false;
+                boolean slotType_ok = false;
+
+                //check adv interval
+                if(!parts[slotNo*4 + 4].isEmpty() && Integer.parseInt(parts[slotNo*4 + 4]) > 100){
                     advInterval_ok = true;
                 }
-                boolean slotType_ok = false;
-                boolean slot_ok = false;
-                if(!parts[slotNo*6 + 4].isEmpty() && parts[slotNo*6 + 4].equals("UID") || parts[slotNo*6 + 4].equals("TLM") || parts[slotNo*6 + 4].equals("URL")){
+
+                //check tx pwr
+                if(!parts[slotNo*4 + 5].isEmpty()){ //TODO: available tx power are provided with some characteristic value, for now just check that something is present
+                    txPwr_ok = true;
+                }
+
+                //check slot type
+                if(!parts[slotNo*4 + 6].isEmpty() && ( parts[slotNo*4 + 6].equals("UID") || parts[slotNo*4 + 6].equals("TLM") || parts[slotNo*4 + 6].equals("URL"))){
                     slotType_ok = true;
-                    if(parts[slotNo*6 + 4].equals("UID")){
-                        byte[] namespace = hexStringToByteArray(parts[slotNo*6 + 5]);//new BigInteger(parts[slotNo*6 + 5], 16).toByteArray();
-                        byte[] instance = hexStringToByteArray(parts[slotNo*6 + 6]);//new BigInteger(parts[slotNo*6 + 6], 16).toByteArray();
-                        if(namespace.length != 0 && instance.length != 0){
-                            slot_ok = true;
+                    //check data
+                    if(parts[slotNo*4 + 6].equals("UID")){
+                        byte[] namespace_instance_id = hexStringToByteArray(parts[slotNo*4 + 7]);//new BigInteger(parts[slotNo*6 + 5], 16).toByteArray();
+                        //byte[] instance = hexStringToByteArray(parts[slotNo*4 + 6]);//new BigInteger(parts[slotNo*6 + 6], 16).toByteArray();
+                        if(namespace_instance_id.length == 16){// && instance.length != 0){
+                            data_ok = true;
                         }
-                    }else if(parts[slotNo*6 + 4].equals("TLM")){
-                        slot_ok = true;
-                    }else if(parts[slotNo*6 + 4].equals("URL")){
-                        if(parts[7].length() != 0) {
-                            slot_ok = true;
+                    }else if(parts[slotNo*4 + 6].equals("TLM")){
+                        data_ok = true; //no data is associated with TLM frames, it there is something discard it
+                    }else if(parts[slotNo*4 + 6].equals("URL")){
+                        if(parts[7].length() != 0) { //TODO: here a better check should be done...
+                            data_ok = true;
                         }
                     }
                 }
-                if(advInterval_ok & slotType_ok & slot_ok) {
+                if(advInterval_ok & txPwr_ok & slotType_ok & data_ok) {
                     validSlot[slotNo] = true;
                 }else{
                     validSlot[slotNo] = false;
                 }
             }
 
+            //get data from file
             String beaconName = parts[1];
-            BeaconConfiguration config = new BeaconConfiguration(beaconName);
+            String unlockPassword;
+            String newPassword;
+            Byte accelMode=0;
+
+            if(!parts[2].isEmpty() & parts[2].length() == 32){
+                unlockPassword = parts[2];
+            }else{
+                unlockPassword = null;
+            }
+
+            if(!parts[3].isEmpty() & parts[3].length() == 32){
+                newPassword = parts[3];
+            }else{
+                newPassword = unlockPassword;
+            }
+
+            if(parts.length>20 & !parts[20].isEmpty() & parts[20].length() == 1){
+                accelMode = Byte.parseByte(parts[20]);
+            }else{
+                accelMode = ACCEL_MODE_DEFAULT;
+            }
+
+            BeaconConfiguration config = new BeaconConfiguration(beaconName,unlockPassword,newPassword,accelMode);
+
             for(int slotNo = 0; slotNo < numberOfSlots; slotNo++ ) {
                 if (validSlot[slotNo]) {
-                    int beaconAdvInt = Integer.parseInt(parts[slotNo*6 + 2]);
-                    int beaconTxPwr = Integer.parseInt(parts[slotNo*6 + 3]);
-                    String slotType = parts[slotNo*6 + 4];
+                    int beaconAdvInt = Integer.parseInt(parts[slotNo*4 + 4]);
+                    int beaconTxPwr = Integer.parseInt(parts[slotNo*4 + 5]);
+                    String slotType = parts[slotNo*4 + 6];
 
                     if (slotType.equals("UID")) {
 
                         byte[] data = new byte[17];
                         data[0] = Constants.UID_FRAME_TYPE;
 
-                        byte[] namespace = hexStringToByteArray(parts[slotNo*6 + 5]);//new BigInteger(parts[slotNo*6 + 5], 16).toByteArray();
-                        byte[] instance = hexStringToByteArray(parts[slotNo*6 + 6]);//new BigInteger(parts[slotNo*6 + 6], 16).toByteArray();
+                        byte[] namespace_instance_id = hexStringToByteArray(parts[slotNo*4 + 7]);
 
-                        //truncate or zero padding
-                        namespace = Arrays.copyOf(namespace,10);
-                        instance = Arrays.copyOf(instance,6);
-
-                        System.arraycopy(namespace, 0, data, 1, namespace.length);
-                        System.arraycopy(instance, 0, data, 11, instance.length);
+                        System.arraycopy(namespace_instance_id, 0, data, 1, namespace_instance_id.length);
 
                         config.addSlot(data, beaconTxPwr, beaconTxPwr, beaconAdvInt);
                     }
@@ -133,8 +164,7 @@ public class EddystoneConfigFileManager{
 
                     if (slotType.equals("URL")) { //not implemented
 //                    BeaconConfiguration config = new BeaconConfiguration(beaconName);
-//                    String url = parts[7];
-//                    return config;
+//                    String url = parts[slotNo*4 + 7];
                     }
                 }
             }
@@ -147,6 +177,7 @@ public class EddystoneConfigFileManager{
 
     public static byte[] hexStringToByteArray(String s) {
         int len = s.length();
+        s = s.toUpperCase();
         byte[] data = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {
             data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)

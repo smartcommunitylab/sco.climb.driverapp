@@ -180,8 +180,8 @@
 
 #define MAX_ALLOWED_TIMER_DURATION_SEC	      42000 //actual max timer duration 42949.67sec
 
-#define NUMBER_OF_SIMULATED_NODES			 6
-#define STARTING_ID							 31
+#define NUMBER_OF_SIMULATED_NODES			 15
+#define STARTING_ID							 0x6D
 
 // Task configuration
 #define SBP_TASK_PRIORITY                     1
@@ -381,9 +381,7 @@ static PIN_Config SensortagAppPinTable[] =
 // Global pin resources
 PIN_State pinGpioState;
 PIN_Handle hGpioPin;
-#ifdef CLIMB_DEBUG
 static uint8 adv_counter = 0;
-#endif
 
 static uint8 myIDArray[] = {0x00};//NODE_ID;
 static uint8 broadcastID[] = { 0xFF };
@@ -707,7 +705,8 @@ static void SimpleBLEPeripheral_init(void) {
 
 	uint8 i = 0;
 	for(i = 0; i < NUMBER_OF_SIMULATED_NODES; i++){
-		fakeIdList[i] = (STARTING_ID-1)*NUMBER_OF_SIMULATED_NODES+1 + i;
+//		fakeIdList[i] = (STARTING_ID-1)*NUMBER_OF_SIMULATED_NODES+1 + i;
+		fakeIdList[i] = STARTING_ID + i;
 	}
 
 	// Start the Device
@@ -1288,7 +1287,7 @@ static void BLE_AdvertiseEventHandler(void) {
 #endif
 	//HCI_ResetCmd();
 	//HCI_EXT_ResetSystemCmd(HCI_EXT_RESET_SYSTEM_HARD);
-
+	CLIMB_FlashLed(Board_LED2);
 	// reStart the Device
 	//status = GAPRole_StartDevice(&SimpleBLEPeripheral_gapRoleCBs);
 	 //update adv data every adv event to update adv_counter value. Since the argument is nodeState this function call doesn't modify the actual state of this node
@@ -1950,10 +1949,9 @@ static void Climb_updateMyBroadcastedState(ChildClimbNodeStateType_t newState) {
 	newAdvertData[11] = 0x00;
 	memcpy(&newAdvertData[ADV_PKT_ID_OFFSET], &fakeIdList[myFakeIdIndex], NODE_ID_LENGTH);
 	newAdvertData[ADV_PKT_STATE_OFFSET] = (uint8)nodeState;
-
+	uint8 i = ADV_PKT_STATE_OFFSET + 1;
 //TODO: rssi can be added also when CLIMB_DEBUG is not defined
 #ifdef CLIMB_DEBUG
-	uint8 i = ADV_PKT_STATE_OFFSET + 1;
 	listNode_t* node = adv_startNodePtr;
 	uint8 roundCompleted = FALSE;
 
@@ -1993,14 +1991,17 @@ static void Climb_updateMyBroadcastedState(ChildClimbNodeStateType_t newState) {
 	newAdvertData[i++] = (uint8) (batteryLev);
 	newAdvertData[i++] = adv_counter; //the counter is always in the last position
 #endif
-	newAdvertData[8] = i-9;
+
 
 
 	GAP_UpdateAdvertisingData(selfEntity, true, i,	&newAdvertData[0]);
 
 #else
-	newAdvertData[8] = 0x04;// length of this data
-	GAP_UpdateAdvertisingData(selfEntity, true, 12+ID_LENGTH+1,	&newAdvertData[0]);
+	newAdvertData[i++] = (uint8) (batteryLev >> 8);
+	newAdvertData[i++] = (uint8) (batteryLev);
+	newAdvertData[i++] = adv_counter; //the counter is always in the last position
+	newAdvertData[8] = i-9;
+	GAP_UpdateAdvertisingData(selfEntity, true, i,	&newAdvertData[0]);
 #endif
 
 	//GAP_UpdateAdvertisingData(selfEntity, false, 13,	&advertData[0]);

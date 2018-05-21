@@ -208,13 +208,6 @@ public class ScanningActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 requestFile();
-                try {
-                    int start_char = filePath.lastIndexOf('/');
-                    String title_label = filePath.substring(start_char+1, start_char+1+Math.min(filePath.length(), 20));
-                    mFileButton.setText("FILE:\n"+title_label);
-                }catch (Exception e){
-
-                }
             }
         });
 
@@ -257,6 +250,10 @@ public class ScanningActivity extends AppCompatActivity {
 
         filePath = sharedPref.getString("com.github.google.beaconfig.FilePath", null);
 
+        if(!checkConfFile(filePath)) {
+            filePath = null;
+        }
+
         try{
             int start_char = filePath.lastIndexOf('/');
 
@@ -267,7 +264,15 @@ public class ScanningActivity extends AppCompatActivity {
                 mFilenameTextview.setText("File: " + filePath);
             }
         }catch (Exception e){
+            mFilenameTextview.setText("File: ND");
+        }
 
+        try {
+            int start_char = filePath.lastIndexOf('/');
+            String title_label = filePath.substring(start_char+1, start_char+1+Math.min(filePath.length()-start_char, 15));
+            mFileButton.setText("FILE:\n"+title_label);
+        }catch (Exception e){
+            mFileButton.setText("File Select");
         }
 
         int progress = (int)( (mRssiThresholddBm - Constants.RSSI_THRESHOLD_MIN)/(((float)(Constants.RSSI_THRESHOLD_MAX - Constants.RSSI_THRESHOLD_MIN))/rssiBar.getMax()));
@@ -419,6 +424,12 @@ public class ScanningActivity extends AppCompatActivity {
                 if (data != null) {
                     filePath = data.getData().getPath();
 
+                    if(!checkConfFile(filePath)) {
+                        filePath = null;
+                        Log.w(TAG, "the log file didn't pass the check! It may be in the wrong format or the path may be not compatible");
+                        UiUtils.showToast(this, "File not valid!");
+                    }
+
                     Context context = getApplicationContext();
                     SharedPreferences sharedPref = context.getSharedPreferences( "com.example.myapp.PREFERENCE_FILE_KEY" , Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPref.edit();
@@ -522,5 +533,16 @@ public class ScanningActivity extends AppCompatActivity {
 
     public String getFilePath(){
         return filePath;
+    }
+
+    private boolean checkConfFile(String filePath){
+        EddystoneConfigFileManager mEddystoneConfigFileManager = new EddystoneConfigFileManager(filePath);
+        BeaconConfiguration firstBeacon = mEddystoneConfigFileManager.getConfig(1);
+
+        if(firstBeacon != null){
+            return true;
+        }else{
+            return false;
+        }
     }
 }
