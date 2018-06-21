@@ -20,7 +20,7 @@ angular.module('driverapp', [
   'driverapp.controllers.batteries'
 ])
 
-  .run(function ($ionicPlatform, $rootScope, $state, $translate, $ionicHistory, $ionicPopup, $window, GeoSrv,Config, Utils, StorageSrv,  WSNSrv, APISrv, LoginService) {
+  .run(function ($ionicPlatform, $rootScope, $state, $translate,$ionicModal, $ionicHistory, $ionicPopup, $window, GeoSrv,Config, Utils, StorageSrv,  WSNSrv, APISrv, LoginService) {
     $ionicPlatform.ready(function () {
       // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
       // for form inputs)
@@ -146,7 +146,21 @@ angular.module('driverapp', [
         // }
 
       }
+      $ionicModal.fromTemplateUrl('templates/credits.html', {
+        id: '3',
+        scope: $rootScope,
+        backdropClickToClose: false,
+        animation: 'slide-in-up'
+      }).then(function (modal) {
+        $rootScope.creditsModal = modal;
+      });
 
+      $rootScope.openCredits = function () {
+        $rootScope.creditsModal.show();
+      };
+      $rootScope.closeCredits = function () {
+        $rootScope.creditsModal.hide();
+      };
       $rootScope.exitApp = function () {
         $ionicPopup.confirm({
           title: 'Chiusura app',
@@ -351,7 +365,14 @@ angular.module('driverapp', [
       home_get_children:'Ottenendo i bambini',
       user_check:'Verifica credenziali',
       error_exit_template:'Errore nell\'inizializzazione. Verifica la connessione e riavvia l\'applicazione',
-      error_exit_title:'Errore'
+      error_exit_title:'Errore',
+      credits_project:'credits_project',
+      credits_info:'credits_info',
+      credits_project: 'Un progetto di:',
+      credits_collaboration: 'In collaborazione con:',
+      credits_participation: 'Con la partecipazione di:',
+      credits_info: 'Per informazioni:',
+      credits_licenses_button: ' VEDI LICENZE'
 
 
     });
