@@ -20,6 +20,7 @@
     "cordova-plugin-geolocation": "git+https://github.com/apache/cordova-plugin-geolocation.git",
     "cordova-plugin-globalization": "~1.0.7",
     "cordova-plugin-googleplus": "git+https://github.com/EddyVerbruggen/cordova-plugin-googleplus.git",
+    "cordova-plugin-inappbrowser": "^3.0.0",
     "cordova-plugin-network-information": "~2.0.1",
     "cordova-plugin-splashscreen": "~5.0.1",
     "cordova-plugin-statusbar": "~2.4.1",
@@ -129,7 +130,8 @@
       "it.smartcommunitylab.climb.dap": {},
       "cordova-android-support-gradle-release": {
         "ANDROID_SUPPORT_VERSION": "27.+"
-      }
+      },
+      "cordova-plugin-inappbrowser": {}
     }
   }
 }
