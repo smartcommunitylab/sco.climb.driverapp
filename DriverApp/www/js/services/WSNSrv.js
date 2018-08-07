@@ -62,51 +62,59 @@ angular.module('driverapp.services.wsn', [])
       var deferred = $q.defer()
 
       if (Utils.wsnPluginEnabled()) {
-        window.DriverAppPlugin.startListener(
-          function (response) {
-            if (response.action === wsnService.STATE_CONNECTED_TO_CLIMB_MASTER) {
-              if (response.errorMsg === null || response.errorMsg === undefined) {
-                console.log('### Yippee-ki-yay! Welcome, Master! ###')
-                $rootScope.masterError = false
-                wsnService.setNodeList(wsnService.getNodeListByType('child'))
-                wsnService.startNetworkStateInterval()
-              } else {
-                console.log('/// Master connection timeout! ///')
-                $rootScope.masterError = true
-                // TODO toast for failure
-                // Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
-              }
-            } else if (response.action === wsnService.STATE_DISCONNECTED_FROM_CLIMB_MASTER) {
-              console.log('=== Where is my Master?!? ===')
-              // TODO toast for failure
-              // Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
+        $rootScope.masterError = false
+        wsnService.setNodeList(wsnService.getNodeListByType('child'))
+        wsnService.startNetworkStateInterval()
+        deferred.resolve();
+      } else {
+        deferred.reject();
+      } 
 
-              // Retry
-              wsnService.connectMaster(response.id)
-            }
-            /*
-            else if (response.action === wsnService.STATE_CHECKEDIN_CHILD) {
-                if (response.errorMsg === null || response.errorMsg === undefined) {
-                    console.log('+++ Child ' + response.id + ' checked in! +++');
-                } else {
-                    console.log('/// Child ' + response.id + ' NOT checked in! ///');
-                }
-            } else if (response.action === wsnService.STATE_CHECKEDOUT_CHILD) {
-                if (response.errorMsg === null || response.errorMsg === undefined) {
-                    console.log('--- Child ' + response.id + ' checked out! ---');
-                } else {
-                    console.log('/// Child ' + response.id + ' NOT checked out! ///');
-                }
-            }
-            */
+        // window.DriverAppPlugin.startListener(
+        //   function (response) {
+        //     if (response.action === wsnService.STATE_CONNECTED_TO_CLIMB_MASTER) {
+        //       if (response.errorMsg === null || response.errorMsg === undefined) {
+        //         console.log('### Yippee-ki-yay! Welcome, Master! ###')
+        //         $rootScope.masterError = false
+        //         wsnService.setNodeList(wsnService.getNodeListByType('child'))
+        //         wsnService.startNetworkStateInterval()
+        //       } else {
+        //         console.log('/// Master connection timeout! ///')
+        //         $rootScope.masterError = true
+        //         // TODO toast for failure
+        //         // Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
+        //       }
+        //     } else if (response.action === wsnService.STATE_DISCONNECTED_FROM_CLIMB_MASTER) {
+        //       console.log('=== Where is my Master?!? ===')
+        //       // TODO toast for failure
+        //       // Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
 
-            deferred.resolve(response)
-          },
-          function (reason) {
-            deferred.reject(reason)
-          }
-        )
-      }
+        //       // Retry
+        //       wsnService.connectMaster(response.id)
+        //     }
+        //     /*
+        //     else if (response.action === wsnService.STATE_CHECKEDIN_CHILD) {
+        //         if (response.errorMsg === null || response.errorMsg === undefined) {
+        //             console.log('+++ Child ' + response.id + ' checked in! +++');
+        //         } else {
+        //             console.log('/// Child ' + response.id + ' NOT checked in! ///');
+        //         }
+        //     } else if (response.action === wsnService.STATE_CHECKEDOUT_CHILD) {
+        //         if (response.errorMsg === null || response.errorMsg === undefined) {
+        //             console.log('--- Child ' + response.id + ' checked out! ---');
+        //         } else {
+        //             console.log('/// Child ' + response.id + ' NOT checked out! ///');
+        //         }
+        //     }
+        //     */
+
+        //     deferred.resolve(response)
+        //   },
+        //   function (reason) {
+        //     deferred.reject(reason)
+        //   }
+        // )
+      // }
 
       return deferred.promise
     }
@@ -115,80 +123,7 @@ angular.module('driverapp.services.wsn', [])
       var deferred = $q.defer()
 
       if (Utils.wsnPluginEnabled()) {
-        window.DriverAppPlugin.getMasters(
-          function (response) {
-            wsnService.stopNetworkStateInterval()
-            deferred.resolve(response)
-          },
-          function (reason) {
-            console.log(reason)
-            deferred.reject(reason)
-          }
-        )
-      }
-
-      return deferred.promise
-    }
-
-    /**
-     * NOT EFFECTIVELY USED
-     */
-    wsnService.getMasters = function () {
-      var deferred = $q.defer()
-
-      if (Utils.wsnPluginEnabled()) {
-        window.DriverAppPlugin.getMasters(
-          function (masters) {
-            console.log('getMasters: ' + masters)
-            deferred.resolve(masters)
-          },
-          function (reason) {
-            console.log('getMasters: ' + reason)
-            deferred.reject(reason)
-          }
-        )
-      }
-
-      return deferred.promise
-    }
-
-    wsnService.connectMaster = function (masterId) {
-      var deferred = $q.defer()
-
-      if (Utils.wsnPluginEnabled()) {
-        window.DriverAppPlugin.connectMaster(
-          masterId,
-          function (procedureStarted) {
-            $rootScope.masterError = false
-            console.log('connectMaster: ' + procedureStarted)
-            deferred.resolve(procedureStarted)
-          },
-          function (reason) {
-            $rootScope.masterError = true
-            console.log('connectMaster: ' + reason)
-            deferred.reject(reason)
-          }
-        )
-      }
-
-      return deferred.promise
-    }
-
-    wsnService.setNodeList = function (list) {
-      var deferred = $q.defer()
-
-      if (Utils.wsnPluginEnabled()) {
-        window.DriverAppPlugin.setNodeList(
-          list,
-          function (procedureStarted) {
-            console.log('setNodeList: ' + procedureStarted)
-            deferred.resolve(procedureStarted)
-          },
-          function (reason) {
-            console.log('setNodeList: ' + reason)
-            deferred.reject(reason)
-          }
-        )
+        wsnService.stopNetworkStateInterval()
       }
 
       return deferred.promise
@@ -253,85 +188,6 @@ angular.module('driverapp.services.wsn', [])
       return deferred.promise
     }
 
-    wsnService.checkinChild = function (childId) {
-      var deferred = $q.defer()
-
-      if (Utils.wsnPluginEnabled()) {
-        window.DriverAppPlugin.checkinChild(
-          childId,
-          function (procedureStarted) {
-            console.log('checkinChild: ' + procedureStarted + ' (' + childId + ')')
-            deferred.resolve(procedureStarted)
-          },
-          function (reason) {
-            console.log('checkinChild: ' + reason + ' (' + childId + ')')
-            deferred.reject(reason)
-          }
-        )
-      }
-
-      return deferred.promise
-    }
-
-    wsnService.checkinChildren = function (childrenIds) {
-      var deferred = $q.defer()
-
-      if (Utils.wsnPluginEnabled()) {
-        window.DriverAppPlugin.checkinChildren(
-          childrenIds,
-          function (procedureStarted) {
-            console.log('checkinChildern: ' + procedureStarted + ' (' + childrenIds + ')')
-            deferred.resolve(procedureStarted)
-          },
-          function (reason) {
-            console.log('checkinChildern: ' + reason + ' (' + childrenIds + ')')
-            deferred.reject(reason)
-          }
-        )
-      }
-
-      return deferred.promise
-    }
-
-    wsnService.checkoutChild = function (childId) {
-      var deferred = $q.defer()
-
-      if (Utils.wsnPluginEnabled()) {
-        window.DriverAppPlugin.checkoutChild(
-          childId,
-          function (procedureStarted) {
-            console.log('checkoutChild: ' + procedureStarted)
-            deferred.resolve(procedureStarted)
-          },
-          function (reason) {
-            console.log('checkoutChild: ' + reason)
-            deferred.reject(reason)
-          }
-        )
-      }
-
-      return deferred.promise
-    }
-
-    wsnService.checkoutChildren = function (childrenIds) {
-      var deferred = $q.defer()
-
-      if (Utils.wsnPluginEnabled()) {
-        window.DriverAppPlugin.checkoutChildren(
-          childrenIds,
-          function (procedureStarted) {
-            console.log('checkoutChildren: ' + procedureStarted)
-            deferred.resolve(procedureStarted)
-          },
-          function (reason) {
-            console.log('checkoutChildren: ' + reason)
-            deferred.reject(reason)
-          }
-        )
-      }
-
-      return deferred.promise
-    }
 
     wsnService.getLogFiles = function () {
       var deferred = $q.defer()
@@ -350,26 +206,6 @@ angular.module('driverapp.services.wsn', [])
       } else {
         deferred.reject('log file not present')
       }
-      return deferred.promise
-    }
-
-    wsnService.test = function (text) {
-      var deferred = $q.defer()
-
-      if (Utils.wsnPluginEnabled()) {
-        window.DriverAppPlugin.test(
-          text,
-          function (response) {
-            console.log('test: ' + response)
-            deferred.resolve(response)
-          },
-          function (reason) {
-            console.log('test: ' + reason)
-            deferred.reject(reason)
-          }
-        )
-      }
-
       return deferred.promise
     }
 
@@ -418,65 +254,6 @@ angular.module('driverapp.services.wsn', [])
 
     wsnService.isNodeByType = function (nodeId, type) {
       return wsnService.networkState[nodeId].type === type
-    }
-
-    /*
-    NO_ERROR,
-    WRONG_BLE_NAME_ERROR,
-    ADVERTISER_NOT_AVAILABLE_ERROR,
-    INTERNAL_ERROR,
-    ANDROID_VERSION_NOT_COMPATIBLE_ERROR,
-    INVALID_DATE_ERROR
-    */
-
-    wsnService.enableMaintenanceProcedure = function (wakeUpYear, wakeUpMonth, wakeUpDay, wakeUpHour, wakeUpMinutes) {
-      var deferred = $q.defer()
-
-      if (Utils.wsnPluginEnabled()) {
-        window.DriverAppPlugin.enableMaintenanceProcedure(wakeUpYear, wakeUpMonth, wakeUpDay, wakeUpHour, wakeUpMinutes,
-          function (response) {
-            console.log('enableMaintenanceProcedure: ' + response)
-            if (response === 'NO_ERROR') {
-              deferred.resolve(response)
-            } else {
-              deferred.reject(response)
-            }
-          },
-          function (reason) {
-            console.log('enableMaintenanceProcedure: ' + reason)
-            deferred.reject(reason)
-          }
-        )
-      } else {
-        deferred.reject('DriverAppPlugin not present')
-      }
-
-      return deferred.promise
-    }
-
-    wsnService.disableMaintenanceProcedure = function () {
-      var deferred = $q.defer()
-
-      if (Utils.wsnPluginEnabled()) {
-        window.DriverAppPlugin.disableMaintenanceProcedure(
-          function (response) {
-            console.log('disableMaintenanceProcedure: ' + response)
-            if (response === 'NO_ERROR') {
-              deferred.resolve(response)
-            } else {
-              deferred.reject(response)
-            }
-          },
-          function (reason) {
-            console.log('disableMaintenanceProcedure: ' + reason)
-            deferred.reject(reason)
-          }
-        )
-      } else {
-        deferred.reject('DriverAppPlugin not present')
-      }
-
-      return deferred.promise
     }
 
     return wsnService

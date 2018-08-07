@@ -84,68 +84,23 @@ angular.module('driverapp', [
           })
       }
 
-      if (window.DriverAppPlugin) {
-        WSNSrv.init().then(
-          function (response) { },
-          function (reason) { }
-        )
-
-        WSNSrv.startListener().then(
-          function (response) { },
-          function (reason) { }
-        )
-
-        /*
-         * WSN Functions!
-         * 
-         * NOT USED
-         */
-        $rootScope.WSNSrvGetMasters = function () {
-          WSNSrv.getMasters().then(
-            function (masters) { },
+      var startWSNService = function() {
+        if (window.DriverAppPlugin) {
+          WSNSrv.init().then(
+            function (response) {
+              WSNSrv.startListener().then(
+                function (response) { },
+                function (reason) { }
+              )    
+            },
             function (reason) { }
-          )
-        }
-
-        // /**
-        //  * NOT USED
-        //  */
-        // $rootScope.WSNSrvConnectMaster = function (masterId) {
-        //   WSNSrv.connectMaster(masterId).then(
-        //     function (procedureStarted) { },
-        //     function (reason) { }
-        //   )
-        // }
-
-        /**
-         * NOT USED
-         */
-        $rootScope.WSNSrvSetNodeList = function () {
-          var childrenWsnIds = WSNSrv.getNodeListByType('child')
-          WSNSrv.setNodeList(childrenWsnIds).then(
-            function (procedureStarted) { },
-            function (reason) { }
-          )
-        }
-
-        /**
-         * NOT USED
-         */
-        $rootScope.WSNSrvGetNetworkState = function () {
-          WSNSrv.getNetworkState().then(
-            function (networkState) { },
-            function (reason) { }
-          )
-        }
-
-        // $rootScope.WSNSrvCheckMaster = function () {
-        //   WSNSrv.connectMaster($rootScope.driver.wsnId).then(
-        //     function (procedureStarted) { },
-        //     function (reason) { }
-        //   )
-        // }
-
+          )  
+        }  
       }
+      startWSNService();
+
+      // TODO CHECK BLUETOOTH STATE, ACTIVATE LISTENER AND CALL START WSN SERVICE / STOP WSN SERVICE
+
 
       $rootScope.exitApp = function () {
         $ionicPopup.confirm({

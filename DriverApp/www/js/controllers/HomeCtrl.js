@@ -153,7 +153,7 @@ angular.module('driverapp.controllers.home', [])
       $scope.modalMaintenance.hide();
       $rootScope.showTutorial = false;
 
-      // WSNSrv.disableMaintenanceProcedure().then(
+      // WSNSrv().then(
       //   function () {
       //     $scope.modalMaintenance.hide();
       //     $rootScope.showTutorial = false;
@@ -328,15 +328,18 @@ angular.module('driverapp.controllers.home', [])
       }
       $rootScope.driver = $scope.driver;
 
-      if ($scope.driver.wsnId !== null && $scope.driver.wsnId.length > 0) {
-        WSNSrv.connectMaster($scope.driver.wsnId).then(
-          function (procedureStarted) { },
-          function (reason) {
-            // TODO toast for failure
-            //Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
-          }
-        );
-      }
+      
+      // REMOVED AS NO USAGE IN PLUGIN 2018
+      // if ($scope.driver.wsnId !== null && $scope.driver.wsnId.length > 0) {
+      //   WSNSrv.connectMaster($scope.driver.wsnId).then(
+      //     function (procedureStarted) { },
+      //     function (reason) {
+      //       // TODO toast for failure
+      //       //Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
+      //     }
+      //   );
+      // }
+      
       //$scope.resizeHelpersList();
     }
 

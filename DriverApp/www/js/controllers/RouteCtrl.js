@@ -338,9 +338,10 @@ angular.module('driverapp.controllers.route', [])
               }
             })
 
-            if (childrenWsnIds.length > 0) {
-              WSNSrv.checkoutChildren(childrenWsnIds)
-            }
+            // REMOVED AS NO USAGE IN PLUGIN 2018
+            // if (childrenWsnIds.length > 0) {
+            //   WSNSrv.checkoutChildren(childrenWsnIds)
+            // }
 
             AESrv.endRoute($scope.stops[$scope.enRoutePos], $scope.ownerId, $scope.routeId)
 
@@ -420,9 +421,10 @@ angular.module('driverapp.controllers.route', [])
         $scope.onBoardTemp.push(passengerId)
         var child = $scope.getChild(passengerId)
         AESrv.nodeCheckin(child)
-        if (child.wsnId) {
-          WSNSrv.checkinChild(child.wsnId)
-        }
+        // REMOVED AS NO USAGE IN PLUGIN 2018
+        // if (child.wsnId) {
+        //   WSNSrv.checkinChild(child.wsnId)
+        // }
       }
 
       $scope.updateMergedOnBoard()
@@ -518,9 +520,10 @@ angular.module('driverapp.controllers.route', [])
                   wsnIds.push(child.wsnId)
                 }
               })
-              if (wsnIds.length > 0) {
-                WSNSrv.checkinChildren(wsnIds)
-              }
+              // REMOVED AS NO USAGE IN PLUGIN 2018
+              // if (wsnIds.length > 0) {
+              //   WSNSrv.checkinChildren(wsnIds)
+              // }
 
               $scope.onBoardTemp = $scope.onBoardTemp.concat($scope.toBeTaken)
             }
