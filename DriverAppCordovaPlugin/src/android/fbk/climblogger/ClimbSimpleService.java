@@ -384,7 +384,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
                 Log.i(TAG,"Bluetooth_State_change, new state: " + state);
                 bluetoothState = state;
                 if((bluetoothState == BluetoothAdapter.STATE_TURNING_OFF || bluetoothState == BluetoothAdapter.STATE_OFF) && maintenanceProcedureEnabled){
-                    disableMaintenanceProcedure();
+                    //disableMaintenanceProcedure();
                 }
             }
         }
@@ -562,7 +562,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         public void onStartFailure(int errorCode) {
             Log.e( TAG, "Advertising onStartFailure: " + errorCode );
             super.onStartFailure(errorCode);
-            disableMaintenanceProcedure(); //if the advertising fails disable maintenance so that the name keeps correct
+            //disableMaintenanceProcedure(); //if the advertising fails disable maintenance so that the name keeps correct
         }
     };
 
@@ -992,7 +992,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
     }
 
     public boolean deinit() {
-        disableMaintenanceProcedure();
+        //disableMaintenanceProcedure();
         boolean ret = (StopMonitoring() == 1);
         seenChildren = new HashMap<String, fbk.climblogger.ClimbServiceInterface.NodeState>(); //empty node list!
         broadcastUpdate(ACTION_METADATA_CHANGED);
@@ -1008,23 +1008,23 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         mContext = context;
     }
 
-    public String[] getMasters() {
-        String[] masters = new String[1];
-        masters[0] = mBluetoothAdapter.getAddress();
-        return masters;
-    }
+//    public String[] getMasters() {
+//        String[] masters = new String[1];
+//        masters[0] = mBluetoothAdapter.getAddress();
+//        return masters;
+//    }
 
     String mMaster;
-    public boolean connectMaster(String master) {
-        mMaster = master;
-        broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, master, true, null); //TODO: might need to delay this to avoid race conditions in caller
-        return true;
-    }
+//    public boolean connectMaster(String master) {
+//        mMaster = master;
+//        broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, master, true, null); //TODO: might need to delay this to avoid race conditions in caller
+//        return true;
+//    }
 
-    public boolean disconnectMaster() {
-        broadcastUpdate(ACTION_DATALOG_ACTIVE, STATE_DISCONNECTED_FROM_CLIMB_MASTER, mMaster); //TODO: might need to delay this to avoid race conditions in caller
-        return true;
-    }
+//    public boolean disconnectMaster() {
+//        broadcastUpdate(ACTION_DATALOG_ACTIVE, STATE_DISCONNECTED_FROM_CLIMB_MASTER, mMaster); //TODO: might need to delay this to avoid race conditions in caller
+//        return true;
+//    }
 
     public String[] getLogFiles() {
         //return new String[0];
@@ -1045,57 +1045,57 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         return r;
     }
 
-    public boolean setNodeList(String[] children) {
-        allowedChildren = children.clone(); //Strings are immutable, so no need to deep clone
-        return true;
-    }
+//    public boolean setNodeList(String[] children) {
+//        allowedChildren = children.clone(); //Strings are immutable, so no need to deep clone
+//        return true;
+//    }
 
-    @Nullable
-    public NodeState getNodeState(String id) {
-        return seenChildren.get(id); //TODO: clone
-    }
+//    @Nullable
+//    public NodeState getNodeState(String id) {
+//        return seenChildren.get(id); //TODO: clone
+//    }
 
     public NodeState[] getNetworkState() {
         return seenChildren.values().toArray(new NodeState[0]);
     }
 
-    public boolean checkinChild(String child) {
-        NodeState s = seenChildren.get(child);
-        if (s != null) {
-            s.state = State.ONBOARD.getValue();
-            //TODO: call callback
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public boolean checkinChildren(String[] children) {
-        boolean ret = true;
-        for (String child : children) {
-            ret &= checkinChild(child);
-        }
-        return ret;
-    }
-
-    public boolean checkoutChild(String child) {
-        NodeState s = seenChildren.get(child);
-        if (s != null) {
-            s.state = State.CHECKING.getValue();
-            //TODO: call callback
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public boolean checkoutChildren(String[] children) {
-        boolean ret = true;
-        for (String child : children) {
-            ret &= checkoutChild(child);
-        }
-        return ret;
-    }
+//    public boolean checkinChild(String child) {
+//        NodeState s = seenChildren.get(child);
+//        if (s != null) {
+//            s.state = State.ONBOARD.getValue();
+//            //TODO: call callback
+//            return true;
+//        } else {
+//            return false;
+//        }
+//    }
+//
+//    public boolean checkinChildren(String[] children) {
+//        boolean ret = true;
+//        for (String child : children) {
+//            ret &= checkinChild(child);
+//        }
+//        return ret;
+//    }
+//
+//    public boolean checkoutChild(String child) {
+//        NodeState s = seenChildren.get(child);
+//        if (s != null) {
+//            s.state = State.CHECKING.getValue();
+//            //TODO: call callback
+//            return true;
+//        } else {
+//            return false;
+//        }
+//    }
+//
+//    public boolean checkoutChildren(String[] children) {
+//        boolean ret = true;
+//        for (String child : children) {
+//            ret &= checkoutChild(child);
+//        }
+//        return ret;
+//    }
 
     private String startDataLog(){
         //TODO:se il file c'è già non crearlo, altrimenti creane un'altro
@@ -1173,115 +1173,115 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         return 1;
     }
 
-    @TargetApi(21)
-    public ErrorCode enableMaintenanceProcedure(int wakeUP_year, int wakeUP_month, int wakeUP_day, int wakeUP_hour, int wakeUP_minute) {
-        if (Build.VERSION.SDK_INT < 21) {
-            Log.w(TAG, "Build.VERSION.SDK_INT < 21");
-            insertTag("Cannot_enable_advertise,Build.VERSION.SDK_INT<21");
-            return ErrorCode.ANDROID_VERSION_NOT_COMPATIBLE_ERROR;
-        }
-        if (mBluetoothAdapter == null) {
-            Log.w(TAG, "mBluetoothAdapter == null");
-            insertTag("Cannot_enable_advertise,mBluetoothAdapter==null");
-            return ErrorCode.INTERNAL_ERROR; //internal error
-        }
-        if(bluetoothState != BluetoothAdapter.STATE_ON){
-            Log.w(TAG, "the bluetooth is not enabled");
-            insertTag("Cannot_enable_advertise,bluetoothState!=BluetoothAdapter.STATE_ON");
-            return ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR;
-        }
-        mBluetoothLeAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
-
-        if (mBluetoothLeAdvertiser == null ) {
-            Log.w(TAG, "mBluetoothLeAdvertiser == null");
-            insertTag("Cannot_enable_advertise,mBluetoothLeAdvertiser==null");
-            return ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR;
-        }
-
-        if (!mBluetoothAdapter.isMultipleAdvertisementSupported()) {
-            Log.w(TAG, "multiple advertisement not supported");
-            //return ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR; //do not return for this. Try to change the name anyway, eventually it will return with WRONG_BLE_NAME_ERROR
-        }
-
-        if (!maintenanceProcedureEnabled){ //don't overwrite the originalDeviceName if successive calls to enableMaintenanceProcedure are performed without calling disableMaintenanceProcedure
-            originalDeviceName = mBluetoothAdapter.getName();
-        }else{
-            Log.i(TAG, "maintenance procedure already enabled");
-        }
-
-        String deviceName = mBluetoothAdapter.getName();
-
-        if(deviceName != null && !deviceName.equals(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {
-            if(!mBluetoothAdapter.setName(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {
-                Log.w(TAG, "the method setName returned false");
-                insertTag("Cannot_set_name_advertise_not_enabled");
-                return ErrorCode.WRONG_BLE_NAME_ERROR; //wrong BLE name, the  setName can't update it!
-            }
-            //check the name string after the setting it....not strictly needed.
-            deviceName = mBluetoothAdapter.getName();
-            if(deviceName != null && !deviceName.equals(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {
-                Log.w(TAG, "BLE name check failed! Name not changed");
-                insertTag("Cannot_set_name_advertise_not_enabled");
-                mBluetoothAdapter.setName(originalDeviceName);
-                return ErrorCode.WRONG_BLE_NAME_ERROR;
-            }
-        }
-
-        GregorianCalendar wakeUpDate = new GregorianCalendar(wakeUP_year, wakeUP_month, wakeUP_day, wakeUP_hour, wakeUP_minute);
-        GregorianCalendar nowDate = new GregorianCalendar(Locale.ITALY);
-
-        long wakeUpDate_millis = wakeUpDate.getTimeInMillis();
-        long nowDate_millis = nowDate.getTimeInMillis();
-
-        if (wakeUpDate_millis > nowDate_millis) {
-            lastWakeUpTimeoutSet_sec = (wakeUpDate_millis - nowDate_millis) / 1000;
-            if (lastWakeUpTimeoutSet_sec < fbk.climblogger.ConfigVals.MAX_WAKE_UP_DELAY_SEC && lastWakeUpTimeoutSet_sec == (int) lastWakeUpTimeoutSet_sec) {
-
-                lastMaintainaceCallTime_millis = nowDate_millis;
-
-                if(!maintenanceProcedureEnabled) { //if the maintenance was already enabled, don't call updateMaintenancePacket() twice (just update the wake up date/hour)!
-                    maintenanceProcedureEnabled = true;
-                    updateMaintenancePacket();
-                }
-            }else{
-                disableMaintenanceProcedure();
-                Log.w(TAG, "Wake up date is too far from now or an overflow has been detected");
-                insertTag("Cannot_enable_advertise,WakeUpDate_too_far");
-                return ErrorCode.INVALID_DATE_ERROR;
-            }
-        }else{
-            Log.w(TAG, "Wake up date is before now");
-            insertTag("Cannot_enable_advertise,invalid_WakeUpDate");
-            disableMaintenanceProcedure();
-            return ErrorCode.INVALID_DATE_ERROR;
-        }
-        return ErrorCode.NO_ERROR; //no error
-    }
-
-    public ErrorCode disableMaintenanceProcedure(){
-        if(Build.VERSION.SDK_INT >= 21){
-            if(maintenanceProcedureEnabled) {
-                insertTag("disabling_advertise");
-                maintenanceProcedureEnabled = false;
-                mBluetoothLeAdvertiser.stopAdvertising(mAdvCallback);
-                if(originalDeviceName != null) {
-                    if(!mBluetoothAdapter.setName(originalDeviceName)){
-                        Log.w(TAG, "Not able to restored the original BLE name");
-                        insertTag("Cannot_restore_the_original_name");
-                    }else{
-                        Log.i(TAG, "Original name restored");
-                    }
-                    originalDeviceName = null;
-                }
-                mAdvCallback = null;
-                return ErrorCode.NO_ERROR;
-            }else{ //maintenance non enabled, don't react but do not generate errors
-                Log.i(TAG, "maintenance procedure not enabled, cannot disable it");
-                return ErrorCode.NO_ERROR;
-            }
-        }else { // (Build.VERSION.SDK_INT >= 21)
-            Log.i(TAG, "Build.VERSION.SDK_INT < 21");
-            return ErrorCode.ANDROID_VERSION_NOT_COMPATIBLE_ERROR;
-        }
-    }
+//    @TargetApi(21)
+//    public ErrorCode enableMaintenanceProcedure(int wakeUP_year, int wakeUP_month, int wakeUP_day, int wakeUP_hour, int wakeUP_minute) {
+//        if (Build.VERSION.SDK_INT < 21) {
+//            Log.w(TAG, "Build.VERSION.SDK_INT < 21");
+//            insertTag("Cannot_enable_advertise,Build.VERSION.SDK_INT<21");
+//            return ErrorCode.ANDROID_VERSION_NOT_COMPATIBLE_ERROR;
+//        }
+//        if (mBluetoothAdapter == null) {
+//            Log.w(TAG, "mBluetoothAdapter == null");
+//            insertTag("Cannot_enable_advertise,mBluetoothAdapter==null");
+//            return ErrorCode.INTERNAL_ERROR; //internal error
+//        }
+//        if(bluetoothState != BluetoothAdapter.STATE_ON){
+//            Log.w(TAG, "the bluetooth is not enabled");
+//            insertTag("Cannot_enable_advertise,bluetoothState!=BluetoothAdapter.STATE_ON");
+//            return ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR;
+//        }
+//        mBluetoothLeAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
+//
+//        if (mBluetoothLeAdvertiser == null ) {
+//            Log.w(TAG, "mBluetoothLeAdvertiser == null");
+//            insertTag("Cannot_enable_advertise,mBluetoothLeAdvertiser==null");
+//            return ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR;
+//        }
+//
+//        if (!mBluetoothAdapter.isMultipleAdvertisementSupported()) {
+//            Log.w(TAG, "multiple advertisement not supported");
+//            //return ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR; //do not return for this. Try to change the name anyway, eventually it will return with WRONG_BLE_NAME_ERROR
+//        }
+//
+//        if (!maintenanceProcedureEnabled){ //don't overwrite the originalDeviceName if successive calls to enableMaintenanceProcedure are performed without calling disableMaintenanceProcedure
+//            originalDeviceName = mBluetoothAdapter.getName();
+//        }else{
+//            Log.i(TAG, "maintenance procedure already enabled");
+//        }
+//
+//        String deviceName = mBluetoothAdapter.getName();
+//
+//        if(deviceName != null && !deviceName.equals(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {
+//            if(!mBluetoothAdapter.setName(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {
+//                Log.w(TAG, "the method setName returned false");
+//                insertTag("Cannot_set_name_advertise_not_enabled");
+//                return ErrorCode.WRONG_BLE_NAME_ERROR; //wrong BLE name, the  setName can't update it!
+//            }
+//            //check the name string after the setting it....not strictly needed.
+//            deviceName = mBluetoothAdapter.getName();
+//            if(deviceName != null && !deviceName.equals(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {
+//                Log.w(TAG, "BLE name check failed! Name not changed");
+//                insertTag("Cannot_set_name_advertise_not_enabled");
+//                mBluetoothAdapter.setName(originalDeviceName);
+//                return ErrorCode.WRONG_BLE_NAME_ERROR;
+//            }
+//        }
+//
+//        GregorianCalendar wakeUpDate = new GregorianCalendar(wakeUP_year, wakeUP_month, wakeUP_day, wakeUP_hour, wakeUP_minute);
+//        GregorianCalendar nowDate = new GregorianCalendar(Locale.ITALY);
+//
+//        long wakeUpDate_millis = wakeUpDate.getTimeInMillis();
+//        long nowDate_millis = nowDate.getTimeInMillis();
+//
+//        if (wakeUpDate_millis > nowDate_millis) {
+//            lastWakeUpTimeoutSet_sec = (wakeUpDate_millis - nowDate_millis) / 1000;
+//            if (lastWakeUpTimeoutSet_sec < fbk.climblogger.ConfigVals.MAX_WAKE_UP_DELAY_SEC && lastWakeUpTimeoutSet_sec == (int) lastWakeUpTimeoutSet_sec) {
+//
+//                lastMaintainaceCallTime_millis = nowDate_millis;
+//
+//                if(!maintenanceProcedureEnabled) { //if the maintenance was already enabled, don't call updateMaintenancePacket() twice (just update the wake up date/hour)!
+//                    maintenanceProcedureEnabled = true;
+//                    updateMaintenancePacket();
+//                }
+//            }else{
+//                disableMaintenanceProcedure();
+//                Log.w(TAG, "Wake up date is too far from now or an overflow has been detected");
+//                insertTag("Cannot_enable_advertise,WakeUpDate_too_far");
+//                return ErrorCode.INVALID_DATE_ERROR;
+//            }
+//        }else{
+//            Log.w(TAG, "Wake up date is before now");
+//            insertTag("Cannot_enable_advertise,invalid_WakeUpDate");
+//            disableMaintenanceProcedure();
+//            return ErrorCode.INVALID_DATE_ERROR;
+//        }
+//        return ErrorCode.NO_ERROR; //no error
+//    }
+//
+//    public ErrorCode disableMaintenanceProcedure(){
+//        if(Build.VERSION.SDK_INT >= 21){
+//            if(maintenanceProcedureEnabled) {
+//                insertTag("disabling_advertise");
+//                maintenanceProcedureEnabled = false;
+//                mBluetoothLeAdvertiser.stopAdvertising(mAdvCallback);
+//                if(originalDeviceName != null) {
+//                    if(!mBluetoothAdapter.setName(originalDeviceName)){
+//                        Log.w(TAG, "Not able to restored the original BLE name");
+//                        insertTag("Cannot_restore_the_original_name");
+//                    }else{
+//                        Log.i(TAG, "Original name restored");
+//                    }
+//                    originalDeviceName = null;
+//                }
+//                mAdvCallback = null;
+//                return ErrorCode.NO_ERROR;
+//            }else{ //maintenance non enabled, don't react but do not generate errors
+//                Log.i(TAG, "maintenance procedure not enabled, cannot disable it");
+//                return ErrorCode.NO_ERROR;
+//            }
+//        }else { // (Build.VERSION.SDK_INT >= 21)
+//            Log.i(TAG, "Build.VERSION.SDK_INT < 21");
+//            return ErrorCode.ANDROID_VERSION_NOT_COMPATIBLE_ERROR;
+//        }
+//    }
 }

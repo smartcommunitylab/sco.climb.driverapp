@@ -17,7 +17,7 @@ module.exports = {
   'stopListener': function (successCallback, errorCallback) {
     cordova.exec(successCallback, errorCallback, serviceName, 'stopListener', [])
   },
-  'getMasters': function (successCallback, errorCallback) {
+/*  'getMasters': function (successCallback, errorCallback) {
     cordova.exec(successCallback, errorCallback, serviceName, 'getMasters', [])
   },
   'connectMaster': function (masterId, successCallback, errorCallback) {
@@ -25,11 +25,11 @@ module.exports = {
   },
   'setNodeList': function (nodeList, successCallback, errorCallback) {
     cordova.exec(successCallback, errorCallback, serviceName, 'setNodeList', [nodeList])
-  },
+  },*/
   'getNetworkState': function (successCallback, errorCallback) {
     cordova.exec(successCallback, errorCallback, serviceName, 'getNetworkState', [])
   },
-  'checkinChild': function (childId, successCallback, errorCallback) {
+/*  'checkinChild': function (childId, successCallback, errorCallback) {
     cordova.exec(successCallback, errorCallback, serviceName, 'checkinChild', [childId])
   },
   'checkinChildren': function (childrenIds, successCallback, errorCallback) {
@@ -40,16 +40,17 @@ module.exports = {
   },
   'checkoutChildren': function (childrenIds, successCallback, errorCallback) {
     cordova.exec(successCallback, errorCallback, serviceName, 'checkoutChildren', [childrenIds])
-  },
+  },*/
   'getLogFiles': function (successCallback, errorCallback) {
     cordova.exec(successCallback, errorCallback, serviceName, 'getLogFiles', [])
   },
+  /*
   'enableMaintenanceProcedure': function (wakeUpYear, wakeUpMonth, wakeUpDay, wakeUpHour, wakeUpMinute, successCallback, errorCallback) {
     cordova.exec(successCallback, errorCallback, serviceName, 'enableMaintenanceProcedure', [wakeUpYear, wakeUpMonth, wakeUpDay, wakeUpHour, wakeUpMinute])
   },
   'disableMaintenanceProcedure': function (successCallback, errorCallback) {
     cordova.exec(successCallback, errorCallback, serviceName, 'disableMaintenanceProcedure', [])
-  },
+  },*/
   'test': function (name, successCallback, errorCallback) {
     cordova.exec(successCallback, errorCallback, serviceName, 'test', [name])
   }

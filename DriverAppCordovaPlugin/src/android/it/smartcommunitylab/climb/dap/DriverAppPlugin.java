@@ -70,7 +70,7 @@ public class DriverAppPlugin extends CordovaPlugin {
 		}
 
 		// getMasters
-		if (action.equals("getMasters")) {
+/*		if (action.equals("getMasters")) {
 			String[] masters = mClimbService.getMasters();
 			JSONArray mastersJSON = new JSONArray(masters);
 			Log.w(LOG_TAG, "getMasters: " + mastersJSON.toString());
@@ -91,7 +91,7 @@ public class DriverAppPlugin extends CordovaPlugin {
 				return true;
 			}
 		}
-
+*/
 		if (action.equals("getNetworkState")) {
 			NodeState[] networkState = mClimbService.getNetworkState();
 			if (networkState == null) {
@@ -109,7 +109,7 @@ public class DriverAppPlugin extends CordovaPlugin {
 
 			return true;
 		}
-
+/*
 		if (action.equals("setNodeList")) {
 			JSONArray nodeListJSON = data.getJSONArray(0);
 			String[] nodeList = new String[nodeListJSON.length()];
@@ -128,7 +128,7 @@ public class DriverAppPlugin extends CordovaPlugin {
 
 			return true;
 		}
-
+*/
 		if (action.equals("startListener")) {
 			if (this.listenerCallbackContext != null) {
 				callbackContext.error("Already running.");
@@ -168,7 +168,7 @@ public class DriverAppPlugin extends CordovaPlugin {
 			callbackContext.success();
 			return true;
 		}
-
+/*
 		if (action.equals("checkinChild")) {
 			if (data != null && data.length() == 1 && data.getString(0).length() > 0) {
 				String childId = data.getString(0);
@@ -261,7 +261,7 @@ public class DriverAppPlugin extends CordovaPlugin {
 
 			return true;
 		}
-
+*/
 		if (action.equals("getLogFiles")) {
 			String[] logFilePaths = mClimbService.getLogFiles();
 

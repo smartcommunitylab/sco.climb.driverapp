@@ -85,7 +85,7 @@ public interface ClimbServiceInterface {
      *
      * @return list of master node IDs, if any, or empty list.
      */
-    public String[] getMasters();
+    //public String[] getMasters();
 
     /**
      * Connect to the selected master.
@@ -95,7 +95,7 @@ public interface ClimbServiceInterface {
      * unsuccessful end of the connection attempt. If false, STATE_CONNECTED_TO_CLIMB_MASTER will
      * not be fired.
      */
-    public boolean connectMaster(String master);
+    //public boolean connectMaster(String master);
 
     /**
      * Disconnect from the connected master.
@@ -105,7 +105,7 @@ public interface ClimbServiceInterface {
      * unsuccessful end of the disconnection attempt. If false, STATE_DISCONNECTED_FROM_CLIMB_MASTER
      * will not be fired.
      */
-    public boolean disconnectMaster();
+    //public boolean disconnectMaster();
 
     /**
      * Get path of the log files. As a side effect, flush these files.
@@ -121,7 +121,7 @@ public interface ClimbServiceInterface {
      * @param children List of node IDs.
      * @return false if master is not connected or other error occurs
      */
-    public boolean setNodeList(String[] children);
+    //public boolean setNodeList(String[] children);
 
     /**
      * Get state of a single child node.
@@ -129,7 +129,7 @@ public interface ClimbServiceInterface {
      * @param id Id of node.
      * @return State if the node, if available, null otherwise.
      */
-    public NodeState getNodeState(String id);
+    //public NodeState getNodeState(String id);
 
     /**
      * Get state of every child node seen by the master.
@@ -145,7 +145,7 @@ public interface ClimbServiceInterface {
      * @return true if successfully started the checkin. If true, a STATE_CHECKEDIN_CHILD (true/false)
      * message will be fired signaling successful/unsuccessful checkin.
      */
-    public boolean checkinChild(String child);
+    //public boolean checkinChild(String child);
 
     /**
      * Check in child nodes.
@@ -155,7 +155,7 @@ public interface ClimbServiceInterface {
      * A STATE_CHECKEDIN_CHILD (true/false) message will be fired signaling successful/unsuccessful checkin
      * for every child node where the checkin process stated successfully.
      */
-    public boolean checkinChildren(String[] children);
+    //public boolean checkinChildren(String[] children);
 
     /**
      * Check out a given child node.
@@ -164,7 +164,7 @@ public interface ClimbServiceInterface {
      * @return true if successfully started the checkout. If true, a STATE_CHECKEDOUT_CHILD (true/false)
      * message will be fired signaling successful/unsuccessful checkout.
      */
-    public boolean checkoutChild(String child);
+    //public boolean checkoutChild(String child);
 
     /**
      * Check out child nodes.
@@ -174,7 +174,7 @@ public interface ClimbServiceInterface {
      * A STATE_CHECKEDOUT_CHILD (true/false) message will be fired signaling successful/unsuccessful checkout
      * for every child node where the checkout process stated successfully.
      */
-    public boolean checkoutChildren(String[] children);
+    //public boolean checkoutChildren(String[] children);
 
     /**
      * Enable Maintenance Procedure
@@ -183,7 +183,7 @@ public interface ClimbServiceInterface {
      * @return The error codes defined in ErrorCode enum
      * Enable the maintenance procedure to re-set the clock on the nodes. Usefull for changing battery.
      */
-    public ErrorCode enableMaintenanceProcedure(int wakeUP_year, int wakeUP_month, int wakeUP_day, int wakeUP_hour, int wakeUP_minute);
+    //public ErrorCode enableMaintenanceProcedure(int wakeUP_year, int wakeUP_month, int wakeUP_day, int wakeUP_hour, int wakeUP_minute);
 
     /**
      * Disabble Maintenance Procedure
@@ -191,5 +191,5 @@ public interface ClimbServiceInterface {
      * @return The error codes defined in ErrorCode enum
      * Disabble the maintenance procedure to re-set the clock on the nodes.
      */
-    public ErrorCode disableMaintenanceProcedure();
+   // public ErrorCode disableMaintenanceProcedure();
 }

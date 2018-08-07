@@ -83,10 +83,10 @@ public class ScanActivity extends Activity {
         h.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (!mClimbService.connectMaster(id)) {
-                    Log.w(TAG, "reconnect failed immediately. retry after " + t);
-                    reconnectAfter(id, t);
-                }
+//                if (!mClimbService.connectMaster(id)) {
+//                    Log.w(TAG, "reconnect failed immediately. retry after " + t);
+//                    reconnectAfter(id, t);
+//                }
             }
         }, t);
     };
@@ -146,13 +146,13 @@ public class ScanActivity extends Activity {
                 expandableListAdapter.notifyDataSetChanged();
                 Log.i(TAG,"Connected with GATT? " + success);
                 if (success) {
-                    mClimbService.setNodeList(allowedChidren.toArray(new String[allowedChidren.size()]));
+                    //mClimbService.setNodeList(allowedChidren.toArray(new String[allowedChidren.size()]));
                 } else {
-                    if (!mClimbService.connectMaster(id)) {
-                        Log.w(TAG, "reconnect failed immediately after connect failure. Retry in 5s");
-                        reconnectAfter(id,5000);
-                        // schedule a new connect try
-                    };
+//                    if (!mClimbService.connectMaster(id)) {
+//                        Log.w(TAG, "reconnect failed immediately after connect failure. Retry in 5s");
+//                        reconnectAfter(id,5000);
+//                        // schedule a new connect try
+//                    };
                 }
             }else if (fbk.climblogger.ClimbServiceInterface.STATE_DISCONNECTED_FROM_CLIMB_MASTER.equals(action)) {
                 String id = intent.getStringExtra(fbk.climblogger.ClimbServiceInterface.INTENT_EXTRA_ID);
@@ -163,10 +163,10 @@ public class ScanActivity extends Activity {
                     Toast.LENGTH_SHORT).show();
                 expandableListAdapter.notifyDataSetChanged();
 
-                if (!mClimbService.connectMaster(id)) {
-                    Log.w(TAG, "Reconnect to " + id + " failed immediately. Retry in 5s");
-                    reconnectAfter(id,5000);
-                }
+//                if (!mClimbService.connectMaster(id)) {
+//                    Log.w(TAG, "Reconnect to " + id + " failed immediately. Retry in 5s");
+//                    reconnectAfter(id,5000);
+//                }
             }
             else if (fbk.climblogger.ClimbServiceInterface.ACTION_NODE_ALERT.equals(action)) {
 //                if (intent.hasExtra(ClimbService.EXTRA_BYTE_ARRAY)) {
@@ -300,13 +300,13 @@ public class ScanActivity extends Activity {
                     for (int i = 0; i < nss.length; i++) {
                         ids[i] = nss[i].nodeID;
                     }
-                    if (mClimbService.checkinChildren(ids)) {
-                        mVibrator.vibrate(fbk.climblogger.ConfigVals.vibrationTimeout);
-                        lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
-                    } else {
-                        Log.i(TAG, "Check in all not sent!");
-                        log("Check in all not sent!");
-                    }
+//                    if (mClimbService.checkinChildren(ids)) {
+//                        mVibrator.vibrate(fbk.climblogger.ConfigVals.vibrationTimeout);
+//                        lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
+//                    } else {
+//                        Log.i(TAG, "Check in all not sent!");
+//                        log("Check in all not sent!");
+//                    }
                 } else {
                     Log.i(TAG, "Check in all not sent!");
                     log("Check in all not sent!");
@@ -329,13 +329,13 @@ public class ScanActivity extends Activity {
                     for (int i = 0; i < nss.length; i++) {
                         ids[i] = nss[i].nodeID;
                     }
-                    if (mClimbService.checkoutChildren(ids)) {
-                        mVibrator.vibrate(fbk.climblogger.ConfigVals.vibrationTimeout);
-                        lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
-                    } else {
-                        Log.i(TAG, "Check out all not sent!");
-                        log("Check out all not sent!");
-                    }
+//                    if (mClimbService.checkoutChildren(ids)) {
+//                        mVibrator.vibrate(fbk.climblogger.ConfigVals.vibrationTimeout);
+//                        lastBroadcastMessageSentMillis = SystemClock.uptimeMillis();
+//                    } else {
+//                        Log.i(TAG, "Check out all not sent!");
+//                        log("Check out all not sent!");
+//                    }
                 } else {
                     Log.i(TAG, "Check out all not sent!");
                     log("Check out all not sent!");
@@ -408,8 +408,8 @@ public class ScanActivity extends Activity {
     };
     View.OnClickListener scheduleWUButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
-            DialogFragment newFragment = new DatePickerFragment();
-            newFragment.show(getFragmentManager(), "datePicker");
+            //DialogFragment newFragment = new DatePickerFragment();
+            //newFragment.show(getFragmentManager(), "datePicker");
             //remaining part of the procedure is executed in sendWakeUpCMD()
         }
     };
@@ -421,129 +421,129 @@ public class ScanActivity extends Activity {
 
                 if(mMaintenanceCheckBox.isChecked()) {
 
-                    GregorianCalendar wakeUpDate = new GregorianCalendar(wakeUP_year, wakeUP_month, wakeUP_day, wakeUP_hour, wakeUP_minute);
-                    GregorianCalendar nowDate = new GregorianCalendar(Locale.ITALY);
-
-                    long wakeUpDate_millis = wakeUpDate.getTimeInMillis();
-                    long nowDate_millis = nowDate.getTimeInMillis();
-
-                    if(wakeUpDate_millis > nowDate_millis){
-                        sendWakeUpCMD(); //if the wake up hour is valid just enable maintenance with stored wake up data
-                    }else {
-                        DialogFragment newFragment = new DatePickerFragment();
-                        newFragment.show(getFragmentManager(), "datePicker");
-                        //remaining part of the procedure is executed in sendWakeUpCMD()
-                        if(mMaintenanceCheckBox.isChecked()) {
-                            mMaintenanceCheckBox.setChecked(false); //checkbox will be checked once the data and time picker return
-                        }
-                    }
-                }else{
-                    if(mClimbService.disableMaintenanceProcedure() == fbk.climblogger.ClimbServiceInterface.ErrorCode.NO_ERROR) {
-                        mVibrator.vibrate(fbk.climblogger.ConfigVals.vibrationTimeout);
-                        Log.i(TAG, "maintenance disabled!");
-                        log("maintenance disabled!");
-                    }else{
-                        Log.i(TAG, "disable maintenance not set!");
-                        log("disable maintenance not set!!");
-                    }
+//                    GregorianCalendar wakeUpDate = new GregorianCalendar(wakeUP_year, wakeUP_month, wakeUP_day, wakeUP_hour, wakeUP_minute);
+//                    GregorianCalendar nowDate = new GregorianCalendar(Locale.ITALY);
+//
+//                    long wakeUpDate_millis = wakeUpDate.getTimeInMillis();
+//                    long nowDate_millis = nowDate.getTimeInMillis();
+//
+//                    if(wakeUpDate_millis > nowDate_millis){
+//                        sendWakeUpCMD(); //if the wake up hour is valid just enable maintenance with stored wake up data
+//                    }else {
+//                        DialogFragment newFragment = new DatePickerFragment();
+//                        newFragment.show(getFragmentManager(), "datePicker");
+//                        //remaining part of the procedure is executed in sendWakeUpCMD()
+//                        if(mMaintenanceCheckBox.isChecked()) {
+//                            mMaintenanceCheckBox.setChecked(false); //checkbox will be checked once the data and time picker return
+//                        }
+//                    }
+//                }else{
+////                    if(mClimbService.disableMaintenanceProcedure() == fbk.climblogger.ClimbServiceInterface.ErrorCode.NO_ERROR) {
+////                        mVibrator.vibrate(fbk.climblogger.ConfigVals.vibrationTimeout);
+////                        Log.i(TAG, "maintenance disabled!");
+////                        log("maintenance disabled!");
+////                    }else{
+////                        Log.i(TAG, "disable maintenance not set!");
+////                        log("disable maintenance not set!!");
+////                    }
                 }
             }
         }
     };
 
-    public void setWakeUpDate(int year, int month, int day){
-        wakeUP_year = year;
-        wakeUP_month = month;
-        wakeUP_day = day;
-    }
-
-    public void setWakeUpHour(int hour, int minute){
-        wakeUP_hour = hour;
-        wakeUP_minute = minute;
-    }
-
-    public void sendWakeUpCMD(){ //CALLED FROM TIME PICKER ACTIVITY or directly from mMaintenanceCheckBoxOnClickListener (when a valid wake uo data is already available in memory)
-
-          //if( (SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > fbk.climblogger.ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
-            if (mClimbService != null) {
-
-                fbk.climblogger.ClimbServiceInterface.ErrorCode retValue = mClimbService.enableMaintenanceProcedure(wakeUP_year, wakeUP_month, wakeUP_day, wakeUP_hour, wakeUP_minute);
-                if (retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.NO_ERROR) { //no error
-                    mVibrator.vibrate(fbk.climblogger.ConfigVals.vibrationTimeout);
-                    if(!mMaintenanceCheckBox.isChecked()) {
-                        mMaintenanceCheckBox.setChecked(true);
-                    }
-                    Log.i(TAG, "maintenance enabled!");
-                    return;
-                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.WRONG_BLE_NAME_ERROR){
-                    mMaintenanceCheckBox.setChecked(false);
-                    String alertString = "Maintenance non enabled - WRONG_BLE_NAME_ERROR!!!";
-                    Toast.makeText(getApplicationContext(),
-                            alertString,
-                            Toast.LENGTH_LONG).show();
-                    Log.i(TAG, "Maintenance non enabled - WRONG_BLE_NAME_ERROR!!!");
-                    log("Maintenance non enabled - WRONG_BLE_NAME_ERROR!!!");
-                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR){
-                    mMaintenanceCheckBox.setChecked(false);
-                    String alertString = "Maintenance non enabled - ADVERTISER_NOT_AVAILABLE_ERROR!!!";
-                    Toast.makeText(getApplicationContext(),
-                            alertString,
-                            Toast.LENGTH_LONG).show();
-                    Log.i(TAG, "Maintenance non enabled - ADVERTISER_NOT_AVAILABLE_ERROR!!!");
-                    log("Maintenance non enabled - ADVERTISER_NOT_AVAILABLE_ERROR!!!");
-                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.INTERNAL_ERROR){
-                    mMaintenanceCheckBox.setChecked(false);
-                    String alertString = "Maintenance non enabled - INTERNAL_ERROR!!!";
-                    Toast.makeText(getApplicationContext(),
-                            alertString,
-                            Toast.LENGTH_LONG).show();
-                    Log.i(TAG, "Maintenance non enabled - INTERNAL_ERROR!!!");
-                    log("Maintenance non enabled - INTERNAL_ERROR!!!");
-                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.ANDROID_VERSION_NOT_COMPATIBLE_ERROR){
-                    mMaintenanceCheckBox.setChecked(false);
-                    String alertString = "Maintenance non enabled - ANDROID_VERSION_NOT_COMPATIBLE_ERROR!!!";
-                    Toast.makeText(getApplicationContext(),
-                            alertString,
-                            Toast.LENGTH_LONG).show();
-                    Log.i(TAG, "Maintenance non enabled - ANDROID_VERSION_NOT_COMPATIBLE_ERROR!!!");
-                    log("Maintenance non enabled - ANDROID_VERSION_NOT_COMPATIBLE_ERROR!!!");
-                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.INVALID_DATE_ERROR){ //not compatible TODO: parametrize the error codes
-                    mMaintenanceCheckBox.setChecked(false);
-                    String alertString = "Maintenance non enabled - INVALID_DATE_ERROR!!!";
-                    Toast.makeText(getApplicationContext(),
-                            alertString,
-                            Toast.LENGTH_LONG).show();
-                    Log.i(TAG, "Maintenance non enabled - INVALID_DATE_ERROR!!!");
-                    log("Maintenance non enabled - INVALID_DATE_ERROR!!!");
-                }else{
-                    mMaintenanceCheckBox.setChecked(false);
-                    String alertString = "Maintenance non enabled - error unknown!!!";
-                    Toast.makeText(getApplicationContext(),
-                            alertString,
-                            Toast.LENGTH_LONG).show();
-                    Log.i(TAG, "Maintenance non enabled - error unknown!!!");
-                    log("Maintenance non enabled - error unknown!!!");
-                }
-                if(mMaintenanceCheckBox.isChecked()) {
-                    mMaintenanceCheckBox.setChecked(false);
-                }
-
-                Toast.makeText(getApplicationContext(),
-                        "Date not accepted...",
-                        Toast.LENGTH_SHORT).show();
-
-            } else {
-                Log.i(TAG, "schedule wake up not sent!");
-                log("schedule wake up not sent!");
-            }
-//        }else{
-//            String alertString = "Wait a little";
-//            Toast.makeText(getApplicationContext(),
-//                    alertString,
-//                    Toast.LENGTH_LONG).show();
-//        }
-
-    }
+//    public void setWakeUpDate(int year, int month, int day){
+//        wakeUP_year = year;
+//        wakeUP_month = month;
+//        wakeUP_day = day;
+//    }
+//
+//    public void setWakeUpHour(int hour, int minute){
+//        wakeUP_hour = hour;
+//        wakeUP_minute = minute;
+//    }
+//
+//    public void sendWakeUpCMD(){ //CALLED FROM TIME PICKER ACTIVITY or directly from mMaintenanceCheckBoxOnClickListener (when a valid wake uo data is already available in memory)
+//
+//          //if( (SystemClock.uptimeMillis() - lastBroadcastMessageSentMillis) > fbk.climblogger.ConfigVals.consecutiveBroadcastMessageTimeout_ms) {
+//            if (mClimbService != null) {
+//
+//                fbk.climblogger.ClimbServiceInterface.ErrorCode retValue = mClimbService.enableMaintenanceProcedure(wakeUP_year, wakeUP_month, wakeUP_day, wakeUP_hour, wakeUP_minute);
+//                if (retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.NO_ERROR) { //no error
+//                    mVibrator.vibrate(fbk.climblogger.ConfigVals.vibrationTimeout);
+//                    if(!mMaintenanceCheckBox.isChecked()) {
+//                        mMaintenanceCheckBox.setChecked(true);
+//                    }
+//                    Log.i(TAG, "maintenance enabled!");
+//                    return;
+//                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.WRONG_BLE_NAME_ERROR){
+//                    mMaintenanceCheckBox.setChecked(false);
+//                    String alertString = "Maintenance non enabled - WRONG_BLE_NAME_ERROR!!!";
+//                    Toast.makeText(getApplicationContext(),
+//                            alertString,
+//                            Toast.LENGTH_LONG).show();
+//                    Log.i(TAG, "Maintenance non enabled - WRONG_BLE_NAME_ERROR!!!");
+//                    log("Maintenance non enabled - WRONG_BLE_NAME_ERROR!!!");
+//                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR){
+//                    mMaintenanceCheckBox.setChecked(false);
+//                    String alertString = "Maintenance non enabled - ADVERTISER_NOT_AVAILABLE_ERROR!!!";
+//                    Toast.makeText(getApplicationContext(),
+//                            alertString,
+//                            Toast.LENGTH_LONG).show();
+//                    Log.i(TAG, "Maintenance non enabled - ADVERTISER_NOT_AVAILABLE_ERROR!!!");
+//                    log("Maintenance non enabled - ADVERTISER_NOT_AVAILABLE_ERROR!!!");
+//                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.INTERNAL_ERROR){
+//                    mMaintenanceCheckBox.setChecked(false);
+//                    String alertString = "Maintenance non enabled - INTERNAL_ERROR!!!";
+//                    Toast.makeText(getApplicationContext(),
+//                            alertString,
+//                            Toast.LENGTH_LONG).show();
+//                    Log.i(TAG, "Maintenance non enabled - INTERNAL_ERROR!!!");
+//                    log("Maintenance non enabled - INTERNAL_ERROR!!!");
+//                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.ANDROID_VERSION_NOT_COMPATIBLE_ERROR){
+//                    mMaintenanceCheckBox.setChecked(false);
+//                    String alertString = "Maintenance non enabled - ANDROID_VERSION_NOT_COMPATIBLE_ERROR!!!";
+//                    Toast.makeText(getApplicationContext(),
+//                            alertString,
+//                            Toast.LENGTH_LONG).show();
+//                    Log.i(TAG, "Maintenance non enabled - ANDROID_VERSION_NOT_COMPATIBLE_ERROR!!!");
+//                    log("Maintenance non enabled - ANDROID_VERSION_NOT_COMPATIBLE_ERROR!!!");
+//                }else if(retValue == fbk.climblogger.ClimbServiceInterface.ErrorCode.INVALID_DATE_ERROR){ //not compatible TODO: parametrize the error codes
+//                    mMaintenanceCheckBox.setChecked(false);
+//                    String alertString = "Maintenance non enabled - INVALID_DATE_ERROR!!!";
+//                    Toast.makeText(getApplicationContext(),
+//                            alertString,
+//                            Toast.LENGTH_LONG).show();
+//                    Log.i(TAG, "Maintenance non enabled - INVALID_DATE_ERROR!!!");
+//                    log("Maintenance non enabled - INVALID_DATE_ERROR!!!");
+//                }else{
+//                    mMaintenanceCheckBox.setChecked(false);
+//                    String alertString = "Maintenance non enabled - error unknown!!!";
+//                    Toast.makeText(getApplicationContext(),
+//                            alertString,
+//                            Toast.LENGTH_LONG).show();
+//                    Log.i(TAG, "Maintenance non enabled - error unknown!!!");
+//                    log("Maintenance non enabled - error unknown!!!");
+//                }
+//                if(mMaintenanceCheckBox.isChecked()) {
+//                    mMaintenanceCheckBox.setChecked(false);
+//                }
+//
+//                Toast.makeText(getApplicationContext(),
+//                        "Date not accepted...",
+//                        Toast.LENGTH_SHORT).show();
+//
+//            } else {
+//                Log.i(TAG, "schedule wake up not sent!");
+//                log("schedule wake up not sent!");
+//            }
+////        }else{
+////            String alertString = "Wait a little";
+////            Toast.makeText(getApplicationContext(),
+////                    alertString,
+////                    Toast.LENGTH_LONG).show();
+////        }
+//
+//    }
 
 /*    View.OnClickListener releaseCmdButtonHandler = new View.OnClickListener(){
         public void onClick(View v) {
@@ -560,9 +560,9 @@ public class ScanActivity extends Activity {
         public void onGroupExpand(int groupPosition) {
             Log.i(TAG, "Group expanded, position: " + groupPosition);
             String clickedNode = expandableListAdapter.getMasters()[groupPosition];
-            if (! mClimbService.connectMaster(clickedNode)) {
-                Log.w(TAG, "connect failed immediately to " + clickedNode);
-            }
+//            if (! mClimbService.connectMaster(clickedNode)) {
+//                Log.w(TAG, "connect failed immediately to " + clickedNode);
+//            }
             //mVibrator.vibrate(fbk.climblogger.ConfigVals.vibrationTimeout);
         }
     };
@@ -579,7 +579,7 @@ public class ScanActivity extends Activity {
     ExpandableListView.OnGroupCollapseListener mOnGroupCollapseListener = new ExpandableListView.OnGroupCollapseListener() {
         @Override
         public void onGroupCollapse(int groupPosition) {
-            mClimbService.disconnectMaster();
+            //mClimbService.disconnectMaster();
             mVibrator.vibrate(fbk.climblogger.ConfigVals.vibrationTimeout);
         }
     };
@@ -597,15 +597,15 @@ public class ScanActivity extends Activity {
                     if (!allowedChidren.contains(childID)) {
                         allowedChidren.add(childID);
                     }
-                    mClimbService.setNodeList(allowedChidren.toArray(new String[allowedChidren.size()]));
+                    //mClimbService.setNodeList(allowedChidren.toArray(new String[allowedChidren.size()]));
                     actionString = "allowing " + childID;
                     break;
                 case 1:
-                    mClimbService.checkinChild(childID);
+                    //mClimbService.checkinChild(childID);
                     actionString = "checkin " + childID;
                     break;
                 case 2:
-                    mClimbService.checkoutChild(childID);
+                    //mClimbService.checkoutChild(childID);
                     actionString = "checkout " + childID;
                     break;
                 default:

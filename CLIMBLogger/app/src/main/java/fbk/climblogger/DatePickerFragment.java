@@ -31,7 +31,7 @@ public class DatePickerFragment extends DialogFragment
     }
 
     public void onDateSet(DatePicker view, int year, int month, int day) {
-        ((ScanActivity)parentActivity).setWakeUpDate(year,month,day);
+        //s((ScanActivity)parentActivity).setWakeUpDate(year,month,day);
 
         DialogFragment newFragment = new TimePickerFragment();
         newFragment.show(getFragmentManager(), "timePicker");

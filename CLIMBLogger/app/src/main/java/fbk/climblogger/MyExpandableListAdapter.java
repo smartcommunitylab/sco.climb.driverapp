@@ -17,7 +17,7 @@ public class MyExpandableListAdapter extends BaseExpandableListAdapter {
     private String TAG = "MyExpandableListAdapter";
 
     public String[] getMasters() {
-        return service.getMasters();
+        return new String[]{"ME"};
     }
 
     public MyExpandableListAdapter(Context context, fbk.climblogger.ClimbServiceInterface service) {

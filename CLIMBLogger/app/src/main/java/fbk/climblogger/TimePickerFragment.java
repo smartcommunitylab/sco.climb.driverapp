@@ -32,8 +32,8 @@ public class TimePickerFragment extends DialogFragment
 
     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
 
-        ((ScanActivity) parentActivity).setWakeUpHour(hourOfDay, minute);
+        //((ScanActivity) parentActivity).setWakeUpHour(hourOfDay, minute);
 
-        ((ScanActivity) parentActivity).sendWakeUpCMD();
+        //((ScanActivity) parentActivity).sendWakeUpCMD();
     }
 }
