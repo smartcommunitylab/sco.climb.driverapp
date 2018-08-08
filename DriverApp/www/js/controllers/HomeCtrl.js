@@ -175,12 +175,6 @@ angular.module('driverapp.controllers.home', [])
     $scope.school = null
 
     $scope.swiperOptions = Config.WIZARD_SLIDER_OPTIONS;
-    $ionicPlatform.ready(function () {
-      if ($scope.checkHardwarePopup) {
-        $scope.checkHardwarePopup();
-      }
-      
-    });
 
     var INDEXES = {
       'schools': 0,
@@ -209,55 +203,6 @@ angular.module('driverapp.controllers.home', [])
       var height = $window.innerHeight - (44 + logoHeight + helpTextHeight + 44);
       $scope.helpersListStyle['height'] = height + 'px';
     };
-
-
-
-
-    function showHardwarePopup() {
-      var hardwarePopup = $ionicPopup.show({
-        templateUrl: 'templates/hardwarePopup.html',
-        cssClass: 'hwPopup',
-        title: 'ATTENZIONE',
-        scope: $scope,
-        buttons: [{
-          text: 'HO CAPITO',
-          type: 'button-stable'
-        }]
-      });
-
-    }
-    $scope.checkHardwarePopup = function () {
-      Utils.isBLESupported(function (supported) {
-        //if supported check, else don't care
-        if (supported) {
-          Utils.isBluetoothEnabled(function (BTenabled) {
-            if (BTenabled) {
-              $scope.bluetoothEnabled = true;
-            } else {
-              $scope.bluetoothEnabled = false;
-            }
-            cordova.plugins.diagnostic.isLocationEnabled(function (LocationEnabled) {
-              if (LocationEnabled) {
-                $scope.locationEnabled = true;
-              } else {
-                $scope.locationEnabled = false;
-              }
-              if (!$scope.bluetoothEnabled || !$scope.locationEnabled) {
-                console.log('---- BT enabled: ' + $scope.bluetoothEnabled);
-                console.log('---- LOCATION enabled: ' + $scope.locationEnabled);
-                showHardwarePopup();
-              }
-            }, function (error) {
-              console.error("The following error occurred: " + error);
-            });
-          }, function (error) {
-            console.error("The following error occurred: " + error);
-          });
-        }
-      }, function (error) {
-        console.error("The following error occurred: " + error);
-      });
-    }
 
     loadingWithMessage = function (label) {
       $ionicLoading.show({

@@ -24,6 +24,7 @@ angular.module('driverapp.services.wsn', [])
       var deferred = $q.defer()
 
       if (Utils.wsnPluginEnabled()) {
+        console.log('calling init');
         window.DriverAppPlugin.init(
           function (response) {
             console.log('init: ' + response)
@@ -43,6 +44,7 @@ angular.module('driverapp.services.wsn', [])
       var deferred = $q.defer()
 
       if (Utils.wsnPluginEnabled()) {
+        console.log('calling deinit');
         window.DriverAppPlugin.deinit(
           function (response) {
             console.log('deinit: ' + response)
@@ -63,7 +65,6 @@ angular.module('driverapp.services.wsn', [])
 
       if (Utils.wsnPluginEnabled()) {
         $rootScope.masterError = false
-        wsnService.setNodeList(wsnService.getNodeListByType('child'))
         wsnService.startNetworkStateInterval()
         deferred.resolve();
       } else {

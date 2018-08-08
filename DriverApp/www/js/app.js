@@ -97,7 +97,31 @@ angular.module('driverapp', [
           )  
         }  
       }
-      startWSNService();
+      var stopWSNService = function() {
+        if (window.DriverAppPlugin) {
+          WSNSrv.deinit().then(
+            function (response) { },
+            function (reason) { }
+          )  
+        }  
+      }
+
+      cordova.plugins.diagnostic.isBluetoothAvailable(function(available){
+        startWSNService();
+        console.log('Init BT initially');
+      }, function(error){
+          console.error("The following error occurred: "+error);
+      });
+    
+      cordova.plugins.diagnostic.registerBluetoothStateChangeHandler(function(state){
+        if(state === cordova.plugins.diagnostic.bluetoothState.POWERED_ON){
+          console.log('Init BT: activated');
+          startWSNService();
+        } else if (state === cordova.plugins.diagnostic.bluetoothState.POWERED_OFF) {
+          stopWSNService();
+        }
+      });  
+
 
       // TODO CHECK BLUETOOTH STATE, ACTIVATE LISTENER AND CALL START WSN SERVICE / STOP WSN SERVICE
 
