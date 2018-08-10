@@ -59,12 +59,6 @@
                 <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
                 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
                 <uses-permission android:name="android.permission.VIBRATE" />
-
-<!-- 
-                <intent-filter>
-        			<action android:name="fbk.climblogger.ClimbSimpleService" />
-    			</intent-filter>
- -->
             </config-file>
 
             <config-file target="res/xml/config.xml" parent="/*">
@@ -75,13 +69,8 @@
             </config-file>
 
             <source-file src="src/android/it/smartcommunitylab/climb/dap/DriverAppPlugin.java" target-dir="src/it/smartcommunitylab/climb/dap" />
-            <source-file src="src/android/fbk/climblogger/ClimbNode.java" target-dir="src/fbk/climblogger" />
-            <!--<source-file src="src/android/fbk/climblogger/ClimbService.java" target-dir="src/fbk/climblogger" />-->
             <source-file src="src/android/fbk/climblogger/ClimbSimpleService.java" target-dir="src/fbk/climblogger" />
             <source-file src="src/android/fbk/climblogger/ClimbServiceInterface.java" target-dir="src/fbk/climblogger" />
             <source-file src="src/android/fbk/climblogger/ConfigVals.java" target-dir="src/fbk/climblogger" />
-            <source-file src="src/android/fbk/climblogger/MonitoredClimbNode.java" target-dir="src/fbk/climblogger" />
-
-            <!-- <lib-file src="src/android/libs/gcm.jar" /> -->
         </platform>
     </plugin>
