@@ -55,7 +55,7 @@ public class MyExpandableListAdapter extends BaseExpandableListAdapter {
         if(ns != null) {
             String expandedListText;
 
-            expandedListText = "bd_addr: " + ns.bdAddress + "\nID (0x): " + ns.nodeID + "\nState: " + ns.state + "\nLast seen: " + (System.currentTimeMillis() - ns.lastSeen + "ms ago") + "\nBeacon Type: " + ns.beaconType;
+            expandedListText = "bd_addr: " + ns.bdAddress + "\nID (0x): " + ns.nodeID + "\nLast seen: " + (System.currentTimeMillis() - ns.lastSeen + "ms ago" + "\nrssi: " + ns.rssi + " dBm");
 
             if (ns.batteryVoltage_mV != fbk.climblogger.ConfigVals.INVALID_BATTERY_VOLTAGE) {
                 expandedListText += "\nBattery voltage: " + ns.batteryVoltage_mV + "mV, Level: " + ns.batteryLevel;
@@ -92,7 +92,7 @@ public class MyExpandableListAdapter extends BaseExpandableListAdapter {
     public View getGroupView(int listPosition, boolean isExpanded,View convertView, ViewGroup parent) {
         String listTitle = "";
         if(service instanceof fbk.climblogger.ClimbSimpleService){
-            listTitle += "CLIMBM - " + getGroup(listPosition).toString() + " - Local device";
+            listTitle += getGroup(listPosition).toString() + " - " +this.getChildrenCount(listPosition) +  " Nodes";
         }else{
             listTitle += getGroup(listPosition).toString();
         }

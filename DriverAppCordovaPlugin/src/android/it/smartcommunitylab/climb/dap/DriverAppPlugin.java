@@ -18,9 +18,7 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.util.Log;
 import fbk.climblogger.ClimbServiceInterface;
-import fbk.climblogger.ClimbServiceInterface.ErrorCode;
 import fbk.climblogger.ClimbServiceInterface.NodeState;
-//import fbk.climblogger.ClimbService;
 import fbk.climblogger.ClimbSimpleService;
 
 public class DriverAppPlugin extends CordovaPlugin {
@@ -69,29 +67,6 @@ public class DriverAppPlugin extends CordovaPlugin {
 			return true;
 		}
 
-		// getMasters
-/*		if (action.equals("getMasters")) {
-			String[] masters = mClimbService.getMasters();
-			JSONArray mastersJSON = new JSONArray(masters);
-			Log.w(LOG_TAG, "getMasters: " + mastersJSON.toString());
-			callbackContext.success(mastersJSON);
-			return true;
-		}
-
-		if (action.equals("connectMaster")) {
-			if (data != null && data.length() == 1 && data.getString(0).length() > 0) {
-				String masterId = data.getString(0);
-				boolean procedureStarted = mClimbService.connectMaster(masterId);
-				Log.w(LOG_TAG, "connectMaster: " + procedureStarted + " (" + masterId + ")");
-				if (procedureStarted) {
-					callbackContext.success(String.valueOf(procedureStarted));
-				} else {
-					callbackContext.error(String.valueOf(procedureStarted));
-				}
-				return true;
-			}
-		}
-*/
 		if (action.equals("getNetworkState")) {
 			NodeState[] networkState = mClimbService.getNetworkState();
 			if (networkState == null) {
@@ -109,26 +84,10 @@ public class DriverAppPlugin extends CordovaPlugin {
 
 			return true;
 		}
-/*
-		if (action.equals("setNodeList")) {
-			JSONArray nodeListJSON = data.getJSONArray(0);
-			String[] nodeList = new String[nodeListJSON.length()];
-
-			for (int i = 0; i < nodeListJSON.length(); i++) {
-				nodeList[i] = nodeListJSON.getString(i);
-			}
-
-			boolean done = mClimbService.setNodeList(nodeList);
-
-			if (done) {
-				callbackContext.success("" + done);
-			} else {
-				callbackContext.error("setNodeList error!");
-			}
-
-			return true;
-		}
-*/
+ 
+		//The asynchronous listener is left only for reference. The application do not uses it. 
+		//Note that the listener won't do anything since no action is added.
+		//To make it work add an action to the intent intentFilter.addAction(ClimbServiceInterface.STATE_CONNECTED_TO_CLIMB_MASTER);
 		if (action.equals("startListener")) {
 			if (this.listenerCallbackContext != null) {
 				callbackContext.error("Already running.");
@@ -137,10 +96,10 @@ public class DriverAppPlugin extends CordovaPlugin {
 			this.listenerCallbackContext = callbackContext;
 
 			IntentFilter intentFilter = new IntentFilter();
-			intentFilter.addAction(ClimbServiceInterface.STATE_CONNECTED_TO_CLIMB_MASTER);
-			intentFilter.addAction(ClimbServiceInterface.STATE_DISCONNECTED_FROM_CLIMB_MASTER);
-			intentFilter.addAction(ClimbServiceInterface.STATE_CHECKEDIN_CHILD);
-			intentFilter.addAction(ClimbServiceInterface.STATE_CHECKEDOUT_CHILD);
+			//intentFilter.addAction(ClimbServiceInterface.STATE_CONNECTED_TO_CLIMB_MASTER);
+			//intentFilter.addAction(ClimbServiceInterface.STATE_DISCONNECTED_FROM_CLIMB_MASTER);
+			//intentFilter.addAction(ClimbServiceInterface.STATE_CHECKEDIN_CHILD);
+			//intentFilter.addAction(ClimbServiceInterface.STATE_CHECKEDOUT_CHILD);
 
 			if (this.receiver == null) {
 				this.receiver = new BroadcastReceiver() {
@@ -149,6 +108,7 @@ public class DriverAppPlugin extends CordovaPlugin {
 						sendUpdate(createUpdateJSONObject(intent), true);
 					}
 				};
+				
 				webView.getContext().registerReceiver(this.receiver, intentFilter);
 			}
 
@@ -168,100 +128,7 @@ public class DriverAppPlugin extends CordovaPlugin {
 			callbackContext.success();
 			return true;
 		}
-/*
-		if (action.equals("checkinChild")) {
-			if (data != null && data.length() == 1 && data.getString(0).length() > 0) {
-				String childId = data.getString(0);
-				boolean procedureStarted = mClimbService.checkinChild(childId);
-				Log.w(LOG_TAG, "checkinChild: " + procedureStarted + " (" + childId + ")");
-				if (procedureStarted) {
-					callbackContext.success(String.valueOf(procedureStarted));
-				} else {
-					callbackContext.error(String.valueOf(procedureStarted));
-				}
-				return true;
-			}
-		}
 
-		if (action.equals("checkinChildren")) {
-			if (data != null && data.length() == 1 && data.getJSONArray(0).length() > 0) {
-				JSONArray childrenIdsJSON = data.getJSONArray(0);
-				String[] childrenIds = new String[childrenIdsJSON.length()];
-				for (int i = 0; i < childrenIdsJSON.length(); i++) {
-					childrenIds[i] = childrenIdsJSON.getString(i);
-				}
-				boolean procedureStarted = mClimbService.checkinChildren(childrenIds);
-				Log.w(LOG_TAG, "checkinChildren: " + procedureStarted + " (" + childrenIds + ")");
-				if (procedureStarted) {
-					callbackContext.success(String.valueOf(procedureStarted));
-				} else {
-					callbackContext.error(String.valueOf(procedureStarted));
-				}
-				return true;
-			}
-		}
-
-		if (action.equals("checkoutChild")) {
-			if (data != null && data.length() == 1 && data.getString(0).length() > 0) {
-				String childId = data.getString(0);
-				boolean procedureStarted = mClimbService.checkoutChild(childId);
-				Log.w(LOG_TAG, "checkoutChild: " + procedureStarted + " (" + childId + ")");
-				if (procedureStarted) {
-					callbackContext.success(String.valueOf(procedureStarted));
-				} else {
-					callbackContext.error(String.valueOf(procedureStarted));
-				}
-				return true;
-			}
-		}
-
-		if (action.equals("checkoutChildren")) {
-			if (data != null && data.length() == 1 && data.getJSONArray(0).length() > 0) {
-				JSONArray childrenIdsJSON = data.getJSONArray(0);
-				String[] childrenIds = new String[childrenIdsJSON.length()];
-				for (int i = 0; i < childrenIdsJSON.length(); i++) {
-					childrenIds[i] = childrenIdsJSON.getString(i);
-				}
-				boolean procedureStarted = mClimbService.checkoutChildren(childrenIds);
-				Log.w(LOG_TAG, "checkoutChildren: " + procedureStarted + " (" + childrenIds + ")");
-				if (procedureStarted) {
-					callbackContext.success(String.valueOf(procedureStarted));
-				} else {
-					callbackContext.error(String.valueOf(procedureStarted));
-				}
-				return true;
-			}
-		}
-
-		if (action.equals("enableMaintenanceProcedure")) {
-			if (data != null && data.length() == 5) {
-				ErrorCode ec = mClimbService.enableMaintenanceProcedure(data.getInt(0), data.getInt(1), data.getInt(2),
-						data.getInt(3), data.getInt(4));
-
-				if (ec.equals(ErrorCode.NO_ERROR)) {
-					callbackContext.success(String.valueOf(ec));
-				} else {
-					callbackContext.error(String.valueOf(ec));
-				}
-			} else {
-				callbackContext.error("arguments missing!");
-			}
-
-			return true;
-		}
-
-		if (action.equals("disableMaintenanceProcedure")) {
-			ErrorCode ec = mClimbService.disableMaintenanceProcedure();
-
-			if (ec.equals(ErrorCode.NO_ERROR)) {
-				callbackContext.success(String.valueOf(ec));
-			} else {
-				callbackContext.error(String.valueOf(ec));
-			}
-
-			return true;
-		}
-*/
 		if (action.equals("getLogFiles")) {
 			String[] logFilePaths = mClimbService.getLogFiles();
 
@@ -364,11 +231,10 @@ public class DriverAppPlugin extends CordovaPlugin {
 		try {
 			jsonObject = new JSONObject();
 			jsonObject.put("nodeID", node.nodeID);
-			jsonObject.put("state", node.state);
 			jsonObject.put("lastSeen", node.lastSeen);
-			jsonObject.put("lastStateChange", node.lastStateChange);
 			jsonObject.put("batteryLevel", node.batteryLevel);
 			jsonObject.put("batteryVoltage_mV", node.batteryVoltage_mV);
+			jsonObject.put("rssi", node.rssi);
 		} catch (JSONException e) {
 			Log.w(LOG_TAG, "nodeState2json: " + e.getMessage());
 		}
