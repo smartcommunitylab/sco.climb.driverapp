@@ -22,6 +22,7 @@ angular.module('driverapp.services.api', [])
             // $http.get(Config.SERVER_URL + '/profile', Config.getHttpConfig()).then(
             .success(
             function (response) {
+              if (!response) response = {};
               if (!response.ownerIds) {
                 response.ownerIds = [];
                 if (response.roles) {
@@ -32,7 +33,7 @@ angular.module('driverapp.services.api', [])
                     }  
                   }
                 }
-                if (response.ownerIds.length == 0) deferred.reject('Insufficient rights');
+                if (response.ownerIds.length == 0) deferred.reject('INSUFFICIENT_RIGHTS');
                 else deferred.resolve(response)
               } else {
                 deferred.resolve(response)

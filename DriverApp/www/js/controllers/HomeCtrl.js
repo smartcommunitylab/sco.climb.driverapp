@@ -168,7 +168,7 @@ angular.module('driverapp.controllers.home', [])
 
   })
 
-  .controller('HomeCtrl', function ($ionicPlatform, $scope, $ionicLoading, $q, $rootScope, $state, $window, $ionicPopup, $ionicModal, $ionicHistory, $ionicSlideBoxDelegate, $timeout, $filter, Utils, StorageSrv, Config, APISrv, WSNSrv) {
+  .controller('HomeCtrl', function ($ionicPlatform, $scope, $ionicLoading, $q, $rootScope, $state, $window, $ionicPopup, $ionicModal, $ionicHistory, $ionicSlideBoxDelegate, $timeout, $filter, Utils, StorageSrv, Config, LoginService, APISrv, WSNSrv) {
     StorageSrv.reset()
 
     $scope.schools = null
@@ -591,7 +591,23 @@ angular.module('driverapp.controllers.home', [])
         }
       }, function (err) {
         hideLoading();
-        $scope.showErrorAndExit();
+        if ('INSUFFICIENT_RIGHTS' === err) {
+          var alertPopup = $ionicPopup.alert({
+            title: $filter('translate')('error_right_title'),
+            template: $filter('translate')('error_right_template'),
+            okText: 'Logout'
+          });
+    
+          alertPopup.then(function (res) {
+            Config.resetIdentity()
+            StorageSrv.clearIdentity()
+            // if (ionic.Platform.isIOS()) {
+            LoginService.logout();
+            $state.go('app.login');
+          });
+        } else {
+          $scope.showErrorAndExit();
+        }
       })
     }
 

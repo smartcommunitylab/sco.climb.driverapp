@@ -330,7 +330,9 @@ angular.module('driverapp', [
       home_get_children:'Ottenendo i bambini',
       user_check:'Verifica credenziali',
       error_exit_template:'Errore nell\'inizializzazione. Verifica la connessione e riavvia l\'applicazione',
-      error_exit_title:'Errore'
+      error_exit_title:'Errore',
+      error_right_title: 'Errore di autorizzazione',
+      error_right_template: 'L\'account specificato non è associato ad un percorso. '
 
 
     });
