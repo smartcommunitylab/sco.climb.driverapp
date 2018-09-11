@@ -16,11 +16,23 @@ class DriverAppPlugin: CDVPlugin {
     
     @objc(initialize:)
     open func initialize(command: CDVInvokedUrlCommand) -> Bool {
-        ClimbBeaconService.shared().climbInitalize();
+        
+        print("****************************************Initalize ");
+
+        //ALM SEPTEMBER 2018
+        // start the logging.  This will open a new file the first time, then use that same file if initalize is called again
         self.logger = ClimbLogger.shared;
         logger.startDataLog();
-        //cordova callbacks
-        sendSuccess(command: command, result: "Initialized", keepCallback: true);
+        // try to start the bluetooth listening - this will fail if BT is turned off on the phone
+        if (ClimbBeaconService.shared().climbInitalize()){
+            sendSuccess(command: command, result: "Initialized", keepCallback: true);
+            
+        } else {
+            sendSuccess(command: command, result: "NOT Initialized", keepCallback: true);
+        }
+
+        
+        
         return true
     }
     
@@ -55,38 +67,13 @@ class DriverAppPlugin: CDVPlugin {
         return true
     }
     
-    @objc(getMasters:)
-    open func getMasters(command: CDVInvokedUrlCommand) -> String {
-        //let masters = "[]"
-        sendSuccessWithArray(command: command, result: [], keepCallback: true);
-        return "[]" // empty json array since there are no masters now
-    }
     
-    let master = String()
-    @objc(connectMaster:)
-    //open func connectMaster(command: CDVInvokedUrlCommand, master: String) -> String {
-    open func connectMaster(command: CDVInvokedUrlCommand) -> String {
-        let procedureStarted = "\(true)"
-        sendSuccess(command: command, result: procedureStarted, keepCallback: true);
-        //return "\(true)"
-        
-        return procedureStarted
-    }
-    
-    open func disconnectMaster() -> String {
-        return "\(true)"
-    }
-    
-    @objc(setNodeList:)
-    open func setNodeList(command: CDVInvokedUrlCommand) -> String {
-        sendSuccessWithBoolean(command: command, result: true, keepCallback: true);
-        return "\(true)"
-    }
     
     @objc(getNetworkState:)
     open func getNetworkState(command: CDVInvokedUrlCommand) -> String {
+        print("****************************************getNetworkStateCalled");
         let networkAsDict = ClimbBeaconService.shared().getChildrenDictArray();
-        
+        print("*************************************************************nodesInNetwork:",networkAsDict.count);
         //send the array of children nodes
         sendSuccessWithArray(command: command, result: networkAsDict, keepCallback: true);
         
@@ -95,65 +82,6 @@ class DriverAppPlugin: CDVPlugin {
         
     }
     
-    @objc(checkinChild:)
-    open func checkinChild(command: CDVInvokedUrlCommand) -> String {
-        
-        let procedureStarted = "\(true)"
-        sendSuccess(command: command, result: procedureStarted, keepCallback: true);
-        
-        return "\(true)"
-    }
-    
-    @objc(checkoutChild:)
-    open func checkoutChild(command: CDVInvokedUrlCommand) -> String {
-        let procedureStarted = "\(true)"
-        sendSuccess(command: command, result: procedureStarted, keepCallback: true);
-        
-        return "\(true)"
-    }
-    
-    let children = [String]()
-    @objc(checkinChildren:)
-    open func checkinChildren(command: CDVInvokedUrlCommand) -> String {
-        let procedureStarted = "\(true)"
-        sendSuccess(command: command, result: procedureStarted, keepCallback: true);
-        
-        return "\(true)"
-    }
-    
-    @objc(checkoutChildren:)
-    open func checkoutChildren(command: CDVInvokedUrlCommand) -> String {
-        let procedureStarted = "\(true)"
-        sendSuccess(command: command, result: procedureStarted, keepCallback: true);
-        
-        return "\(true)"
-        
-    }
-    
-    @objc(command: enableMaintenanceProcedure:)
-    open func enableMaintenanceProcedure(command: CDVInvokedUrlCommand, wakeupTime: Int) -> String {
-        /*        let wakeupData = buildAdvertisementData(wakeupTime: wakeupTime)
-         let advertisementData = [CBAdvertisementDataLocalNameKey : wakeupData]
-         
-         logger.maintenanceModeEnabled(advertisementData: advertisementData)
-         peripheralManager?.startAdvertising(advertisementData)
-         maintenanceModeEnabled = true
-         */
-        sendSuccessWithBoolean(command: command, result: true, keepCallback: true);
-        return "\(true)"
-    }
-    
-    @objc(disableMaintenanceProcedure:)
-    open func disableMaintenanceProcedure(command: CDVInvokedUrlCommand) -> String {
-        /*
-         peripheralManager?.stopAdvertising()
-         logger.maintenanceModeDisabled()
-         
-         maintenanceModeEnabled = false
-         */
-        sendSuccessWithBoolean(command: command, result: true, keepCallback: true);
-        return "\(true)"
-    }
     
     @objc(getLogFiles:)
     open func getLogFiles(command: CDVInvokedUrlCommand) -> [String] {

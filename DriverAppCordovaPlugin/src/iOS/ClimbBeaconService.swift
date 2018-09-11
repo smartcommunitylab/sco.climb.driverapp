@@ -47,25 +47,33 @@ public class ClimbBeaconService: NSObject, CBCentralManagerDelegate {
     
     private override init() {
         super.init()
-        
         self.centralManager = CBCentralManager(delegate: self, queue: self.beaconOperationsQueue)
         //self.timer = DispatchTimer(repeatingInterval: 10.0)
         //self.timer?.delegate = self
     }
     
     // ALM: to be called from plugin
-    public func climbInitalize () {
-        startScanning();
+    public func climbInitalize() -> Bool {
+        nearbyChildren.removeAll(); // in case init is called more than once, we want to remove all the children seen so far
+        return startScanning();
     }
     
     /**
-     Start scanning. If Core Bluetooth isn't ready for us just yet, then waits and THEN starts scanning
+     Start scanning. If Core Bluetooth isn't on, return false
      */
-    public func startScanning() {
-        self.beaconOperationsQueue.async { [weak self] in
-            self?.startScanningSynchronized()
-            //self?.timer?.startTimer()
+    public func startScanning() -> Bool {
+        if self.centralManager.state != .poweredOn {
+            //print("CentralManager state is %d, cannot start scan", self.centralManager.state.rawValue)
+            self.shouldBeScanning = true
+            return false // returning false means that Bluetooth is NOT turned on
         }
+        else {
+            self.beaconOperationsQueue.async { [weak self] in
+                self?.startScanningSynchronized()
+            }
+            return true; // ALM: note this simply means that Bluetooth was turned on, not that scanning was successfully started
+        }
+
     }
     
     // ALM: to be called from plugin
@@ -101,13 +109,13 @@ public class ClimbBeaconService: NSObject, CBCentralManagerDelegate {
     ///
     /// MARK - Delegate callbacks
     ///
-    
+
     public func centralManagerDidUpdateState(_ central: CBCentralManager) {
         if central.state == .poweredOn && self.shouldBeScanning {
             self.startScanningSynchronized();
         }
     }
-    
+ 
     ///
     /// Core Bluetooth CBCentralManager callback when we discover a beacon.
     ///
@@ -177,6 +185,8 @@ public class ClimbBeaconService: NSObject, CBCentralManagerDelegate {
             let frameBytes = Array(beaconServiceData!) as [UInt8]
             let esBeaconIDarray : [UInt8] = Array(frameBytes[2..<18]);
             
+            //ALM SEPTEMBER 2018:  we removed filtering, so all Eddystone beacons should be returned. To bring it back, un comment the
+            /*
             // figure out if this is a Climb Eddystone Beacon
             let climbEddystoneNamespace:[UInt8] = [0x39, 0x06, 0xbf, 0x23, 0x0e, 0x28, 0x85, 0x33, 0x8f, 0x44];
             var isClimb : Bool = true;
@@ -186,7 +196,11 @@ public class ClimbBeaconService: NSObject, CBCentralManagerDelegate {
                     continue;
                 }
             }
-            if (isClimb) {
+ 
+            if (isClimb) {*/
+            
+            
+            if (true) { // this is true so that all beacons are potentiall CLIMB beacons, to be filered by the app
                 //print ("********************* identified the beacon as climb es beacon: " + hexBeaconID(beaconID: esBeaconIDarray))
                 if let esBeaconIndex = self.nearbyChildren.index(where: {$0.nodeID == hexBeaconID(beaconID: esBeaconIDarray)}) {
                     // eddystone Beacon already discovered. Update last seen
