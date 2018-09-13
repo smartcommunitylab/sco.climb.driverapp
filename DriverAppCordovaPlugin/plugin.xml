@@ -22,7 +22,6 @@
             <!-- iOS source files for the plugin -->
             <header-file src="src/ios/Bridging-Header.h" />
             <source-file src="src/ios/Utilities.swift" />
-            <source-file src="src/ios/DisplayPeripheral.swift" />
             <source-file src="src/ios/ClimbLogger.swift" />
             <source-file src="src/ios/DriverAppPlugin.swift" />
             <source-file src="src/ios/ClimbBeaconService.swift" />
