@@ -39,7 +39,7 @@ class DriverAppPlugin: CDVPlugin {
     @objc(deinitialize:)
     open func deinitialize(command: CDVInvokedUrlCommand) -> Bool {
         ClimbBeaconService.shared().climbDeinitialize();
-        
+        logger.stopDataLog();
         sendSuccess(command: command, result: "Deinitialized", keepCallback: true);
         return true
     }
