@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-versionCode="100133" id="it.smartcommunitylab.climb.driverapp" version="1.0.4" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget android-versionCode="1000133" id="it.smartcommunitylab.climb.driverapp" version="1.0.4" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>CLIMB Driver App</name>
     <description>
       The Driver App of the CLIMB Project
@@ -101,6 +101,6 @@
     </plugin>
     <plugin name="cordova-plugin-console" spec="^1.1.0" />
     <plugin name="it.smartcommunitylab.climb.dap" spec="../DriverAppCordovaPlugin" />
+    <engine name="android" spec="6.4.0" />
     <engine name="ios" spec="4.5.5" />
-    <engine name="android" spec="^7.0.0" />
 </widget>
