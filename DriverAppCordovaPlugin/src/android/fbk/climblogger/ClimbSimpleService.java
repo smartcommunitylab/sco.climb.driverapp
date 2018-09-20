@@ -214,6 +214,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
     }
 
     private boolean initialize_service(boolean enableDatalog) {
+        Log.d(TAG,"Initializing ClimbSimpleService");
         if(enableDatalog) {
             startDataLog();
             insertTag("initializing service" +
@@ -222,7 +223,6 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
                     " Manuf: " + Build.MANUFACTURER +
                     " Product: " + Build.PRODUCT +
                     "");
-            broadcastUpdate(ACTION_DATALOG_ACTIVE,EXTRA_STRING,file_name_log);
         }else{
             mFile = null;
         }
@@ -902,6 +902,11 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
     private HashMap<String, fbk.climblogger.ClimbServiceInterface.NodeState> seenChildren = new HashMap<String, fbk.climblogger.ClimbServiceInterface.NodeState>();
 
     public boolean init() {
+        if(!logEnabled) {  // if the log file was not created
+            startDataLog();// create it.
+            insertTag("log enabled while ClimbSimpleService was running!");
+        }
+
         boolean ret = (StartScanning() == 1);
         initialized = ret;
         insertTag("init: " + ret);
@@ -957,6 +962,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         if(mBufferedWriter == null){ // il file non � stato creato, quindi crealo
             if( get_log_num() == 1) {
                 logEnabled = true;
+                broadcastUpdate(ACTION_DATALOG_ACTIVE,EXTRA_STRING,file_name_log);
                 return file_name_log;
             }
         } else{
@@ -976,6 +982,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
             }catch (IOException e) {
                 e.printStackTrace();
             }
+            broadcastUpdate(ACTION_DATALOG_INACTIVE);
             return null;
         }
         return null;
