@@ -76,8 +76,8 @@
     },
     {
       "variables": {
-        "APP_ID": "493172441063173",
-        "APP_NAME": "CLIMB",
+        "APP_ID": "319908588815694",
+        "APP_NAME": "CLIMB Ferrara",
         "ANDROID_SDK_VERSION": "4.35.0"
       },
       "locator": "cordova-plugin-facebook4@1.7.4",
