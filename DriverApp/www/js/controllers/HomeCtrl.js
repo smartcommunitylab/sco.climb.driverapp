@@ -153,7 +153,7 @@ angular.module('driverapp.controllers.home', [])
       $scope.modalMaintenance.hide();
       $rootScope.showTutorial = false;
 
-      // WSNSrv.disableMaintenanceProcedure().then(
+      // WSNSrv().then(
       //   function () {
       //     $scope.modalMaintenance.hide();
       //     $rootScope.showTutorial = false;
@@ -168,19 +168,13 @@ angular.module('driverapp.controllers.home', [])
 
   })
 
-  .controller('HomeCtrl', function ($ionicPlatform, $scope, $ionicLoading, $q, $rootScope, $state, $window, $ionicPopup, $ionicModal, $ionicHistory, $ionicSlideBoxDelegate, $timeout, $filter, Utils, StorageSrv, Config, APISrv, WSNSrv) {
+  .controller('HomeCtrl', function ($ionicPlatform, $scope, $ionicLoading, $q, $rootScope, $state, $window, $ionicPopup, $ionicModal, $ionicHistory, $ionicSlideBoxDelegate, $timeout, $filter, Utils, StorageSrv, Config, LoginService, APISrv, WSNSrv) {
     StorageSrv.reset()
 
     $scope.schools = null
     $scope.school = null
 
     $scope.swiperOptions = Config.WIZARD_SLIDER_OPTIONS;
-    $ionicPlatform.ready(function () {
-      if ($scope.checkHardwarePopup) {
-        $scope.checkHardwarePopup();
-      }
-      
-    });
 
     var INDEXES = {
       'schools': 0,
@@ -209,55 +203,6 @@ angular.module('driverapp.controllers.home', [])
       var height = $window.innerHeight - (44 + logoHeight + helpTextHeight + 44);
       $scope.helpersListStyle['height'] = height + 'px';
     };
-
-
-
-
-    function showHardwarePopup() {
-      var hardwarePopup = $ionicPopup.show({
-        templateUrl: 'templates/hardwarePopup.html',
-        cssClass: 'hwPopup',
-        title: 'ATTENZIONE',
-        scope: $scope,
-        buttons: [{
-          text: 'HO CAPITO',
-          type: 'button-stable'
-        }]
-      });
-
-    }
-    $scope.checkHardwarePopup = function () {
-      Utils.isBLESupported(function (supported) {
-        //if supported check, else don't care
-        if (supported) {
-          Utils.isBluetoothEnabled(function (BTenabled) {
-            if (BTenabled) {
-              $scope.bluetoothEnabled = true;
-            } else {
-              $scope.bluetoothEnabled = false;
-            }
-            cordova.plugins.diagnostic.isLocationEnabled(function (LocationEnabled) {
-              if (LocationEnabled) {
-                $scope.locationEnabled = true;
-              } else {
-                $scope.locationEnabled = false;
-              }
-              if (!$scope.bluetoothEnabled || !$scope.locationEnabled) {
-                console.log('---- BT enabled: ' + $scope.bluetoothEnabled);
-                console.log('---- LOCATION enabled: ' + $scope.locationEnabled);
-                showHardwarePopup();
-              }
-            }, function (error) {
-              console.error("The following error occurred: " + error);
-            });
-          }, function (error) {
-            console.error("The following error occurred: " + error);
-          });
-        }
-      }, function (error) {
-        console.error("The following error occurred: " + error);
-      });
-    }
 
     loadingWithMessage = function (label) {
       $ionicLoading.show({
@@ -328,15 +273,18 @@ angular.module('driverapp.controllers.home', [])
       }
       $rootScope.driver = $scope.driver;
 
-      if ($scope.driver.wsnId !== null && $scope.driver.wsnId.length > 0) {
-        WSNSrv.connectMaster($scope.driver.wsnId).then(
-          function (procedureStarted) { },
-          function (reason) {
-            // TODO toast for failure
-            //Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
-          }
-        );
-      }
+      
+      // REMOVED AS NO USAGE IN PLUGIN 2018
+      // if ($scope.driver.wsnId !== null && $scope.driver.wsnId.length > 0) {
+      //   WSNSrv.connectMaster($scope.driver.wsnId).then(
+      //     function (procedureStarted) { },
+      //     function (reason) {
+      //       // TODO toast for failure
+      //       //Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
+      //     }
+      //   );
+      // }
+      
       //$scope.resizeHelpersList();
     }
 
@@ -643,7 +591,23 @@ angular.module('driverapp.controllers.home', [])
         }
       }, function (err) {
         hideLoading();
-        $scope.showErrorAndExit();
+        if ('INSUFFICIENT_RIGHTS' === err) {
+          var alertPopup = $ionicPopup.alert({
+            title: $filter('translate')('error_right_title'),
+            template: $filter('translate')('error_right_template'),
+            okText: 'Logout'
+          });
+    
+          alertPopup.then(function (res) {
+            Config.resetIdentity()
+            StorageSrv.clearIdentity()
+            // if (ionic.Platform.isIOS()) {
+            LoginService.logout();
+            $state.go('app.login');
+          });
+        } else {
+          $scope.showErrorAndExit();
+        }
       })
     }
 

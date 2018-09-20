@@ -1,143 +1,163 @@
-Node version: v5.12.0
+Node version: v6.11.0
 
-Cordova version: 5.4.1
+Cordova version: 7.1.0
 
 Config.xml file: 
 
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<widget id="it.smartcommunitylab.climb.driverapp" version="0.1.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-  <name>CLIMB Driver App</name>
-  <description>
-            The Driver App of the CLIMB Project
-        </description>
-  <author email="o.zambotti@fbk.eu" href="http://www.smartcommunitylab.it/">
-            SmartCommunityLab
-        </author>
-  <content src="index.html"/>
-  <access origin="*"/>
-  <allow-navigation href="https://*.smartcommunitylab.it/*"/>
-  <preference name="webviewbounce" value="false"/>
-  <preference name="UIWebViewBounce" value="false"/>
-  <preference name="DisallowOverscroll" value="true"/>
-  <preference name="android-minSdkVersion" value="16"/>
-  <preference name="BackupWebStorage" value="none"/>
-  <preference name="SplashScreen" value="screen"/>
-  <preference name="SplashScreenDelay" value="3000"/>
-  <preference name="orientation" value="portrait"/>
-  <feature name="StatusBar">
-    <param name="ios-package" onload="true" value="CDVStatusBar"/>
-  </feature>
-  <platform name="android">
-    <icon src="resources/android/icon/drawable-ldpi-icon.png" density="ldpi"/>
-    <icon src="resources/android/icon/drawable-mdpi-icon.png" density="mdpi"/>
-    <icon src="resources/android/icon/drawable-hdpi-icon.png" density="hdpi"/>
-    <icon src="resources/android/icon/drawable-xhdpi-icon.png" density="xhdpi"/>
-    <icon src="resources/android/icon/drawable-xxhdpi-icon.png" density="xxhdpi"/>
-    <icon src="resources/android/icon/drawable-xxxhdpi-icon.png" density="xxxhdpi"/>
-    <splash src="resources/android/splash/drawable-port-ldpi-screen.png" density="port-ldpi"/>
-    <splash src="resources/android/splash/drawable-port-mdpi-screen.png" density="port-mdpi"/>
-    <splash src="resources/android/splash/drawable-port-hdpi-screen.png" density="port-hdpi"/>
-    <splash src="resources/android/splash/drawable-port-xhdpi-screen.png" density="port-xhdpi"/>
-    <splash src="resources/android/splash/drawable-port-xxhdpi-screen.png" density="port-xxhdpi"/>
-    <splash src="resources/android/splash/drawable-port-xxxhdpi-screen.png" density="port-xxxhdpi"/>
-  </platform>
-  <icon src="resources/android/icon/drawable-xhdpi-icon.png"/>
+<?xml version='1.0' encoding='utf-8'?>
+<widget android-versionCode="100013" id="it.smartcommunitylab.climb.driverapp.ferrara" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>CLIMB Driver App</name>
+    <description>
+      The Driver App of the CLIMB Project
+    </description>
+    <author email="o.zambotti@fbk.eu" href="http://www.smartcommunitylab.it/">
+      SmartCommunityLab
+    </author>
+    <content src="index.html" />
+    <access origin="*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="mailto:*" />
+    <allow-navigation href="*" />
+    <preference name="webviewbounce" value="false" />
+    <preference name="UIWebViewBounce" value="false" />
+    <preference name="DisallowOverscroll" value="true" />
+    <preference name="android-minSdkVersion" value="16" />
+    <preference name="android-targetSdkVersion" value="26" />
+    <preference name="BackupWebStorage" value="none" />
+    <preference name="SplashScreen" value="screen" />
+    <preference name="SplashScreenDelay" value="3000" />
+    <preference name="orientation" value="portrait" />
+    <preference name="SplashShowOnlyFirstTime" value="false" />
+    <feature name="StatusBar">
+        <param name="ios-package" onload="true" value="CDVStatusBar" />
+    </feature>
+    <platform name="android">
+        <icon density="ldpi" src="resources/android/icon/drawable-ldpi-icon.png" />
+        <icon density="mdpi" src="resources/android/icon/drawable-mdpi-icon.png" />
+        <icon density="hdpi" src="resources/android/icon/drawable-hdpi-icon.png" />
+        <icon density="xhdpi" src="resources/android/icon/drawable-xhdpi-icon.png" />
+        <icon density="xxhdpi" src="resources/android/icon/drawable-xxhdpi-icon.png" />
+        <icon density="xxxhdpi" src="resources/android/icon/drawable-xxxhdpi-icon.png" />
+        <splash density="port-ldpi" src="resources/android/splash/drawable-port-ldpi-screen.png" />
+        <splash density="port-mdpi" src="resources/android/splash/drawable-port-mdpi-screen.png" />
+        <splash density="port-hdpi" src="resources/android/splash/drawable-port-hdpi-screen.png" />
+        <splash density="port-xhdpi" src="resources/android/splash/drawable-port-xhdpi-screen.png" />
+        <splash density="port-xxhdpi" src="resources/android/splash/drawable-port-xxhdpi-screen.png" />
+        <splash density="port-xxxhdpi" src="resources/android/splash/drawable-port-xxxhdpi-screen.png" />
+        <splash density="land-ldpi" src="resources/android/splash/drawable-land-ldpi-screen.png" />
+        <splash density="land-mdpi" src="resources/android/splash/drawable-land-mdpi-screen.png" />
+        <splash density="land-hdpi" src="resources/android/splash/drawable-land-hdpi-screen.png" />
+        <splash density="land-xhdpi" src="resources/android/splash/drawable-land-xhdpi-screen.png" />
+        <splash density="land-xxhdpi" src="resources/android/splash/drawable-land-xxhdpi-screen.png" />
+        <splash density="land-xxxhdpi" src="resources/android/splash/drawable-land-xxxhdpi-screen.png" />
+    </platform>
+    <platform name="ios">
+        <icon height="57" src="resources/ios/icon/icon.png" width="57" />
+        <icon height="114" src="resources/ios/icon/icon@2x.png" width="114" />
+        <icon height="40" src="resources/ios/icon/icon-40.png" width="40" />
+        <icon height="80" src="resources/ios/icon/icon-40@2x.png" width="80" />
+        <icon height="120" src="resources/ios/icon/icon-40@3x.png" width="120" />
+        <icon height="50" src="resources/ios/icon/icon-50.png" width="50" />
+        <icon height="100" src="resources/ios/icon/icon-50@2x.png" width="100" />
+        <icon height="60" src="resources/ios/icon/icon-60.png" width="60" />
+        <icon height="120" src="resources/ios/icon/icon-60@2x.png" width="120" />
+        <icon height="180" src="resources/ios/icon/icon-60@3x.png" width="180" />
+        <icon height="72" src="resources/ios/icon/icon-72.png" width="72" />
+        <icon height="144" src="resources/ios/icon/icon-72@2x.png" width="144" />
+        <icon height="76" src="resources/ios/icon/icon-76.png" width="76" />
+        <icon height="152" src="resources/ios/icon/icon-76@2x.png" width="152" />
+        <icon height="167" src="resources/ios/icon/icon-83.5@2x.png" width="167" />
+        <icon height="29" src="resources/ios/icon/icon-small.png" width="29" />
+        <icon height="58" src="resources/ios/icon/icon-small@2x.png" width="58" />
+        <icon height="87" src="resources/ios/icon/icon-small@3x.png" width="87" />
+        <splash height="1136" src="resources/ios/splash/Default-568h@2x~iphone.png" width="640" />
+        <splash height="1334" src="resources/ios/splash/Default-667h.png" width="750" />
+        <splash height="2208" src="resources/ios/splash/Default-736h.png" width="1242" />
+        <splash height="1242" src="resources/ios/splash/Default-Landscape-736h.png" width="2208" />
+        <splash height="1536" src="resources/ios/splash/Default-Landscape@2x~ipad.png" width="2048" />
+        <splash height="2048" src="resources/ios/splash/Default-Landscape@~ipadpro.png" width="2732" />
+        <splash height="768" src="resources/ios/splash/Default-Landscape~ipad.png" width="1024" />
+        <splash height="2048" src="resources/ios/splash/Default-Portrait@2x~ipad.png" width="1536" />
+        <splash height="2732" src="resources/ios/splash/Default-Portrait@~ipadpro.png" width="2048" />
+        <splash height="1024" src="resources/ios/splash/Default-Portrait~ipad.png" width="768" />
+        <splash height="960" src="resources/ios/splash/Default@2x~iphone.png" width="640" />
+        <splash height="480" src="resources/ios/splash/Default~iphone.png" width="320" />
+        <icon height="1024" src="resources/ios/icon/icon-1024.png" width="1024" />
+        <splash height="2732" src="resources/ios/splash/Default@2x~universal~anyany.png" width="2732" />
+    </platform>
+    <icon src="resources/android/icon/drawable-xhdpi-icon.png" />
+    <preference name="SplashShowOnlyFirstTime" value="false" />
+    <plugin name="cordova-plugin-googleplus" spec="git+https://github.com/EddyVerbruggen/cordova-plugin-googleplus.git">
+        <variable name="REVERSED_CLIENT_ID" value="com.googleusercontent.apps.453601816446-kfscpc9ekrqq7chga6l0fd4fejpr97sv" />
+        <variable name="APP_ID" value="493172441063173" />
+        <variable name="APP_NAME" value="CLIMB" />
+    </plugin>
+    <plugin name="cordova-plugin-device" spec="^2.0.2" />
+    <plugin name="cordova-plugin-console" spec="^1.1.0" />
+    <plugin name="cordova-plugin-whitelist" spec="^1.3.3" />
+    <plugin name="cordova-plugin-splashscreen" spec="^5.0.2" />
+    <plugin name="cordova-plugin-statusbar" spec="^2.4.2" />
+    <plugin name="ionic-plugin-keyboard" spec="^2.2.1" />
+    <plugin name="cordova-plugin-x-toast" spec="^2.6.2" />
+    <plugin name="cordova-plugin-file" spec="^6.0.1" />
+    <plugin name="cordova-plugin-globalization" spec="^1.11.0" />
+    <plugin name="cordova-plugin-compat" spec="^1.2.0" />
+    <plugin name="cordova-plugin-add-swift-support" spec="^1.7.2" />
+    <plugin name="cordova-plugin-network-information" spec="^2.0.1" />
+    <plugin name="cordova-plugin-file-transfer" spec="^1.7.1" />
+    <plugin name="cordova-plugin-geolocation" spec="^4.0.1" />
+    <plugin name="cordova.plugins.diagnostic" spec="^4.0.8" />
+    <plugin name="cordova-android-support-gradle-release" spec="^1.4.4">
+        <variable name="ANDROID_SUPPORT_VERSION" value="27.+" />
+    </plugin>
+    <plugin name="it.smartcommunitylab.climb.dap" spec="../../../sco.climb.driverapp/DriverAppCordovaPlugin/" />
+    <engine name="ios" spec="4.5.5" />
+    <engine name="android" spec="~6.4.0" />
 </widget>
+
 
 Plugins: 
 
-cordova-plugin-compat,cordova-plugin-console,cordova-plugin-crosswalk-webview,cordova-plugin-device,cordova-plugin-file,cordova-plugin-file-transfer,cordova-plugin-geolocation,cordova-plugin-logtofile,cordova-plugin-network-information,cordova-plugin-splashscreen,cordova-plugin-statusbar,cordova-plugin-whitelist,cordova-plugin-x-toast,ionic-plugin-keyboard,it.smartcommunitylab.climb.dap
+cordova-android-play-services-gradle-release,cordova-android-support-gradle-release,cordova-plugin-add-swift-support,cordova-plugin-compat,cordova-plugin-console,cordova-plugin-device,cordova-plugin-file,cordova-plugin-file-transfer,cordova-plugin-geolocation,cordova-plugin-globalization,cordova-plugin-googleplus,cordova-plugin-inappbrowser,cordova-plugin-network-information,cordova-plugin-splashscreen,cordova-plugin-statusbar,cordova-plugin-whitelist,cordova-plugin-x-toast,cordova.plugins.diagnostic,ionic-plugin-keyboard,it.smartcommunitylab.climb.dap
 
 Android platform:
 
+*************************************************************************
+The "android" command is deprecated.
+For manual SDK, AVD, and project management, please use Android Studio.
+For command-line tools, use tools/bin/sdkmanager and tools/bin/avdmanager
+*************************************************************************
+Running /home/chin8/Documents/work/programming/android/android-sdk-linux/tools/bin/avdmanager list target
+
 Available Android targets:
 ----------
-id: 1 or "android-10"
-     Name: Android 2.3.3
-     Type: Platform
-     API level: 10
-     Revision: 2
-     Skins: HVGA, QVGA, WQVGA400, WQVGA432, WVGA800 (default), WVGA854
- Tag/ABIs : default/armeabi
-----------
-id: 2 or "android-16"
-     Name: Android 4.1.2
-     Type: Platform
-     API level: 16
-     Revision: 5
-     Skins: HVGA, QVGA, WQVGA400, WQVGA432, WSVGA, WVGA800 (default), WVGA854, WXGA720, WXGA800, WXGA800-7in
- Tag/ABIs : default/armeabi-v7a
-----------
-id: 3 or "android-19"
-     Name: Android 4.4.2
-     Type: Platform
-     API level: 19
-     Revision: 4
-     Skins: HVGA, QVGA, WQVGA400, WQVGA432, WSVGA, WVGA800 (default), WVGA854, WXGA720, WXGA800, WXGA800-7in
- Tag/ABIs : default/armeabi-v7a, default/x86, google_apis/armeabi-v7a, google_apis/x86
-----------
-id: 4 or "android-21"
-     Name: Android 5.0.1
-     Type: Platform
-     API level: 21
-     Revision: 2
-     Skins: HVGA, QVGA, WQVGA400, WQVGA432, WSVGA, WVGA800 (default), WVGA854, WXGA720, WXGA800, WXGA800-7in
- Tag/ABIs : no ABIs.
-----------
-id: 5 or "android-22"
-     Name: Android 5.1.1
-     Type: Platform
-     API level: 22
-     Revision: 2
-     Skins: HVGA, QVGA, WQVGA400, WQVGA432, WSVGA, WVGA800 (default), WVGA854, WXGA720, WXGA800, WXGA800-7in
- Tag/ABIs : no ABIs.
-----------
-id: 6 or "android-23"
-     Name: Android 6.0
-     Type: Platform
-     API level: 23
-     Revision: 3
-     Skins: HVGA, QVGA, WQVGA400, WQVGA432, WSVGA, WVGA800 (default), WVGA854, WXGA720, WXGA800, WXGA800-7in
- Tag/ABIs : default/x86, default/x86_64
-----------
-id: 7 or "android-24"
-     Name: Android 7.0
-     Type: Platform
-     API level: 24
-     Revision: 2
-     Skins: HVGA, QVGA, WQVGA400, WQVGA432, WSVGA, WVGA800 (default), WVGA854, WXGA720, WXGA800, WXGA800-7in
- Tag/ABIs : no ABIs.
-----------
-id: 8 or "android-25"
-     Name: Android 7.1.1
-     Type: Platform
-     API level: 25
-     Revision: 3
-     Skins: HVGA, QVGA, WQVGA400, WQVGA432, WSVGA, WVGA800 (default), WVGA854, WXGA720, WXGA800, WXGA800-7in, AndroidWearRound, AndroidWearRound360x360, AndroidWearRound400x400, AndroidWearRound480x480, AndroidWearRoundChin320x290, AndroidWearRoundChin320x300, AndroidWearRoundChin360x325, AndroidWearRoundChin360x326, AndroidWearRoundChin360x330, AndroidWearSquare, AndroidWearSquare240x240, AndroidWearSquare320x320, AndroidWearRound, AndroidWearRound360x360, AndroidWearRound400x400, AndroidWearRound480x480, AndroidWearRoundChin320x290, AndroidWearRoundChin320x300, AndroidWearRoundChin360x325, AndroidWearRoundChin360x326, AndroidWearRoundChin360x330, AndroidWearSquare, AndroidWearSquare240x240, AndroidWearSquare320x320
- Tag/ABIs : android-tv/x86, android-wear/armeabi-v7a, android-wear/x86
-----------
-id: 9 or "Google Inc.:Google APIs:10"
+id: 1 or "Google Inc.:Google APIs:10"
      Name: Google APIs
      Type: Add-On
      Vendor: Google Inc.
      Revision: 2
-     Description: Android + Google APIs
+     Description: Google APIs, Android 10, rev 2
      Based on Android 2.3.3 (API level 10)
      Libraries:
       * com.android.future.usb.accessory (usb.jar)
           API for USB Accessories
       * com.google.android.maps (maps.jar)
           API for Google Maps
-     Skins: HVGA, QVGA, WQVGA400, WQVGA432, WVGA800 (default), WVGA854
- Tag/ABIs : default/armeabi
 ----------
-id: 10 or "Google Inc.:Google APIs:16"
+id: 2 or "android-10"
+     Name: Android API 10
+     Type: Platform
+     API level: 10
+     Revision: 2
+----------
+id: 3 or "Google Inc.:Google APIs:16"
      Name: Google APIs
      Type: Add-On
      Vendor: Google Inc.
      Revision: 4
-     Description: Android + Google APIs
-     Based on Android 4.1.2 (API level 16)
+     Description: Google APIs, Android 16, rev 4
+     Based on Android 4.1 (API level 16)
      Libraries:
       * com.google.android.media.effects (effects.jar)
           Collection of video effects
@@ -145,16 +165,20 @@ id: 10 or "Google Inc.:Google APIs:16"
           API for USB Accessories
       * com.google.android.maps (maps.jar)
           API for Google Maps
-     Skins: HVGA, QVGA, WQVGA400, WQVGA432, WSVGA, WVGA800 (default), WVGA854, WXGA720, WXGA800, WXGA800-7in
- Tag/ABIs : default/armeabi-v7a
 ----------
-id: 11 or "Google Inc.:Google APIs:19"
+id: 4 or "android-16"
+     Name: Android API 16
+     Type: Platform
+     API level: 16
+     Revision: 5
+----------
+id: 5 or "Google Inc.:Google APIs:19"
      Name: Google APIs
      Type: Add-On
      Vendor: Google Inc.
      Revision: 20
-     Description: Android + Google APIs
-     Based on Android 4.4.2 (API level 19)
+     Description: Google APIs, Android 19, rev 20
+     Based on Android 4.4 (API level 19)
      Libraries:
       * com.google.android.media.effects (effects.jar)
           Collection of video effects
@@ -162,16 +186,20 @@ id: 11 or "Google Inc.:Google APIs:19"
           API for USB Accessories
       * com.google.android.maps (maps.jar)
           API for Google Maps
-     Skins: HVGA, QVGA, WQVGA400, WQVGA432, WSVGA, WVGA800 (default), WVGA854, WXGA720, WXGA800, WXGA800-7in
- Tag/ABIs : no ABIs.
 ----------
-id: 12 or "Google Inc.:Google APIs:21"
+id: 6 or "android-19"
+     Name: Android API 19
+     Type: Platform
+     API level: 19
+     Revision: 4
+----------
+id: 7 or "Google Inc.:Google APIs:21"
      Name: Google APIs
      Type: Add-On
      Vendor: Google Inc.
      Revision: 1
-     Description: Android + Google APIs
-     Based on Android 5.0.1 (API level 21)
+     Description: Google APIs, Android 21
+     Based on Android 5.0 (API level 21)
      Libraries:
       * com.google.android.media.effects (effects.jar)
           Collection of video effects
@@ -179,16 +207,20 @@ id: 12 or "Google Inc.:Google APIs:21"
           API for USB Accessories
       * com.google.android.maps (maps.jar)
           API for Google Maps
-     Skins: HVGA, QVGA, WQVGA400, WQVGA432, WSVGA, WVGA800 (default), WVGA854, WXGA720, WXGA800, WXGA800-7in
- Tag/ABIs : google_apis/x86
 ----------
-id: 13 or "Google Inc.:Google APIs:22"
+id: 8 or "android-21"
+     Name: Android API 21
+     Type: Platform
+     API level: 21
+     Revision: 2
+----------
+id: 9 or "Google Inc.:Google APIs:22"
      Name: Google APIs
      Type: Add-On
      Vendor: Google Inc.
      Revision: 1
-     Description: Android + Google APIs
-     Based on Android 5.1.1 (API level 22)
+     Description: Google APIs, Android 22
+     Based on Android 5.1 (API level 22)
      Libraries:
       * com.google.android.media.effects (effects.jar)
           Collection of video effects
@@ -196,15 +228,19 @@ id: 13 or "Google Inc.:Google APIs:22"
           API for USB Accessories
       * com.google.android.maps (maps.jar)
           API for Google Maps
-     Skins: HVGA, QVGA, WQVGA400, WQVGA432, WSVGA, WVGA800 (default), WVGA854, WXGA720, WXGA800, WXGA800-7in
- Tag/ABIs : no ABIs.
 ----------
-id: 14 or "Google Inc.:Google APIs:23"
+id: 10 or "android-22"
+     Name: Android API 22
+     Type: Platform
+     API level: 22
+     Revision: 2
+----------
+id: 11 or "Google Inc.:Google APIs:23"
      Name: Google APIs
      Type: Add-On
      Vendor: Google Inc.
      Revision: 1
-     Description: Android + Google APIs
+     Description: Google APIs, Android 23
      Based on Android 6.0 (API level 23)
      Libraries:
       * com.google.android.media.effects (effects.jar)
@@ -213,6 +249,40 @@ id: 14 or "Google Inc.:Google APIs:23"
           API for USB Accessories
       * com.google.android.maps (maps.jar)
           API for Google Maps
-     Skins: HVGA, QVGA, WQVGA400, WQVGA432, WSVGA, WVGA800 (default), WVGA854, WXGA720, WXGA800, WXGA800-7in
- Tag/ABIs : google_apis/armeabi-v7a, google_apis/x86, google_apis/x86_64
+----------
+id: 12 or "android-23"
+     Name: Android API 23
+     Type: Platform
+     API level: 23
+     Revision: 3
+----------
+id: 13 or "android-24"
+     Name: Android API 24
+     Type: Platform
+     API level: 24
+     Revision: 2
+----------
+id: 14 or "android-25"
+     Name: Android API 25
+     Type: Platform
+     API level: 25
+     Revision: 3
+----------
+id: 15 or "android-26"
+     Name: Android API 26
+     Type: Platform
+     API level: 26
+     Revision: 2
+----------
+id: 16 or "android-27"
+     Name: Android API 27
+     Type: Platform
+     API level: 27
+     Revision: 1
+----------
+id: 17 or "android-28"
+     Name: Android API 28
+     Type: Platform
+     API level: 28
+     Revision: 6
 

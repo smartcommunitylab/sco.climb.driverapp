@@ -96,10 +96,6 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
     private boolean logEnabled;
     private boolean packetLogEnabled = false;
     private boolean initialized = false;
-    private long lastMaintainaceCallTime_millis = 0;
-    private long lastWakeUpTimeoutSet_sec = 0;
-    private boolean maintenanceProcedureEnabled = false;
-    private String originalDeviceName = null;
 
     //--- Service -----------------------------------------------
 
@@ -123,7 +119,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
 
         mBinder = new LocalBinder();
 
-        initialize_bluetooth(); //TODO: handle error somehow
+        initialize_service(true); //TODO: handle error somehow
     }
 
     @Override
@@ -192,7 +188,6 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothLeScanner mBluetoothLeScanner;
-    private BluetoothLeAdvertiser mBluetoothLeAdvertiser;
     private int bluetoothState = BluetoothAdapter.STATE_OFF;
 
     private final static int TEXAS_INSTRUMENTS_MANUFACTER_ID = 0x000D;
@@ -218,13 +213,27 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         }
     }
 
-    private boolean initialize_bluetooth() {
+    private boolean initialize_service(boolean enableDatalog) {
+        if(enableDatalog) {
+            startDataLog();
+            insertTag("initializing service" +
+                    " API: " + Build.VERSION.SDK_INT +
+                    " Release: " + Build.VERSION.RELEASE +
+                    " Manuf: " + Build.MANUFACTURER +
+                    " Product: " + Build.PRODUCT +
+                    "");
+            broadcastUpdate(ACTION_DATALOG_ACTIVE,EXTRA_STRING,file_name_log);
+        }else{
+            mFile = null;
+        }
+
         // For API level 18 and above, get a reference to BluetoothAdapter through
         // BluetoothManager.
         if (Build.VERSION.SDK_INT < 18) {
             Log.e(TAG, "API level " + Build.VERSION.SDK_INT + " not supported!");
             return false;
         }
+
 
         if (mBluetoothManager == null) {
             mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE); //qua era context.BLUETOOTH_SERVICE
@@ -237,42 +246,28 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         mBluetoothAdapter = mBluetoothManager.getAdapter();
         if (mBluetoothAdapter == null) {
             Log.e(TAG, "Unable to obtain a BluetoothAdapter.");
+            insertTag("Unable to obtain a BluetoothAdapter.");
             return false;
         }
 
-        bluetoothState = mBluetoothAdapter.getState();
-        if(bluetoothState != BluetoothAdapter.STATE_ON){
-            Log.e(TAG, "The bluetooth seems to be not enabled.");
-            return false;
-        }
+        insertTag("BTadapter" +
+                " state: " + mBluetoothAdapter.getState() +
+                " name: " + mBluetoothAdapter.getName() +
+                " address: " + mBluetoothAdapter.getAddress() +
+                "");
 
         return true;
     }
 
-    private int StartScanning(boolean enableDatalog) {
+    private int StartScanning() {
         if(mBluetoothAdapter != null) {
-            if(enableDatalog) {
-                startDataLog();
-                logEnabled = true;
-                insertTag("Start_Monitoring " + fbk.climblogger.ConfigVals.libVersion);
-                insertTag("initializing" +
-                        " API: " + Build.VERSION.SDK_INT +
-                        " Release: " + Build.VERSION.RELEASE +
-                        " Manuf: " + Build.MANUFACTURER +
-                        " Product: " + Build.PRODUCT +
-                        "");
 
-                if (mBluetoothAdapter != null) {
-                    insertTag("BTadapter" +
-                            " state: " + mBluetoothAdapter.getState() +
-                            " name: " + mBluetoothAdapter.getName() +
-                            " address: " + mBluetoothAdapter.getAddress() +
-                            "");
-            }
-                broadcastUpdate(ACTION_DATALOG_ACTIVE,EXTRA_STRING,file_name_log);
-            }else{
-                mFile = null;
-            }
+            insertTag("BTadapter" +
+                    " state: " + mBluetoothAdapter.getState() +
+                    " name: " + mBluetoothAdapter.getName() +
+                    " address: " + mBluetoothAdapter.getAddress() +
+                    "");
+
             if (Build.VERSION.SDK_INT < 18) {
                 Log.e(TAG, "API level " + Build.VERSION.SDK_INT + " not supported!");
                 return 0;
@@ -299,7 +294,6 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
                 //Permette tutti i beacon con nome 'CLIMBM' o 'CLIMBC'
                 mScanFilterList.add(new ScanFilter.Builder().setDeviceName(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME).build());
                 mScanFilterList.add(new ScanFilter.Builder().setDeviceName(fbk.climblogger.ConfigVals.CLIMB_CHILD_DEVICE_NAME).build());
-                //mScanFilterList.add(new ScanFilter.Builder().setDeviceAddress("B0:B4:48:BA:60:05").build());  //Climb child beacon 0x25
 
                 //Permette tutti i beacon con Service UUID di EddyStone
                 mScanFilterList.add(new ScanFilter.Builder().setServiceUuid(EDDYSTONE_SERVICE_UUID).build());
@@ -360,13 +354,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
                     mBluetoothLeScanner.stopScan(mScanCallback); // some devices throws IllegalStateException. Not documented
                 }
             }
-
-            if(logEnabled){
-                logEnabled = false;
-                insertTag("Stop_Monitoring");
-                stopDataLog();
-                broadcastUpdate(ACTION_DATALOG_INACTIVE);
-            }
+            mScanCallback=null;
         }else{
             Log.w(TAG, "mBluetoothAdapter == NULL!!");
         }
@@ -383,9 +371,6 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
                 insertTag("Bluetooth_State_change, new state: " + state);
                 Log.i(TAG,"Bluetooth_State_change, new state: " + state);
                 bluetoothState = state;
-                if((bluetoothState == BluetoothAdapter.STATE_TURNING_OFF || bluetoothState == BluetoothAdapter.STATE_OFF) && maintenanceProcedureEnabled){
-                    disableMaintenanceProcedure();
-                }
             }
         }
     };
@@ -398,37 +383,30 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
             if(node.bdAddress.equals(bd_address)){
                 return node;
             }
-            //it.remove(); // avoids a ConcurrentModificationException, but it breaks everything in ClimbSimpleService!
         }
         return null;
     }
 
-    void updateChild(String id, String bd_address, String beacon_type) {
+    void updateChild(String id, String bd_address, int rssi) {
         long nowMillis = System.currentTimeMillis();
         fbk.climblogger.ClimbServiceInterface.NodeState s = seenChildren.get(id);
         if (s == null) {
             s = new fbk.climblogger.ClimbServiceInterface.NodeState();
             s.nodeID = id;
-            s.state = fbk.climblogger.ClimbServiceInterface.State.CHECKING.getValue();
-            s.lastStateChange = nowMillis;
-            s.lastSeen = nowMillis;
             s.batteryVoltage_mV = 0;
             s.batteryLevel = 0;
             s.firstSeen = nowMillis;
-            s.bdAddress = bd_address;
-            s.beaconType = beacon_type;
             s.batteryVoltage_mV = fbk.climblogger.ConfigVals.INVALID_BATTERY_VOLTAGE;
             s.batteryLevel = 0;
             seenChildren.put(id,s);
-        } else {
-            s.lastSeen = nowMillis;
-            s.bdAddress = bd_address;
         }
-        //broadcastUpdate(ACTION_METADATA_CHANGED,id);
+        s.lastSeen = nowMillis;
+        s.bdAddress = bd_address;
+        s.rssi = rssi;
     }
 
-    void updateChild(String id, String bd_address, String beacon_type, int batteryVoltage) {
-        updateChild(id, bd_address, beacon_type);
+    void updateChild(String id, String bd_address, int rssi, int batteryVoltage) {
+        updateChild(id, bd_address, rssi);
         NodeState s = seenChildren.get(id);
         //only update battery voltage, the other stuff is updated in updateChild(String id)
         s.batteryVoltage_mV = batteryVoltage;
@@ -441,7 +419,6 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         }else if(batteryVoltage >= 2500){ //TODO: parametrize levels boundaries in function of the type of battery
             s.batteryLevel = 3;
         }
-        //broadcastUpdate(ACTION_METADATA_CHANGED,id);
     }
 
 
@@ -543,26 +520,13 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         @Override
         public void onScanResult(int callbackType, ScanResult result)  //public for SO, not for upper layer!
         {
+            if(!initialized) //a device may be in the buffer and be received after the call to deinit(). To ensure to have an empty list of seenChildren after the call to deinit discart all the packets when initialized is false
+                return;
+
             if(callbackType == ScanSettings.CALLBACK_TYPE_ALL_MATCHES) {
                 byte[] raw_packet = adv_report_parse(BLE_GAP_AD_TYPE_NULL, result.getScanRecord().getBytes());
                 processNewAdvPacket(result.getDevice(), result.getRssi(), raw_packet);
             }
-        }
-    };
-
-    private AdvertiseCallback mAdvCallback;
-    @TargetApi(21)
-    class myAdvCallback extends AdvertiseCallback {
-        @Override
-        public void onStartSuccess(AdvertiseSettings settingsInEffect) {
-            super.onStartSuccess(settingsInEffect);
-        }
-
-        @Override
-        public void onStartFailure(int errorCode) {
-            Log.e( TAG, "Advertising onStartFailure: " + errorCode );
-            super.onStartFailure(errorCode);
-            disableMaintenanceProcedure(); //if the advertising fails disable maintenance so that the name keeps correct
         }
     };
 
@@ -571,6 +535,10 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
     class myLeScanCallback implements BluetoothAdapter.LeScanCallback {
         @Override
         public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
+
+            if(!initialized) //a device may be in the buffer and be received after the call to deinit(). To ensure to have an empty list of seenChildren after the call to deinit discart all the packets when initialized is false
+                return;
+
             byte[] raw_packet = adv_report_parse(BLE_GAP_AD_TYPE_NULL, scanRecord);
             processNewAdvPacket(device, rssi, raw_packet);
         }
@@ -670,7 +638,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
             return;
         }
         int batteryVoltage = getNodeBatteryVoltageFromRawPacket(manufSpecDataPacket);
-        updateChild(id, device.getAddress(), "SENSORTAG", batteryVoltage); //Aggiorna la UI
+        updateChild(id, device.getAddress(), rssi, batteryVoltage); //Aggiorna la UI
     }
     private void processEddystoneUidPkt(BluetoothDevice device, int rssi, byte[] raw_packet){
         long nowMillis = System.currentTimeMillis();
@@ -685,13 +653,16 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         String namespace = hexValues.substring(0, 20);
         String instance = hexValues.substring(20, 32);
 
-        if(CLIMB_NAMESPACE_EDDYSTONE != null && !namespace.toUpperCase().equals(CLIMB_NAMESPACE_EDDYSTONE.toUpperCase())){ //discar all eddystone which are not climb nodes!
-            return;
-        }
-        if (logEnabled && packetLogEnabled)
-            logScanResult(nowMillis, device.getAddress(), rssi, "EDDYSTONE-UID",  toHexString(raw_packet));
+        //Namespace filter
+//        if(CLIMB_NAMESPACE_EDDYSTONE != null && !namespace.toUpperCase().equals(CLIMB_NAMESPACE_EDDYSTONE.toUpperCase())){ //discard all eddystone which are not climb nodes!
+//            return;
+//        }
 
-        updateChild(namespace + instance, device.getAddress(), "EDDYSTONE"); //Aggiorna la UI
+        if (logEnabled && packetLogEnabled) {
+            logScanResult(nowMillis, device.getAddress(), rssi, "EDDYSTONE-UID", toHexString(raw_packet));
+        }
+
+        updateChild(namespace + instance, device.getAddress(), rssi); //Aggiorna la UI
 
     }
 
@@ -714,10 +685,11 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         //int advCnt = buf.getInt();  //Avanza di 4 bytes
         //int upTime = buf.getInt();
 
-        if (logEnabled && packetLogEnabled)
+        if (logEnabled && packetLogEnabled) {
             logScanResult(nowMillis, device.getAddress(), rssi, "EDDYSTONE-TLM", toHexString(raw_packet));
+        }
 
-        updateChild(node.nodeID, node.bdAddress, "EDDYSTONE",voltage); //Aggiorna la UI
+        updateChild(node.nodeID, node.bdAddress, rssi,voltage); //Aggiorna la UI
     }
 
     private void processIbeaconPkt(BluetoothDevice device, int rssi, byte[] raw_packet){
@@ -870,7 +842,6 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         final Intent intent = new Intent(action);
 
         intent.putExtra(extra_type,extra_string);
-        //Log.d(TAG, "Sending broadcast, action = " + action + ". extra_type = " + extra_type);
         sendBroadcast(intent);
     }
 
@@ -918,57 +889,6 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         }
     }
 
-    private void updateMaintenancePacket(){
-        if(Build.VERSION.SDK_INT >= 21){
-            if(maintenanceProcedureEnabled) {
-                if(mAdvCallback != null) {
-                    mBluetoothLeAdvertiser.stopAdvertising(mAdvCallback); //when the maintenance packet is configured for the first time the call back is null
-                }
-
-                AdvertiseSettings settings = new AdvertiseSettings.Builder()
-                        .setAdvertiseMode( AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY )
-                        .setTxPowerLevel( AdvertiseSettings.ADVERTISE_TX_POWER_HIGH )
-                        .setConnectable( false )
-                        .build();
-
-                //ParcelUuid pUuid = new ParcelUuid( ConfigVals.Service.CLIMB );
-                GregorianCalendar nowDate = new GregorianCalendar(Locale.ITALY);
-                long nowMillis =  nowDate.getTimeInMillis();
-                long lastMaintainaceCallElapse_sec = (nowMillis - lastMaintainaceCallTime_millis)/1000;
-
-                long timeoutSec = lastWakeUpTimeoutSet_sec - lastMaintainaceCallElapse_sec;
-
-                if(timeoutSec > 0) {
-
-                    byte[] manufacturerData = {(byte) 0xFF, (byte) 0x02, (byte) (timeoutSec >> 16), (byte) (timeoutSec >> 8), (byte) (timeoutSec)};
-
-                    AdvertiseData advertiseData = new AdvertiseData.Builder()
-                            .setIncludeDeviceName(true)
-                            //.addServiceUuid( pUuid )
-                            //.addServiceData( pUuid, "Data".getBytes( Charset.forName( "UTF-8" ) ) )
-                            .addManufacturerData(TEXAS_INSTRUMENTS_MANUFACTER_ID, manufacturerData)
-                            .build();
-
-                    mAdvCallback = new myAdvCallback();
-                    insertTag("enabling_advertise");
-                    mBluetoothLeAdvertiser.startAdvertising(settings, advertiseData, mAdvCallback);
-
-
-                    Handler h = new Handler();
-                    h.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            updateMaintenancePacket();
-                        }
-                    }, fbk.climblogger.ConfigVals.MAINTENANCE_PACKET_UPDATE_INTERVAL_MS);
-                }else{ //(timeoutSec > 0), when the timeout goes negative disable the maintenance packet
-                    maintenanceProcedureEnabled = false;
-                }
-            }
-        } // (Build.VERSION.SDK_INT >= 21)
-        return;
-    }
-
     public void enablePacketLog(){
         packetLogEnabled=true;
     }
@@ -979,11 +899,10 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
 
     //--- CLIMB API -----------------------------------------------
 
-    private String[] allowedChildren = new String[0];
     private HashMap<String, fbk.climblogger.ClimbServiceInterface.NodeState> seenChildren = new HashMap<String, fbk.climblogger.ClimbServiceInterface.NodeState>();
 
     public boolean init() {
-        boolean ret = (StartScanning(true) == 1);
+        boolean ret = (StartScanning() == 1);
         initialized = ret;
         insertTag("init: " + ret);
         Log.i(TAG, "Initializing: ret = " + ret);
@@ -992,12 +911,11 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
     }
 
     public boolean deinit() {
-        disableMaintenanceProcedure();
         boolean ret = (StopMonitoring() == 1);
-        seenChildren = new HashMap<String, fbk.climblogger.ClimbServiceInterface.NodeState>(); //empty node list!
+        seenChildren.clear();
         broadcastUpdate(ACTION_METADATA_CHANGED);
         initialized = false;
-        logEnabled = false;
+        //logEnabled = false;
         insertTag("deinit: " + ret);
         Log.i(TAG, "deInitializing: ret = " + ret);
         return ret;
@@ -1008,26 +926,11 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         mContext = context;
     }
 
-    public String[] getMasters() {
-        String[] masters = new String[1];
-        masters[0] = mBluetoothAdapter.getAddress();
-        return masters;
-    }
-
-    String mMaster;
-    public boolean connectMaster(String master) {
-        mMaster = master;
-        broadcastUpdate(STATE_CONNECTED_TO_CLIMB_MASTER, master, true, null); //TODO: might need to delay this to avoid race conditions in caller
-        return true;
-    }
-
-    public boolean disconnectMaster() {
-        broadcastUpdate(ACTION_DATALOG_ACTIVE, STATE_DISCONNECTED_FROM_CLIMB_MASTER, mMaster); //TODO: might need to delay this to avoid race conditions in caller
-        return true;
-    }
-
     public String[] getLogFiles() {
-        //return new String[0];
+        if(logEnabled){
+            stopDataLog();
+        }
+
         String[] r;
         if (mFile != null) {
             if (mBufferedWriter != null) {
@@ -1045,62 +948,15 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
         return r;
     }
 
-    public boolean setNodeList(String[] children) {
-        allowedChildren = children.clone(); //Strings are immutable, so no need to deep clone
-        return true;
-    }
-
-    @Nullable
-    public NodeState getNodeState(String id) {
-        return seenChildren.get(id); //TODO: clone
-    }
-
     public NodeState[] getNetworkState() {
         return seenChildren.values().toArray(new NodeState[0]);
-    }
-
-    public boolean checkinChild(String child) {
-        NodeState s = seenChildren.get(child);
-        if (s != null) {
-            s.state = State.ONBOARD.getValue();
-            //TODO: call callback
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public boolean checkinChildren(String[] children) {
-        boolean ret = true;
-        for (String child : children) {
-            ret &= checkinChild(child);
-        }
-        return ret;
-    }
-
-    public boolean checkoutChild(String child) {
-        NodeState s = seenChildren.get(child);
-        if (s != null) {
-            s.state = State.CHECKING.getValue();
-            //TODO: call callback
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public boolean checkoutChildren(String[] children) {
-        boolean ret = true;
-        for (String child : children) {
-            ret &= checkoutChild(child);
-        }
-        return ret;
     }
 
     private String startDataLog(){
         //TODO:se il file c'è già non crearlo, altrimenti creane un'altro
         if(mBufferedWriter == null){ // il file non � stato creato, quindi crealo
             if( get_log_num() == 1) {
+                logEnabled = true;
                 return file_name_log;
             }
         } else{
@@ -1116,6 +972,7 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
                 //mFile = null; //this is not nulled so that the filename remains available even after the call to deinit()
                 mBufferedWriter = null;
                 file_name_log = null;
+                logEnabled = false;
             }catch (IOException e) {
                 e.printStackTrace();
             }
@@ -1144,144 +1001,33 @@ public class ClimbSimpleService extends Service implements fbk.climblogger.Climb
             return -1;
         }
 
-        if (root.canRead()) {
+        // if (root.canRead()) {
 
-        }
-        if (root.canWrite()){
+        // }
+        // if (root.canWrite()){
 
             file_name_log = "log_"+rightNow.get(Calendar.DAY_OF_YEAR)+"_"+rightNow.get(Calendar.HOUR_OF_DAY)+"."+rightNow.get(Calendar.MINUTE)+"."+rightNow.get(Calendar.SECOND)+".txt";
 
-            mFile = new File(dirName,file_name_log);
 
 
             try {
+                mFile = new File(dirName,file_name_log);
                 mFileWriter = new FileWriter(mFile);
                 mBufferedWriter = new BufferedWriter(mFileWriter);
-                Log.i(TAG, "Log file \""+ file_name_log + "\"created!");
+//                Log.i(TAG, "Log file \""+ file_name_log + "\"created!");
 
-            } catch (IOException e) {
+
+            } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
-                Log.w(TAG, "IOException in creating file");
+                Log.w(TAG, "Exception in creating file");
             }
 
-        }else{
-            Log.w(TAG, "Can't write to file");
-            return -1;
-        }
+        // }else{
+        //     Log.w(TAG, "Can't write to file");
+        //     return -1;
+        // }
 
         return 1;
-    }
-
-    @TargetApi(21)
-    public ErrorCode enableMaintenanceProcedure(int wakeUP_year, int wakeUP_month, int wakeUP_day, int wakeUP_hour, int wakeUP_minute) {
-        if (Build.VERSION.SDK_INT < 21) {
-            Log.w(TAG, "Build.VERSION.SDK_INT < 21");
-            insertTag("Cannot_enable_advertise,Build.VERSION.SDK_INT<21");
-            return ErrorCode.ANDROID_VERSION_NOT_COMPATIBLE_ERROR;
-        }
-        if (mBluetoothAdapter == null) {
-            Log.w(TAG, "mBluetoothAdapter == null");
-            insertTag("Cannot_enable_advertise,mBluetoothAdapter==null");
-            return ErrorCode.INTERNAL_ERROR; //internal error
-        }
-        if(bluetoothState != BluetoothAdapter.STATE_ON){
-            Log.w(TAG, "the bluetooth is not enabled");
-            insertTag("Cannot_enable_advertise,bluetoothState!=BluetoothAdapter.STATE_ON");
-            return ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR;
-        }
-        mBluetoothLeAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
-
-        if (mBluetoothLeAdvertiser == null ) {
-            Log.w(TAG, "mBluetoothLeAdvertiser == null");
-            insertTag("Cannot_enable_advertise,mBluetoothLeAdvertiser==null");
-            return ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR;
-        }
-
-        if (!mBluetoothAdapter.isMultipleAdvertisementSupported()) {
-            Log.w(TAG, "multiple advertisement not supported");
-            //return ErrorCode.ADVERTISER_NOT_AVAILABLE_ERROR; //do not return for this. Try to change the name anyway, eventually it will return with WRONG_BLE_NAME_ERROR
-        }
-
-        if (!maintenanceProcedureEnabled){ //don't overwrite the originalDeviceName if successive calls to enableMaintenanceProcedure are performed without calling disableMaintenanceProcedure
-            originalDeviceName = mBluetoothAdapter.getName();
-        }else{
-            Log.i(TAG, "maintenance procedure already enabled");
-        }
-
-        String deviceName = mBluetoothAdapter.getName();
-
-        if(deviceName != null && !deviceName.equals(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {
-            if(!mBluetoothAdapter.setName(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {
-                Log.w(TAG, "the method setName returned false");
-                insertTag("Cannot_set_name_advertise_not_enabled");
-                return ErrorCode.WRONG_BLE_NAME_ERROR; //wrong BLE name, the  setName can't update it!
-            }
-            //check the name string after the setting it....not strictly needed.
-            deviceName = mBluetoothAdapter.getName();
-            if(deviceName != null && !deviceName.equals(fbk.climblogger.ConfigVals.CLIMB_MASTER_DEVICE_NAME)) {
-                Log.w(TAG, "BLE name check failed! Name not changed");
-                insertTag("Cannot_set_name_advertise_not_enabled");
-                mBluetoothAdapter.setName(originalDeviceName);
-                return ErrorCode.WRONG_BLE_NAME_ERROR;
-            }
-        }
-
-        GregorianCalendar wakeUpDate = new GregorianCalendar(wakeUP_year, wakeUP_month, wakeUP_day, wakeUP_hour, wakeUP_minute);
-        GregorianCalendar nowDate = new GregorianCalendar(Locale.ITALY);
-
-        long wakeUpDate_millis = wakeUpDate.getTimeInMillis();
-        long nowDate_millis = nowDate.getTimeInMillis();
-
-        if (wakeUpDate_millis > nowDate_millis) {
-            lastWakeUpTimeoutSet_sec = (wakeUpDate_millis - nowDate_millis) / 1000;
-            if (lastWakeUpTimeoutSet_sec < fbk.climblogger.ConfigVals.MAX_WAKE_UP_DELAY_SEC && lastWakeUpTimeoutSet_sec == (int) lastWakeUpTimeoutSet_sec) {
-
-                lastMaintainaceCallTime_millis = nowDate_millis;
-
-                if(!maintenanceProcedureEnabled) { //if the maintenance was already enabled, don't call updateMaintenancePacket() twice (just update the wake up date/hour)!
-                    maintenanceProcedureEnabled = true;
-                    updateMaintenancePacket();
-                }
-            }else{
-                disableMaintenanceProcedure();
-                Log.w(TAG, "Wake up date is too far from now or an overflow has been detected");
-                insertTag("Cannot_enable_advertise,WakeUpDate_too_far");
-                return ErrorCode.INVALID_DATE_ERROR;
-            }
-        }else{
-            Log.w(TAG, "Wake up date is before now");
-            insertTag("Cannot_enable_advertise,invalid_WakeUpDate");
-            disableMaintenanceProcedure();
-            return ErrorCode.INVALID_DATE_ERROR;
-        }
-        return ErrorCode.NO_ERROR; //no error
-    }
-
-    public ErrorCode disableMaintenanceProcedure(){
-        if(Build.VERSION.SDK_INT >= 21){
-            if(maintenanceProcedureEnabled) {
-                insertTag("disabling_advertise");
-                maintenanceProcedureEnabled = false;
-                mBluetoothLeAdvertiser.stopAdvertising(mAdvCallback);
-                if(originalDeviceName != null) {
-                    if(!mBluetoothAdapter.setName(originalDeviceName)){
-                        Log.w(TAG, "Not able to restored the original BLE name");
-                        insertTag("Cannot_restore_the_original_name");
-                    }else{
-                        Log.i(TAG, "Original name restored");
-                    }
-                    originalDeviceName = null;
-                }
-                mAdvCallback = null;
-                return ErrorCode.NO_ERROR;
-            }else{ //maintenance non enabled, don't react but do not generate errors
-                Log.i(TAG, "maintenance procedure not enabled, cannot disable it");
-                return ErrorCode.NO_ERROR;
-            }
-        }else { // (Build.VERSION.SDK_INT >= 21)
-            Log.i(TAG, "Build.VERSION.SDK_INT < 21");
-            return ErrorCode.ANDROID_VERSION_NOT_COMPATIBLE_ERROR;
-        }
     }
 }

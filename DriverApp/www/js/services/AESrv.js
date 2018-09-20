@@ -188,7 +188,7 @@ angular.module('driverapp.services.ae', [])
               Utils.loading()
               APISrv.addEvents(eas,ownerId,routeId).then(
                 function (response) {
-                  console.log('[Events] Successfully uploaded to the server.')
+                  //console.log('[Events] Successfully uploaded to the server.')
                   uploadWsnLogFiles()
                 },
                 function (reason) {

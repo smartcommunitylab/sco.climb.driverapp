@@ -37,6 +37,7 @@ class ClimbLogger {
     
     func getAllLogFilePaths() -> [String] {
         
+
         //sort all the files in the logs directory by date
         var allFiles : [String]!;
         if let urlArray = try? FileManager.default.contentsOfDirectory(at: logsFolder,
@@ -88,7 +89,7 @@ class ClimbLogger {
          return result
          */
     }
-    
+    /* This is the pre-September 2018 version of startDataLog
     func startDataLog() {
         
         // Set file logging parameters
@@ -108,10 +109,38 @@ class ClimbLogger {
         log.info(logString(genericMessage: "Initializing..."))
         log.info(logString(genericMessage: "Current device: \(UIDevice.current.modelName) - \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)"))
         log.info(logString(genericMessage: "Initialized"))
+    } */
+
+    func startDataLog() {
+        
+        // if logging has not already been started, open the files - logs are started when the CLIMB API initalize is called.  If it is called more than once, we only want to open a single file (alm: september 2018)
+        if (!isLogging) {
+            // Set file logging parameters
+            let fileName = "log_\(dateFormatter.string(from: Date())).log"
+            let filePath = logsFolder.appendingPathComponent(fileName)
+        
+            //print("Date:"+dateFormatter.string(from:Date()))
+            //print("filePath:"+filePath.description)
+            fileDestination.logFileURL = filePath
+            fileDestination.format = "$Dyyyy MM dd HH mm ss$d $M"
+        
+            // Log filepath on console before start loggging on file
+            log.addDestination(fileDestination)
+            isLogging = true
+        }
+        
+        
+        // Log some system info
+        log.info(logString(genericMessage: "Initializing..."))
+        log.info(logString(genericMessage: "Current device: \(UIDevice.current.modelName) - \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)"))
+        log.info(logString(genericMessage: "Date:"+dateFormatter.string(from:Date())))
+        log.info(logString(genericMessage: "Initialized"))
     }
+
     
     func stopDataLog() {
         log.info(logString(genericMessage: "Deinitializing..."))
+        log.info(logString(genericMessage: "Date:"+dateFormatter.string(from:Date())))
         log.info(logString(genericMessage: "Deinitialized..."))
         log.removeDestination(fileDestination)
         isLogging = false

@@ -22,7 +22,22 @@ angular.module('driverapp.services.api', [])
             // $http.get(Config.SERVER_URL + '/profile', Config.getHttpConfig()).then(
             .success(
             function (response) {
-              deferred.resolve(response)
+              if (!response) response = {};
+              if (!response.ownerIds) {
+                response.ownerIds = [];
+                if (response.roles) {
+                  for (var key in response.roles) {
+                    var r = response.roles[key];
+                    if (response.ownerIds.indexOf(r[0].ownerId) < 0) {
+                      response.ownerIds.push(r[0].ownerId);
+                    }  
+                  }
+                }
+                if (response.ownerIds.length == 0) deferred.reject('INSUFFICIENT_RIGHTS');
+                else deferred.resolve(response)
+              } else {
+                deferred.resolve(response)
+              }
             }).error(
             function (reason) {
               deferred.reject(reason)

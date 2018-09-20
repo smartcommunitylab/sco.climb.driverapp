@@ -1,6 +1,6 @@
 /* global performance */
 angular.module('driverapp.controllers.route', [])
-  .controller('RouteCtrl', function ($scope, $rootScope, $stateParams, $ionicHistory, $ionicNavBarDelegate, $ionicPopup, $ionicModal, $interval, $ionicScrollDelegate, $filter, $timeout, $cordovaFile, $window, Config, Utils, StorageSrv, GeoSrv, AESrv, APISrv, WSNSrv) {
+  .controller('RouteCtrl', function ($scope, $ionicPlatform, $rootScope, $stateParams, $ionicHistory, $ionicNavBarDelegate, $ionicPopup, $ionicModal, $interval, $ionicScrollDelegate, $filter, $timeout, $cordovaFile, $window, Config, Utils, StorageSrv, GeoSrv, AESrv, APISrv, WSNSrv) {
     $scope.fromWizard = false
     $rootScope.pedibusEnabled = true
 
@@ -170,60 +170,63 @@ angular.module('driverapp.controllers.route', [])
     /*
      * populate stops
      */
-    Utils.loading()
-    APISrv.getStopsByRoute($stateParams['ownerId'], $stateParams['routeId']).then(
-      function (stops) {
-        $scope.stops = stops
-        // get children images
-        if (Utils.isConnectionFastEnough()) {
-          // download children images
-          var counter = 0
-          var downloaded = 0
-          var children = StorageSrv.getChildren()
-          var childrenByRoute = []
-          angular.forEach($scope.stops, function (stop) {
-            angular.forEach(children, function (child) {
-              if (stop.passengerList.indexOf(child.objectId) !== -1) {
-                childrenByRoute.push(child)
-              }
+    $scope.populateStops = function() {
+      Utils.loading()
+      APISrv.getStopsByRoute($stateParams['ownerId'], $stateParams['routeId']).then(
+        function (stops) {
+          $scope.stops = stops
+          // get children images
+          if (Utils.isConnectionFastEnough()) {
+            // download children images
+            var counter = 0
+            var downloaded = 0
+            var children = StorageSrv.getChildren()
+            var childrenByRoute = []
+            angular.forEach($scope.stops, function (stop) {
+              angular.forEach(children, function (child) {
+                if (stop.passengerList.indexOf(child.objectId) !== -1) {
+                  childrenByRoute.push(child)
+                }
+              })
             })
-          })
-          angular.forEach(childrenByRoute, function (child) {
-            APISrv.getChildImage(child.objectId, $scope.ownerId).then(
-              function () {
-                downloaded++
-                counter++
-                console.log('Downloaded images: ' + downloaded + ' (Total: ' + counter + '/' + children.length + ')')
-                if (counter === childrenByRoute.length) {
-                  // Select the first automatically
-                  $scope.sel.stop = $scope.stops[0]
-                  $scope.getChildrenForStop($scope.sel.stop)
-                  Utils.loaded()
+            angular.forEach(childrenByRoute, function (child) {
+              APISrv.getChildImage(child.objectId, $scope.ownerId).then(
+                function () {
+                  downloaded++
+                  counter++
+                  console.log('Downloaded images: ' + downloaded + ' (Total: ' + counter + '/' + children.length + ')')
+                  if (counter === childrenByRoute.length) {
+                    // Select the first automatically
+                    $scope.sel.stop = $scope.stops[0]
+                    $scope.getChildrenForStop($scope.sel.stop)
+                    Utils.loaded()
+                  }
+                },
+                function () {
+                  counter++
+                  if (counter === childrenByRoute.length) {
+                    // Select the first automatically
+                    $scope.sel.stop = $scope.stops[0]
+                    $scope.getChildrenForStop($scope.sel.stop)
+                    Utils.loaded()
+                  }
                 }
-              },
-              function () {
-                counter++
-                if (counter === childrenByRoute.length) {
-                  // Select the first automatically
-                  $scope.sel.stop = $scope.stops[0]
-                  $scope.getChildrenForStop($scope.sel.stop)
-                  Utils.loaded()
-                }
-              }
-            )
-          })
-        } else {
-          // Select the first automatically
-          $scope.sel.stop = $scope.stops[0]
-          $scope.getChildrenForStop($scope.sel.stop)
+              )
+            })
+          } else {
+            // Select the first automatically
+            $scope.sel.stop = $scope.stops[0]
+            $scope.getChildrenForStop($scope.sel.stop)
+            Utils.loaded()
+          }
+        },
+        function (error) {
           Utils.loaded()
+          console.log(error)
         }
-      },
-      function (error) {
-        Utils.loaded()
-        console.log(error)
-      }
-    )
+      )
+    }
+
 
     $scope.viewPrevious = function () {
       if (($scope.viewPos - 1) >= 0) {
@@ -338,9 +341,10 @@ angular.module('driverapp.controllers.route', [])
               }
             })
 
-            if (childrenWsnIds.length > 0) {
-              WSNSrv.checkoutChildren(childrenWsnIds)
-            }
+            // REMOVED AS NO USAGE IN PLUGIN 2018
+            // if (childrenWsnIds.length > 0) {
+            //   WSNSrv.checkoutChildren(childrenWsnIds)
+            // }
 
             AESrv.endRoute($scope.stops[$scope.enRoutePos], $scope.ownerId, $scope.routeId)
 
@@ -420,9 +424,10 @@ angular.module('driverapp.controllers.route', [])
         $scope.onBoardTemp.push(passengerId)
         var child = $scope.getChild(passengerId)
         AESrv.nodeCheckin(child)
-        if (child.wsnId) {
-          WSNSrv.checkinChild(child.wsnId)
-        }
+        // REMOVED AS NO USAGE IN PLUGIN 2018
+        // if (child.wsnId) {
+        //   WSNSrv.checkinChild(child.wsnId)
+        // }
       }
 
       $scope.updateMergedOnBoard()
@@ -518,9 +523,10 @@ angular.module('driverapp.controllers.route', [])
                   wsnIds.push(child.wsnId)
                 }
               })
-              if (wsnIds.length > 0) {
-                WSNSrv.checkinChildren(wsnIds)
-              }
+              // REMOVED AS NO USAGE IN PLUGIN 2018
+              // if (wsnIds.length > 0) {
+              //   WSNSrv.checkinChildren(wsnIds)
+              // }
 
               $scope.onBoardTemp = $scope.onBoardTemp.concat($scope.toBeTaken)
             }
@@ -701,4 +707,53 @@ angular.module('driverapp.controllers.route', [])
         helpersPopup.close()
       }
     }
+
+    function showHardwarePopup() {
+      var hardwarePopup = $ionicPopup.show({
+        templateUrl: 'templates/hardwarePopup.html',
+        cssClass: 'hwPopup',
+        title: 'ATTENZIONE',
+        scope: $scope,
+        buttons: [{
+          text: 'HO CAPITO',
+          type: 'button-stable'
+        }]
+      });
+    }
+    $scope.checkHardwarePopup = function () {
+      var errCb = function (error) {
+        console.error("The following error occurred: " + error);
+      }
+      Utils.isBLESupported(function (supported) {
+        //if supported check, else don't care
+        if (supported) {
+          Utils.isBluetoothEnabled(function (BTenabled) {
+            if (BTenabled) {
+              $scope.bluetoothEnabled = true;
+            } else {
+              $scope.bluetoothEnabled = false;
+            }
+            cordova.plugins.diagnostic.isLocationEnabled(function (LocationEnabled) {
+              if (LocationEnabled) {
+                $scope.locationEnabled = true;
+              } else {
+                $scope.locationEnabled = false;
+              }
+              if (!$scope.bluetoothEnabled || !$scope.locationEnabled) {
+                console.log('---- BT enabled: ' + $scope.bluetoothEnabled);
+                console.log('---- LOCATION enabled: ' + $scope.locationEnabled);
+                showHardwarePopup();
+              }
+            }, errCb);
+          }, errCb);
+        }
+      }, errCb);
+    }
+
+    $ionicPlatform.ready(function () {
+      if ($scope.checkHardwarePopup) {
+        $scope.checkHardwarePopup();
+      }
+    });
+    $scope.populateStops();
   })

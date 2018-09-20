@@ -34,7 +34,7 @@
             android:exported="false" >
         </service>
     </application>
-    <intent-filter>
-        <action android:name="fbk.climblogger.ClimbSimpleService" />
-    </intent-filter>
+    <!--<intent-filter>-->
+        <!--<action android:name="fbk.climblogger.ClimbSimpleService" />-->
+    <!--</intent-filter>-->
 </manifest>
