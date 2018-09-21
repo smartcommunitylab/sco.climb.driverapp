@@ -360,7 +360,14 @@ angular.module('driverapp', [
       error_exit_template: 'Errore nell\'inizializzazione. Verifica la connessione e riavvia l\'applicazione',
       error_exit_title: 'Errore',
       error_right_title: 'Errore di autorizzazione',
-      error_right_template: 'L\'account specificato non è associato ad un percorso. '
+      error_right_template: 'L\'account specificato non è associato ad un percorso. ',
+      credits_project:'credits_project',
+      credits_info:'credits_info',
+      credits_project: 'Un progetto di:',
+      credits_collaboration: 'In collaborazione con:',
+      credits_participation: 'Con la partecipazione di:',
+      credits_info: 'Per informazioni:',
+      credits_licenses_button: ' VEDI LICENZE'
 
 
     });
