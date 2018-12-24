@@ -9,7 +9,8 @@
     <ion-list>
       <div class="padding no-nodes" ng-if="!almostOneVisible">Nessun nodo visibile</div>
       <ion-item class="item item-avatar item-icon-right item-route-passenger" ng-repeat="child in children | orderBy : ['batteryLevel', 'surname', 'name']" ng-if="child.batteryLevel != null">
-        <img class="item-route-passenger-img" ng-src="{{child.imageUrl ? child.imageUrl : 'img/placeholder_child.png'}}" /> {{child.surname}} {{child.name}}
+        <!-- <img class="item-route-passenger-img" ng-src="{{child.imageUrl ? child.imageUrl : 'img/placeholder_child.png'}}" /> {{child.surname}} {{child.name}} -->
+        <img class="profile-image-list" http-src="{{getImageBattery(child)}}">
         <i class="icon" ng-class="{'ion-battery-full': child.batteryLevel === 3, 'ion-battery-half': child.batteryLevel === 2, 'ion-battery-low': child.batteryLevel === 1, 'ion-alert': child.batteryLevel === 0}"></i>
       </ion-item>
     </ion-list>

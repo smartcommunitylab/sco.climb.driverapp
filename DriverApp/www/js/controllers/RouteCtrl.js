@@ -170,7 +170,7 @@ angular.module('driverapp.controllers.route', [])
     /*
      * populate stops
      */
-    $scope.populateStops = function() {
+    $scope.populateStops = function () {
       Utils.loading()
       APISrv.getStopsByRoute($stateParams['ownerId'], $stateParams['routeId']).then(
         function (stops) {
@@ -544,12 +544,45 @@ angular.module('driverapp.controllers.route', [])
       })
     }
 
+
+    $scope.changeProfile = function (fromLibrary) {
+      $ionicPopup.confirm({
+        title: $filter('translate')("change_image_title"),
+        template: $filter('translate')("change_image_template"),
+        buttons: [{
+            text: $filter('translate')("btn_close"),
+            type: 'button-cancel'
+          },
+          {
+            text: $filter('translate')("change_image_confirm"),
+            type: 'button-custom',
+            onTap: function () {
+              $scope.choosePhoto(fromLibrary);
+
+            }
+          }
+        ]
+      });
+    }
+    $scope.getImageUrl = function () {
+      return Config.SERVER_URL + '/child/image/download/' + $scope.singlechild.ownerId + '/' + $scope.singlechild.objectId+'?timestamp='+Utils.getImageTimestamp($scope.singlechild.ownerId,$scope.singlechild.objectId);
+    }
+    $scope.getImageFooter = function (child) {
+      return Config.SERVER_URL + '/child/image/download/' + child.ownerId + '/' + child.objectId+'?timestamp='+Utils.getImageTimestamp(child.ownerId,child.objectId);
+    }
+    $scope.getImageList = function(child) {
+      return Config.SERVER_URL + '/child/image/download/' + child.ownerId + '/' + child.objectId+'?timestamp='+Utils.getImageTimestamp(child.ownerId,child.objectId);
+    }
+    $scope.choosePhoto = function (fromLibrary) {
+      Utils.chooseAndUploadPhoto($scope.singlechild.ownerId, $scope.singlechild.objectId, fromLibrary, APISrv.uploadFileImage);
+    }
     /*
      * Child details popup
      */
     $scope.showChildDetails = function (child) {
-      $scope.phone = (child.parentName ? child.parentName + ': ' + child.phone : child.phone)
-
+      $scope.parentDisplayName = child.parentName;
+      $scope.phone = child.phone;
+      $scope.singlechild = child;
       // var detailsPopup =
       $ionicPopup.alert({
         title: child.surname + ' ' + child.name,

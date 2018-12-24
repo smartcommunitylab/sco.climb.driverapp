@@ -68,7 +68,7 @@ angular.module('driverapp.controllers.home', [])
       return $scope.driverName
     }
 
- 
+
     $scope.showModalVolunteers = function () {
       if (!$scope.modalVolunteers) {
         $ionicModal.fromTemplateUrl('templates/app_modal_volunteers.html', {
@@ -80,7 +80,7 @@ angular.module('driverapp.controllers.home', [])
 
         })
       } else {
-      $scope.modalVolunteers.show();
+        $scope.modalVolunteers.show();
       }
     }
     $ionicModal.fromTemplateUrl('templates/app_modal_maintenance.html', {
@@ -102,7 +102,7 @@ angular.module('driverapp.controllers.home', [])
         date.setDate(date.getDate() + 1)
       }
       $scope.modalBatteries.hide();
-          $scope.modalMaintenance.show();
+      $scope.modalMaintenance.show();
       // WSNSrv.enableMaintenanceProcedure(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 0).then(
       //   function () {
       //     $scope.modalBatteries.hide();
@@ -114,6 +114,9 @@ angular.module('driverapp.controllers.home', [])
       //   }
       // )
 
+    }
+    $scope.getImageBattery = function (child) {
+      return Config.SERVER_URL + '/child/image/download/' + child.ownerId + '/' + child.objectId + '?timestamp=' + Utils.getImageTimestamp(child.ownerId, child.objectId);
     }
     $scope.openBatteryMonitor = function () {
       $ionicModal.fromTemplateUrl('templates/app_modal_batteries.html', {
@@ -255,12 +258,14 @@ angular.module('driverapp.controllers.home', [])
                 route: $scope.route,
                 helpers: $scope.helpers
               }, {
-                  reload: true
-                });
-            }, function (err) {
+                reload: true
+              });
+            },
+            function (err) {
               $scope.showErrorAndExit();
             })
-        }, function (err) {
+        },
+        function (err) {
           hideLoading();
           $scope.showErrorAndExit();
 
@@ -273,7 +278,7 @@ angular.module('driverapp.controllers.home', [])
       }
       $rootScope.driver = $scope.driver;
 
-      
+
       // REMOVED AS NO USAGE IN PLUGIN 2018
       // if ($scope.driver.wsnId !== null && $scope.driver.wsnId.length > 0) {
       //   WSNSrv.connectMaster($scope.driver.wsnId).then(
@@ -284,7 +289,7 @@ angular.module('driverapp.controllers.home', [])
       //     }
       //   );
       // }
-      
+
       //$scope.resizeHelpersList();
     }
 
@@ -380,7 +385,32 @@ angular.module('driverapp.controllers.home', [])
         scope: $scope,
         buttons: []
       });
+      $scope.loadAllVolunteers = function (step) {
+        APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId).then(
+          function (volunteers) {
+            console.log(volunteers);
+            hideLoading();
+            $scope.volunteers = volunteers;
+            //sortedVolunteers();
+            StorageSrv.saveVolunteers(volunteers).then(function (volunteers) {
+              if (step == 'driver') {
+                $scope.alldrivers = true;
+              } else {
+                $scope.allhelpers = true;
+              }
 
+            }, function (err) {
+              $scope.showErrorAndExit();
+
+            })
+          },
+          function (err) {
+            console.log(err);
+            hideLoading();
+            $scope.showErrorAndExit();
+
+          });
+      }
       $scope.selectVolunteer = function (volunteer) {
         $scope.driver = volunteer;
         deferred.resolve();
@@ -390,7 +420,7 @@ angular.module('driverapp.controllers.home', [])
     }
     goWithDriver = function () {
       loadingWithMessage($filter('translate')('home_get_vol'));
-      APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId).then(
+      APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId, $scope.route.objectId).then(
         function (volunteers) {
           console.log(volunteers);
           hideLoading();
@@ -572,7 +602,7 @@ angular.module('driverapp.controllers.home', [])
     }
     $scope.initProfile = function () {
       //get profile
-      $scope.deregisterBackButton = $ionicPlatform.registerBackButtonAction(function(e){}, 401);
+      $scope.deregisterBackButton = $ionicPlatform.registerBackButtonAction(function (e) {}, 401);
       loadingWithMessage($filter('translate')('home_get_profile'));
       APISrv.getProfile().then(function (profile) {
         console.log(profile);
@@ -597,7 +627,7 @@ angular.module('driverapp.controllers.home', [])
             template: $filter('translate')('error_right_template'),
             okText: 'Logout'
           });
-    
+
           alertPopup.then(function (res) {
             Config.resetIdentity()
             StorageSrv.clearIdentity()
@@ -628,24 +658,22 @@ angular.module('driverapp.controllers.home', [])
     $scope.getCount = function (num) {
       return new Array(num);
     };
-    $scope.tutorialSlides = [
-      {
-        image: 'img/1.png',
-        text: 'Segui la procedura per cambíare in modo corretto la batteria del gadget.'
-      }, {
-        image: 'img/2.png',
-        text: 'Apri il gadget servendoti di un cacciavite.'
-      }, {
-        image: 'img/3.png',
-        text: 'Togli la scheda e il cuscinetto di protezione dalla busta trasparente.'
-      }, {
-        image: 'img/4.png',
-        text: 'Estrai la batteria dalla scheda e sostituiscila con la nuova, controlla che i segni \'+\' delle batteria e dell\'alloggiamento batteria combacino.'
-      }, {
-        image: 'img/5.png',
-        text: 'Il Led rosso lampeggerà per 30 secondi, dopodiché il dispositivo è pronto. Riassembla i componenti, reinserendoli nella busta trasparente e di seguito nel case plastico.'
-      }
-    ]
+    $scope.tutorialSlides = [{
+      image: 'img/1.png',
+      text: 'Segui la procedura per cambíare in modo corretto la batteria del gadget.'
+    }, {
+      image: 'img/2.png',
+      text: 'Apri il gadget servendoti di un cacciavite.'
+    }, {
+      image: 'img/3.png',
+      text: 'Togli la scheda e il cuscinetto di protezione dalla busta trasparente.'
+    }, {
+      image: 'img/4.png',
+      text: 'Estrai la batteria dalla scheda e sostituiscila con la nuova, controlla che i segni \'+\' delle batteria e dell\'alloggiamento batteria combacino.'
+    }, {
+      image: 'img/5.png',
+      text: 'Il Led rosso lampeggerà per 30 secondi, dopodiché il dispositivo è pronto. Riassembla i componenti, reinserendoli nella busta trasparente e di seguito nel case plastico.'
+    }]
     $scope.currentText = $scope.tutorialSlides[0].text;
 
     function changeCurrentText(index) {
