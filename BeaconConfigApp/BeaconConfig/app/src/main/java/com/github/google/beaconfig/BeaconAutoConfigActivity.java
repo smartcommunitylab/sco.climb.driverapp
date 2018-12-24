@@ -295,12 +295,12 @@ public class BeaconAutoConfigActivity extends AppCompatActivity {
                 String unlock_password = conf.getUnlockPassword();
                 if(unlock_password != null) {
                     commonPasswords.add(unlock_password);
-                }else{
-                    commonPasswords.add("b2687b1cb09da0bffece543ae61ac2f5"); //blueup default
-                    commonPasswords.add("00000000000000000000000000000000");
-                    commonPasswords.add("ffffffffffffffffffffffffffffffff");
-                    commonPasswords.add("000102030405060708090A0B0C0D0E0F");
                 }
+                commonPasswords.add("b2687b1cb09da0bffece543ae61ac2f5"); //blueup default
+                commonPasswords.add("00000000000000000000000000000000");
+                commonPasswords.add("ffffffffffffffffffffffffffffffff");
+                commonPasswords.add("000102030405060708090A0B0C0D0E0F");
+
 
 //                commonPasswords.add("00102030405060708090A0B0C0D0E0F0");
 //                commonPasswords.add("F0E0D0C0B0A090807096050403020100");
