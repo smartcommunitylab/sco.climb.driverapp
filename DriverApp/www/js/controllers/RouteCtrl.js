@@ -26,7 +26,7 @@ angular.module('driverapp.controllers.route', [])
     $scope.driver = null
     $scope.helpers = []
     $scope.helpersTemp = []
-
+    $scope.allhelpers = false;
     $rootScope.route = {}
     $scope.stops = []
     $scope.onBoardTemp = []
@@ -565,13 +565,13 @@ angular.module('driverapp.controllers.route', [])
       });
     }
     $scope.getImageUrl = function () {
-      return Config.SERVER_URL + '/child/image/download/' + $scope.singlechild.ownerId + '/' + $scope.singlechild.objectId+'?timestamp='+Utils.getImageTimestamp($scope.singlechild.ownerId,$scope.singlechild.objectId);
+      return Config.SERVER_URL + '/child/image/download/' + $scope.singlechild.ownerId + '/' + $scope.singlechild.objectId + '?timestamp=' + Utils.getImageTimestamp($scope.singlechild.ownerId, $scope.singlechild.objectId);
     }
     $scope.getImageFooter = function (child) {
-      return Config.SERVER_URL + '/child/image/download/' + child.ownerId + '/' + child.objectId+'?timestamp='+Utils.getImageTimestamp(child.ownerId,child.objectId);
+      return Config.SERVER_URL + '/child/image/download/' + child.ownerId + '/' + child.objectId + '?timestamp=' + Utils.getImageTimestamp(child.ownerId, child.objectId);
     }
-    $scope.getImageList = function(child) {
-      return Config.SERVER_URL + '/child/image/download/' + child.ownerId + '/' + child.objectId+'?timestamp='+Utils.getImageTimestamp(child.ownerId,child.objectId);
+    $scope.getImageList = function (child) {
+      return Config.SERVER_URL + '/child/image/download/' + child.ownerId + '/' + child.objectId + '?timestamp=' + Utils.getImageTimestamp(child.ownerId, child.objectId);
     }
     $scope.choosePhoto = function (fromLibrary) {
       Utils.chooseAndUploadPhoto($scope.singlechild.ownerId, $scope.singlechild.objectId, fromLibrary, APISrv.uploadFileImage);
@@ -739,6 +739,22 @@ angular.module('driverapp.controllers.route', [])
         // $scope.helpers = $scope.helpersTemp; // here I align the helpers
         helpersPopup.close()
       }
+    }
+    $scope.loadAllHelpers = function () {
+      Utils.loading();
+      APISrv.getVolunteersBySchool($scope.ownerId, $rootScope.route.instituteId, $rootScope.route.schoolId).then(
+        function (volunteers) {
+          Utils.loaded();
+          $scope.allhelpers = true;
+          $scope.volunteers = volunteers;
+          StorageSrv.saveVolunteers(volunteers).then(function (volunteers) {
+
+          })
+        },
+        function (err) {
+          console.log(err);
+          Utils.loaded()
+        });
     }
 
     function showHardwarePopup() {

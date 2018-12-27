@@ -188,6 +188,8 @@ angular.module('driverapp.controllers.home', [])
     $scope.schools = [];
     $scope.routes = [];
     $scope.volunteers = null;
+    allVolunteers = null;
+    lineVolunteers =null;
 
     var calendars = [];
 
@@ -322,13 +324,30 @@ angular.module('driverapp.controllers.home', [])
 
       return deferred.promise;
     }
-    goWithHelpers = function () {
+    popupHelpers = function () {
       selectHelpers().then(
         function () {
           selectedHelpers();
           goWithChildren();
         }
       )
+    }
+    goWithHelpers = function () {
+      $scope.volunteers=lineVolunteers;
+      popupHelpers();
+      // if ($scope.alldrivers) {
+      //   APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId, $scope.route.objectId).then(
+      //     function (volunteers) {
+      //       console.log(volunteers);
+      //       hideLoading();
+      //       lineVolunteers = volunteers;
+      //       $scope.volunteers = volunteers;
+      //       popupHelpers();
+      //     });
+
+      // } else {
+      //   popupHelpers();
+      // }
     }
 
 
@@ -386,27 +405,23 @@ angular.module('driverapp.controllers.home', [])
         buttons: []
       });
       $scope.loadAllVolunteers = function (step) {
+        Utils.loading();
         APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId).then(
           function (volunteers) {
             console.log(volunteers);
-            hideLoading();
-            $scope.volunteers = volunteers;
+            Utils.loaded();
+            allVolunteers = volunteers;
+            $scope.volunteers = allVolunteers;
             //sortedVolunteers();
-            StorageSrv.saveVolunteers(volunteers).then(function (volunteers) {
-              if (step == 'driver') {
-                $scope.alldrivers = true;
-              } else {
-                $scope.allhelpers = true;
-              }
-
-            }, function (err) {
-              $scope.showErrorAndExit();
-
-            })
+            if (step == 'driver') {
+              $scope.alldrivers = true;
+            } else {
+              $scope.allhelpers = true;
+            }
           },
           function (err) {
             console.log(err);
-            hideLoading();
+            Utils.loaded();
             $scope.showErrorAndExit();
 
           });
@@ -424,6 +439,7 @@ angular.module('driverapp.controllers.home', [])
         function (volunteers) {
           console.log(volunteers);
           hideLoading();
+          lineVolunteers = volunteers;
           $scope.volunteers = volunteers;
           //sortedVolunteers();
           StorageSrv.saveVolunteers(volunteers).then(function (volunteers) {
