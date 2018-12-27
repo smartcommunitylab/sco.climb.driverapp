@@ -1,0 +1,22 @@
+{
+    "TRENTO": {
+        "resource_folder": "config/instances/TRENTO",
+        "widget_id": "it.smartcommunitylab.climb.driverapp",
+        "version": "1.0.4",
+        "version_code": "1000133",
+        "app_name": "CLIMB Driver App",
+        "REVERSED_CLIENT_ID":"com.googleusercontent.apps.453601816446-tvtmoe6oftsqjnbj5blcgee6qjqq42ku",
+        "APP_ID":"493172441063173",
+        "APP_NAME":"CLIMB"
+    },
+    "FERRARA": {
+        "resource_folder": "config/instances/FERRARA",
+        "widget_id": "it.smartcommunitylab.climb.driverapp.ferrara",
+        "version": "1.0.1",
+        "version_code": "100014",
+        "app_name": "CLIMB Ferrara",
+        "REVERSED_CLIENT_ID":"com.googleusercontent.apps.453601816446-kfscpc9ekrqq7chga6l0fd4fejpr97sv",
+        "APP_ID":"319908588815694",
+        "APP_NAME":"CLIMB Ferrara"
+    }
+}

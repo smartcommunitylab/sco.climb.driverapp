@@ -9,7 +9,7 @@
             </ion-nav-buttons>
             <span class="title"></span>
             <ion-nav-buttons side="right">
-                <button class="button button-icon icon ion-battery-low button-battery-alarm" ng-if="batteryAlarm" ng-click="openBatteryMonitor()"></button>
+            <button class="button button-icon icon ion-battery-low button-battery-alarm" ng-if="batteryAlarm" ng-click="openBatteryMonitor()"></button>
             </ion-nav-buttons>
         </ion-nav-bar>
         <ion-nav-view name="menuContent"></ion-nav-view>
@@ -61,36 +61,6 @@
                         Modalità manutenzione
                     </div>
                 </ion-item>
-                <!-- FIXME dev only! -->
-                <!--
-                <ion-item nav-clear ng-click="WSNSrvGetMasters()">
-                    GET MASTERS
-                </ion-item>
-                <ion-item nav-clear ng-click="WSNSrvConnectMaster('B0:B4:48:BD:8C:02')">
-                    CONNECT MASTER
-                </ion-item>
-                <ion-item nav-clear ng-click="WSNSrvConnectMaster('B0:B4:48:BE:17:85')">
-                    CONNECT MASTER 2
-                </ion-item>
-                <ion-item nav-clear ng-click="WSNSrvSetNodeList()">
-                    SET NODE LIST
-                </ion-item>
-                <ion-item nav-clear ng-click="WSNSrvGetNetworkState()">
-                    GET NETWORK STATE
-                </ion-item>
-                <ion-item nav-clear menu-close href ng-click="uploadFile()">
-                    <i class="icon ion-alert-circled"></i>
-                    <div class="menu-link-wrapper">
-                        Upload file
-                    </div>
-                </ion-item>
-                -->
-                <!--<ion-item nav-clear menu-close href ng-click="WSNSrvCheckMaster()">
-                    <i class="icon ion-alert-circled"></i>
-                    <div class="menu-link-wrapper">
-                        <span ng-class="{'warning': masterError == true}">Diagnostica</span>
-                    </div>
-                </ion-item>-->
                 <ion-item nav-clear menu-close href ng-click="logout()">
                     <i class="icon ion-log-out"></i>
                     <div class="menu-link-wrapper">
@@ -101,12 +71,6 @@
                     <i class="icon ion-close"></i>
                     <div class="menu-link-wrapper">
                         Chiudi l'app
-                    </div>
-                </ion-item>
-                <ion-item nav-clear menu-close href ng-click="openCredits()">
-                    <i class="icon ion-ios-information"></i>
-                    <div class="menu-link-wrapper">
-                        Credits
                     </div>
                 </ion-item>
             </ion-list>

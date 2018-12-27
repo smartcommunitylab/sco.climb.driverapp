@@ -21,7 +21,7 @@ angular.module('driverapp', [
   'driverapp.controllers.img'
 ])
 
-  .run(function ($ionicPlatform, $rootScope, $state, $translate, $ionicHistory, $ionicPopup, $window, GeoSrv, Config, Utils, StorageSrv, WSNSrv, APISrv, LoginService) {
+  .run(function ($ionicPlatform, $rootScope, $state, $translate, $ionicHistory, $ionicPopup, $ionicModal, GeoSrv, Config, Utils, StorageSrv, WSNSrv, APISrv, LoginService) {
     $ionicPlatform.ready(function () {
       // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
       // for form inputs)
@@ -136,8 +136,21 @@ angular.module('driverapp', [
           )
         }
       }
+      $ionicModal.fromTemplateUrl('templates/credits.html', {
+        id: '3',
+        scope: $rootScope,
+        backdropClickToClose: false,
+        animation: 'slide-in-up'
+      }).then(function (modal) {
+        $rootScope.creditsModal = modal;
+      });
 
-
+      $rootScope.openCredits = function () {
+        $rootScope.creditsModal.show();
+      };
+      $rootScope.closeCredits = function () {
+        $rootScope.creditsModal.hide();
+      };
 
       // TODO CHECK BLUETOOTH STATE, ACTIVATE LISTENER AND CALL START WSN SERVICE / STOP WSN SERVICE
 
@@ -353,7 +366,13 @@ angular.module('driverapp', [
       change_image_template:'Vuoi cambiare l\'immagine del profilo?',
       btn_close:'Annulla',
       change_image_confirm:'Conferma',
-
+      credits_project:'credits_project',
+      credits_info:'credits_info',
+      credits_project: 'Un progetto di:',
+      credits_collaboration: 'In collaborazione con:',
+      credits_participation: 'Con la partecipazione di:',
+      credits_info: 'Per informazioni:',
+      credits_licenses_button: ' VEDI LICENZE'
 
     });
 
