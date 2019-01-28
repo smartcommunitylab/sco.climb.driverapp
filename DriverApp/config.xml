@@ -79,8 +79,15 @@
     </platform>
     <icon src="config/instances/FERRARA/resources/android/icon/drawable-xhdpi-icon.png" />
     <preference name="SplashShowOnlyFirstTime" value="false" />
-    <engine name="ios" spec="4.5.5" />
-    <engine name="android" spec="~6.4.0" />
+    <plugin name="cordova-plugin-googleplus" spec="git+https://github.com/EddyVerbruggen/cordova-plugin-googleplus.git">
+        <variable name="REVERSED_CLIENT_ID" value="com.googleusercontent.apps.453601816446-tvtmoe6oftsqjnbj5blcgee6qjqq42ku" />
+        <variable name="APP_ID" value="493172441063173" />
+        <variable name="APP_NAME" value="CLIMB" />
+    </plugin>
+    <plugin name="cordova-plugin-facebook4" spec="^1.10.1">
+        <variable name="APP_ID" value="493172441063173" />
+        <variable name="APP_NAME" value="CLIMB" />
+    </plugin>
     <plugin name="cordova-plugin-device" spec="^2.0.2" />
     <plugin name="cordova-plugin-console" spec="^1.1.0" />
     <plugin name="cordova-plugin-inappbrowser" spec="^3.0.0" />
@@ -111,14 +118,6 @@
         <variable name="XWALK_MODE" value="embedded" />
         <variable name="XWALK_MULTIPLEAPK" value="true" />
     </plugin>
-    <plugin name="cordova-plugin-googleplus" spec="git+https://github.com/EddyVerbruggen/cordova-plugin-googleplus.git">
-        <variable name="PLAY_SERVICES_VERSION" value="11.8.0" />
-        <variable name="REVERSED_CLIENT_ID" value="com.googleusercontent.apps.453601816446-tvtmoe6oftsqjnbj5blcgee6qjqq42ku" />
-        <variable name="APP_ID" value="493172441063173" />
-        <variable name="APP_NAME" value="CLIMB" />
-    </plugin>
-    <plugin name="cordova-plugin-facebook4" spec="^1.10.1">
-        <variable name="APP_ID" value="493172441063173" />
-        <variable name="APP_NAME" value="CLIMB" />
-    </plugin>
+    <engine name="ios" spec="4.5.5" />
+    <engine name="android" spec="~6.4.0" />
 </widget>

@@ -746,10 +746,19 @@ angular.module('driverapp.controllers.route', [])
         function (volunteers) {
           Utils.loaded();
           $scope.allhelpers = true;
+          if ($scope.driver && $scope.driver.objectId) {
+            volunteers = volunteers.filter(element => element.objectId != $scope.driver.objectId);
+          }
+          oldVolunteers = $scope.volunteers;
           $scope.volunteers = volunteers;
-          StorageSrv.saveVolunteers(volunteers).then(function (volunteers) {
-
+          $scope.volunteers.forEach(function (selectedVoulunteer) {
+            for (var i = 0; i < oldVolunteers.length; i++) {
+              if (oldVolunteers[i].objectId === selectedVoulunteer.objectId) {
+                selectedVoulunteer.checked = true
+              }
+            }
           })
+          StorageSrv.saveVolunteers(volunteers).then(function (volunteers) {})
         },
         function (err) {
           console.log(err);

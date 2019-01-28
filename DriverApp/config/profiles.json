@@ -2,8 +2,8 @@
     "TRENTO": {
         "resource_folder": "config/instances/TRENTO",
         "widget_id": "it.smartcommunitylab.climb.driverapp",
-        "version": "1.0.4",
-        "version_code": "1000133",
+        "version": "1.0.5",
+        "version_code": "1000134",
         "app_name": "CLIMB Driver App",
         "REVERSED_CLIENT_ID":"com.googleusercontent.apps.453601816446-tvtmoe6oftsqjnbj5blcgee6qjqq42ku",
         "APP_ID":"493172441063173",

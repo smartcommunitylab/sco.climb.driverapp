@@ -189,7 +189,7 @@ angular.module('driverapp.controllers.home', [])
     $scope.routes = [];
     $scope.volunteers = null;
     allVolunteers = null;
-    lineVolunteers =null;
+    lineVolunteers = null;
 
     var calendars = [];
 
@@ -307,17 +307,19 @@ angular.module('driverapp.controllers.home', [])
           type: 'button-stable',
           onTap: function (e) {
             $scope.helpers = [];
-            var items = 0;
+            // var items = 0;
             $scope.volunteers.forEach(function (vol, index, array) {
               if (vol.checked) {
                 $scope.helpers.push(vol);
               }
-              items++;
-              if (items == array.length) {
-                deferred.resolve();
-                volunteerPopup.close();
-              }
+              // items++;
+              // if (items == array.length) {
+                // deferred.resolve();
+                // volunteerPopup.close();
+              // }
             });
+            deferred.resolve();
+            volunteerPopup.close();
           }
         }]
       });
@@ -333,21 +335,9 @@ angular.module('driverapp.controllers.home', [])
       )
     }
     goWithHelpers = function () {
-      $scope.volunteers=lineVolunteers;
+      $scope.volunteers = lineVolunteers.filter(element => element.objectId != $scope.driver.objectId);
+      //filter using $scope.driver.objectId
       popupHelpers();
-      // if ($scope.alldrivers) {
-      //   APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId, $scope.route.objectId).then(
-      //     function (volunteers) {
-      //       console.log(volunteers);
-      //       hideLoading();
-      //       lineVolunteers = volunteers;
-      //       $scope.volunteers = volunteers;
-      //       popupHelpers();
-      //     });
-
-      // } else {
-      //   popupHelpers();
-      // }
     }
 
 
@@ -410,8 +400,13 @@ angular.module('driverapp.controllers.home', [])
           function (volunteers) {
             console.log(volunteers);
             Utils.loaded();
-            allVolunteers = volunteers;
-            $scope.volunteers = allVolunteers;
+            $scope.volunteers = volunteers;
+            if ($scope.driver && $scope.driver.objectId) {
+              allVolunteers = volunteers.filter(element => element.objectId != $scope.driver.objectId);
+              $scope.volunteers = allVolunteers;
+            }
+            //allVolunteers = volunteers;
+            //$scope.volunteers = allVolunteers;
             //sortedVolunteers();
             if (step == 'driver') {
               $scope.alldrivers = true;
