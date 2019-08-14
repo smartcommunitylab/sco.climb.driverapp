@@ -25,7 +25,7 @@ if (rootdir) {
   console.log("replace key: APP_NAME with val: " + APP_NAME);
 
   exec('cordova plugin rm cordova-plugin-googleplus');
-  exec('cordova plugin add https://github.com/EddyVerbruggen/cordova-plugin-googleplus --variables REVERSED_CLIENT_ID=' + REVERSED_CLIENT_ID);
+  exec('cordova plugin add https://github.com/EddyVerbruggen/cordova-plugin-googleplus --variable REVERSED_CLIENT_ID=' + REVERSED_CLIENT_ID);
   exec('cordova plugin rm cordova-plugin-facebook4');
-  exec('cordova plugin add cordova-plugin-facebook4@1.7.4 --variables APP_ID=' + APP_ID + ' --variables APP_NAME=' + APP_NAME);
+  exec('cordova plugin add cordova-plugin-facebook4 --variable APP_ID=' + APP_ID + ' --variable APP_NAME=' + APP_NAME);
 }
