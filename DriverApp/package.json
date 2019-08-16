@@ -9,6 +9,7 @@
     "cordova": "^8.0.0",
     "cordova-android": "6.4.0",
     "cordova-android-support-gradle-release": "3.0.1",
+    "cordova-common": "^3.2.0",
     "cordova-ios": "4.5.5",
     "cordova-plugin-add-swift-support": "2.0.2",
     "cordova-plugin-camera": "4.1.0",
@@ -95,8 +96,8 @@
   ],
   "cordova": {
     "platforms": [
-      "android",
-      "ios"
+      "ios",
+      "android"
     ],
     "plugins": {
       "cordova-plugin-crop": {},
@@ -132,7 +133,8 @@
       "ionic-plugin-keyboard": {},
       "it.smartcommunitylab.climb.dap": {},
       "cordova-plugin-googleplus": {
-        "REVERSED_CLIENT_ID": "com.googleusercontent.apps.453601816446-tvtmoe6oftsqjnbj5blcgee6qjqq42ku"
+        "REVERSED_CLIENT_ID": "com.googleusercontent.apps.453601816446-tvtmoe6oftsqjnbj5blcgee6qjqq42ku",
+        "PLAY_SERVICES_VERSION": "11.8.0"
       },
       "cordova-plugin-facebook4": {
         "APP_ID": "493172441063173",
