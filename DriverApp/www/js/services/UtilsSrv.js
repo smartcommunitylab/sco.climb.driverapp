@@ -87,6 +87,21 @@ angular.module('driverapp.services.utils', [])
       Utils.loaded = function () {
         $ionicLoading.hide()
       }
+      Utils.loadingWithMessage = function (label) {
+        $ionicLoading.show({
+          template: '<ion-spinner></ion-spinner> <br/> ' + label
+        });
+      }
+      Utils.showErrorAndExit = function () {
+        var alertPopup = $ionicPopup.alert({
+          title: $filter('translate')('error_exit_title'),
+          template: $filter('translate')('error_exit_template')
+        });
+  
+        alertPopup.then(function (res) {
+          ionic.Platform.exitApp();
+        });
+      }
 
       Utils.setMenuDriverTitle = function (drivername) {
         // driver_names = drivername.split(' ');
@@ -108,7 +123,7 @@ angular.module('driverapp.services.utils', [])
       }
 
       Utils.isBLESupported = function (cbs, cbe) {
-        if (ionic.Platform.isAndroid()) {
+        if (ionic.Platform.isAndroid() && window.cordova) {
           cordova.plugins.diagnostic.hasBluetoothLESupport(cbs, cbe);
         } else if (ionic.Platform.isIOS()) {
           var version = ionic.Platform.version();
@@ -149,7 +164,6 @@ angular.module('driverapp.services.utils', [])
       Utils.wsnPluginEnabled = function () {
         return window.DriverAppPlugin && (ionic.Platform.isAndroid() || ionic.Platform.isIOS());
       }
-
 
       Utils.chooseAndUploadPhoto = function (ownerId, objectId, photoLibrary, callback) {
         Utils.loading()

@@ -58,8 +58,6 @@ angular.module('driverapp.controllers.home', [])
       }
     }
 
-
-
     // FIXME load schools
     // StorageSrv.saveSchool(CONF.DEV_SCHOOL);
 
@@ -103,17 +101,6 @@ angular.module('driverapp.controllers.home', [])
       }
       $scope.modalBatteries.hide();
       $scope.modalMaintenance.show();
-      // WSNSrv.enableMaintenanceProcedure(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 0).then(
-      //   function () {
-      //     $scope.modalBatteries.hide();
-      //     $scope.modalMaintenance.show();
-      //   },
-      //   function (error) {
-      //     Utils.toast('Non è possibile avviare la procedura di manutenzione')
-      //     console.log(error)
-      //   }
-      // )
-
     }
     $scope.getImageBattery = function (child) {
       return Config.SERVER_URL + '/child/image/download/' + child.ownerId + '/' + child.objectId + '?timestamp=' + Utils.getImageTimestamp(child.ownerId, child.objectId);
@@ -139,33 +126,12 @@ angular.module('driverapp.controllers.home', [])
 
       // TODO
       $scope.modalMaintenance.show()
-
-      // WSNSrv.enableMaintenanceProcedure(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 0).then(
-      //   function () {
-      //     $scope.modalMaintenance.show()
-      //   },
-      //   function (error) {
-      //     Utils.toast('Non è possibile avviare la procedura di manutenzione')
-      //     console.log(error)
-      //   }
-      // )
     }
 
     $scope.stopMaintenanceMode = function () {
       // TODO
       $scope.modalMaintenance.hide();
       $rootScope.showTutorial = false;
-
-      // WSNSrv().then(
-      //   function () {
-      //     $scope.modalMaintenance.hide();
-      //     $rootScope.showTutorial = false;
-      //   },
-      //   function (error) {
-      //     Utils.toast('Non è possibile fermare la procedura di manutenzione')
-      //     console.log(error)
-      //   }
-      // )
     }
 
 
@@ -179,74 +145,89 @@ angular.module('driverapp.controllers.home', [])
 
     $scope.swiperOptions = Config.WIZARD_SLIDER_OPTIONS;
 
-    var INDEXES = {
-      'schools': 0,
-      'volunteers': 1,
-      'helpers': 2
-    };
-
     $scope.schools = [];
     $scope.routes = [];
     $scope.volunteers = null;
-    allVolunteers = null;
-    lineVolunteers = null;
-
-    var calendars = [];
-
-    $scope.wizard = {
-      school: null,
-      driver: null,
-      route: null,
-      helpers: []
-    };
-
-    $scope.resizeHelpersList = function () {
-      $scope.helpersListStyle = {};
-      /* 44 header, 60 helptext, 44 footer */
-      var logoHeight = angular.element(document.querySelector('.dapp-logo'))[0].offsetHeight;
-      var helpTextHeight = angular.element(document.querySelector('#helptext-helpers'))[0].offsetHeight;
-      var height = $window.innerHeight - (44 + logoHeight + helpTextHeight + 44);
-      $scope.helpersListStyle['height'] = height + 'px';
-    };
-
-    loadingWithMessage = function (label) {
-      $ionicLoading.show({
-        template: '<ion-spinner></ion-spinner> <br/> ' + label
+    $scope.lineVolunteers = null;
+    
+    /**
+     * A generic wizard list selection popup. 
+     * Optional 'mapping' function to transform list item in object with 'name' attribute. Default 'identity' function.
+     * Optional 'loadAllFn' function to be used to load all possible values. Should return promise that resolves to the list of objects. Default null.
+     */
+    selectionPopup = function(title, list, mapping, loadAllFn) {
+      var deferred = $q.defer();
+      var mapped = mapping ? list.map(mapping) : list;
+      mapped.sort(function(a,b) {
+        return a.name.localeCompare(b.name);
       });
-    }
-    hideLoading = function () {
-      $ionicLoading.hide();
-    }
+      $scope.selectionPopupList = mapped;
+      if (loadAllFn) {
+        $scope.loadAll = function() {
+          Utils.loading();
+          loadAllFn().then(function(list) {
+            var mapped = mapping ? list.map(mapping) : list;
+            mapped.sort(function(a,b) {
+              return a.name.localeCompare(b.name);
+            });
+            $scope.selectionPopupList = mapped;
+            $scope.loadMore = false;
+            Utils.loaded();
+          }, function(err) {
+            console.error(err);
+            Utils.loaded();
+          });
+        };
+      }  
+      if (!list || list.length == 0) {
+        if ($scope.loadAll) {
+          $scope.loadAll();
+        }
+      } else {
+        $scope.loadMore = !!$scope.loadAll;
+      }
 
-    $scope.showErrorAndExit = function () {
-      var alertPopup = $ionicPopup.alert({
-        title: $filter('translate')('error_exit_title'),
-        template: $filter('translate')('error_exit_template')
+      var popup = $ionicPopup.show({
+        templateUrl: 'templates/home_popup_selection.html',
+        title: title,
+        scope: $scope,
+        buttons: []
       });
 
-      alertPopup.then(function (res) {
-        ionic.Platform.exitApp();
-      });
+      $scope.selected = function (item) {
+        deferred.resolve(item);
+        popup.close();
+      };
+      return deferred.promise;
     }
+
+    /** 
+     * Error handler for wizard
+     */
+    wizardError = function(err) {
+        console.log(err);
+        Utils.loaded();
+        Utils.showErrorAndExit();
+    }
+
+    /**
+     * Wizzard 6: populate list of children for the selected school
+     */
     goWithChildren = function () {
-      loadingWithMessage($filter('translate')('home_get_children'));
+      if (!$scope.driver.wsnId) {
+        $scope.driver.wsnId = CONF.DEV_MASTER;
+      }
+      $rootScope.driver = $scope.driver;
+
+      Utils.loadingWithMessage($filter('translate')('home_get_children'));
       APISrv.getChildrenBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId).then(
         function (children) {
-          hideLoading();
+          Utils.loaded();
           StorageSrv.saveChildren(children).then(
             function (children) {
               WSNSrv.updateNodeList(children, 'child')
-              //deferred.resolve()
-
-              // $scope.routes = StorageSrv.getRoutes();
-              // if ($scope.routes != null && $scope.routes.length == 1) {
-              //   $scope.wizard.route = $scope.routes[0];
-              // }
-              // $scope.volunteers = StorageSrv.getVolunteers();
-              // calendars = StorageSrv.getVolunteersCalendars();
               $ionicSlideBoxDelegate.update();
               Utils.loaded();
-              // Utils.setMenuDriverTitle($scope.wizard.driver.name);
 
               $ionicHistory.nextViewOptions({
                 historyRoot: true
@@ -262,376 +243,183 @@ angular.module('driverapp.controllers.home', [])
               }, {
                 reload: true
               });
-            },
-            function (err) {
-              $scope.showErrorAndExit();
-            })
-        },
-        function (err) {
-          hideLoading();
-          $scope.showErrorAndExit();
-
-        }
+            }, wizardError
+          )
+        }, wizardError
       )
     }
-    selectedHelpers = function () {
-      if (!$scope.driver.wsnId) {
-        $scope.driver.wsnId = CONF.DEV_MASTER;
-      }
-      $rootScope.driver = $scope.driver;
 
-
-      // REMOVED AS NO USAGE IN PLUGIN 2018
-      // if ($scope.driver.wsnId !== null && $scope.driver.wsnId.length > 0) {
-      //   WSNSrv.connectMaster($scope.driver.wsnId).then(
-      //     function (procedureStarted) { },
-      //     function (reason) {
-      //       // TODO toast for failure
-      //       //Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
-      //     }
-      //   );
-      // }
-
-      //$scope.resizeHelpersList();
-    }
-
-    selectHelpers = function () {
-      //show popup of selection and go on after selection
-      var deferred = $q.defer();
-      var volunteerPopup = $ionicPopup.show({
-        templateUrl: 'templates/home_popup_helpers.html',
-        title: 'Seleziona con chi vai',
-        scope: $scope,
-        buttons: [{
-          text: 'ok',
-          type: 'button-stable',
-          onTap: function (e) {
-            $scope.helpers = [];
-            // var items = 0;
-            $scope.volunteers.forEach(function (vol, index, array) {
-              if (vol.checked) {
-                $scope.helpers.push(vol);
-              }
-              // items++;
-              // if (items == array.length) {
-                // deferred.resolve();
-                // volunteerPopup.close();
-              // }
-            });
-            deferred.resolve();
-            volunteerPopup.close();
-          }
-        }]
-      });
-
-      return deferred.promise;
-    }
-    popupHelpers = function () {
-      selectHelpers().then(
-        function () {
-          selectedHelpers();
-          goWithChildren();
-        }
-      )
-    }
+    /**
+     * Wizard step 5: selecte volunteer assistants
+     */
     goWithHelpers = function () {
-      $scope.volunteers = lineVolunteers.filter(element => element.objectId != $scope.driver.objectId);
-      //filter using $scope.driver.objectId
-      popupHelpers();
-    }
-
-
-    sortedVolunteers = function () {
-      /*
-       * sort volunteers only if route exists but not a driver
-       */
-      var route = $scope.wizard.route;
-      var sortedVolunteers = $filter('orderBy')(StorageSrv.getVolunteers(), ['checked', 'name']);
-      // TODO sort using calendars
-      for (var j = 0; j < calendars.length; j++) {
-        var cal = calendars[j]
-        if (cal.schoolId == StorageSrv.getSchoolId() && cal.routeId == route.objectId) {
-          // driver
-          var driverOnTop = false;
-          if (!!cal.driverId) {
-            for (var i = 0; i < sortedVolunteers.length; i++) {
-              if (sortedVolunteers[i].objectId == cal.driverId) {
-                Utils.moveInArray(sortedVolunteers, i, 0);
-                //console.log('Driver ' + sortedVolunteers[counter].name + ' moved on top');
-                driverOnTop = true;
-                i = sortedVolunteers.length;
-              }
-            }
-          }
-
-          // helpers
-          if (!!cal.helperList && cal.helperList.length > 0) {
-            var counter = driverOnTop ? 1 : 0;
-            cal.helperList.forEach(function (helperId) {
-              for (var i = 0; i < sortedVolunteers.length; i++) {
-                if (sortedVolunteers[i].objectId == helperId) {
-                  Utils.moveInArray(sortedVolunteers, i, counter);
-                  //console.log('Helper ' + sortedVolunteers[counter].name + ' moved to position ' + counter);
-                  counter++;
-                  i = sortedVolunteers.length;
+      showPopup = function() {
+        var volunteerPopup = $ionicPopup.show({
+          templateUrl: 'templates/home_popup_helpers.html',
+          title: 'Seleziona con chi vai',
+          scope: $scope,
+          buttons: [{
+            text: 'ok',
+            type: 'button-stable',
+            onTap: function (e) {
+              $scope.helpers = [];
+              $scope.volunteers.forEach(function (vol, index, array) {
+                if (vol.checked) {
+                  $scope.helpers.push(vol);
                 }
-              }
-            });
-          }
-          j = calendars.length;
-        }
+              });
+              volunteerPopup.close();
+              goWithChildren();
+            }
+          }]
+        });      
       }
-      $scope.volunteers = sortedVolunteers;
+
+      $scope.volunteers = $scope.lineVolunteers.filter(element => element.objectId != $scope.driver.objectId);
+      if ($scope.volunteers.length == 0) {
+        APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId).then(function(all) {
+          $scope.volunteers = all.filter(function(element) { return element.objectId != $scope.driver.objectId});
+          $scope.allhelpers = true;
+          showPopup();
+        });
+      } else {
+        $scope.allhelpers = false;
+        showPopup();
+      }
     }
 
-
-    selectDriver = function () {
-      //show popup of selection and go on after selection
-      var deferred = $q.defer();
-      var volunteerPopup = $ionicPopup.show({
-        templateUrl: 'templates/home_popup_driver.html',
-        title: 'Seleziona chi sei',
-        scope: $scope,
-        buttons: []
-      });
-      $scope.loadAllVolunteers = function (step) {
-        Utils.loading();
-        APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId).then(
-          function (volunteers) {
-            console.log(volunteers);
-            Utils.loaded();
-            $scope.volunteers = volunteers;
-            if ($scope.driver && $scope.driver.objectId) {
-              allVolunteers = volunteers.filter(element => element.objectId != $scope.driver.objectId);
-              $scope.volunteers = allVolunteers;
-            }
-            //allVolunteers = volunteers;
-            //$scope.volunteers = allVolunteers;
-            //sortedVolunteers();
-            if (step == 'driver') {
-              $scope.alldrivers = true;
-            } else {
-              $scope.allhelpers = true;
-            }
-          },
-          function (err) {
-            console.log(err);
-            Utils.loaded();
-            $scope.showErrorAndExit();
-
-          });
-      }
-      $scope.selectVolunteer = function (volunteer) {
-        $scope.driver = volunteer;
-        deferred.resolve();
-        volunteerPopup.close();
-      };
-      return deferred.promise;
-    }
+    /**
+     * Wizard step 4: select driver, or bypass if known
+     */
     goWithDriver = function () {
-      loadingWithMessage($filter('translate')('home_get_vol'));
+      Utils.loadingWithMessage($filter('translate')('home_get_vol'));
       APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId, $scope.route.objectId).then(
         function (volunteers) {
-          console.log(volunteers);
-          hideLoading();
-          lineVolunteers = volunteers;
+          Utils.loaded();
+          $scope.lineVolunteers = volunteers;
           $scope.volunteers = volunteers;
-          //sortedVolunteers();
           StorageSrv.saveVolunteers(volunteers).then(function (volunteers) {
+            // TODO filter by volunteer email
             if ($scope.volunteers.length == 1) {
               $scope.driver = $scope.volunteers[0];
               goWithChildren()
             } else {
-              selectDriver().then(
-                function () {
-                  goWithHelpers();
-                }
-              )
+              selectionPopup('Seleziona chi sei', $scope.volunteers, null, function(){
+                return APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId);
+              }).then(function(driver) {
+                $scope.driver = driver;
+                goWithHelpers();
+              });
             }
-          }, function (err) {
-            $scope.showErrorAndExit();
-
-          })
-        },
-        function (err) {
-          console.log(err);
-          hideLoading();
-          $scope.showErrorAndExit();
-
-        });
+          }, wizardError)
+        }, wizardError);
     }
 
-    selectRoute = function () {
-      //show popup of selection and go on after selection
-      var deferred = $q.defer();
-      var institutePopup = $ionicPopup.show({
-        templateUrl: 'templates/home_popup_routes.html',
-        title: 'Seleziona la linea',
-        scope: $scope,
-        buttons: []
-      });
-
-      $scope.selectRoute = function (route) {
-        $scope.route = route;
-        deferred.resolve(route);
-        institutePopup.close();
-      };
-      return deferred.promise;
-    }
-    goWithRoutes = function (instituteId) {
-      loadingWithMessage($filter('translate')('home_get_route'));
+    /**
+     * Wizard step 3: select route, or bypass if single
+     */
+    goWithRoutes = function () {
+      Utils.loadingWithMessage($filter('translate')('home_get_route'));
       APISrv.getRoute($scope.ownerId, $scope.institute.objectId, $scope.school.objectId).then(
         function (routes) {
-          console.log(routes);
-          hideLoading();
+          Utils.loaded();
           $scope.routes = routes;
           StorageSrv.saveRoutes(routes).then(function (routes) {
-            // get institute by ownerId
             if ($scope.routes.length == 1) {
+              // single route, proceed with driver
               $scope.route = $scope.routes[0];
               goWithDriver();
             } else {
-              selectRoute().then(
+              // multiple routes, ask the user to select
+              selectionPopup('Seleziona la linea', $scope.routes).then(
                 function (route) {
+                  $scope.route = route;
                   goWithDriver()
                 }
               )
             }
-          }, function (err) {
-            $scope.showErrorAndExit();
-          })
-        },
-        function (err) {
-          console.log(err);
-          hideLoading();
-          $scope.showErrorAndExit()
-        });
+          }, wizardError)
+        }, wizardError);
     }
 
-
-    selectSchool = function () {
-      //show popup of selection and go on after selection
-      var deferred = $q.defer();
-      var institutePopup = $ionicPopup.show({
-        templateUrl: 'templates/home_popup_schools.html',
-        title: 'Seleziona la scuola',
-        scope: $scope,
-        buttons: []
-      });
-
-      $scope.selectSchool = function (school) {
-        $scope.school = school;
-        deferred.resolve(school.objectId);
-        institutePopup.close();
-      };
-      return deferred.promise;
-    }
-    goWithSchool = function (instituteId) {
-      loadingWithMessage($filter('translate')('home_get_school'));
+    /**
+     * Wizard step 2: select school or bypass if single
+     */
+    goWithSchool = function () {
+      Utils.loadingWithMessage($filter('translate')('home_get_school'));
+      // get school for owner and institute
       APISrv.getSchooldById($scope.ownerId, $scope.institute.objectId).then(
         function (schools) {
-          console.log(schools);
-          hideLoading();
+          Utils.loaded();
           $scope.schools = schools;
-          // get institute by ownerId
+
           if ($scope.schools.length == 1) {
+            // single school, proceed with routes
             $scope.school = $scope.schools[0];
-            goWithRoutes($scope.schools[0].objectId)
+            goWithRoutes()
           } else {
-            selectSchool().then(
-              function (schoolId) {
-                goWithRoutes(schoolId);
+            // multiple schools, ask the user to select one
+            selectionPopup('Seleziona la scuola', $scope.schools).then(
+              function (school) {
+                $scope.school = school;
+                goWithRoutes();
               }
             )
           }
-        },
-        function (err) {
-          console.log(err);
-          hideLoading();
-          $scope.showErrorAndExit();
-        });
+        }, wizardError);
     }
-
-    selectInstitute = function () {
-      //show popup of selection and go on after selection
-      var deferred = $q.defer();
-      var institutePopup = $ionicPopup.show({
-        templateUrl: 'templates/home_popup_institute.html',
-        title: 'Seleziona l\'istituto',
-        scope: $scope,
-        buttons: []
-      });
-
-      $scope.selectInstitute = function (institute) {
-        $scope.institute = institute;
-        deferred.resolve(instituteId.objectId);
-        institutePopup.close();
-      };
-      return deferred.promise;
-    }
+    /**
+     * Wizzard step 1: select institute or bypass if single
+     */
     goWithInstitute = function (ownerId) {
-      loadingWithMessage($filter('translate')('home_get_institute'));
+      Utils.loadingWithMessage($filter('translate')('home_get_institute'));
+      // get institute by ownerId
       APISrv.getInstituteByOwnerId(ownerId).then(
         function (institutes) {
-          hideLoading();
-          console.log(institutes);
+          Utils.loaded();
           $scope.institutes = institutes;
-          // get institute by ownerId
           if ($scope.institutes.length == 1) {
+            // single instittue, proceed with school selection
             $scope.institute = $scope.institutes[0];
-            goWithSchool($scope.institutes[0].objectId)
+            goWithSchool()
           } else {
-            selectInstitute().then(
-              function (schoolId) {
-                goWithSchool(schoolId);
+            // multiple institutes, ask the user to select
+            selectionPopup('Seleziona l\'istituto', $scope.institutes).then(
+              function (selection) {
+                $scope.institute = selection;
+                goWithSchool();
               }
             )
           }
-        },
-        function (err) {
-          console.log(err);
-          hideLoading();
-          $scope.showErrorAndExit();
-        });
+        }, wizardError);
     }
-    selectOwnerId = function () {
-      //show popup of selection and go on after selection
-      var deferred = $q.defer();
-      var ownerPopup = $ionicPopup.show({
-        templateUrl: 'templates/home_popup_owner.html',
-        title: 'Seleziona il profile',
-        scope: $scope,
-        buttons: []
-      });
 
-      $scope.selectOwner = function (ownerId) {
-        $scope.ownerId = ownerId;
-        deferred.resolve(ownerId);
-        ownerPopup.close();
-      };
-      return deferred.promise;
-    }
+    /**
+     * Initialize the user and profile data
+     */
     $scope.initProfile = function () {
-      //get profile
       $scope.deregisterBackButton = $ionicPlatform.registerBackButtonAction(function (e) {}, 401);
-      loadingWithMessage($filter('translate')('home_get_profile'));
+      Utils.loadingWithMessage($filter('translate')('home_get_profile'));
+      // read profile 
       APISrv.getProfile().then(function (profile) {
         console.log(profile);
-        hideLoading();
+        Utils.loaded();
         $scope.ownerIds = profile.ownerIds;
-        // get institute by ownerId
         if ($scope.ownerIds.length == 1) {
+          // single owner, proceed with institute
           $scope.ownerId = $scope.ownerIds[0];
-          goWithInstitute($scope.ownerIds[0])
+          goWithInstitute($scope.ownerId)
         } else {
-          selectOwnerId().then(
-            function (instituteId) {
-              goWithInstitute(instituteId);
+          // multiple owners, ask the user to specify one
+          selectionPopup('Seleziona il profile', $scope.ownerIds, function(i) {return {name: i}}).then(
+            function (owner) {
+              $scope.ownerId = owner.name;
+              goWithInstitute($scope.ownerId);
             }
           )
         }
       }, function (err) {
-        hideLoading();
+        Utils.loaded();
         if ('INSUFFICIENT_RIGHTS' === err) {
           var alertPopup = $ionicPopup.alert({
             title: $filter('translate')('error_right_title'),
@@ -647,16 +435,12 @@ angular.module('driverapp.controllers.home', [])
             $state.go('app.login');
           });
         } else {
-          $scope.showErrorAndExit();
+          Utils.showErrorAndExit();
         }
       })
     }
 
     $scope.initProfile();
-
-    $scope.chooseSchool = function (school) {
-      // retrieve volunteers
-    }
   })
 
   .controller('MaintenanceCtrl', function ($scope, $rootScope, $ionicSlideBoxDelegate) {
