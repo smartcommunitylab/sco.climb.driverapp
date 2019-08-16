@@ -596,13 +596,13 @@ angular.module('driverapp.services.api', [])
 
                 },
                 function (error) {
-                  deferred.reject(error)
+                  deferred.resolve(error)
                 }
               )
             })
           },
           function (reason) {
-            deferred.reject(reason)
+            deferred.resolve(reason)
           }
         )
       } else {
