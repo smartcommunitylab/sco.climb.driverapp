@@ -259,7 +259,7 @@ angular.module('driverapp.controllers.home', [])
           title: 'Seleziona con chi vai',
           scope: $scope,
           buttons: [{
-            text: 'ok',
+            text: 'OK',
             type: 'button-stable',
             onTap: function (e) {
               $scope.helpers = [];

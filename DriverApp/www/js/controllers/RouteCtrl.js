@@ -4,6 +4,9 @@ angular.module('driverapp.controllers.route', [])
     $scope.fromWizard = false
     $rootScope.pedibusEnabled = true
 
+    // to prevent double click
+    $scope.nextClicked = 0;
+
     var BATTERYLEVEL_LOW = 1
 
     var passengersScrollDelegate = $ionicScrollDelegate.$getByHandle('passengersHandle')
@@ -40,8 +43,6 @@ angular.module('driverapp.controllers.route', [])
       stop: null
     }
 
-    var lastEventTimestamp = new Date().getTime()
-
     /* INIT */
     if ($stateParams['fromWizard']) {
       $scope.fromWizard = $stateParams['fromWizard']
@@ -73,7 +74,7 @@ angular.module('driverapp.controllers.route', [])
           */
         }
 
-        if (!$scope.enRoutePos) {
+        if ($scope.enRoutePos == 0) {
           GeoSrv.startWatchingPosition(function (position) {
             if (!!position && !!position.coords) {
               var lat = position.coords.latitude
@@ -245,17 +246,6 @@ angular.module('driverapp.controllers.route', [])
     }
 
     var handleChildrenAndHelpers = function () {
-      // NODE_CHECKIN
-      /*
-      $scope.onBoardTemp.forEach(function (passengerId) {
-          var child = $scope.getChild(passengerId);
-          AESrv.nodeCheckin(child);
-          if (!!child.wsnId) {
-              WSNSrv.checkinChild(child.wsnId);
-          }
-      });
-      */
-
       // update onBoard
       $scope.onBoard = $scope.onBoard.concat($scope.onBoardTemp)
       $scope.onBoardTemp = []
@@ -269,36 +259,17 @@ angular.module('driverapp.controllers.route', [])
       $scope.helpersTemp = []
     }
 
-    $scope.goNext = function (event) {
-      var eventTimestamp = (event.timeStamp % 1 !== 0) ? Math.floor(event.timeStamp + performance.timing.navigationStart) : event.timeStamp
-      // drop multi-event
-      if (eventTimestamp < (lastEventTimestamp + 1500)) {
-        console.log('event discarded')
-        // Utils.toast("event discarded");
-        return
-      }
-      lastEventTimestamp = eventTimestamp
 
+    var handleNext = function() {
+      console.log('NEXT STEP', new Date().getTime());
       $ionicScrollDelegate.scrollTop(true)
 
       // if has next
       if ($scope.stops[$scope.enRoutePos + 1]) {
-        // $scope.enRoute = !$scope.enRoute;
-
+        Utils.loading();
         // first leave
-        if (!$scope.enRoutePos) {
-          AESrv.startRoute($scope.stops[$scope.enRoutePos])
-          // timer for automatic arrive
-          console.log('Automatic "Arrive" timeout started!')
-          // $timeout(function () {
-          //   // Arriva in maniera automatica
-          //   if (!$scope.enRouteArrived) {
-          //     $scope.nextStop()
-          //     console.log('Automatically arrived!')
-          //   } else {
-          //     console.log('Automatic "Arrive" not necessary')
-          //   }
-          // }, Config.AUTOFINISH_DELAY)
+        if ($scope.enRoutePos == 0) {
+          AESrv.startRoute($scope.stops[$scope.enRoutePos]);
         }
 
         handleChildrenAndHelpers()
@@ -309,6 +280,8 @@ angular.module('driverapp.controllers.route', [])
         $scope.viewPos++
         $scope.sel.stop = $scope.stops[$scope.enRoutePos]
         $scope.getChildrenForStop($scope.sel.stop)
+        $scope.nextClicked = 0;
+        setTimeout(Utils.loaded, 200);
       } else {
         // Arriva
         $ionicPopup.confirm({
@@ -321,7 +294,8 @@ angular.module('driverapp.controllers.route', [])
           okType: 'button-positive'
         }).then(function (ok) {
           if (ok) {
-            handleChildrenAndHelpers()
+            Utils.loading();
+            handleChildrenAndHelpers();
 
             var childrenWsnIds = []
             $scope.onBoard.forEach(function (passengerId) {
@@ -335,27 +309,43 @@ angular.module('driverapp.controllers.route', [])
                 }
 
                 if (WSNSrv.networkState[child.wsnId].status === WSNSrv.STATUS_BOARDED_ALREADY) {
-                  // WSNSrv.checkoutChild(child.wsnId);
                   childrenWsnIds.push(child.wsnId)
                 }
               }
             })
 
-            // REMOVED AS NO USAGE IN PLUGIN 2018
-            // if (childrenWsnIds.length > 0) {
-            //   WSNSrv.checkoutChildren(childrenWsnIds)
-            // }
-
-            AESrv.endRoute($scope.stops[$scope.enRoutePos], $scope.ownerId, $scope.routeId)
-
-            GeoSrv.stopWatchingPosition()
-            WSNSrv.stopListener()
-
-            $scope.enRouteArrived = true
-            $rootScope.pedibusEnabled = true
+            AESrv.endRoute($scope.stops[$scope.enRoutePos], $scope.ownerId, $scope.routeId).then(function(res) {
+              GeoSrv.stopWatchingPosition()
+              WSNSrv.stopListener()  
+              $scope.enRouteArrived = true
+              $rootScope.pedibusEnabled = true
+              $scope.nextClicked = 0; 
+              Utils.loaded();
+              $ionicPopup.alert({
+                title: $filter('translate')('upload_success_popup_title'),
+                template: $filter('translate')('upload_success_popup_text')
+              });
+            }, function(err) {
+              $scope.nextClicked = 0; 
+              Utils.loaded();
+              $ionicPopup.alert({
+                title: $filter('translate')('upload_error_popup_title'),
+                template: $filter('translate')('upload_error_popup_text')
+              });
+            });
+          } else {
+            $scope.nextClicked = 0;
           }
         })
+      }      
+    }
+
+    $scope.goNext = function () {
+      console.log('NEXT CLICK', new Date().getTime());
+      if ($scope.nextClicked++) {
+        return;
       }
+      setTimeout(handleNext);
     }
 
     $scope.getChild = function (childId) {

@@ -55,6 +55,8 @@ angular.module('driverapp.services.wsn', [])
             deferred.reject(reason)
           }
         )
+      } else {
+        deferred.resolve(null);
       }
 
       return deferred.promise

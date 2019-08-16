@@ -372,7 +372,12 @@ angular.module('driverapp', [
       credits_collaboration: 'In collaborazione con:',
       credits_participation: 'Con la partecipazione di:',
       credits_info: 'Per informazioni:',
-      credits_licenses_button: ' VEDI LICENZE'
+      credits_licenses_button: ' VEDI LICENZE',
+      upload_error_popup_title: 'Errore',
+      upload_success_popup_title: 'Info',
+      upload_error_popup_text: 'Upload dei dati non è andato a buon fine. Riprova più tardi.',
+      upload_success_popup_text: 'Upload dei dati è stato completato!',
+
 
     });
 
