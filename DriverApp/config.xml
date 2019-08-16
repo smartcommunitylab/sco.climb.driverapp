@@ -11,6 +11,8 @@
     <access origin="*" />
     <access launch-external="yes" origin="tel:*" />
     <access launch-external="yes" origin="geo:*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
     <allow-navigation href="https://*.smartcommunitylab.it/*" />
     <preference name="webviewbounce" value="false" />
     <preference name="UIWebViewBounce" value="false" />
