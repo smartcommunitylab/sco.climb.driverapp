@@ -50,66 +50,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:background="@android:color/darker_gray"/>
+
             <LinearLayout
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical|center_horizontal"
-                android:id="@+id/buttonFirstRow"
-                >
-
-                <Button
-                    android:id="@+id/buttonCheckInAll"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="check-in\nall"
-                    android:textSize="12sp"
-                    android:layout_weight="1"/>
-
-                <Button
-                    android:id="@+id/buttonCheckOutAll"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="check-out\nall"
-                    android:textSize="12sp"
-                    android:layout_weight="1"/>
-
-                <!--                <Button
-                                    android:id="@+id/buttonCheckInBcast"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="ck-in\nbcast"
-                                    android:textSize="12sp"
-                                    android:layout_weight="1"/>
-
-                                <Button
-                                    android:id="@+id/buttonCheckOutBcast"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="ck-out\nbcast"
-                                    android:textSize="12sp"
-                                    android:layout_weight="1"/>-->
-
-
-                <Button
-                    android:id="@+id/buttonTag"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Insert\nTag"
-                    android:textSize="12sp"
-                    android:layout_weight="1"
-                    />
-                <!--<Button
-                    android:id="@+id/test"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="test\nTIME" />-->
-
-
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/buttonFirstRow"
                 android:gravity="center_vertical|center_horizontal"
                 android:id="@+id/buttonSecondRow"
                 >
@@ -132,20 +76,21 @@
                     android:layout_weight="1"
                     />
                 <Button
-                    android:id="@+id/scheduleWakeUpAll"
-                    android:layout_width="wrap_content"
+                    android:id="@+id/buttonTag"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Set Up\n Maintenance"
+                    android:text="Insert\nTag"
                     android:textSize="12sp"
-                    android:layout_weight="0.1"/>
+                    android:layout_weight="1"
+                    />
                 <CheckBox
-                    android:id="@+id/maintenance_ckbox"
-                    android:text="Maintenance"
+                    android:id="@+id/pkt_log_ckbox"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:textColor="#a3a3a3"
-                    android:checked="false"/>
+                    android:checked="false"
+                    android:text="Packet Log"
+                    android:textColor="#a3a3a3" />
             </LinearLayout>
             <LinearLayout
                 android:layout_width="fill_parent"

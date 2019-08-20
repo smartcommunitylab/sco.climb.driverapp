@@ -155,6 +155,7 @@ angular.module('driverapp.services.ae', [])
 
     /* end route */
     aeService.endRoute = function (stop,ownerId,routeId) {
+      var deferred = $q.defer();
       var event = {
         routeId: aeInstance.routeId,
         wsnNodeId: stop.wsnId,
@@ -170,42 +171,45 @@ angular.module('driverapp.services.ae', [])
 
       WSNSrv.deinit().then(
         function () {
-          var uploadWsnLogFiles = function () {
+          var uploadWsnLogFiles = function (deferred) {
             APISrv.uploadWsnLogs(aeInstance.routeId,ownerId).then(
               function () {
                 Utils.loaded()
                 console.log('[WSN Logs] Successfully uploaded to the server.')
+                deferred.resolve(event);
               },
               function (error) {
                 Utils.loaded()
                 console.log('[WSN Logs] Error uploading to the server: ' + error)
+                deferred.reject(error);
               }
             )
           }
 
           StorageSrv.saveEAs(aeInstance.events).then(
             function (eas) {
-              Utils.loading()
               APISrv.addEvents(eas,ownerId,routeId).then(
                 function (response) {
-                  console.log('[Events] Successfully uploaded to the server.')
-                  uploadWsnLogFiles()
+                  //console.log('[Events] Successfully uploaded to the server.')
+                  uploadWsnLogFiles(deferred)
                 },
                 function (reason) {
-                  console.log('[Events] Error uploading to the server!')
-                  uploadWsnLogFiles()
+                  console.log('[Events] Error uploading to the server!', reason)
+                  uploadWsnLogFiles(deferred)
                 }
               )
+            }, function(err) {
+              console.log('[Events] Error storing EAs !', err)
+              uploadWsnLogFiles(deferred)
             }
           )
         },
         function (error) {
-          Utils.loaded()
           console.log('[deinit] Error! ' + error)
+          deferred.reject(error);
         }
       )
-
-      return event
+      return deferred.promise;
     }
 
     /* node checkin */

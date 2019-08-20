@@ -1,6 +1,9 @@
 {
   "name": "DriverApp",
-  "app_id": "",
+  "integrations": {
+    "cordova": {}
+  },
+  "type": "ionic1",
   "browsers": [
     {
       "platform": "android",
@@ -8,8 +11,10 @@
       "version": "12.41.296.5"
     }
   ],
-  "integrations": {
-    "cordova": {}
-  },
-  "type": "ionic1"
+  "watchPatterns": [
+    "scss/**/*",
+    "www/**/*",
+    "!www/lib/**/*",
+    "!www/**/*.map"
+  ]
 }

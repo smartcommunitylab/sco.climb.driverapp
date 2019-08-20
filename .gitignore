@@ -17,3 +17,11 @@ DriverAppCordovaPluginiOS/src/.DS_Store
 DriverAppCordovaPluginiOS/src/ios/.DS_Store
 
 .DS_Store
+DriverApp/*.sh
+DriverApp/*.keystore
+DriverApp/*.apk
+DriverApp/.vscode/typings/jquery/jquery.d.ts
+DriverApp/.vscode/plugins.json
+DriverApp/.vscode/typings/angularjs/angular.d.ts
+DriverApp/.vscode/typings/cordova/cordova.d.ts
+DriverApp/.vscode/typings/ionic/ionic.d.ts

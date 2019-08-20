@@ -17,7 +17,7 @@
     <button class="button icon ion-android-arrow-dropleft-circle" ng-click="viewPrevious()" ng-disabled="enRouteArrived" ng-if="viewPos != 0"></button>
     <div class="title title-center">{{sel.stop.name}}</div>
     <button class="button icon ion-android-arrow-dropright-circle" ng-click="viewNext()" ng-disabled="enRouteArrived" ng-if="viewPos != enRoutePos"></button>
-    <button class="button button-light button-go" ng-click="goNext($event)" ng-disabled="enRouteArrived" ng-if="viewPos == enRoutePos">
+    <button class="button button-light button-go" ng-click="goNext($event)" ng-disabled="nextClicked || enRouteArrived" ng-if="viewPos == enRoutePos">
             <span ng-if="(enRoutePos + 1) < stops.length">Vai</span>
             <span ng-if="(enRoutePos + 1) >= stops.length">Arriva</span>
         </button>
@@ -30,8 +30,9 @@
           <!-- wsnId -->
           <ion-item class="item item-avatar item-button-right item-route-passenger" ng-repeat="passenger in sel.stop.passengers | orderBy : ['surname', 'name']"
             ng-if="(onBoard.indexOf(passenger.objectId) === -1) && (onBoardTemp.indexOf(passenger.objectId) === -1)" ng-click="showChildDetails(passenger)">
-            <img class="item-route-passenger-img" ng-src="{{!!passenger.imageUrl ? passenger.imageUrl : 'img/placeholder_child.png'}}"
-            />
+            <img class="profile-image-list" http-src="{{getImageList(passenger)}}">
+            <!-- <img class="item-route-passenger-img" ng-src="{{!!passenger.imageUrl ? passenger.imageUrl : 'img/placeholder_child.png'}}"
+            /> -->
             <img class="has-wsnid" ng-if="!!passenger.wsnId" ng-src="img/rt_it.png" /> {{passenger.surname}} {{passenger.name}}
             <button class="button button-energized button-clear button-takeonboard" ng-click="takeOnBoard(passenger.objectId)" ng-disabled="enRouteArrived"
               ng-if="fromWizard">
@@ -48,13 +49,15 @@
         <span class="name">A BORDO</span>
         <span class="counter">{{onBoard.length + onBoardTemp.length}} {{(onBoard.length + onBoardTemp.length) == 1 ? 'BAMBINO' : 'BAMBINI'}}</span>
       </div>
-      <ion-scroll direction="y">
+      <ion-scroll direction="y" class="footer-scroll">
         <div class="route-row" ng-repeat="onBoardRow in mergedOnBoard">
           <div class="route-on-board" ng-repeat="passengerId in onBoardRow" ng-init="passenger = getChild(passengerId.id)" ng-click="showChildDetails(passenger)">
-            <div class="route-on-board-image" ng-style="{{!!passenger.imageUrl ? {'background-image': 'url(\'' + passenger.imageUrl + '\')'} : {} }}"></div>
-            <!--ng-style="getChildBg(passenger)"-->
+            <!-- <div class="route-on-board-image" ng-style="{{!!passenger.imageUrl ? {'background-image': 'url(\'' + passenger.imageUrl + '\')'} : {} }}"></div> -->
+            <div class="route-on-board-image"  >
+                <img class="profile-image-footer" http-src="{{getImageFooter(passenger)}}">
+            </div>
+
             <div class="route-on-board-content">{{passenger.surname}} {{passenger.name}}</div>
-            <!--<button class="button button-trasparent passenger-remove" ng-click="dropOff(passengerId.id)" ng-if="passengerId.tmp" ng-disabled="enRouteArrived">-->
             <button class="button button-trasparent passenger-remove" ng-class="{'passenger-remove-prev': !passengerId.tmp}" ng-click="dropOff(passengerId, $event)"
               ng-disabled="enRouteArrived">
                             <i class="icon ion-minus-circled"></i>

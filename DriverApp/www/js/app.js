@@ -17,10 +17,11 @@ angular.module('driverapp', [
   'driverapp.controllers.routes',
   'driverapp.controllers.route',
   'driverapp.controllers.volunteers',
-  'driverapp.controllers.batteries'
+  'driverapp.controllers.batteries',
+  'driverapp.controllers.img'
 ])
 
-  .run(function ($ionicPlatform, $rootScope, $state, $translate, $ionicHistory, $ionicPopup, $window, GeoSrv,Config, Utils, StorageSrv,  WSNSrv, APISrv, LoginService) {
+  .run(function ($ionicPlatform, $rootScope, $state, $translate, $ionicHistory, $ionicPopup, $ionicModal, GeoSrv, Config, Utils, StorageSrv, WSNSrv, APISrv, LoginService) {
     $ionicPlatform.ready(function () {
       // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
       // for form inputs)
@@ -34,9 +35,6 @@ angular.module('driverapp', [
         window.StatusBar.styleDefault()
       }
 
-      // if (window.logToFile && ionic.Platform.isAndroid()) {
-      //   LogSrv.init()
-      // }
       if (typeof navigator.globalization !== "undefined") {
         navigator.globalization.getPreferredLanguage(function (language) {
           $translate.use((language.value).split("-")[0]).then(function (data) {
@@ -47,28 +45,61 @@ angular.module('driverapp', [
         }, null);
       }
       // Config.init().then(function () {
-        LoginService.init({
-          loginType: LoginService.LOGIN_TYPE.AAC,
-          googleWebClientId: Config.webclientid,
-          clientId: Config.cliendID,
-          clientSecret: Config.clientSecID,
-          aacUrl: Config.AACURL
-        });
+      LoginService.init({
+        loginType: LoginService.LOGIN_TYPE.AAC,
+        googleWebClientId: Config.webclientid,
+        clientId: Config.cliendID,
+        clientSecret: Config.clientSecID,
+        aacUrl: Config.AACURL
+      });
       // });
       /*
        * Check Internet connection
        */
-      if  (ionic.Platform.isAndroid()) {
-      cordova.plugins.diagnostic.requestExternalStorageAuthorization(function(status){
-        GeoSrv.geolocalize();
+      if (ionic.Platform.isAndroid() && window['cordova']) {
+        cordova.plugins.diagnostic.requestExternalStorageAuthorization(function (status) {
+          GeoSrv.geolocalize();
+          console.log("Authorization request for external storage use was " + (status == cordova.plugins.diagnostic.permissionStatus.GRANTED ? "granted" : "denied"));
+          cordova.plugins.diagnostic.requestRuntimePermission(function (status) {
+            switch (status) {
+              case cordova.plugins.diagnostic.permissionStatus.GRANTED:
+                console.log("Permission granted to use the sd");
+                break;
+              case cordova.plugins.diagnostic.permissionStatus.NOT_REQUESTED:
+                console.log("Permission to use the sd has not been requested yet");
+                break;
+              case cordova.plugins.diagnostic.permissionStatus.DENIED:
+                console.log("Permission denied to use the sd - ask again?");
+                break;
+              case cordova.plugins.diagnostic.permissionStatus.DENIED_ALWAYS:
+                console.log("Permission permanently denied to use the sd - guess we won't be using it then!");
+                break;
+            }
+            cordova.plugins.diagnostic.isBluetoothAvailable(function (available) {
+              startWSNService();
+              console.log('Init BT initially');
+            }, function (error) {
+              console.error("The following error occurred: " + error);
+            });
 
-        console.log("Authorization request for external storage use was " + (status == cordova.plugins.diagnostic.permissionStatus.GRANTED ? "granted" : "denied"));
-    }, function(error){
-        console.error(error);
-    });
-  } else {
-    GeoSrv.geolocalize();
-  }
+            cordova.plugins.diagnostic.registerBluetoothStateChangeHandler(function (state) {
+              if (state === cordova.plugins.diagnostic.bluetoothState.POWERED_ON) {
+                console.log('Init BT: activated');
+                startWSNService();
+              } else if (state === cordova.plugins.diagnostic.bluetoothState.POWERED_OFF) {
+                stopWSNService();
+              }
+            });
+
+          }, function (error) {
+            console.error("The following error occurred: " + error);
+          }, cordova.plugins.diagnostic.permission.WRITE_EXTERNAL_STORAGE);
+        }, function (error) {
+          console.error(error);
+        });
+      } else {
+        GeoSrv.geolocalize();
+      }
       if (Utils.isConnectionDown()) {
         Utils.loaded()
 
@@ -84,68 +115,45 @@ angular.module('driverapp', [
           })
       }
 
-      if (window.DriverAppPlugin) {
-        WSNSrv.init().then(
-          function (response) { },
-          function (reason) { }
-        )
-
-        WSNSrv.startListener().then(
-          function (response) { },
-          function (reason) { }
-        )
-
-        /*
-         * WSN Functions!
-         * 
-         * NOT USED
-         */
-        $rootScope.WSNSrvGetMasters = function () {
-          WSNSrv.getMasters().then(
-            function (masters) { },
+      var startWSNService = function () {
+        if (window.DriverAppPlugin) {
+          WSNSrv.init().then(
+            function (response) {
+              WSNSrv.startListener().then(
+                function (response) { },
+                function (reason) { }
+              )
+            },
             function (reason) { }
           )
         }
-
-        // /**
-        //  * NOT USED
-        //  */
-        // $rootScope.WSNSrvConnectMaster = function (masterId) {
-        //   WSNSrv.connectMaster(masterId).then(
-        //     function (procedureStarted) { },
-        //     function (reason) { }
-        //   )
-        // }
-
-        /**
-         * NOT USED
-         */
-        $rootScope.WSNSrvSetNodeList = function () {
-          var childrenWsnIds = WSNSrv.getNodeListByType('child')
-          WSNSrv.setNodeList(childrenWsnIds).then(
-            function (procedureStarted) { },
-            function (reason) { }
-          )
-        }
-
-        /**
-         * NOT USED
-         */
-        $rootScope.WSNSrvGetNetworkState = function () {
-          WSNSrv.getNetworkState().then(
-            function (networkState) { },
-            function (reason) { }
-          )
-        }
-
-        // $rootScope.WSNSrvCheckMaster = function () {
-        //   WSNSrv.connectMaster($rootScope.driver.wsnId).then(
-        //     function (procedureStarted) { },
-        //     function (reason) { }
-        //   )
-        // }
-
       }
+      var stopWSNService = function () {
+        if (window.DriverAppPlugin) {
+          WSNSrv.deinit().then(
+            function (response) { },
+            function (reason) { }
+          )
+        }
+      }
+      $ionicModal.fromTemplateUrl('templates/credits.html', {
+        id: '3',
+        scope: $rootScope,
+        backdropClickToClose: false,
+        animation: 'slide-in-up'
+      }).then(function (modal) {
+        $rootScope.creditsModal = modal;
+      });
+
+      $rootScope.openCredits = function () {
+        $rootScope.creditsModal.show();
+      };
+      $rootScope.closeCredits = function () {
+        $rootScope.creditsModal.hide();
+      };
+
+      // TODO CHECK BLUETOOTH STATE, ACTIVATE LISTENER AND CALL START WSN SERVICE / STOP WSN SERVICE
+
 
       $rootScope.exitApp = function () {
         $ionicPopup.confirm({
@@ -164,7 +172,7 @@ angular.module('driverapp', [
                   function (response) { },
                   function (reason) { }
                 )
-        
+
                 WSNSrv.startListener().then(
                   function (response) { },
                   function (reason) { }
@@ -173,8 +181,8 @@ angular.module('driverapp', [
               Utils.setMenuDriverTitle(null) // clear driver name in menu
               $state.go('app.home');
               $ionicHistory.nextViewOptions({
-                  disableBack: true,
-                  historyRoot: true
+                disableBack: true,
+                historyRoot: true
               });
               //ionic.Platform.exitApp()
             }
@@ -196,10 +204,10 @@ angular.module('driverapp', [
               Config.resetIdentity()
               StorageSrv.clearIdentity()
               // if (ionic.Platform.isIOS()) {
-                LoginService.logout();
-                $state.go('app.login').then(function () {
-                    // window.location.reload(true);
-                });
+              LoginService.logout();
+              $state.go('app.login').then(function () {
+                // window.location.reload(true);
+              });
               // } else {
               //   ionic.Platform.exitApp()
               // }
@@ -297,7 +305,7 @@ angular.module('driverapp', [
         cache: false,
         params: {
           fromWizard: false,
-          ownerId:"",
+          ownerId: "",
           route: {},
           driver: {},
           helpers: []
@@ -343,15 +351,32 @@ angular.module('driverapp', [
       error_popup_title: 'Errore',
       error_generic: 'La registrazione non è andata a buon fine. Riprova più tardi.',
       error_email_inuse: 'L\'indirizzo email è già in uso.',
-      home_get_profile:'Ottenendo il profilo',
-      home_get_school:'Ottenendo la scuola',
-      home_get_institute:'Ottenendo l\'istituto',
-      home_get_route:'Ottenendo i percorsi',
-      home_get_vol:'Ottenendo i volontari',
-      home_get_children:'Ottenendo i bambini',
-      user_check:'Verifica credenziali',
-      error_exit_template:'Errore nell\'inizializzazione. Verifica la connessione e riavvia l\'applicazione',
-      error_exit_title:'Errore'
+      home_get_profile: 'Ottenendo il profilo',
+      home_get_school: 'Ottenendo la scuola',
+      home_get_institute: 'Ottenendo l\'istituto',
+      home_get_route: 'Ottenendo i percorsi',
+      home_get_vol: 'Ottenendo i volontari',
+      home_get_children: 'Ottenendo i bambini',
+      user_check: 'Verifica credenziali',
+      error_exit_template: 'Errore nell\'inizializzazione. Verifica la connessione e riavvia l\'applicazione',
+      error_exit_title: 'Errore',
+      error_right_title: 'Errore di autorizzazione',
+      error_right_template: 'L\'account specificato non è associato ad un percorso. ',
+      change_image_title:'Immagine profilo',
+      change_image_template:'Vuoi cambiare l\'immagine del profilo?',
+      btn_close:'Annulla',
+      change_image_confirm:'Conferma',
+      credits_project:'credits_project',
+      credits_info:'credits_info',
+      credits_project: 'Un progetto di:',
+      credits_collaboration: 'In collaborazione con:',
+      credits_participation: 'Con la partecipazione di:',
+      credits_info: 'Per informazioni:',
+      credits_licenses_button: ' VEDI LICENZE',
+      upload_error_popup_title: 'Errore',
+      upload_success_popup_title: 'Info',
+      upload_error_popup_text: 'Upload dei dati non è andato a buon fine. Riprova più tardi.',
+      upload_success_popup_text: 'Upload dei dati è stato completato!',
 
 
     });

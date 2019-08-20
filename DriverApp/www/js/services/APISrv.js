@@ -22,7 +22,22 @@ angular.module('driverapp.services.api', [])
             // $http.get(Config.SERVER_URL + '/profile', Config.getHttpConfig()).then(
             .success(
             function (response) {
-              deferred.resolve(response)
+              if (!response) response = {};
+              if (!response.ownerIds) {
+                response.ownerIds = [];
+                if (response.roles) {
+                  for (var key in response.roles) {
+                    var r = response.roles[key];
+                    if (response.ownerIds.indexOf(r[0].ownerId) < 0) {
+                      response.ownerIds.push(r[0].ownerId);
+                    }  
+                  }
+                }
+                if (response.ownerIds.length == 0) deferred.reject('INSUFFICIENT_RIGHTS');
+                else deferred.resolve(response)
+              } else {
+                deferred.resolve(response)
+              }
             }).error(
             function (reason) {
               deferred.reject(reason)
@@ -32,7 +47,47 @@ angular.module('driverapp.services.api', [])
             })
       return deferred.promise
     }
+    APIService.setProfileImage = function (ownerId,objectId,file) {
+      var deferred = $q.defer();
+      var fd = new FormData();
+      //Take the first selected file
+      fd.append("data", file);
+      LoginService.getValidAACtoken().then(
+        function (token) {
+          $http.post( Config.SERVER_URL + '/child/image/upload/'+ownerId+'/'+objectId, fd, {
+            withCredentials: true,
+            headers: {
+              'Content-Type': undefined,
+              'Authorization': 'Bearer ' + token,
+              'appId': Config.APPID,
+            },
+            transformRequest: angular.identity
+          }).success(function () {
+            Utils.setImageTimestamp(ownerId,objectId);
+            deferred.resolve();
+          }).error(function (error) {
+            deferred.reject(error);
+          })
+        });
+      return deferred.promise;
+    }
 
+    APIService.uploadFileImage = function (ownerId,objectId,files) {
+      Config.loading();
+      APIService.setProfileImage(ownerId,objectId,files).then(function () {
+        localStorage.setItem(Config.APPID + '_timestampImg', new Date().getTime());
+        //update image
+        //changeProfileImage();
+      }, function (error) {
+        if (error == 413)
+          console.log("Payload too large");
+        return;
+        if (error == 415)
+          console.log("Unsupported media type");
+        return;
+        console.log("network error");
+      }).finally(Config.loaded)
+    };
 
     APIService.getInstituteByOwnerId = function (ownerId) {
       var deferred = $q.defer()
@@ -132,7 +187,40 @@ angular.module('driverapp.services.api', [])
     }
 
 
-    APIService.getVolunteersBySchool = function (ownerId, instituteId, schoolId) {
+    // APIService.getVolunteersBySchool = function (ownerId, instituteId, schoolId) {
+    //   var deferred = $q.defer()
+
+    //   if (!schoolId) {
+    //     deferred.reject('Invalid schoolId')
+    //     return deferred.promise
+    //   }
+    //   LoginService.getValidAACtoken().then(
+    //     function (token) {
+    //       $http({
+    //         method: 'GET',
+    //         url: Config.SERVER_URL + '/volunteer/' + ownerId + '/' + instituteId + '/' + schoolId,
+    //         headers: {
+    //           'Authorization': 'Bearer ' + token,
+    //           'appId': Config.APPID,
+    //         },
+    //         timeout: Config.getHttpConfig().timeout
+    //       })
+    //         .success(
+    //         function (response) {
+    //           deferred.resolve(response)
+    //         }).error(
+    //         function (reason) {
+    //           deferred.reject(reason)
+    //         })
+    //     },function (reason) {
+    //       deferred.reject(reason)
+    //     })
+
+
+    //   return deferred.promise
+    // }
+    
+    APIService.getVolunteersBySchool = function (ownerId, instituteId, schoolId, routeId) {
       var deferred = $q.defer()
 
       if (!schoolId) {
@@ -143,39 +231,7 @@ angular.module('driverapp.services.api', [])
         function (token) {
           $http({
             method: 'GET',
-            url: Config.SERVER_URL + '/volunteer/' + ownerId + '/' + instituteId + '/' + schoolId,
-            headers: {
-              'Authorization': 'Bearer ' + token,
-              'appId': Config.APPID,
-            },
-            timeout: Config.getHttpConfig().timeout
-          })
-            .success(
-            function (response) {
-              deferred.resolve(response)
-            }).error(
-            function (reason) {
-              deferred.reject(reason)
-            })
-        },function (reason) {
-          deferred.reject(reason)
-        })
-
-
-      return deferred.promise
-    }
-    APIService.getVolunteersBySchool = function (ownerId, instituteId, schoolId) {
-      var deferred = $q.defer()
-
-      if (!schoolId) {
-        deferred.reject('Invalid schoolId')
-        return deferred.promise
-      }
-      LoginService.getValidAACtoken().then(
-        function (token) {
-          $http({
-            method: 'GET',
-            url: Config.SERVER_URL + '/volunteer/' + ownerId + '/' + instituteId + '/' + schoolId,
+            url: Config.SERVER_URL + '/volunteer/' + ownerId + '/' + instituteId + '/' + schoolId+(routeId?'?routeId='+routeId:''),
             headers: {
               'Authorization': 'Bearer ' + token,
               'appId': Config.APPID,
@@ -540,13 +596,13 @@ angular.module('driverapp.services.api', [])
 
                 },
                 function (error) {
-                  deferred.reject(error)
+                  deferred.resolve(error)
                 }
               )
             })
           },
           function (reason) {
-            deferred.reject(reason)
+            deferred.resolve(reason)
           }
         )
       } else {
@@ -560,47 +616,47 @@ angular.module('driverapp.services.api', [])
 
     APIService.getChildImage = function (childId, ownerId) {
       var deferred = $q.defer()
+      deferred.resolve();
+      // if (!childId) {
+      //   deferred.reject('Invalid childId')
+      //   return deferred.promise
+      // }
 
-      if (!childId) {
-        deferred.reject('Invalid childId')
-        return deferred.promise
-      }
+      // if (ionic.Platform.isWebView()) {
+      //   LoginService.getValidAACtoken().then(
+      //     function (token) {
+      //       var sourceUrl = Config.SERVER_URL + '/image/download/jpg/' + ownerId + '/' + childId
+      //       var targetFile = cordova.file.externalRootDirectory + Config.IMAGES_DIR + childId + '.jpg'
 
-      if (ionic.Platform.isWebView()) {
-        LoginService.getValidAACtoken().then(
-          function (token) {
-            var sourceUrl = Config.SERVER_URL + '/image/download/jpg/' + ownerId + '/' + childId
-            var targetFile = cordova.file.externalRootDirectory + Config.IMAGES_DIR + childId + '.jpg'
-
-            var ft = new FileTransfer()
-            ft.download(
-              encodeURI(sourceUrl),
-              targetFile,
-              function (entry) {
-                console.log('download complete: ' + entry.toURL())
-                deferred.resolve(entry.toURL())
-              },
-              function (error) {
-                /*
-                console.log('download error source ' + error.source)
-                console.log('download error target ' + error.target)
-                console.log('upload error code' + error.code)
-                */
-                deferred.reject(error)
-              },
-              false, {
-                headers: {
-                  'Authorization': 'Bearer ' + token,
-                  'appId': Config.APPID,
-                }
-              }
-            )
-          },function (reason) {
-            deferred.reject(reason)
-          })
-      } else {
-        deferred.reject()
-      }
+      //       var ft = new FileTransfer()
+      //       ft.download(
+      //         encodeURI(sourceUrl),
+      //         targetFile,
+      //         function (entry) {
+      //           console.log('download complete: ' + entry.toURL())
+      //           deferred.resolve(entry.toURL())
+      //         },
+      //         function (error) {
+      //           /*
+      //           console.log('download error source ' + error.source)
+      //           console.log('download error target ' + error.target)
+      //           console.log('upload error code' + error.code)
+      //           */
+      //           deferred.reject(error)
+      //         },
+      //         false, {
+      //           headers: {
+      //             'Authorization': 'Bearer ' + token,
+      //             'appId': Config.APPID,
+      //           }
+      //         }
+      //       )
+      //     },function (reason) {
+      //       deferred.reject(reason)
+      //     })
+      // } else {
+      //   deferred.reject()
+      // }
 
       return deferred.promise
     }

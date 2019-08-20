@@ -24,7 +24,7 @@ angular.module('driverapp.services.config', [])
     config.AUTOFINISH_DELAY = 2700000 // = 45min; 1800000 = 30 mins;
 
     config.HTTP_CONFIG = {
-      timeout: 10000,
+      timeout: 30000,
       headers: {
         'Content-Type': 'application/json'
         // ,
