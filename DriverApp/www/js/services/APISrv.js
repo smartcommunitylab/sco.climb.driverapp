@@ -606,7 +606,7 @@ angular.module('driverapp.services.api', [])
           }
         )
       } else {
-        deferred.reject('cordova is not defined')
+        deferred.resolve('cordova is not defined')
       }
 
       return deferred.promise

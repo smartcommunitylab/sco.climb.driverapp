@@ -190,6 +190,11 @@ angular.module('driverapp.controllers.route', [])
                 }
               })
             })
+            if (childrenByRoute.length == 0) {
+              $scope.sel.stop = $scope.stops[0]
+              Utils.loaded();
+            }
+
             angular.forEach(childrenByRoute, function (child) {
               APISrv.getChildImage(child.objectId, $scope.ownerId).then(
                 function () {

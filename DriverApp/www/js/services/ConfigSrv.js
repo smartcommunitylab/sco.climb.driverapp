@@ -9,7 +9,6 @@ angular.module('driverapp.services.config', [])
     config.cliendID = CONF.cliendID
     config.clientSecID = CONF.clientSecID
     config.AACURL = CONF.AACURL
-    config.EVENTS_SERVER_URL = CONF.EVENTS_SERVER_URL
     config.IDENTITIES = CONF.IDENTITIES
     config.APPID = CONF.APP_ID
     config.IDENTITY = {
@@ -48,8 +47,6 @@ angular.module('driverapp.services.config', [])
         'PWD': ''
       }
     }
-    // config.init = function () {
-
 
     config.imagesDir = function() {
       if (ionic.Platform.isAndroid()) {
@@ -67,22 +64,6 @@ angular.module('driverapp.services.config', [])
     config.getAppId = function () {
       return mapJsonConfig["appid"];
     }
-  // config.getAACURL = function () {
-  //   return mapJsonConfig["AACURL"];
-  // }
-
-  // config.getRedirectUri = function () {
-  //   return mapJsonConfig["redirectURL"];
-  // }
-  // config.getClientId = function () {
-  //   return mapJsonConfig["cliendID"];
-  // }
-  // config.getClientSecKey = function () {
-  //   return mapJsonConfig["clientSecID"];
-  // }
-  // config.getWebClientId = function () {
-  //   return mapJsonConfig["webclientid"];
-  // }
 
   config.loading = function () {
     $ionicLoading.show();

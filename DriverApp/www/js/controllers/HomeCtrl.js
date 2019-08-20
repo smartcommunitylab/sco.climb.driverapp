@@ -293,26 +293,33 @@ angular.module('driverapp.controllers.home', [])
      */
     goWithDriver = function () {
       Utils.loadingWithMessage($filter('translate')('home_get_vol'));
-      APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId, $scope.route.objectId).then(
-        function (volunteers) {
-          Utils.loaded();
-          $scope.lineVolunteers = volunteers;
-          $scope.volunteers = volunteers;
-          StorageSrv.saveVolunteers(volunteers).then(function (volunteers) {
-            // TODO filter by volunteer email
-            if ($scope.volunteers.length == 1) {
-              $scope.driver = $scope.volunteers[0];
-              goWithChildren()
-            } else {
-              selectionPopup('Seleziona chi sei', $scope.volunteers, null, function(){
-                return APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId);
-              }).then(function(driver) {
-                $scope.driver = driver;
-                goWithHelpers();
-              });
-            }
-          }, wizardError)
+      // select all
+      APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId).then(function(all) {
+        APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId, $scope.route.objectId).then(
+          function (volunteers) {
+            Utils.loaded();
+            $scope.lineVolunteers = volunteers;
+            $scope.volunteers = volunteers;
+            StorageSrv.saveVolunteers(volunteers).then(function (volunteers) {
+              var matching = all.find(function(e) {return e.email == $scope.profile.email});
+              if (!!matching) {
+                $scope.driver = matching;
+                if (all.length > 1) {
+                  goWithHelpers()
+                } else {
+                  goWithChildren()
+                }
+              } else {
+                selectionPopup('Seleziona chi sei', $scope.volunteers, null, function(){
+                  return APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId);
+                }).then(function(driver) {
+                  $scope.driver = driver;
+                  goWithHelpers();
+                });
+              }
+            }, wizardError);
         }, wizardError);
+      }, wizardError);
     }
 
     /**
@@ -404,6 +411,7 @@ angular.module('driverapp.controllers.home', [])
       APISrv.getProfile().then(function (profile) {
         console.log(profile);
         Utils.loaded();
+        $scope.profile = profile;
         $scope.ownerIds = profile.ownerIds;
         if ($scope.ownerIds.length == 1) {
           // single owner, proceed with institute
