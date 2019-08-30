@@ -16,7 +16,6 @@
     "cordova-plugin-compat": "1.2.0",
     "cordova-plugin-console": "1.1.0",
     "cordova-plugin-crop": "git+https://github.com/obeza/cordova-plugin-crop-with-ratio.git",
-    "cordova-plugin-crosswalk-webview": "2.4.0",
     "cordova-plugin-device": "2.0.3",
     "cordova-plugin-enable-multidex": "0.2.0",
     "cordova-plugin-facebook4": "^5.0.0",
@@ -109,13 +108,6 @@
       "cordova-plugin-compat": {},
       "cordova-plugin-console": {},
       "cordova-plugin-device": {},
-      "cordova-plugin-crosswalk-webview": {
-        "XWALK_VERSION": "23+",
-        "XWALK_LITEVERSION": "xwalk_core_library_canary:17+",
-        "XWALK_COMMANDLINE": "--disable-pull-to-refresh-effect",
-        "XWALK_MODE": "embedded",
-        "XWALK_MULTIPLEAPK": "true"
-      },
       "cordova-plugin-enable-multidex": {},
       "cordova-plugin-file": {},
       "cordova-plugin-file-transfer": {},
