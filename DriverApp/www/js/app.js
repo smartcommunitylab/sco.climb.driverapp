@@ -32,7 +32,7 @@ angular.module('driverapp', [
 
       if (window.StatusBar) {
         // org.apache.cordova.statusbar required
-        window.StatusBar.styleDefault()
+        window.StatusBar.styleLightContent();
       }
 
       if (typeof navigator.globalization !== "undefined") {
@@ -56,6 +56,30 @@ angular.module('driverapp', [
       /*
        * Check Internet connection
        */
+
+      var checkBTAndEnableHandler = function() {
+        cordova.plugins.diagnostic.isBluetoothAvailable(function (available) {
+          console.log('Init BT initially', available);
+          if (available || ionic.Platform.isAndroid()) {
+            startWSNService();
+          } else {
+            cordova.plugins.diagnostic.requestBluetoothAuthorization();
+          }
+        }, function (error) {
+          console.error("The following error occurred: " + error);
+        });
+
+        cordova.plugins.diagnostic.registerBluetoothStateChangeHandler(function (state) {
+          if (state === cordova.plugins.diagnostic.bluetoothState.POWERED_ON) {
+            console.log('Init BT: activated');
+            startWSNService();
+          } else if (state === cordova.plugins.diagnostic.bluetoothState.POWERED_OFF) {
+            stopWSNService();
+          }
+        });        
+      }
+
+
       if (ionic.Platform.isAndroid() && window['cordova']) {
         cordova.plugins.diagnostic.requestExternalStorageAuthorization(function (status) {
           GeoSrv.geolocalize();
@@ -75,21 +99,7 @@ angular.module('driverapp', [
                 console.log("Permission permanently denied to use the sd - guess we won't be using it then!");
                 break;
             }
-            cordova.plugins.diagnostic.isBluetoothAvailable(function (available) {
-              startWSNService();
-              console.log('Init BT initially');
-            }, function (error) {
-              console.error("The following error occurred: " + error);
-            });
-
-            cordova.plugins.diagnostic.registerBluetoothStateChangeHandler(function (state) {
-              if (state === cordova.plugins.diagnostic.bluetoothState.POWERED_ON) {
-                console.log('Init BT: activated');
-                startWSNService();
-              } else if (state === cordova.plugins.diagnostic.bluetoothState.POWERED_OFF) {
-                stopWSNService();
-              }
-            });
+            checkBTAndEnableHandler();
 
           }, function (error) {
             console.error("The following error occurred: " + error);
@@ -97,6 +107,8 @@ angular.module('driverapp', [
         }, function (error) {
           console.error(error);
         });
+      } else if (window['cordova']) {
+        checkBTAndEnableHandler();
       } else {
         GeoSrv.geolocalize();
       }
