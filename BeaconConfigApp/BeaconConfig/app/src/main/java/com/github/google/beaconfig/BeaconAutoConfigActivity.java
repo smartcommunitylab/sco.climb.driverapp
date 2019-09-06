@@ -202,6 +202,22 @@ public class BeaconAutoConfigActivity extends AppCompatActivity {
             if (gattClient.isEddystoneGattServicePresent()) {
                 log("Eddystone service found.");
                 try {
+                    /*  //With this block, if the beacon is not locked, it is locked and then unlocked in order to get the password
+                        //However, in the case we don't know the password, we won't be able to program it anymore
+                    byte[] lockState = gattClient.readLockState();
+                    if (lockState[0] == GattConstants.LOCK_STATE_UNLOCKED || lockState[0] == GattConstants.LOCK_STATE_UNLOCKED_AND_AUTOMATIC_RELOCK_DISABLED){
+                        Log.d(TAG, "The beacon is unlocked, I need to find the lock key, then I lock it right now!");
+                        log("The beacon is unlocked, I need to find the lock key, then I lock it right now!");
+                        gattClient.lock();
+                    }else{
+                        Log.d(TAG, "The beacon is locked, trying to unlock...");
+                        log("The beacon is locked, trying to unlock...");
+                    }
+                    unlock();
+                    */
+
+                    // With this block, if the beacon is not locked it is just programmed without knowing the password.
+                    // At least we can program it, but it might fail, after programming if a new password is set.
                     byte[] lockState = gattClient.readLockState();
                     if (lockState[0] == GattConstants.LOCK_STATE_LOCKED) {
                         log("The beacon is locked, trying to unlock...");
@@ -269,7 +285,7 @@ public class BeaconAutoConfigActivity extends AppCompatActivity {
                     }
                 });
                 isReadyToProgram = true;
-                log("Beacon ready to program!");
+                log("Beacon unlocked!");
                 //setupBeaconInformationDisplay();
                 // READY TO BE PROGRAMMED!!!
             }
@@ -279,9 +295,9 @@ public class BeaconAutoConfigActivity extends AppCompatActivity {
     }
 
     private void attemptAutomaticUnlock(final Runnable runnable) {
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
+       // executor.execute(new Runnable() {
+       //     @Override
+       //     public void run() {
                 Log.d(TAG, "Attempt to automatically unlock");
                 log("Attempt to automatically unlock");
                 ArrayList<String> commonPasswords = new ArrayList<>();
@@ -297,9 +313,11 @@ public class BeaconAutoConfigActivity extends AppCompatActivity {
                     commonPasswords.add(unlock_password);
                 }
                 commonPasswords.add("b2687b1cb09da0bffece543ae61ac2f5"); //blueup default
-                commonPasswords.add("00000000000000000000000000000000");
                 commonPasswords.add("ffffffffffffffffffffffffffffffff");
-                commonPasswords.add("000102030405060708090A0B0C0D0E0F");
+                //NB: it looks like the blueup beacons force a disconnection after 3 trials!
+
+                //commonPasswords.add("00000000000000000000000000000000");
+                //commonPasswords.add("000102030405060708090A0B0C0D0E0F");
 
 
 //                commonPasswords.add("00102030405060708090A0B0C0D0E0F0");
@@ -322,11 +340,15 @@ public class BeaconAutoConfigActivity extends AppCompatActivity {
 //                }
 
                 for (String password : commonPasswords) {
+                    Log.d(TAG, "Trying to unlock with password: "+password);
                     if (gattClient.unlock(Utils.toByteArray(password))) {
                         unlockCode = password;
                         Log.d(TAG, "Beacon unlocked automatically");
                         log("Beacon unlocked automatically with password: " + unlockCode);
-                        runnable.run();
+
+                        if (runnable != null) {
+                            runnable.run();
+                        }
                         return;
                     }
                 }
@@ -334,8 +356,8 @@ public class BeaconAutoConfigActivity extends AppCompatActivity {
                 //if automatic unlock fails, a dialog pops up to ask the user for the beacon's lock
                 // code
                 attemptManualUnlock(runnable);
-            }
-        });
+        //    }
+        //});
     }
 
     private void attemptManualUnlock(final Runnable runnable) {
@@ -442,22 +464,52 @@ public class BeaconAutoConfigActivity extends AppCompatActivity {
             log("Writing accel config characteristic... mAccelConfig = " + mAccelConfig);
             gattClient.writeAccelConfig(mAccelConfig);
 
-            if (unlockCode != null) {
-                String newPassw = conf.getNewPassword();
+            //if (unlockCode != null) {
+            String newPassw = conf.getNewPassword();
+            if (newPassw != null) {
                 log("Locking beacon with new password...");
-                if(gattClient.lockWithNewPassword(Utils.toByteArray(unlockCode), Utils.toByteArray(newPassw))) {
-                    log("Beacon locked with password: (0x)" + newPassw);
-                }else{
-                    log("Error while locking with password: (0x)" + newPassw);
-                }
+                Log.d(TAG,"Locking beacon with new password...");
+                if (unlockCode == null){ //in order to change the password it needs the old one, even if it was unlocked.
+                    Log.d(TAG,"Unlock code is not set, then I need to lock the beacon and unlock it in oder to get the password.");
 
-            } else {
+                    //first block any possibility to press the button
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mProgramConfigButton.setEnabled(false);
+                        }
+                    });
+                    isReadyToProgram = false;
+
+                    // then lock and unlock
+                    if(gattClient.lock()) {
+                        attemptAutomaticUnlock(null); //unlock();
+                    }
+                    //at this point the unlockCode should be populated with the correct password.
+                }
+                if (unlockCode != null) {
+                    if (gattClient.lockWithNewPassword(Utils.toByteArray(unlockCode), Utils.toByteArray(newPassw))) {
+                        log("Beacon locked with password: (0x)" + newPassw);
+                    } else {
+                        log("Error while locking with password: (0x)" + newPassw);
+                    }
+                }else{
+                    Log.d(TAG,"Cannot get a valid unlock code, therefore I cannot change the password");
+                    log("Cannot get a valid unlock code, therefore I cannot change the password");
+                }
+            }else{
+                log("Lock password not provided, leaving the beacon unlocked.");
+                if(!gattClient.disable_auto_lock()){
+                    log("Error during lock disabling.");
+                }
+            }
+            //} else {
                 //byte[] lockData = {GattConstants.LOCK_STATE_UNLOCKED_AND_AUTOMATIC_RELOCK_DISABLED};
                 //lockedNotificationString = "Unlocked and automatic relock disabled.";
 //                byte[] lockData = {GattConstants.LOCK_STATE_LOCKED};
 //                lockedNotificationString = "Locked without setting a password.";
 //                gattClient.writeLockState(lockData);
-            }
+            //}
             gattClient.disconnect();
 
             log("Beacon with name: " + conf.getName() + " programmed and ready to be released");
@@ -494,11 +546,12 @@ public class BeaconAutoConfigActivity extends AppCompatActivity {
             }
             return true;
         }catch(Exception e){
-
+            final String exceptionTxt = e.toString();
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         log("Beacon No: " + beaconNo + " NOT Programmed!!!\nConfiguration not valid!");
+                        log("Error: "+exceptionTxt.toString());
                         mProgramConfigButton.setText("PROGRAM!");
                         mProgramConfigButton.setEnabled(true);
                     }

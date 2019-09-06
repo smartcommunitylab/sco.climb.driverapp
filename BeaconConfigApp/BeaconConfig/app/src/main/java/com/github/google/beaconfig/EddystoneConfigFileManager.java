@@ -126,7 +126,7 @@ public class EddystoneConfigFileManager{
             if(!parts[3].isEmpty() & parts[3].length() == 32){
                 newPassword = parts[3];
             }else{
-                newPassword = unlockPassword;
+                newPassword = null;
             }
 
             if(parts.length>20 & !parts[20].isEmpty() & parts[20].length() == 1){

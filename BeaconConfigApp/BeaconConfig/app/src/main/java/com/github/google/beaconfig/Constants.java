@@ -22,7 +22,7 @@ import android.os.ParcelUuid;
  */
 
 public class Constants {
-    static final int SCAN_TIME_SECS = 10;
+    static final int SCAN_TIME_SECS = 5;
     static final int REQUEST_ENABLE_BLUETOOTH = 1;
     static final int REQUEST_FILE = 2;
     static final int REQUEST_PROGRAM_BEACON = 3;

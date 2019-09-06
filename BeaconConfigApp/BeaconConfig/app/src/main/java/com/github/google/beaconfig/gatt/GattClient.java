@@ -87,8 +87,10 @@ public class GattClient {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
+                Log.d(TAG, "onConnectionStateChange - newState: STATE_CONNECTED. status: "+status);
                 listener.onGattConnected();
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                Log.d(TAG, "onConnectionStateChange - newState: STATE_DISCONNECTED status: "+status);
                 gatt.close();
                 listener.onGattDisconnected();
             }
@@ -557,12 +559,47 @@ public class GattClient {
             }
 
             writeUnlock(encrypted);
+
             byte[] lockState = readLockState();
             return lockState != null
                     && lockState.length > 0
                     && lockState[0] == GattConstants.LOCK_STATE_UNLOCKED;
         } catch (GattClientException | GattOperationException e) {
             Log.e(TAG, "Failed to unlock beacon", e);
+            return false;
+        }
+    }
+
+    public boolean disable_auto_lock() {
+        Log.d(TAG, "Disable lock...");
+        try {
+            byte[] lockData = new byte[1];
+            lockData[0] = GattConstants.LOCK_STATE_UNLOCKED_AND_AUTOMATIC_RELOCK_DISABLED;
+            writeLockState(lockData);
+
+            byte[] lockState = readLockState();
+            return lockState != null
+                    && lockState.length > 0
+                    && lockState[0]==GattConstants.LOCK_STATE_UNLOCKED_AND_AUTOMATIC_RELOCK_DISABLED;
+        } catch (GattClientException | GattOperationException e) {
+            Log.e(TAG, "Failed to disable lock on the beacon", e);
+            return false;
+        }
+    }
+
+    public boolean lock() {
+        Log.d(TAG, "Locking (with the old password)...");
+        try {
+            byte[] lockData = new byte[1];
+            lockData[0] = GattConstants.LOCK_STATE_LOCKED;
+            writeLockState(lockData);
+
+            byte[] lockState = readLockState();
+            return lockState != null
+                    && lockState.length > 0
+                    && lockState[0]==GattConstants.LOCK_STATE_LOCKED;
+        } catch (GattClientException | GattOperationException e) {
+            Log.e(TAG, "Failed to disable lock on the beacon", e);
             return false;
         }
     }
