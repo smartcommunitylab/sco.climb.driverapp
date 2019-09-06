@@ -1,5 +1,0 @@
-;;;;Slot 1;;;;Slot 2;;;;Slot 3;;;;Slot 4;;;;
-No;NAME*;UNLOCK PASSWORD;NEW PASSWORD;Adv int [ms];Tx Pwr [dBm];"type ""UID""/""TLM""/""URL""";UID/url;Adv int [ms];Tx Pwr [dBm];"type ""UID""/""TLM""/""URL""";UID/url;Adv int [ms];Tx Pwr [dBm];"type ""UID""/""TLM""/""URL""";UID/url;Adv int [ms];Tx Pwr [dBm];"type ""UID""/""TLM""/""URL""";UID/url;accel config
-1;MARIO;;0;1000;0;UID;100000001;10000;0;TLM;;;;;;;;;;4
-2;ANDREA;;0;1000;0;UID;100000002;10000;0;TLM;;;;;;;;;;0
-3;GIOVANNI;;0;1000;0;UID;100000003;10000;0;TLM;;;;;;;;;;0
