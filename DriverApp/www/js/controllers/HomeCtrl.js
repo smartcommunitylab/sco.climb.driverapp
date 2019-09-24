@@ -284,6 +284,18 @@ angular.module('driverapp.controllers.home', [])
         });
       } else {
         $scope.allhelpers = false;
+        $scope.loadAllVolunteers = function() {
+          APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId).then(function(all) {
+            all.forEach(function(e) {
+              $scope.volunteers.forEach(function(v) {
+                if (v.checked && v.objectId === e.objectId) e.checked = true;
+              });  
+            });
+            $scope.volunteers = all;
+            $scope.allhelpers = true;
+          });
+
+        }
         showPopup();
       }
     }
@@ -300,7 +312,7 @@ angular.module('driverapp.controllers.home', [])
             Utils.loaded();
             $scope.lineVolunteers = volunteers;
             $scope.volunteers = volunteers;
-            StorageSrv.saveVolunteers(volunteers).then(function (volunteers) {
+            StorageSrv.saveVolunteers(all).then(function (volunteers) {
               var matching = all.find(function(e) {return e.email == $scope.profile.email});
               if (!!matching) {
                 $scope.driver = matching;

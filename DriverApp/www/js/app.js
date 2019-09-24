@@ -167,7 +167,33 @@ angular.module('driverapp', [
       // TODO CHECK BLUETOOTH STATE, ACTIVATE LISTENER AND CALL START WSN SERVICE / STOP WSN SERVICE
 
 
-      $rootScope.exitApp = function () {
+      $rootScope.exitApp = function (skipConfirm) {
+        var doExit = function() {
+          if (window.DriverAppPlugin) {
+            WSNSrv.init().then(
+              function (response) { },
+              function (reason) { }
+            )
+
+            WSNSrv.startListener().then(
+              function (response) { },
+              function (reason) { }
+            )
+          }
+          Utils.setMenuDriverTitle(null) // clear driver name in menu
+          $state.go('app.home');
+          $ionicHistory.nextViewOptions({
+            disableBack: true,
+            historyRoot: true
+          });
+          //ionic.Platform.exitApp()          
+        }
+
+        if (skipConfirm) {
+          doExit();
+          return;
+        }
+
         $ionicPopup.confirm({
           title: 'Chiusura app',
           template: 'Vuoi veramente uscire?',
@@ -179,24 +205,7 @@ angular.module('driverapp', [
 
           .then(function (result) {
             if (result) {
-              if (window.DriverAppPlugin) {
-                WSNSrv.init().then(
-                  function (response) { },
-                  function (reason) { }
-                )
-
-                WSNSrv.startListener().then(
-                  function (response) { },
-                  function (reason) { }
-                )
-              }
-              Utils.setMenuDriverTitle(null) // clear driver name in menu
-              $state.go('app.home');
-              $ionicHistory.nextViewOptions({
-                disableBack: true,
-                historyRoot: true
-              });
-              //ionic.Platform.exitApp()
+              doExit();
             }
           })
       }

@@ -5,7 +5,6 @@ angular.module('driverapp.controllers.volunteers', [])
       if ($scope.volunteers == null || $scope.volunteers == undefined) {
        APISrv.getVolunteersBySchool(StorageSrv.getSchoolId(),$scope.route.objectId).then(
         function (volunteers) {
-          StorageSrv.saveVolunteers(volunteers)
           $scope.volunteers = volunteers
         },
         function (error) {

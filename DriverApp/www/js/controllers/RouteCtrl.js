@@ -264,6 +264,7 @@ angular.module('driverapp.controllers.route', [])
       $scope.helpersTemp = []
     }
 
+    var _rootScope = $rootScope;
 
     var handleNext = function() {
       console.log('NEXT STEP', new Date().getTime());
@@ -329,6 +330,8 @@ angular.module('driverapp.controllers.route', [])
               $ionicPopup.alert({
                 title: $filter('translate')('upload_success_popup_title'),
                 template: $filter('translate')('upload_success_popup_text')
+              }).then(function (res) {
+                $rootScope.exitApp(true);
               });
             }, function(err) {
               $scope.nextClicked = 0; 
@@ -734,31 +737,6 @@ angular.module('driverapp.controllers.route', [])
         // $scope.helpers = $scope.helpersTemp; // here I align the helpers
         helpersPopup.close()
       }
-    }
-    $scope.loadAllHelpers = function () {
-      Utils.loading();
-      APISrv.getVolunteersBySchool($scope.ownerId, $rootScope.route.instituteId, $rootScope.route.schoolId).then(
-        function (volunteers) {
-          Utils.loaded();
-          $scope.allhelpers = true;
-          if ($scope.driver && $scope.driver.objectId) {
-            volunteers = volunteers.filter(element => element.objectId != $scope.driver.objectId);
-          }
-          oldVolunteers = $scope.volunteers;
-          $scope.volunteers = volunteers;
-          $scope.volunteers.forEach(function (selectedVoulunteer) {
-            for (var i = 0; i < oldVolunteers.length; i++) {
-              if (oldVolunteers[i].objectId === selectedVoulunteer.objectId) {
-                selectedVoulunteer.checked = true
-              }
-            }
-          })
-          StorageSrv.saveVolunteers(volunteers).then(function (volunteers) {})
-        },
-        function (err) {
-          console.log(err);
-          Utils.loaded()
-        });
     }
 
     function showHardwarePopup() {

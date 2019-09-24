@@ -4,20 +4,23 @@ angular.module('driverapp.controllers.batteries', [])
 
     $scope.almostOneVisible = false
 
-    angular.forEach($scope.children, function (child) {
-      if (child.wsnId && WSNSrv.networkState[child.wsnId]) {
-        var batteryLevel = WSNSrv.networkState[child.wsnId].batteryLevel
-        if (batteryLevel != null) {
-          child.batteryLevel = batteryLevel
+    $scope.refresh = function() {
+      angular.forEach($scope.children, function (child) {
+        if (child.wsnId && WSNSrv.networkState[child.wsnId]) {
+          var batteryLevel = WSNSrv.networkState[child.wsnId].batteryLevel
+          if (batteryLevel != null) {
+            child.batteryLevel = batteryLevel
+          }
+          if (child.batteryLevel != null && !$scope.almostOneVisible) {
+            $scope.almostOneVisible = true
+          }
+        } else {
+          console.log('Child withoud wsnId: ' + child.surname + ' ' + child.name)
         }
-        if (child.batteryLevel != null && !$scope.almostOneVisible) {
-          $scope.almostOneVisible = true
-        }
-      } else {
-        console.log('Child withoud wsnId: ' + child.surname + ' ' + child.name)
-      }
-    })
+      })  
+    }
 
+    $scope.refresh();
     /*
     $scope.children = [
       {
