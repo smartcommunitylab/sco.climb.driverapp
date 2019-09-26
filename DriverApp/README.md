@@ -36,6 +36,9 @@ For iOS, GooglePlus Plugin uses Cocoapods.
         # Pods for CLIMB Driver App
         pod 'GoogleSignIn', '~> 4.4'
         pod 'GoogleUtilities', '~> 6.2.3'
+        pod 'FBSDKCoreKit', '~> 5.2.3'
+        pod 'FBSDKLoginKit', '~> 5.2.3'
+        pod 'FBSDKShareKit', '~> 5.2.3'
         end
 
 - run the following command from platform/ios: pod install

@@ -23,8 +23,8 @@ angular.module('driverapp.services.login', [])
     };
 
     var PROVIDER_NATIVE = {
-      GOOGLE: 'google',
-      FACEBOOK: 'facebook'
+      GOOGLE: 'googlelocal',
+      FACEBOOK: 'facebooklocal'
     };
 
     var AAC = {

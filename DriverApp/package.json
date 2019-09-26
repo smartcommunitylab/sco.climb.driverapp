@@ -18,7 +18,7 @@
     "cordova-plugin-crop": "git+https://github.com/obeza/cordova-plugin-crop-with-ratio.git",
     "cordova-plugin-device": "2.0.3",
     "cordova-plugin-enable-multidex": "0.2.0",
-    "cordova-plugin-facebook4": "^5.0.0",
+    "cordova-plugin-facebook4": "6.0.0",
     "cordova-plugin-file": "6.0.2",
     "cordova-plugin-file-transfer": "1.7.1",
     "cordova-plugin-geolocation": "4.0.2",
@@ -95,8 +95,8 @@
   ],
   "cordova": {
     "platforms": [
-      "ios",
-      "android"
+      "android",
+      "ios"
     ],
     "plugins": {
       "cordova-plugin-crop": {},
@@ -126,13 +126,13 @@
       "it.smartcommunitylab.climb.dap": {},
       "cordova-plugin-googleplus": {
         "REVERSED_CLIENT_ID": "com.googleusercontent.apps.453601816446-tvtmoe6oftsqjnbj5blcgee6qjqq42ku",
-        "PLAY_SERVICES_VERSION": "11.8.0"
+        "PLAY_SERVICES_VERSION": "15.0.1"
       },
       "cordova-plugin-facebook4": {
         "APP_ID": "493172441063173",
         "APP_NAME": "CLIMB",
         "FACEBOOK_HYBRID_APP_EVENTS": "false",
-        "FACEBOOK_ANDROID_SDK_VERSION": "5.0.2"
+        "FACEBOOK_ANDROID_SDK_VERSION": "5.2.0"
       }
     }
   }
