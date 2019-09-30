@@ -22,6 +22,7 @@ angular.module('driverapp.services.api', [])
             // $http.get(Config.SERVER_URL + '/profile', Config.getHttpConfig()).then(
             .success(
             function (response) {
+              console.log('RESPONSE', response);
               if (!response) response = {};
               if (!response.ownerIds) {
                 response.ownerIds = [];
@@ -40,10 +41,10 @@ angular.module('driverapp.services.api', [])
               }
             }).error(
             function (reason) {
-              deferred.reject(reason)
+              deferred.reject('INSUFFICIENT_RIGHTS')
             })
         },function (reason) {
-              deferred.reject(reason)
+          deferred.reject(reason)
             })
       return deferred.promise
     }

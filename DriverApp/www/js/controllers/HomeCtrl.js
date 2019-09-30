@@ -275,7 +275,7 @@ angular.module('driverapp.controllers.home', [])
         });      
       }
 
-      $scope.volunteers = $scope.lineVolunteers.filter(element => element.objectId != $scope.driver.objectId);
+      $scope.volunteers = $scope.lineVolunteers.filter(function(element) { return element.objectId != $scope.driver.objectId});
       if ($scope.volunteers.length == 0) {
         APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId).then(function(all) {
           $scope.volunteers = all.filter(function(element) { return element.objectId != $scope.driver.objectId});
@@ -439,6 +439,7 @@ angular.module('driverapp.controllers.home', [])
           )
         }
       }, function (err) {
+        console.log('ERRROR!', err);
         Utils.loaded();
         if ('INSUFFICIENT_RIGHTS' === err) {
           var alertPopup = $ionicPopup.alert({
