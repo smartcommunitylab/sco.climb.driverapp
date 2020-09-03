@@ -57,7 +57,7 @@ angular.module('driverapp', [
        * Check Internet connection
        */
 
-      var checkBTAndEnableHandler = function() {
+      var checkBTAndEnableHandler = function () {
         cordova.plugins.diagnostic.isBluetoothAvailable(function (available) {
           console.log('Init BT initially', available);
           if (available || ionic.Platform.isAndroid()) {
@@ -76,7 +76,7 @@ angular.module('driverapp', [
           } else if (state === cordova.plugins.diagnostic.bluetoothState.POWERED_OFF) {
             stopWSNService();
           }
-        });        
+        });
       }
 
 
@@ -168,7 +168,7 @@ angular.module('driverapp', [
 
 
       $rootScope.exitApp = function (skipConfirm) {
-        var doExit = function() {
+        var doExit = function () {
           if (window.DriverAppPlugin) {
             WSNSrv.init().then(
               function (response) { },
@@ -266,7 +266,7 @@ angular.module('driverapp', [
     })
   })
 
-  .config(function ($stateProvider, $urlRouterProvider, $translateProvider) {
+  .config(function ($stateProvider, $urlRouterProvider, $translateProvider,$compileProvider) {
     $stateProvider.state('app', {
       url: '/app',
       abstract: true,
@@ -383,12 +383,12 @@ angular.module('driverapp', [
       error_exit_title: 'Errore',
       error_right_title: 'Errore di autorizzazione',
       error_right_template: 'L\'account specificato non è associato ad un percorso. ',
-      change_image_title:'Immagine profilo',
-      change_image_template:'Vuoi cambiare l\'immagine del profilo?',
-      btn_close:'Annulla',
-      change_image_confirm:'Conferma',
-      credits_project:'credits_project',
-      credits_info:'credits_info',
+      change_image_title: 'Immagine profilo',
+      change_image_template: 'Vuoi cambiare l\'immagine del profilo?',
+      btn_close: 'Annulla',
+      change_image_confirm: 'Conferma',
+      credits_project: 'credits_project',
+      credits_info: 'credits_info',
       credits_project: 'Un progetto di:',
       credits_collaboration: 'In collaborazione con:',
       credits_participation: 'Con la partecipazione di:',
@@ -404,4 +404,9 @@ angular.module('driverapp', [
 
     $translateProvider.preferredLanguage(DEFAULT_LANG);
     $translateProvider.fallbackLanguage(DEFAULT_LANG);
+    // fix "Failed to load webpage with error: unsupported URL"
+      console.log('ciao');
+    $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|sms|tel|geo|ftp|mailto|file|ghttps?|ms-appx-web|ms-appx|x-wmapp0|ionic):/);
+    // sanitize the images to open ionic://localhost/ on iOS
+    $compileProvider.imgSrcSanitizationWhitelist(/^\s*(https?|ftp|file|content|blob|ms-appx|ms-appx-web|x-wmapp0|ionic):|data:image\//);
   })

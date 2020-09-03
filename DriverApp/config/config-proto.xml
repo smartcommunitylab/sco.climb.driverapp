@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-    <widget id="*widget_id*" version="*version*" android-versionCode="*version_code*" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
-        <name>*app_name*</name>
-      <description>
+<widget id="*widget_id*" version="*version*" android-versionCode="*version_code*"
+    xmlns="http://www.w3.org/ns/widgets"
+    xmlns:cdv="http://cordova.apache.org/ns/1.0"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <name>*app_name*</name>
+    <description>
       The Driver App of the CLIMB Project
     </description>
     <author email="info@smartcommunitylab.it" href="http://www.smartcommunitylab.it/">
@@ -15,7 +18,7 @@
     <allow-intent href="mailto:*" />
     <allow-intent href="tel:*" />
     <allow-intent href="sms:*" />
-    <allow-navigation href="https://*" />
+    <allow-navigation href="*" /> 
     <preference name="webviewbounce" value="false" />
     <preference name="UIWebViewBounce" value="false" />
     <preference name="DisallowOverscroll" value="true" />
@@ -124,4 +127,29 @@
         <variable name="APP_ID" value="493172441063173" />
         <variable name="APP_NAME" value="CLIMB" />
     </plugin>
+    <platform name="ios">
+        <preference name="WKWebViewOnly" value="true" />
+        <feature name="CDVWKWebViewEngine">
+            <param name="ios-package" value="CDVWKWebViewEngine" />
+        </feature>
+        <preference name="CordovaWebViewEngine" value="CDVWKWebViewEngine" />
+        <preference name="pods_ios_min_version" value="8.4"/>
+        <!-- <pod name="GoogleSignIn"  spec='~> 5.0.2'/>
+        <pod name="GoogleUtilities" spec='~> 6.5.1'/>
+        <pod name="FBSDKCoreKit" spec='~> 5.2.3'/>
+        <pod name="FBSDKLoginKit" spec='~> 5.2.3'/>
+        <pod name="FBSDKShareKit" spec='~> 5.2.3'/> -->
+        <preference name="deployment-target" value="9.0" />
+<preference name="pods_use_frameworks" value="true" />
+<pod name="GoogleSignIn" version="5.0.2" />
+<pod name="FBSDKCoreKit" version="5.8.0" />
+<pod name="FBSDKLoginKit" version="5.8.0" />
+<pod name="FBSDKShareKit" version="5.8.0" />
+    </platform>
+    <platform name="android">
+        <preference name="CodePushDeploymentKey" value="*android-key*" />
+    </platform>
+    <platform name="ios">
+        <preference name="CodePushDeploymentKey" value="*ios-key*" />
+    </platform>
 </widget>

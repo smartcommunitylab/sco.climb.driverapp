@@ -15,7 +15,7 @@
     <allow-intent href="mailto:*" />
     <allow-intent href="tel:*" />
     <allow-intent href="sms:*" />
-    <allow-navigation href="https://*" />
+    <allow-navigation href="*" />
     <preference name="webviewbounce" value="false" />
     <preference name="UIWebViewBounce" value="false" />
     <preference name="DisallowOverscroll" value="true" />
@@ -94,6 +94,12 @@
     <plugin name="cordova-plugin-console" spec="1.1.0" />
     <plugin name="cordova-plugin-device" spec="2.0.3" />
     <plugin name="cordova-plugin-enable-multidex" spec="0.2.0" />
+    <plugin name="cordova-plugin-facebook4" spec="5.0.0">
+        <variable name="APP_ID" value="493172441063173" />
+        <variable name="APP_NAME" value="CLIMB" />
+        <variable name="FACEBOOK_HYBRID_APP_EVENTS" value="false" />
+        <variable name="FACEBOOK_ANDROID_SDK_VERSION" value="5.0.2" />
+    </plugin>
     <plugin name="cordova-plugin-file" spec="6.0.2" />
     <plugin name="cordova-plugin-file-transfer" spec="1.7.1" />
     <plugin name="cordova-plugin-geolocation" spec="4.0.2" />
@@ -116,12 +122,28 @@
         <variable name="APP_ID" value="493172441063173" />
         <variable name="APP_NAME" value="CLIMB" />
     </plugin>
-    <plugin name="cordova-plugin-facebook4" spec="6.0.0">
-        <variable name="APP_ID" value="493172441063173" />
-        <variable name="APP_NAME" value="CLIMB" />
-        <variable name="FACEBOOK_HYBRID_APP_EVENTS" value="false" />
-        <variable name="FACEBOOK_ANDROID_SDK_VERSION" value="5.2.0" />
-    </plugin>
-    <engine name="android" spec="6.4.0" />
-    <engine name="ios" spec="4.5.5" />
+    <platform name="ios">
+        <preference name="WKWebViewOnly" value="true" />
+        <feature name="CDVWKWebViewEngine">
+            <param name="ios-package" value="CDVWKWebViewEngine" />
+        </feature>
+        <preference name="CordovaWebViewEngine" value="CDVWKWebViewEngine" />
+        <preference name="pods_ios_min_version" value="8.4" />
+        <preference name="deployment-target" value="9.0" />
+        <preference name="pods_use_frameworks" value="true" />
+        <pod name="GoogleSignIn" version="5.0.2" />
+        <pod name="FBSDKCoreKit" version="5.8.0" />
+        <pod name="FBSDKLoginKit" version="5.8.0" />
+        <pod name="FBSDKShareKit" version="5.8.0" />
+    </platform>
+    <platform name="android">
+        <preference name="CodePushDeploymentKey" value="" />
+    </platform>
+    <platform name="ios">
+        <preference name="CodePushDeploymentKey" value="" />
+    </platform>
+    <plugin name="cordova-plugin-wkwebview-file-xhr" spec="^2.1.4" />
+    <plugin name="cordova-plugin-wkwebviewxhrfix" spec="https://github.com/TheMattRay/cordova-plugin-wkwebviewxhrfix" />
+    <engine name="android" spec="^7.1.4" />
+    <engine name="ios" spec="^4.5.5" />
 </widget>
