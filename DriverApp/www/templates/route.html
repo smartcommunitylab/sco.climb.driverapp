@@ -1,9 +1,9 @@
 <ion-view view-title="{{route.name}}" class="route">
-  <!--
+  
   <ion-nav-buttons side="right">
-    <button class="button icon ion-person-stalker route-title-button" ng-click="selectHelpersPopup()" ng-if="fromWizard" ng-disabled="enRoute || enRouteArrived"></button>
+    <button class="button button-dapp button-icon ion-android-list" ng-click="selectOrderPopUp()" ></button>
   </ion-nav-buttons>
-  -->
+ 
   <ion-header-bar class="bar bar-subheader bar-buttons">
     <!-- TODO ng-if="fromWizard" -->
     <button class="button button-energized" ng-click="selectChildrenPopup()" ng-disabled="enRouteArrived">
@@ -50,8 +50,8 @@
         <span class="counter">{{onBoard.length + onBoardTemp.length}} {{(onBoard.length + onBoardTemp.length) == 1 ? 'BAMBINO' : 'BAMBINI'}}</span>
       </div>
       <ion-scroll direction="y" class="footer-scroll">
-        <div class="route-row" ng-repeat="onBoardRow in mergedOnBoard">
-          <div class="route-on-board" ng-repeat="passengerId in onBoardRow" ng-init="passenger = getChild(passengerId.id)" ng-click="showChildDetails(passenger)">
+        <div class="route-row" ng-repeat="onBoardRow in mergedOnBoard ">
+          <div class="route-on-board" ng-repeat="passengerId in onBoardRow " ng-init="passenger = getChild(passengerId.id)" ng-click="showChildDetails(passenger)">
             <!-- <div class="route-on-board-image" ng-style="{{!!passenger.imageUrl ? {'background-image': 'url(\'' + passenger.imageUrl + '\')'} : {} }}"></div> -->
             <div class="route-on-board-image"  >
                 <img class="profile-image-footer" http-src="{{getImageFooter(passenger)}}">

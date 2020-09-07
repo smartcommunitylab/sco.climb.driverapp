@@ -6,7 +6,9 @@ angular.module('driverapp.controllers.route', [])
 
     // to prevent double click
     $scope.nextClicked = 0;
-
+    $scope.order = {
+      value: 'arrive'
+    };
     var BATTERYLEVEL_LOW = 1
 
     var passengersScrollDelegate = $ionicScrollDelegate.$getByHandle('passengersHandle')
@@ -47,6 +49,7 @@ angular.module('driverapp.controllers.route', [])
     if ($stateParams['fromWizard']) {
       $scope.fromWizard = $stateParams['fromWizard']
     }
+    $scope.order['value'] = localStorage.getItem('order') ? localStorage.getItem('order') : 'arrive'
 
     if ($scope.fromWizard) {
       $rootScope.pedibusEnabled = false
@@ -266,7 +269,7 @@ angular.module('driverapp.controllers.route', [])
 
     var _rootScope = $rootScope;
 
-    var handleNext = function() {
+    var handleNext = function () {
       console.log('NEXT STEP', new Date().getTime());
       $ionicScrollDelegate.scrollTop(true)
 
@@ -320,12 +323,12 @@ angular.module('driverapp.controllers.route', [])
               }
             })
 
-            AESrv.endRoute($scope.stops[$scope.enRoutePos], $scope.ownerId, $scope.routeId).then(function(res) {
+            AESrv.endRoute($scope.stops[$scope.enRoutePos], $scope.ownerId, $scope.routeId).then(function (res) {
               GeoSrv.stopWatchingPosition()
-              WSNSrv.stopListener()  
+              WSNSrv.stopListener()
               $scope.enRouteArrived = true
               $rootScope.pedibusEnabled = true
-              $scope.nextClicked = 0; 
+              $scope.nextClicked = 0;
               Utils.loaded();
               $ionicPopup.alert({
                 title: $filter('translate')('upload_success_popup_title'),
@@ -333,8 +336,8 @@ angular.module('driverapp.controllers.route', [])
               }).then(function (res) {
                 $rootScope.exitApp(true);
               });
-            }, function(err) {
-              $scope.nextClicked = 0; 
+            }, function (err) {
+              $scope.nextClicked = 0;
               Utils.loaded();
               $ionicPopup.alert({
                 title: $filter('translate')('upload_error_popup_title'),
@@ -345,7 +348,7 @@ angular.module('driverapp.controllers.route', [])
             $scope.nextClicked = 0;
           }
         })
-      }      
+      }
     }
 
     $scope.goNext = function () {
@@ -548,17 +551,17 @@ angular.module('driverapp.controllers.route', [])
         title: $filter('translate')("change_image_title"),
         template: $filter('translate')("change_image_template"),
         buttons: [{
-            text: $filter('translate')("btn_close"),
-            type: 'button-cancel'
-          },
-          {
-            text: $filter('translate')("change_image_confirm"),
-            type: 'button-custom',
-            onTap: function () {
-              $scope.choosePhoto(fromLibrary);
+          text: $filter('translate')("btn_close"),
+          type: 'button-cancel'
+        },
+        {
+          text: $filter('translate')("change_image_confirm"),
+          type: 'button-custom',
+          onTap: function () {
+            $scope.choosePhoto(fromLibrary);
 
-            }
           }
+        }
         ]
       });
     }
@@ -605,14 +608,35 @@ angular.module('driverapp.controllers.route', [])
           tmp: false
         })
       }
+      var tmpArray = [];
       for (var j = 0; j < $scope.onBoardTemp.length; j++) {
         var tmpData = {
           id: $scope.onBoardTemp[j],
           tmp: true
         }
         if ($scope.isNewValue(onBoardMerged, tmpData)) {
+          //check order, in case put it in alphabeticalli
+          if ($scope.order['value'] == 'alpha') {
+            console.log('put in order')
+            var child = $scope.getChild(tmpData.id);
+            tmpArray.push(child);
+          }
+          console.log(JSON.stringify(tmpData))
           onBoardMerged.push(tmpData)
         }
+      }
+
+      if ($scope.order['value'] == 'alpha' && tmpArray.length > 0) {
+        tmpArray.sort(function (a, b) {
+          if (a.surname === b.surname) {
+            // name is only important when surname are the same
+            return b.name - a.name;
+          }
+          return a.surname > b.surname ? 1 : -1;
+        });
+        onBoardMerged = tmpArray.map(function (x) {
+          return { id: x.objectId, tmp: true }
+        })
       }
       // here I have to convert in matrix
       for (var k = 0; k < onBoardMerged.length; k += cols) {
@@ -657,7 +681,35 @@ angular.module('driverapp.controllers.route', [])
     $scope.closeRouteView = function () {
       $scope.isRoutePanelOpen = false
     }
-
+    $scope.selectOrderPopUp = function () {
+      // $scope.order = localStorage.getItem('order')?localStorage.getItem('order'):'arrive'
+      var orderPopup = $ionicPopup.show({
+        template: `<ion-list>
+                      <ion-radio ng-model="order.value" ng-value="'arrive'">Arrivo</ion-radio>
+                      <ion-radio ng-model="order.value" ng-value="'alpha'">Alfabetico</ion-radio>
+                  </ion-list>`,
+        cssClass: 'route-popup',
+        title: 'ORDINE A BORDO',
+        subTitle: 'Seleziona l`ordine di visualizzazione a bordo',
+        scope: $scope,
+        buttons: [{
+          text: 'CHIUDI',
+          type: 'button-stable'
+        }, {
+          text: 'SALVA',
+          type: 'button-positive',
+          onTap: function (e) {
+            $scope.selectOrders()
+          }
+        }]
+      })
+      $scope.selectOrders = function () {
+        //cambia orderine e salva
+        localStorage.setItem('order', $scope.order['value'])
+        this.updateMergedOnBoard();
+        orderPopup.close()
+      }
+    }
     $scope.selectHelpersPopup = function () {
       // var calendars = StorageSrv.getVolunteersCalendars()
       // var sortedVolunteers = $filter('orderBy')(StorageSrv.getVolunteers(), ['checked', 'name'])
