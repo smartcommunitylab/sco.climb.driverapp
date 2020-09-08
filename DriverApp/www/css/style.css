@@ -1134,4 +1134,7 @@
     padding-left: 0 !important; 
     padding-right: 0 !important; 
   }
+  .button-privacy{
+    padding: 0px 40px;
+  }
   

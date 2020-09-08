@@ -398,15 +398,15 @@ angular.module('driverapp', [
       upload_success_popup_title: 'Info',
       upload_error_popup_text: 'Upload dei dati non è andato a buon fine. Riprova più tardi.',
       upload_success_popup_text: 'Upload dei dati è stato completato!',
-
+      credits_privacy_button: 'Privacy'
 
     });
 
     $translateProvider.preferredLanguage(DEFAULT_LANG);
     $translateProvider.fallbackLanguage(DEFAULT_LANG);
-    // fix "Failed to load webpage with error: unsupported URL"
-      console.log('ciao');
-    $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|sms|tel|geo|ftp|mailto|file|ghttps?|ms-appx-web|ms-appx|x-wmapp0|ionic):/);
-    // sanitize the images to open ionic://localhost/ on iOS
-    $compileProvider.imgSrcSanitizationWhitelist(/^\s*(https?|ftp|file|content|blob|ms-appx|ms-appx-web|x-wmapp0|ionic):|data:image\//);
+    // // fix "Failed to load webpage with error: unsupported URL"
+    //   console.log('ciao');
+    // $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|sms|tel|geo|ftp|mailto|file|ghttps?|ms-appx-web|ms-appx|x-wmapp0|ionic):/);
+    // // sanitize the images to open ionic://localhost/ on iOS
+    // $compileProvider.imgSrcSanitizationWhitelist(/^\s*(https?|ftp|file|content|blob|ms-appx|ms-appx-web|x-wmapp0|ionic):|data:image\//);
   })
