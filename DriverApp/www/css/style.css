@@ -419,8 +419,35 @@
   background-color: #438699;
   color: white;
 }
-
-
+.data-sent-popup .popup{
+height: 100%;
+    width: 100%;
+}
+.data-sent-popup .popup .popup-body{
+  height: 100%;
+}
+.data-sent-popup .data-sent-title {
+  height: 20vh;
+  text-align: center;
+  font-size: 26px;
+  display: flex;
+  align-items: center;
+}
+.data-sent-popup .img-bruco {
+  width: 100px;
+    margin: auto;
+    text-align: center;
+    display: flex;
+    /* justify-content: center; */
+    align-items: center;
+}
+.data-sent-popup .data-sent-content{
+  height: 20vh;
+  text-align: center;
+  font-size: 26px;
+  display: flex;
+  align-items: center;
+}
 /* Route components */
 
 .dapp-theme .route .bar.bar-buttons .button {

@@ -330,12 +330,24 @@ angular.module('driverapp.controllers.route', [])
               $rootScope.pedibusEnabled = true
               $scope.nextClicked = 0;
               Utils.loaded();
-              $ionicPopup.alert({
-                title: $filter('translate')('upload_success_popup_title'),
-                template: $filter('translate')('upload_success_popup_text')
-              }).then(function (res) {
-                $rootScope.exitApp(true);
-              });
+              $ionicPopup.show({
+                templateUrl: 'templates/data_sent_popup.html',
+                cssClass: 'data-sent-popup',
+                scope: $scope,
+                buttons: [{
+                  text: 'INIZIA',
+                  type: 'button-positive',
+                  onTap: function (e) {
+                    $rootScope.exitApp(true);
+                  }
+                }]
+              })
+              // $ionicPopup.alert({
+              //   title: $filter('translate')('upload_success_popup_title'),
+              //   template: $filter('translate')('upload_success_popup_text')
+              // }).then(function (res) {
+              //   $rootScope.exitApp(true);
+              // });
             }, function (err) {
               $scope.nextClicked = 0;
               Utils.loaded();
