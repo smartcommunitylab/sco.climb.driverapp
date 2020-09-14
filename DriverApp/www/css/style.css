@@ -422,6 +422,8 @@
 .data-sent-popup .popup{
 height: 100%;
     width: 100%;
+    opacity: 1;
+    background-color: white;
 }
 .data-sent-popup .popup .popup-body{
   height: 100%;
@@ -432,9 +434,10 @@ height: 100%;
   font-size: 26px;
   display: flex;
   align-items: center;
+  line-height: 26px;
 }
 .data-sent-popup .img-bruco {
-  width: 100px;
+  width: 150px;
     margin: auto;
     text-align: center;
     display: flex;
@@ -447,6 +450,7 @@ height: 100%;
   font-size: 26px;
   display: flex;
   align-items: center;
+  line-height: 26px;
 }
 /* Route components */
 
