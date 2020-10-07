@@ -1,6 +1,6 @@
 <div class="ion-item">
   <img class="profile-image-round" http-src="{{getImageUrl()}}">
-  <div class="change-profile">
+  <div class="change-profile" ng-if="addPedibusPhoto">
     <div class="button-icon icon ion-camera" ng-click="changeProfile(false)"></div>
     <div class="button-icon icon ion-folder" ng-click="changeProfile(true)"></div>
   </div>

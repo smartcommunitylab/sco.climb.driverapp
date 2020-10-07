@@ -6,6 +6,7 @@
     "@ionic/app-scripts": "^3.1.11",
     "CLIMBDriverAppPlugin": "file:../DriverAppCordovaPlugin",
     "android-versions": "^1.3.0",
+    "code-push": "^3.0.1",
     "cordova": "^8.0.0",
     "cordova-android": "^9.0.0",
     "cordova-common": "^3.2.0",
@@ -15,10 +16,12 @@
     "cordova-plugin-androidx-adapter": "^1.1.1",
     "cordova-plugin-camera": "^4.1.0",
     "cordova-plugin-cocoapod-support": "1.6.2",
+    "cordova-plugin-code-push": "^1.12.1",
     "cordova-plugin-compat": "^1.2.0",
     "cordova-plugin-console": "^1.1.0",
     "cordova-plugin-crop": "git+https://github.com/obeza/cordova-plugin-crop-with-ratio.git",
     "cordova-plugin-device": "^2.0.3",
+    "cordova-plugin-dialogs": "^2.0.2",
     "cordova-plugin-enable-multidex": "^0.2.0",
     "cordova-plugin-facebook4": "^6.4.0",
     "cordova-plugin-file": "^6.0.2",
@@ -33,8 +36,9 @@
     "cordova-plugin-whitelist": "^1.3.4",
     "cordova-plugin-wkwebview-engine": "^1.2.1",
     "cordova-plugin-wkwebview-file-xhr": "^2.1.4",
-    "cordova-plugin-wkwebviewxhrfix": "git+https://github.com/TheMattRay/cordova-plugin-wkwebviewxhrfix.git",
+    "cordova-plugin-wkwebviewxhrfix": "file:../cordova-plugin-wkwebviewxhrfix",
     "cordova-plugin-x-toast": "^2.7.2",
+    "cordova-plugin-zip": "^3.1.0",
     "cordova.plugins.diagnostic": "^5.0.0",
     "gulp": "^3.5.6",
     "gulp-concat": "^2.2.0",
@@ -129,9 +133,13 @@
       "ionic-plugin-keyboard": {},
       "it.smartcommunitylab.climb.dap": {},
       "cordova-plugin-cocoapod-support": {},
-      "cordova-plugin-wkwebview-engine": {},
       "cordova-plugin-wkwebview-file-xhr": {},
+      "cordova-plugin-androidx": {},
+      "cordova-plugin-androidx-adapter": {},
+      "cordova-plugin-wkwebview-engine": {},
       "cordova-plugin-wkwebviewxhrfix": {},
+      "cordova-plugin-code-push": {},
+      "cordova-plugin-zip": {},
       "cordova-plugin-googleplus": {
         "REVERSED_CLIENT_ID": "com.googleusercontent.apps.453601816446-tvtmoe6oftsqjnbj5blcgee6qjqq42ku",
         "PLAY_SERVICES_VERSION": "15.0.1"
@@ -141,9 +149,7 @@
         "APP_NAME": "CLIMB",
         "FACEBOOK_HYBRID_APP_EVENTS": "false",
         "FACEBOOK_ANDROID_SDK_VERSION": "5.13.0"
-      },
-      "cordova-plugin-androidx": {},
-      "cordova-plugin-androidx-adapter": {}
+      }
     }
   }
 }

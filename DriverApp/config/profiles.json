@@ -8,8 +8,8 @@
         "REVERSED_CLIENT_ID":"com.googleusercontent.apps.453601816446-tvtmoe6oftsqjnbj5blcgee6qjqq42ku",
         "APP_ID":"493172441063173",
         "APP_NAME":"CLIMB",
-        "android-key":"",
-        "ios-key":""
+        "android-key":"6xJGypUUa14o4vhGkPglnlMkQPZibPgK2BNnx",
+        "ios-key":"dv6f98MVAB-dJZU7lVzUfnUmsfchgXUwmo67A"
     },
     "FERRARA": {
         "resource_folder": "config/instances/FERRARA",
@@ -22,5 +22,17 @@
         "APP_NAME":"CLIMB Ferrara",
         "android-key":"",
         "ios-key":""
+    },
+    "UNICA": {
+        "resource_folder": "config/instances/UNICA",
+        "widget_id": "it.smartcommunitylab.climb.driverapp",
+        "version": "1.0.6",
+        "version_code": "10001360",
+        "app_name": "CLIMB PedibusSmart",
+        "REVERSED_CLIENT_ID":"com.googleusercontent.apps.453601816446-tvtmoe6oftsqjnbj5blcgee6qjqq42ku",
+        "APP_ID":"493172441063173",
+        "APP_NAME":"CLIMB",
+        "android-key":"6xJGypUUa14o4vhGkPglnlMkQPZibPgK2BNnx",
+        "ios-key":"dv6f98MVAB-dJZU7lVzUfnUmsfchgXUwmo67A"
     }
 }

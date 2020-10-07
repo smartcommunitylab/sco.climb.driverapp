@@ -375,12 +375,14 @@ angular.module('driverapp.controllers.home', [])
           if ($scope.schools.length == 1) {
             // single school, proceed with routes
             $scope.school = $scope.schools[0];
+            $rootScope.volunteerShiftsLink = $scope.school.volunteerShiftsLink;
             goWithRoutes()
           } else {
             // multiple schools, ask the user to select one
             selectionPopup('Seleziona la scuola', $scope.schools).then(
               function (school) {
                 $scope.school = school;
+                $rootScope.volunteerShiftsLink = $scope.school.volunteerShiftsLink;
                 goWithRoutes();
               }
             )
@@ -400,12 +402,14 @@ angular.module('driverapp.controllers.home', [])
           if ($scope.institutes.length == 1) {
             // single instittue, proceed with school selection
             $scope.institute = $scope.institutes[0];
+            $rootScope.addPedibusPhoto = $scope.institute.addPedibusPhoto;
             goWithSchool()
           } else {
             // multiple institutes, ask the user to select
             selectionPopup('Seleziona l\'istituto', $scope.institutes).then(
               function (selection) {
                 $scope.institute = selection;
+                $rootScope.addPedibusPhoto = $scope.institute.addPedibusPhoto;
                 goWithSchool();
               }
             )

@@ -628,25 +628,28 @@ angular.module('driverapp.controllers.route', [])
         }
         if ($scope.isNewValue(onBoardMerged, tmpData)) {
           //check order, in case put it in alphabeticalli
-          if ($scope.order['value'] == 'alpha') {
-            console.log('put in order')
-            var child = $scope.getChild(tmpData.id);
-            tmpArray.push(child);
-          }
+          // if ($scope.order['value'] == 'alpha') {
+          //   console.log('put in order')
+          //   var child = $scope.getChild(tmpData.id);
+          //   tmpArray.push(child);
+          // }
           console.log(JSON.stringify(tmpData))
           onBoardMerged.push(tmpData)
         }
       }
 
-      if ($scope.order['value'] == 'alpha' && tmpArray.length > 0) {
-        tmpArray.sort(function (a, b) {
+      if ($scope.order['value'] == 'alpha' && onBoardMerged.length > 0) {
+        onBoardMerged = onBoardMerged.map(function (x) {
+          return $scope.getChild(x.id);
+        })
+        onBoardMerged.sort(function (a, b) {
           if (a.surname === b.surname) {
             // name is only important when surname are the same
             return b.name - a.name;
           }
           return a.surname > b.surname ? 1 : -1;
         });
-        onBoardMerged = tmpArray.map(function (x) {
+        onBoardMerged = onBoardMerged.map(function (x) {
           return { id: x.objectId, tmp: true }
         })
       }
@@ -772,6 +775,9 @@ angular.module('driverapp.controllers.route', [])
           }
         }
       })
+      $scope.openVolunteer = function() {
+        cordova.InAppBrowser.open($rootScope.volunteerShiftsLink, '_system', 'location=yes'); 
+      }
 
       var helpersPopup = $ionicPopup.show({
         templateUrl: 'templates/route_popup_helpers.html',
