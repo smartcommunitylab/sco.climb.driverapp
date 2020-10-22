@@ -19,12 +19,14 @@ angular.module('driverapp.services.login', [])
     service.PROVIDER = {
       INTERNAL: 'internal',
       GOOGLE: 'google',
-      FACEBOOK: 'facebook'
+      FACEBOOK: 'facebook',
+      APPLE: 'apple'
     };
-
+  
     var PROVIDER_NATIVE = {
       GOOGLE: 'google',
-      FACEBOOK: 'facebook'
+      FACEBOOK: 'facebook',
+      APPLE:'apple'
     };
 
     var AAC = {
@@ -377,6 +379,9 @@ angular.module('driverapp.services.login', [])
       } else if (provider == service.PROVIDER.GOOGLE && ionic.Platform.isWebView() && !!$window.plugins.googleplus) {
         // on mobile force Google plugin
         provider = PROVIDER_NATIVE.GOOGLE;
+      } else if (provider == service.PROVIDER.APPLE && ionic.Platform.isWebView() && !!window.cordova.plugins.SignInWithApple) {
+        // on mobile force Google plugin
+        provider = PROVIDER_NATIVE.APPLE;
       }
 
       var authorizeProvider = function (token) {
@@ -398,7 +403,7 @@ angular.module('driverapp.services.login', [])
             authUrl += '?token=' + encodeURIComponent(token);
           }
         }
-
+        console.log(authUrl);
         // Open the OAuth consent page in the InAppBrowser
         if (!authWindow) {
           authWindow = $window.open(authUrl, '_blank', 'location=no,toolbar=no');
@@ -470,6 +475,81 @@ angular.module('driverapp.services.login', [])
 
       /* Actions by provider */
       switch (provider) {
+        case PROVIDER_NATIVE.APPLE:
+        /*
+				Uses the cordova-plugin-sign-in-with-apple plugin
+				https://github.com/twogate/cordova-plugin-sign-in-with-apple
+				*/
+				var options = { requestedScopes: [0, 1] };
+
+
+				var successCallback;
+				if (settings.loginType == service.LOGIN_TYPE.AAC) {
+					successCallback = function (code) {
+						getAACtoken(code).then(
+							function (tokenInfo) {
+								saveToken(tokenInfo);
+								user.provider = provider;
+								console.log('[LOGIN] Logged in with ' + user.provider);
+								remoteAAC.getCompleteProfile(user.tokenInfo).then(
+									function (profile) {
+										user.profile = profile;
+										service.localStorage.saveUser();
+										deferred.resolve(profile);
+									},
+									function (reason) {
+										deferred.reject(reason);
+									}
+								);
+							},
+							function (error) {
+								deferred.reject(error);
+							}
+						);
+					};
+				} else if (settings.loginType == service.LOGIN_TYPE.COOKIE) {
+					// TODO cookie
+					successCallback = function (profile) {
+						saveToken();
+						user.provider = provider;
+						console.log('[LOGIN] Logged in with ' + user.provider);
+						user.profile = profile;
+						service.localStorage.saveUser();
+						deferred.resolve(profile);
+					}
+				}
+				window.cordova.plugins.SignInWithApple.signin(
+					options,
+					function(obj){
+					  console.log(obj)
+            getAACtokenNative(obj.identityToken, PROVIDER_NATIVE.APPLE).then(
+              function (tokenInfo) {
+                saveToken(tokenInfo);
+                user.provider = provider;
+                console.log('[LOGIN] logged in with ' + user.provider);
+                remoteAAC.getCompleteProfile(user.tokenInfo).then(
+                  function (profile) {
+                    user.profile = profile;
+                    service.localStorage.saveUser();
+                    deferred.resolve(profile);
+                  },
+                  function (reason) {
+                    deferred.reject(reason);
+                  }
+                );
+              },
+              function (reason) {
+                deferred.reject(reason);
+              }
+            );
+					},
+					function(err){
+					  console.error(err)
+					  console.log(JSON.stringify(err))
+					  deferred.reject('Login apple error: ' + msg)
+					}
+				  )
+				break;
         case PROVIDER_NATIVE.GOOGLE:
           /*
           Uses the cordova-plugin-googleplus plugin

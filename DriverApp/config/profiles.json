@@ -26,13 +26,13 @@
     "UNICA": {
         "resource_folder": "config/instances/UNICA",
         "widget_id": "it.smartcommunitylab.climb.driverapp",
-        "version": "1.0.6",
-        "version_code": "10001360",
+        "version": "1.0.8",
+        "version_code": "10001361",
         "app_name": "CLIMB PedibusSmart",
         "REVERSED_CLIENT_ID":"com.googleusercontent.apps.453601816446-tvtmoe6oftsqjnbj5blcgee6qjqq42ku",
         "APP_ID":"493172441063173",
         "APP_NAME":"CLIMB",
-        "android-key":"6xJGypUUa14o4vhGkPglnlMkQPZibPgK2BNnx",
-        "ios-key":"dv6f98MVAB-dJZU7lVzUfnUmsfchgXUwmo67A"
+        "android-key":"oODYvxnGJPtteiTGHC8NbbD-2Y90W-Y6zfrSw",
+        "ios-key":"RZA9jf6VIOxcq_I9my7i4b4OATxOkyU34Dz-8"
     }
 }

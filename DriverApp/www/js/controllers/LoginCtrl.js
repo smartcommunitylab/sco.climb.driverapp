@@ -1,8 +1,9 @@
 angular.module('driverapp.controllers.login', [])
 
-    .controller('LoginCtrl', function ($scope, $ionicSideMenuDelegate, $ionicLoading, $ionicPlatform, $state, $ionicHistory, $ionicPopup, $timeout, $filter, Config, LoginService, Utils,StorageSrv) {
+    .controller('LoginCtrl', function ($scope, $ionicSideMenuDelegate, $ionicLoading, $ionicPlatform, $state, $ionicHistory, $ionicPopup, $timeout, $filter, Config, LoginService, Utils, StorageSrv) {
         $ionicSideMenuDelegate.canDragContent(false);
 
+        $scope.isIOS = false;
 
         $scope.user = {
             email: '',
@@ -23,7 +24,7 @@ angular.module('driverapp.controllers.login', [])
                 $ionicLoading.show({
                     template: $filter('translate')('user_check')
                 });
-               StorageSrv.saveIdentity('a');
+                StorageSrv.saveIdentity('a');
                 $state.go('app.home');
                 $ionicHistory.nextViewOptions({
                     disableBack: true,
@@ -34,7 +35,35 @@ angular.module('driverapp.controllers.login', [])
                 $ionicLoading.hide();
             });
         }
+        $scope.appleSignIn = function () {
+            $ionicLoading.show({
+              template: 'Logging in...'
+            });
+            $timeout(function () {
+              $ionicLoading.hide(); //close the popup after 3 seconds for some reason
+            }, 3000);
+            LoginService.login(LoginService.PROVIDER.APPLE).then(function (profile) {
+              //                                       check if user is valid
+              $ionicLoading.show({
+                template: $filter('translate')('user_check')
+              });
+              $ionicLoading.hide();
+              $ionicLoading.show({
+                  template: $filter('translate')('user_check')
+              });
+              StorageSrv.saveIdentity('a');
 
+              $state.go('app.home');
+              $ionicHistory.nextViewOptions({
+                  disableBack: true,
+                  historyRoot: true
+              });
+
+            }, function (err) {
+                Utils.toast("Errore di comunicazione con il server", "short", "bottom");
+              $ionicLoading.hide();
+            });
+          }
         $scope.facebookSignIn = function () {
             $ionicLoading.show({
                 template: 'Logging in...'
@@ -48,7 +77,7 @@ angular.module('driverapp.controllers.login', [])
                 $ionicLoading.show({
                     template: $filter('translate')('user_check')
                 });
-                                    StorageSrv.saveIdentity('a');
+                StorageSrv.saveIdentity('a');
 
                 $state.go('app.home');
                 $ionicHistory.nextViewOptions({
@@ -72,11 +101,15 @@ angular.module('driverapp.controllers.login', [])
             }
         });
         $scope.$on('$ionicView.beforeEnter', function () {
-
+            
         });
 
 
         $ionicPlatform.ready(function () {
+            //check platform 
+            if (ionic.Platform.isIOS() && window.cordova.plugins.SignInWithApple) {
+                $scope.isIOS = true;
+            }
             // Config.init().then(function () {
             if (window.cordova && window.cordova.plugins.screenorientation && screen.lockOrientation) {
                 screen.lockOrientation('portrait');
@@ -86,7 +119,7 @@ angular.module('driverapp.controllers.login', [])
                 LoginService.getValidAACtoken().then(function (validToken) {
                     $ionicLoading.hide();
                     // var profile = LoginService.getUserProfile();
-                     //StorageSrv.saveIdentity('a');
+                    //StorageSrv.saveIdentity('a');
                     $state.go('app.home');
                     $ionicHistory.nextViewOptions({
                         disableBack: true,
@@ -116,7 +149,7 @@ angular.module('driverapp.controllers.login', [])
                     $ionicLoading.show({
                         template: $filter('translate')('user_check')
                     });
-                                        StorageSrv.saveIdentity('a');
+                    StorageSrv.saveIdentity('a');
 
                     $state.go('app.home');
                     $ionicHistory.nextViewOptions({

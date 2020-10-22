@@ -559,9 +559,11 @@ angular.module('driverapp.controllers.route', [])
 
 
     $scope.changeProfile = function (fromLibrary) {
+      
+      var template = fromLibrary?$filter('translate')("change_image_template_library"):$filter('translate')("change_image_template_camera")
       $ionicPopup.confirm({
         title: $filter('translate')("change_image_title"),
-        template: $filter('translate')("change_image_template"),
+        template: template,
         buttons: [{
           text: $filter('translate')("btn_close"),
           type: 'button-cancel'
@@ -776,9 +778,19 @@ angular.module('driverapp.controllers.route', [])
         }
       })
       $scope.openVolunteer = function() {
-        cordova.InAppBrowser.open($rootScope.volunteerShiftsLink, '_system', 'location=yes'); 
+        var link= checkPrefix();
+        cordova.InAppBrowser.open(link, '_system', 'location=yes'); 
       }
-
+      var checkPrefix = function() {
+        var returnLink='';
+      var prefix = 'http://';
+      if ($rootScope.volunteerShiftsLink.substr(0, prefix.length) !== prefix && $rootScope.volunteerShiftsLink.substr(0, 'https://'.length) !== 'https://')
+      {
+        returnLink = prefix + $rootScope.volunteerShiftsLink;
+      } 
+      else returnLink =  $rootScope.volunteerShiftsLink;
+      return returnLink;
+    }
       var helpersPopup = $ionicPopup.show({
         templateUrl: 'templates/route_popup_helpers.html',
         cssClass: 'route-popup',

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-versionCode="10001360" id="it.smartcommunitylab.climb.driverapp" version="1.0.6" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget android-versionCode="10001361" id="it.smartcommunitylab.climb.driverapp" version="1.0.8" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>CLIMB PedibusSmart</name>
     <description>
       The Driver App of the CLIMB Project
@@ -115,7 +115,6 @@
     </plugin>
     <plugin name="ionic-plugin-keyboard" spec="2.2.1" />
     <plugin name="cordova-plugin-crop" spec="git+https://github.com/obeza/cordova-plugin-crop-with-ratio.git" />
-    <plugin name="it.smartcommunitylab.climb.dap" spec="../DriverAppCordovaPlugin" />
     <plugin name="cordova-plugin-googleplus" spec="git+https://github.com/EddyVerbruggen/cordova-plugin-googleplus.git">
         <variable name="REVERSED_CLIENT_ID" value="com.googleusercontent.apps.453601816446-tvtmoe6oftsqjnbj5blcgee6qjqq42ku" />
         <variable name="WEB_APPLICATION_CLIENT_ID" value="453601816446-4meaa3hq39gtnj1spb7skm3faarkl2i6.apps.googleusercontent.com" />
@@ -137,11 +136,13 @@
         <pod name="FBSDKShareKit" version="5.8.0" />
     </platform>
     <platform name="android">
-        <preference name="CodePushDeploymentKey" value="6xJGypUUa14o4vhGkPglnlMkQPZibPgK2BNnx" />
+        <preference name="CodePushDeploymentKey" value="oODYvxnGJPtteiTGHC8NbbD-2Y90W-Y6zfrSw" />
     </platform>
     <platform name="ios">
-        <preference name="CodePushDeploymentKey" value="dv6f98MVAB-dJZU7lVzUfnUmsfchgXUwmo67A" />
+        <preference name="CodePushDeploymentKey" value="RZA9jf6VIOxcq_I9my7i4b4OATxOkyU34Dz-8" />
     </platform>
+    <plugin name="cordova-plugin-sign-in-with-apple" spec="^0.1.2" />
+    <plugin name="it.smartcommunitylab.climb.dap" spec="../DriverAppCordovaPlugin" />
     <engine name="ios" spec="^4.5.5" />
     <engine name="android" spec="^9.0.0" />
 </widget>

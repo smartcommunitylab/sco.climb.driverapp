@@ -388,7 +388,8 @@ angular.module('driverapp', [
       error_right_title: 'Errore di autorizzazione',
       error_right_template: 'L\'account specificato non è associato ad un percorso. ',
       change_image_title: 'Immagine profilo',
-      change_image_template: 'Vuoi cambiare l\'immagine del profilo?',
+      change_image_template_camera: 'Vuoi cambiare l\'immagine del profilo scattando una nuova foto?',
+      change_image_template_library: ' Vuoi cambiare l\'immagine del profilo scegliendola dalla tua galleria?',
       btn_close: 'Annulla',
       change_image_confirm: 'Conferma',
       credits_project: 'credits_project',
@@ -402,8 +403,10 @@ angular.module('driverapp', [
       upload_success_popup_title: 'Info',
       upload_error_popup_text: 'Upload dei dati non è andato a buon fine. Riprova più tardi.',
       upload_success_popup_text: 'Upload dei dati è stato completato!',
-      credits_privacy_button: 'Privacy'
-
+      credits_privacy_button: 'Privacy',
+      sign_in_apple:"Accedi con Apple",
+      sign_in_facebook: 'Accedi con Facebook',
+      sign_in_google: 'Accedi con Google'
     });
 
     $translateProvider.preferredLanguage(DEFAULT_LANG);

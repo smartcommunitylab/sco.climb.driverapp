@@ -1025,19 +1025,38 @@ height: 100%;
   max-width: 100%;
   padding: 0;
 }
+.login .login-button-apple {
+  text-transform: none;
+  border-color: black;
+  background-color: black;
+  color: #FFFFFF;
+  margin:0px;
+  width: 75%;
+  font-size: 4vw;
+  margin: auto;
 
+}
 .login .login-button-google {
-  text-transform: uppercase;
+  text-transform: none;
   border-color: #DB4437;
   background-color: #DB4437;
   color: #FFFFFF;
+  margin:0px;
+  width: 75%;
+  font-size: 4vw;
+  margin: auto;
 }
 
 .login .login-button-facebook {
-  text-transform: uppercase;
+  text-transform: none;
   border-color: #3a5795;
   background-color: #3a5795;
   color: #FFFFFF;
+  margin:0px;
+  width: 75%;
+  font-size: 4vw;
+  margin: auto;
+
 }
 
 .login .login-button-internal {

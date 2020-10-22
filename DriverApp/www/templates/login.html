@@ -32,18 +32,24 @@
                 </a>
                 <br/>
                 <span class="login-text">{{'text_login_use' | translate}}</span>
-              <div class="row">
+                <div class="row responsive-sm">
+                  <div class="col col-bottom text-center" ng-if="isIOS">
+                    <button class="button button-block login-button-apple" ng-click="appleSignIn()">
+                      <i class="icon ion-social-apple"></i> {{'sign_in_apple'|translate}}
+                    </button>
+                  </div>
                   <div class="col col-bottom text-center">
                     <button class="button button-block login-button-facebook" ng-click="facebookSignIn()">
-                        Facebook
+                      <i class="icon ion-social-facebook"></i> {{'sign_in_facebook'|translate}}
                     </button>
                   </div>
                   <div class="col col-bottom text-center">
                     <button class="button button-block login-button-google" ng-click="googleSignIn()">
-                        Google
+                      <i class="icon ion-social-google"></i> {{'sign_in_google'|translate}}
                     </button>
                   </div>
-              </div>
+      
+                </div>
             </div>
           </div>
         </div>
