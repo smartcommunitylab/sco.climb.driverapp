@@ -213,7 +213,17 @@ angular.module('driverapp', [
             }
           })
       }
-
+      $rootScope.openEmail = function() {
+        if (ionic.Platform.isAndroid()){
+        cordova.InAppBrowser.open('mailto:pedibus-smart@fbk.eu?subject= Richiesta abilitazione account&body= Utilizzo l\'applicazione Climb e vorrei abilitare il mio account', '_system', 'location=yes');
+        } else if (ionic.Platform.isIOS()) {
+          cordova.plugins.email.open({
+            to:      'pedibus-smart@fbk.eu',
+            subject: 'Richiesta abilitazione account',
+            body:    'Utilizzo l\'applicazione Climb e vorrei abilitare il mio account'
+        });
+        }
+      }
       $rootScope.logout = function () {
         $ionicPopup.confirm({
           title: 'Logout',

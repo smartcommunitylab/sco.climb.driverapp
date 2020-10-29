@@ -446,13 +446,15 @@ angular.module('driverapp.controllers.home', [])
         console.log('ERRROR!', err);
         Utils.loaded();
         if ('INSUFFICIENT_RIGHTS' === err) {
-          var alertPopup = $ionicPopup.alert({
+          if (!$rootScope.alertPopup)
+          $rootScope.alertPopup = $ionicPopup.alert({
             title: $filter('translate')('error_right_title'),
-            template: $filter('translate')('error_right_template'),
+            templateUrl: 'templates/error_right_popup.html',
+            // template: $filter('translate')('error_right_template'),
             okText: 'Logout'
           });
 
-          alertPopup.then(function (res) {
+          $rootScope.alertPopup.then(function (res) {
             Config.resetIdentity()
             StorageSrv.clearIdentity()
             // if (ionic.Platform.isIOS()) {
