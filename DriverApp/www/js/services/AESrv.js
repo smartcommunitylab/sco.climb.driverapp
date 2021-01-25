@@ -168,7 +168,7 @@ angular.module('driverapp.services.ae', [])
 
       geolocalizeEvent(event)
       aeInstance.events.push(event)
-
+      //TODO
       WSNSrv.deinit().then(
         function () {
           var uploadWsnLogFiles = function (deferred) {
@@ -188,13 +188,18 @@ angular.module('driverapp.services.ae', [])
 
           StorageSrv.saveEAs(aeInstance.events).then(
             function (eas) {
+              //TODO here you store the data on localstorage and try to do the send
+              Utils.storeDataOnLocalStorage(ownerId,routeId,eas);
               APISrv.addEvents(eas,ownerId,routeId).then(
                 function (response) {
-                  //console.log('[Events] Successfully uploaded to the server.')
-                  uploadWsnLogFiles(deferred)
+                  console.log('[Events] Successfully uploaded to the server.')
+                  uploadWsnLogFiles(deferred);
+                  Utils.popupSent();
+                  Utils.removeDataOnLocalStorage(ownerId,routeId)
                 },
                 function (reason) {
                   console.log('[Events] Error uploading to the server!', reason)
+                  Utils.popupNotSent();
                   uploadWsnLogFiles(deferred)
                 }
               )

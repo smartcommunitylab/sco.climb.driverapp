@@ -1,6 +1,6 @@
 /* global Connection */
 angular.module('driverapp.services.utils', [])
-  .factory('Utils', function ($rootScope, $filter, $cordovaCamera, $timeout, $ionicPopup, $ionicLoading, Config) {
+  .factory('Utils', function ($rootScope, $filter, $q, $http, $cordovaCamera, LoginService, $timeout, $ionicPopup, $ionicLoading, Config) {
       var Utils = {}
       var mapChildImage = {};
       this.drivername = ''
@@ -228,5 +228,103 @@ angular.module('driverapp.services.utils', [])
             Utils.loaded();
           });
         }
+        Utils.storeDataOnLocalStorage = function( ownerId, routeId, data) {
+          localStorage.setItem(Config.APPID+ownerId+routeId+moment().startOf('day').format(),JSON.stringify(data));
+       
+        }
+        Utils.checkDataOnLocalStorage = function( ownerId, routeId) {
+          if (localStorage.getItem(Config.APPID+ownerId+routeId+moment().startOf('day').format()))
+          return true
+          return false
+        }
+        Utils.getDataOnLocalStorage = function( ownerId, routeId) {
+          return localStorage.getItem(Config.APPID+ownerId+routeId+moment().startOf('day').format())
+
+       }
+        Utils.removeDataOnLocalStorage = function( ownerId, routeId) {
+           localStorage.removeItem(Config.APPID+ownerId+routeId+moment().startOf('day').format());
+
+        }
+        Utils.popupSent = function() {
+          $ionicPopup.show({
+            templateUrl: 'templates/data_sent_popup.html',
+            cssClass: 'data-sent-popup',
+            scope: $rootScope,
+            buttons: [{
+              text: 'INIZIA',
+              type: 'button-positive',
+              onTap: function (e) {
+                $rootScope.exitApp(true);
+              }
+            }]
+          })
+        }
+        Utils.popupNotSent = function() {
+          $ionicPopup.show({
+            templateUrl: 'templates/data_not_sent_popup.html',
+            scope: $rootScope,
+            buttons: [{
+              text: 'OK',
+              type: 'button-positive',
+              onTap: function (e) {
+                $rootScope.exitApp(true);
+              }
+            }]
+          })
+        }
+        Utils.checkDataOnServer = function(ownerId,routeId) {
+          var deferred = $q.defer()
+          LoginService.getValidAACtoken().then(
+            function (token) {
+              $http({
+                method: 'GET',
+                url: Config.SERVER_URL + '/event/' + ownerId +'/'+routeId+'?dateFrom='+moment().startOf('day').format()+
+                '&dateTo='+moment().endOf('day').format(),
+                headers: {
+                  'Authorization': 'Bearer ' + token,
+                  'appId': Config.APPID,
+                },
+                timeout: Config.getHttpConfig().timeout
+              }) .success(
+                function (response) {
+                  if (response && response.length >0 )
+                  deferred.resolve(true)
+                  else deferred.resolve(false)
+                }).error(
+                  function (reason) {
+                    deferred.reject(reason)
+                  })
+              },function (reason) {
+                deferred.reject(false)
+                  })
+            return deferred.promise
+                }
+          
+                Utils.alreadySent = function(exitFunction,checkLocalFunction){
+                  $ionicPopup.confirm({
+                    title: $filter('translate')("data_already_sent"),
+                    template: $filter('translate')("data_already_sent_body"),
+                    buttons: [{
+                      text: $filter('translate')("btn_no"),
+                      type: 'button-stable',
+                      onTap: function () {
+                        //exit app
+                        exitFunction(true);
+                      }
+                    },
+                    {
+                      text: $filter('translate')("btn_yes"),
+                      type: 'button-positive',
+                      onTap: function () {
+                        //check localstorage
+                        checkLocalFunction();
+                      }
+                    }
+                    ]
+                  });
+                }
+          // https://climbdev.smartcommunitylab.it/v3/api/event/{ownerId}/{routeId}?dateFrom=2021-01-19T00:00:00&dateTo=2021-01-19T23:59:59&eventType[]=402
+          // moment
+        
         return Utils
       })

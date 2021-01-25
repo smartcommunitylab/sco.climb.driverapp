@@ -224,6 +224,8 @@ angular.module('driverapp', [
         });
         }
       }
+      
+
       $rootScope.logout = function () {
         $ionicPopup.confirm({
           title: 'Logout',
@@ -416,7 +418,13 @@ angular.module('driverapp', [
       credits_privacy_button: 'Privacy',
       sign_in_apple:"Accedi con Apple",
       sign_in_facebook: 'Accedi con Facebook',
-      sign_in_google: 'Accedi con Google'
+      sign_in_google: 'Accedi con Google',
+      data_already_sent:'Dati giá inviati',
+      data_already_sent_body:'Sono presenti sul server dati per la corsa di oggi. Vuoi continuare?',
+      btn_no:'No',
+      btn_yes:'Si',
+      local_data_present:'Dati locali non inviati',
+      local_data_present_body:'Sono presenti dei dati non ancora inviati. Vuoi ritentare a inviarli?',
     });
 
     $translateProvider.preferredLanguage(DEFAULT_LANG);

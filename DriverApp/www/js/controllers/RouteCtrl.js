@@ -171,6 +171,9 @@ angular.module('driverapp.controllers.route', [])
       $scope.routeId = $rootScope.route.objectId;
     }
 
+
+
+
     /*
      * populate stops
      */
@@ -322,7 +325,7 @@ angular.module('driverapp.controllers.route', [])
                 }
               }
             })
-
+            // TODO store data in localstorage
             AESrv.endRoute($scope.stops[$scope.enRoutePos], $scope.ownerId, $scope.routeId).then(function (res) {
               GeoSrv.stopWatchingPosition()
               WSNSrv.stopListener()
@@ -330,18 +333,6 @@ angular.module('driverapp.controllers.route', [])
               $rootScope.pedibusEnabled = true
               $scope.nextClicked = 0;
               Utils.loaded();
-              $ionicPopup.show({
-                templateUrl: 'templates/data_sent_popup.html',
-                cssClass: 'data-sent-popup',
-                scope: $scope,
-                buttons: [{
-                  text: 'INIZIA',
-                  type: 'button-positive',
-                  onTap: function (e) {
-                    $rootScope.exitApp(true);
-                  }
-                }]
-              })
               // $ionicPopup.alert({
               //   title: $filter('translate')('upload_success_popup_title'),
               //   template: $filter('translate')('upload_success_popup_text')
@@ -498,7 +489,79 @@ angular.module('driverapp.controllers.route', [])
       }
       return false
     }
+    $scope.alreadySent = function () {
+      //show popup already sent
+      Utils.alreadySent($rootScope.exitApp,$scope.goWithLocalStorage);
+    }
 
+    $scope.presentLocalData = function () {
+      //show popup already sent
+      $ionicPopup.confirm({
+        title: $filter('translate')("local_data_present"),
+        template: $filter('translate')("local_data_present_body"),
+        buttons: [{
+          text: $filter('translate')("btn_no"),
+          type: 'button-stable',
+          onTap: function () {
+            //go on (delete old data)
+            Utils.removeDataOnLocalStorage($scope.ownerId, $scope.routeId);
+          }
+        },
+        {
+          text: $filter('translate')("btn_yes"),
+          type: 'button-positive',
+          onTap: function () {
+            //TODO try to send the local Data
+            var eas = JSON.parse(Utils.getDataOnLocalStorage($scope.ownerId, $scope.routeId));
+            APISrv.addEvents(eas, $scope.ownerId, $scope.routeId).then(function (res) {
+              Utils.popupSent();
+              APISrv.uploadWsnLogs($scope.routeId, $scope.ownerId).then(
+                function () {
+                  Utils.loaded()
+                  console.log('[WSN Logs] Successfully uploaded to the server.')
+                },
+                function (error) {
+                  Utils.loaded()
+                  console.log('[WSN Logs] Error uploading to the server: ' + error)
+                })
+              //if ok sent wsn log
+              // delete  local data for events
+              Utils.removeDataOnLocalStorage($scope.ownerId, $scope.routeId);
+
+              //   show message 
+            }, function (err) {
+              Utils.popupNotSent();
+            })
+          }
+        }]
+      })
+    }
+
+    $scope.checkDataOnServer = function () {
+      // check data on server with ownerID and routeID from midnight to midnight
+      if ($scope.ownerId && $scope.routeId)
+        return Utils.checkDataOnServer($scope.ownerId, $scope.routeId)
+
+      else return Promise.resolve(false)
+    }
+    $scope.checkDataOnLocalStorage = function () {
+      // check data in localStorage
+      return Utils.checkDataOnLocalStorage($scope.ownerId, $scope.routeId)
+    }
+    $scope.storeLocalData = function () {
+      // store data in localStorage as JSON
+    }
+    $scope.deleteLocalData = function () {
+      // store data in localStorage as JSON
+    }
+    $scope.goWithLocalStorage = function () {
+      if ($scope.checkDataOnLocalStorage()) {
+        $scope.presentLocalData();
+      }
+      else {
+        //go on
+      }
+    }
     /*
      * "Add others" Popup
      */
@@ -559,8 +622,8 @@ angular.module('driverapp.controllers.route', [])
 
 
     $scope.changeProfile = function (fromLibrary) {
-      
-      var template = fromLibrary?$filter('translate')("change_image_template_library"):$filter('translate')("change_image_template_camera")
+
+      var template = fromLibrary ? $filter('translate')("change_image_template_library") : $filter('translate')("change_image_template_camera")
       $ionicPopup.confirm({
         title: $filter('translate')("change_image_title"),
         template: template,
@@ -777,20 +840,19 @@ angular.module('driverapp.controllers.route', [])
           }
         }
       })
-      $scope.openVolunteer = function() {
-        var link= checkPrefix();
-        cordova.InAppBrowser.open(link, '_system', 'location=yes'); 
+      $scope.openVolunteer = function () {
+        var link = checkPrefix();
+        cordova.InAppBrowser.open(link, '_system', 'location=yes');
       }
-      var checkPrefix = function() {
-        var returnLink='';
-      var prefix = 'http://';
-      if ($rootScope.volunteerShiftsLink.substr(0, prefix.length) !== prefix && $rootScope.volunteerShiftsLink.substr(0, 'https://'.length) !== 'https://')
-      {
-        returnLink = prefix + $rootScope.volunteerShiftsLink;
-      } 
-      else returnLink =  $rootScope.volunteerShiftsLink;
-      return returnLink;
-    }
+      var checkPrefix = function () {
+        var returnLink = '';
+        var prefix = 'http://';
+        if ($rootScope.volunteerShiftsLink.substr(0, prefix.length) !== prefix && $rootScope.volunteerShiftsLink.substr(0, 'https://'.length) !== 'https://') {
+          returnLink = prefix + $rootScope.volunteerShiftsLink;
+        }
+        else returnLink = $rootScope.volunteerShiftsLink;
+        return returnLink;
+      }
       var helpersPopup = $ionicPopup.show({
         templateUrl: 'templates/route_popup_helpers.html',
         cssClass: 'route-popup',
@@ -862,6 +924,18 @@ angular.module('driverapp.controllers.route', [])
         }
       }, errCb);
     }
+    $scope.checkDataOnServer().then(function (res) {
+      if (res)
+      //popup data already sent, 
+      {
+        $scope.alreadySent();
+      }
+      else {
+        $scope.goWithLocalStorage();
+      }
+    })
+
+
 
     $ionicPlatform.ready(function () {
       if ($scope.checkHardwarePopup) {
