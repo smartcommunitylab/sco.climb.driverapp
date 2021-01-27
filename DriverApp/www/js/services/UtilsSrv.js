@@ -300,7 +300,7 @@ angular.module('driverapp.services.utils', [])
             return deferred.promise
                 }
           
-                Utils.alreadySent = function(exitFunction,checkLocalFunction){
+                Utils.alreadySent = function(exitFunction,goOn,ownerId, routeId,deferred){
                   $ionicPopup.confirm({
                     title: $filter('translate')("data_already_sent"),
                     template: $filter('translate')("data_already_sent_body"),
@@ -317,7 +317,7 @@ angular.module('driverapp.services.utils', [])
                       type: 'button-positive',
                       onTap: function () {
                         //check localstorage
-                        checkLocalFunction();
+                        goOn(ownerId, routeId,deferred);
                       }
                     }
                     ]

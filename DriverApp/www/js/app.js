@@ -370,6 +370,7 @@ angular.module('driverapp', [
       login_title: 'CLIMB',
       login_signin: 'ENTRA',
       login_signup: 'REGISTRATI',
+      signin_scc: 'Accedi con credenziali interne',
       signin_title: 'Accedi con le tue credenziali',
       signin_pwd_reset: 'Password dimenticata?',
       signup_name: 'Nome',

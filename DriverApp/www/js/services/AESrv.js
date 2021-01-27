@@ -152,9 +152,47 @@ angular.module('driverapp.services.ae', [])
       aeInstance.events.push(event)
       return event
     }
+    aeService.sendData = function (ownerId, routeId, deferred) {
+      var uploadWsnLogFiles = function (deferred) {
+        APISrv.uploadWsnLogs(aeInstance.routeId, ownerId).then(
+          function () {
+            Utils.loaded()
+            console.log('[WSN Logs] Successfully uploaded to the server.')
+            deferred.resolve(event);
+          },
+          function (error) {
+            Utils.loaded()
+            console.log('[WSN Logs] Error uploading to the server: ' + error)
+            deferred.reject(error);
+          }
+        )
+      }
+      StorageSrv.saveEAs(aeInstance.events).then(
+        function (eas) {
+          // here you store the data on localstorage and try to do the send
+          Utils.storeDataOnLocalStorage(ownerId, routeId, eas);
+          APISrv.addEvents(eas, ownerId, routeId).then(
+            function (response) {
+              console.log('[Events] Successfully uploaded to the server.')
+              uploadWsnLogFiles(deferred);
+              Utils.popupSent();
+              Utils.removeDataOnLocalStorage(ownerId, routeId)
+            },
+            function (reason) {
+              console.log('[Events] Error uploading to the server!', reason)
+              Utils.popupNotSent();
+              uploadWsnLogFiles(deferred)
+            }
+          )
+        }, function (err) {
+          console.log('[Events] Error storing EAs !', err)
+          uploadWsnLogFiles(deferred)
+        }
+      )
+    }
 
     /* end route */
-    aeService.endRoute = function (stop,ownerId,routeId) {
+    aeService.endRoute = function (stop, ownerId, routeId) {
       var deferred = $q.defer();
       var event = {
         routeId: aeInstance.routeId,
@@ -168,46 +206,24 @@ angular.module('driverapp.services.ae', [])
 
       geolocalizeEvent(event)
       aeInstance.events.push(event)
-      //TODO
       WSNSrv.deinit().then(
         function () {
-          var uploadWsnLogFiles = function (deferred) {
-            APISrv.uploadWsnLogs(aeInstance.routeId,ownerId).then(
-              function () {
-                Utils.loaded()
-                console.log('[WSN Logs] Successfully uploaded to the server.')
-                deferred.resolve(event);
-              },
-              function (error) {
-                Utils.loaded()
-                console.log('[WSN Logs] Error uploading to the server: ' + error)
-                deferred.reject(error);
-              }
-            )
-          }
+          //check data on server
+          Utils.checkDataOnServer(ownerId, routeId).then(function (res) {
+            if (res)
+            //popup data already sent, 
+            {
+              Utils.loaded();
+              Utils.alreadySent($rootScope.exitApp, aeService.sendData, ownerId, routeId, deferred);
 
-          StorageSrv.saveEAs(aeInstance.events).then(
-            function (eas) {
-              //TODO here you store the data on localstorage and try to do the send
-              Utils.storeDataOnLocalStorage(ownerId,routeId,eas);
-              APISrv.addEvents(eas,ownerId,routeId).then(
-                function (response) {
-                  console.log('[Events] Successfully uploaded to the server.')
-                  uploadWsnLogFiles(deferred);
-                  Utils.popupSent();
-                  Utils.removeDataOnLocalStorage(ownerId,routeId)
-                },
-                function (reason) {
-                  console.log('[Events] Error uploading to the server!', reason)
-                  Utils.popupNotSent();
-                  uploadWsnLogFiles(deferred)
-                }
-              )
-            }, function(err) {
-              console.log('[Events] Error storing EAs !', err)
-              uploadWsnLogFiles(deferred)
             }
-          )
+            else {
+              aeService.sendData(ownerId, routeId, deferred);
+            }
+          }, function (error) {
+            console.log('[deinit] Error! ' + error)
+            deferred.reject(error);
+          })
         },
         function (error) {
           console.log('[deinit] Error! ' + error)

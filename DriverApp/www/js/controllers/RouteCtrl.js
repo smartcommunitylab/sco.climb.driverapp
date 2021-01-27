@@ -308,7 +308,6 @@ angular.module('driverapp.controllers.route', [])
           if (ok) {
             Utils.loading();
             handleChildrenAndHelpers();
-
             var childrenWsnIds = []
             $scope.onBoard.forEach(function (passengerId) {
               var child = $scope.getChild(passengerId)
@@ -325,7 +324,7 @@ angular.module('driverapp.controllers.route', [])
                 }
               }
             })
-            // TODO store data in localstorage
+            // store data in localstorage
             AESrv.endRoute($scope.stops[$scope.enRoutePos], $scope.ownerId, $scope.routeId).then(function (res) {
               GeoSrv.stopWatchingPosition()
               WSNSrv.stopListener()
@@ -530,6 +529,7 @@ angular.module('driverapp.controllers.route', [])
 
               //   show message 
             }, function (err) {
+              Utils.loaded()
               Utils.popupNotSent();
             })
           }

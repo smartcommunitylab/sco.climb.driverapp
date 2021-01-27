@@ -1058,12 +1058,33 @@ height: 100%;
   margin: auto;
 
 }
-
+.my-credential{
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-out;
+}
+.my-credential.show-my-credential{
+  max-height: 1000px;
+}
+.login .login-button-scc {
+  border-color: #4EB0E6;
+  background-color: #4EB0E6;
+  color: #FFFFFF!important;
+  margin-bottom:15px!important;
+  width: 75%;
+  font-size: 4vw;
+  margin: auto;
+  white-space: nowrap;
+  /* width: 50px; */
+  padding: 0px 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .login .login-button-internal {
   text-transform: uppercase;
   border-color: #4EB0E6;
   background-color: #4EB0E6;
-  color: #FFFFFF;
+  color: #FFFFFF!important;
 }
 
 .login .login-button-signup {
