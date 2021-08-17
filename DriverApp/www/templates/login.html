@@ -14,6 +14,25 @@
         <div class="login">
           <div class="login-buttons">
             <div class="stuffcontainer login-text">
+              <div class="row responsive-sm">
+                <div class="col col-bottom text-center">
+                  <button class="button button-block login-button-google" ng-click="googleSignIn()">
+                    <i class="icon ion-social-google"></i> {{'sign_in_google'|translate}}
+                  </button>
+                </div>
+                <div class="col col-bottom text-center" ng-if="isIOS">
+                  <button class="button button-block login-button-apple" ng-click="appleSignIn()">
+                    <i class="icon ion-social-apple"></i> {{'sign_in_apple'|translate}}
+                  </button>
+                </div>
+                <div class="col col-bottom text-center">
+                  <button class="button button-block login-button-facebook" ng-click="facebookSignIn()">
+                    <i class="icon ion-social-facebook"></i> {{'sign_in_facebook'|translate}}
+                  </button>
+                </div>
+
+  
+              </div>
               <button class="button button-block login-button-scc" ng-click="myCredential=!myCredential">
                 {{'signin_scc' | translate}}
               </button>
@@ -25,36 +44,20 @@
               <label class="item item-input">
                 <input type="password" placeholder="{{'signup_pwd'|translate}}" ng-model="user.password">
               </label>
-              <a class="text-left login-text login-link" ng-click="passwordRecover()">
+              <a class="text-center login-link" ng-click="passwordRecover()">
                   {{'signin_pwd_reset' | translate}}
               </a>
+              
               <button class="button button-block login-button-internal login-text" ng-click="signin()">
                   {{'login_signin' | translate}}
               </button>
-                <a class=" login-link login-text" ng-click="goRegister()">
-                    {{'login_signup' | translate}}
-                </a>
+              <button class="button button-block  button-outline button-register" ng-click="goRegister()">
+                {{'login_signup' | translate}}
+            </button>
+
                 <br/>
-                <span class="login-text">{{'text_login_use' | translate}}</span>
               </div>
-                <div class="row responsive-sm">
-                  <div class="col col-bottom text-center" ng-if="isIOS">
-                    <button class="button button-block login-button-apple" ng-click="appleSignIn()">
-                      <i class="icon ion-social-apple"></i> {{'sign_in_apple'|translate}}
-                    </button>
-                  </div>
-                  <div class="col col-bottom text-center">
-                    <button class="button button-block login-button-facebook" ng-click="facebookSignIn()">
-                      <i class="icon ion-social-facebook"></i> {{'sign_in_facebook'|translate}}
-                    </button>
-                  </div>
-                  <div class="col col-bottom text-center">
-                    <button class="button button-block login-button-google" ng-click="googleSignIn()">
-                      <i class="icon ion-social-google"></i> {{'sign_in_google'|translate}}
-                    </button>
-                  </div>
-      
-                </div>
+ 
             </div>
           </div>
         </div>

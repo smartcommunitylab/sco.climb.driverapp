@@ -1088,16 +1088,22 @@ height: 100%;
 }
 
 .login .login-button-signup {
-  border-color: #000;
+  border-color: #4EB0E6;
   background-color: transparent;
-  color: #000;
+  color: #4EB0E6;
   box-shadow: none;
 }
 
 .login .login-link {
   display: block;
-  color: #fff;
-  padding: 0 1em;
+  color: #4EB0E6;
+  padding: 1em 1em 0em 1em;
+}
+.login .button-register{
+  border: solid 2px  #4EB0E6;
+  color: #4EB0E6;
+
+
 }
 
 .profile-image-round {
@@ -1208,4 +1214,25 @@ height: 100%;
   .button-privacy{
     padding: 0px 40px;
   }
+
+  .container-rssi {
+    
+      height: 100%;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align:center;
+  }
+  .container label {
+    margin: 24px 0px;
+
+  }
+  .container-rssi  button {
+    margin: 24px 0px;
+  }
+  .rssi-disabled {
+    opacity:0.5;
+  }
+  
   

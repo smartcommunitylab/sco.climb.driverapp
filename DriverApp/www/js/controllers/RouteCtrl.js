@@ -13,7 +13,8 @@ angular.module('driverapp.controllers.route', [])
 
     var passengersScrollDelegate = $ionicScrollDelegate.$getByHandle('passengersHandle')
     $scope.mergedOnBoard = []
-
+    $rootScope.threshold=localStorage.getItem('threshold');
+    $rootScope.thresholdOn=(localStorage.getItem('thresholdOn')=='true');
     /*
      * Passengers panel size calculator
      */
@@ -88,6 +89,15 @@ angular.module('driverapp.controllers.route', [])
           }, null, Config.GPS_DELAY)
         }
 
+        underRSSILevel = function(levelNode) {
+          // const threshold=-55
+          const threshold = $rootScope.thresholdOn?$rootScope.threshold:null;
+          console.log("RSSI of the node= "+levelNode);
+          console.log("Threshold= "+threshold);
+          if (threshold)
+          return levelNode<threshold;
+          else true;
+        }
         /*
          * WSN watch
          */
@@ -102,6 +112,10 @@ angular.module('driverapp.controllers.route', [])
 
             Object.keys(ns).forEach(function (nodeId) {
               if (WSNSrv.isNodeByType(nodeId, 'child')) {
+
+                if (!ns[nodeId].rssi || ($rootScope.thresholdOn&&underRSSILevel(ns[nodeId].rssi))){
+                  return;
+                }
                 if (ns[nodeId].batteryLevel === BATTERYLEVEL_LOW && $rootScope.batteryAlarm === false) {
                   $rootScope.batteryAlarm = true
                 }
@@ -451,8 +465,8 @@ angular.module('driverapp.controllers.route', [])
         }
       } else {
         $ionicPopup.confirm({
-          title: 'Rimuovi ' + child.surname + ' ' + child.name,
-          template: child.surname + ' ' + child.name + ' è stato aggiunto in una fermata precedente. Vuoi confermare la rimozione?',
+          title: 'Rimuovi ' + child.name + ' ' + child.surname  ,
+          template: child.name + ' ' + child.surname + ' è stato aggiunto in una fermata precedente. Vuoi confermare la rimozione?',
           cssClass: 'route-popup',
           cancelText: 'Annulla',
           cancelType: 'button-stable',
@@ -663,7 +677,7 @@ angular.module('driverapp.controllers.route', [])
       $scope.singlechild = child;
       // var detailsPopup =
       $ionicPopup.alert({
-        title: child.surname + ' ' + child.name,
+        title: child.name + ' ' + child.surname,
         // template: (!!child.parentName ? child.parentName + ': ' + child.phone : child.phone),
         templateUrl: 'templates/phone_popup_person.html',
         scope: $scope,
@@ -708,11 +722,11 @@ angular.module('driverapp.controllers.route', [])
           return $scope.getChild(x.id);
         })
         onBoardMerged.sort(function (a, b) {
-          if (a.surname === b.surname) {
-            // name is only important when surname are the same
-            return b.name - a.name;
+          if (a.name === b.name) {
+            // surname is only important when name are the same
+            return b.surname - a.surname;
           }
-          return a.surname > b.surname ? 1 : -1;
+          return a.name > b.name ? 1 : -1;
         });
         onBoardMerged = onBoardMerged.map(function (x) {
           return { id: x.objectId, tmp: true }

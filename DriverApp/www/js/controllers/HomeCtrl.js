@@ -105,6 +105,28 @@ angular.module('driverapp.controllers.home', [])
     $scope.getImageBattery = function (child) {
       return Config.SERVER_URL + '/child/image/download/' + child.ownerId + '/' + child.objectId + '?timestamp=' + Utils.getImageTimestamp(child.ownerId, child.objectId);
     }
+    $scope.openRssi = function () {
+      //$scope.threshold = $rootScope.threshold;
+      $scope.threshold ={
+        value:Math.abs($rootScope.threshold),
+        enabled:$rootScope.thresholdOn
+      } 
+      // $scope.thresholdOn = $rootScope.thresholdOn;
+      $ionicModal.fromTemplateUrl('templates/app_modal_rssi.html', {
+        scope: $scope,
+        animation: 'slide-in-up'
+      }).then(function (modal) {
+        $scope.modalRssi = modal
+        $scope.modalRssi.show()
+      })
+    }
+    $scope.saveThreshold = function () {
+      $rootScope.threshold =  -Math.abs($scope.threshold.value);
+      $rootScope.thresholdOn = $scope.threshold.enabled;
+      localStorage.setItem('threshold',$rootScope.threshold);
+      localStorage.setItem('thresholdOn',$rootScope.thresholdOn);
+      $scope.modalRssi.hide();
+    }
     $scope.openBatteryMonitor = function () {
       $ionicModal.fromTemplateUrl('templates/app_modal_batteries.html', {
         scope: $scope,
@@ -149,36 +171,36 @@ angular.module('driverapp.controllers.home', [])
     $scope.routes = [];
     $scope.volunteers = null;
     $scope.lineVolunteers = null;
-    
+
     /**
      * A generic wizard list selection popup. 
      * Optional 'mapping' function to transform list item in object with 'name' attribute. Default 'identity' function.
      * Optional 'loadAllFn' function to be used to load all possible values. Should return promise that resolves to the list of objects. Default null.
      */
-    selectionPopup = function(title, list, mapping, loadAllFn) {
+    selectionPopup = function (title, list, mapping, loadAllFn) {
       var deferred = $q.defer();
       var mapped = mapping ? list.map(mapping) : list;
-      mapped.sort(function(a,b) {
+      mapped.sort(function (a, b) {
         return a.name.localeCompare(b.name);
       });
       $scope.selectionPopupList = mapped;
       if (loadAllFn) {
-        $scope.loadAll = function() {
+        $scope.loadAll = function () {
           Utils.loading();
-          loadAllFn().then(function(list) {
+          loadAllFn().then(function (list) {
             var mapped = mapping ? list.map(mapping) : list;
-            mapped.sort(function(a,b) {
+            mapped.sort(function (a, b) {
               return a.name.localeCompare(b.name);
             });
             $scope.selectionPopupList = mapped;
             $scope.loadMore = false;
             Utils.loaded();
-          }, function(err) {
+          }, function (err) {
             console.error(err);
             Utils.loaded();
           });
         };
-      }  
+      }
       if (!list || list.length == 0) {
         if ($scope.loadAll) {
           $scope.loadAll();
@@ -204,10 +226,10 @@ angular.module('driverapp.controllers.home', [])
     /** 
      * Error handler for wizard
      */
-    wizardError = function(err) {
-        console.log(err);
-        Utils.loaded();
-        Utils.showErrorAndExit();
+    wizardError = function (err) {
+      console.log(err);
+      Utils.loaded();
+      Utils.showErrorAndExit();
     }
 
     /**
@@ -253,14 +275,14 @@ angular.module('driverapp.controllers.home', [])
      * Wizard step 5: selecte volunteer assistants
      */
     goWithHelpers = function () {
-      showPopup = function() {
+      showPopup = function () {
         var volunteerPopup = $ionicPopup.show({
           templateUrl: 'templates/home_popup_helpers.html',
           title: 'Seleziona con chi vai',
           scope: $scope,
           buttons: [{
             text: 'OK',
-            type: 'button-stable',
+            type: 'button-energized',
             onTap: function (e) {
               $scope.helpers = [];
               $scope.volunteers.forEach(function (vol, index, array) {
@@ -272,24 +294,24 @@ angular.module('driverapp.controllers.home', [])
               goWithChildren();
             }
           }]
-        });      
+        });
       }
 
-      $scope.volunteers = $scope.lineVolunteers.filter(function(element) { return element.objectId != $scope.driver.objectId});
+      $scope.volunteers = $scope.lineVolunteers.filter(function (element) { return element.objectId != $scope.driver.objectId });
       if ($scope.volunteers.length == 0) {
-        APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId).then(function(all) {
-          $scope.volunteers = all.filter(function(element) { return element.objectId != $scope.driver.objectId});
+        APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId).then(function (all) {
+          $scope.volunteers = all.filter(function (element) { return element.objectId != $scope.driver.objectId });
           $scope.allhelpers = true;
           showPopup();
         });
       } else {
         $scope.allhelpers = false;
-        $scope.loadAllVolunteers = function() {
-          APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId).then(function(all) {
-            all.forEach(function(e) {
-              $scope.volunteers.forEach(function(v) {
+        $scope.loadAllVolunteers = function () {
+          APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId).then(function (all) {
+            all.forEach(function (e) {
+              $scope.volunteers.forEach(function (v) {
                 if (v.checked && v.objectId === e.objectId) e.checked = true;
-              });  
+              });
             });
             $scope.volunteers = all;
             $scope.allhelpers = true;
@@ -306,14 +328,14 @@ angular.module('driverapp.controllers.home', [])
     goWithDriver = function () {
       Utils.loadingWithMessage($filter('translate')('home_get_vol'));
       // select all
-      APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId).then(function(all) {
+      APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId).then(function (all) {
         APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId, $scope.route.objectId).then(
           function (volunteers) {
             Utils.loaded();
             $scope.lineVolunteers = volunteers;
             $scope.volunteers = volunteers;
             StorageSrv.saveVolunteers(all).then(function (volunteers) {
-              var matching = all.find(function(e) {return e.email == $scope.profile.email});
+              var matching = all.find(function (e) { return e.email == $scope.profile.email });
               if (!!matching) {
                 $scope.driver = matching;
                 if (all.length > 1) {
@@ -322,15 +344,15 @@ angular.module('driverapp.controllers.home', [])
                   goWithChildren()
                 }
               } else {
-                selectionPopup('Seleziona chi sei', $scope.volunteers, null, function(){
+                selectionPopup('Seleziona chi sei', $scope.volunteers, null, function () {
                   return APISrv.getVolunteersBySchool($scope.ownerId, $scope.institute.objectId, $scope.school.objectId);
-                }).then(function(driver) {
+                }).then(function (driver) {
                   $scope.driver = driver;
                   goWithHelpers();
                 });
               }
             }, wizardError);
-        }, wizardError);
+          }, wizardError);
       }, wizardError);
     }
 
@@ -421,7 +443,7 @@ angular.module('driverapp.controllers.home', [])
      * Initialize the user and profile data
      */
     $scope.initProfile = function () {
-      $scope.deregisterBackButton = $ionicPlatform.registerBackButtonAction(function (e) {}, 401);
+      $scope.deregisterBackButton = $ionicPlatform.registerBackButtonAction(function (e) { }, 401);
       Utils.loadingWithMessage($filter('translate')('home_get_profile'));
       // read profile 
       APISrv.getProfile().then(function (profile) {
@@ -435,7 +457,7 @@ angular.module('driverapp.controllers.home', [])
           goWithInstitute($scope.ownerId)
         } else {
           // multiple owners, ask the user to specify one
-          selectionPopup('Seleziona il profile', $scope.ownerIds, function(i) {return {name: i}}).then(
+          selectionPopup('Seleziona il profile', $scope.ownerIds, function (i) { return { name: i } }).then(
             function (owner) {
               $scope.ownerId = owner.name;
               goWithInstitute($scope.ownerId);
@@ -447,12 +469,12 @@ angular.module('driverapp.controllers.home', [])
         Utils.loaded();
         if ('INSUFFICIENT_RIGHTS' === err) {
           if (!$rootScope.alertPopup)
-          $rootScope.alertPopup = $ionicPopup.alert({
-            title: $filter('translate')('error_right_title'),
-            templateUrl: 'templates/error_right_popup.html',
-            // template: $filter('translate')('error_right_template'),
-            okText: 'Logout'
-          });
+            $rootScope.alertPopup = $ionicPopup.alert({
+              title: $filter('translate')('error_right_title'),
+              templateUrl: 'templates/error_right_popup.html',
+              // template: $filter('translate')('error_right_template'),
+              okText: 'Logout'
+            });
 
           $rootScope.alertPopup.then(function (res) {
             Config.resetIdentity()
@@ -502,8 +524,9 @@ angular.module('driverapp.controllers.home', [])
       $scope.currentText = $scope.tutorialSlides[index].text;
     }
     $scope.visualizeTutorial = function () {
-      $rootScope.showTutorial = true;
-      $scope.startTutorial = true;
+      cordova.InAppBrowser.open('https://www.youtube.com/watch?v=zkvGyOunkzQ', '_system', 'location=yes');
+      // $rootScope.showTutorial = true;
+      // $scope.startTutorial = true;
 
     }
     $scope.getCurrentText = function () {

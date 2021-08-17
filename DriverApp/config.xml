@@ -135,9 +135,6 @@
         <pod name="FBSDKLoginKit" version="5.8.0" />
         <pod name="FBSDKShareKit" version="5.8.0" />
     </platform>
-    <platform name="android">
-        <preference name="CodePushDeploymentKey" value="6xJGypUUa14o4vhGkPglnlMkQPZibPgK2BNnx" />
-    </platform>
     <platform name="ios">
         <preference name="CodePushDeploymentKey" value="RZA9jf6VIOxcq_I9my7i4b4OATxOkyU34Dz-8" />
     </platform>
