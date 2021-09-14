@@ -28,7 +28,14 @@ angular.module('driverapp', [
       var initAppUpdate = function () {
         codePush.sync();
       }
+      var setPlatformVersion = function() {
+        if (ionic.Platform.isAndroid())
+          $rootScope.isAndroid=true;
+          else $rootScope.isAndroid=false;
+      }
       initAppUpdate();
+      setPlatformVersion();
+
       if (window.cordova && window.cordova.plugins.Keyboard) {
         cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true)
         cordova.plugins.Keyboard.disableScroll(true)
