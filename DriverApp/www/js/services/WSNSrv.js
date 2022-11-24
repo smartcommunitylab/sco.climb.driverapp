@@ -26,16 +26,17 @@ angular.module('driverapp.services.wsn', [])
 
       if (Utils.wsnPluginEnabled()) {
         console.log('calling init');
-        window.DriverAppPlugin.init(
-          function (response) {
-            console.log('init: ' + response)
-            deferred.resolve(response)
-          },
-          function (reason) {
-            console.log('init: ' + reason)
-            deferred.reject(reason)
-          }
-        )
+        deferred.resolve(null)
+        // window.DriverAppPlugin.init(
+        //   function (response) {
+        //     console.log('init: ' + response)
+        //     deferred.resolve(response)
+        //   },
+        //   function (reason) {
+        //     console.log('init: ' + reason)
+        //     deferred.reject(reason)
+        //   }
+        // )
       }
 
       return deferred.promise
@@ -43,22 +44,22 @@ angular.module('driverapp.services.wsn', [])
 
     wsnService.deinit = function () {
       var deferred = $q.defer()
-
-      if (Utils.wsnPluginEnabled()) {
-        console.log('calling deinit');
-        window.DriverAppPlugin.deinit(
-          function (response) {
-            console.log('deinit: ' + response)
-            deferred.resolve(response)
-          },
-          function (reason) {
-            console.log('deinit: ' + reason)
-            deferred.reject(reason)
-          }
-        )
-      } else {
-        deferred.resolve(null);
-      }
+      deferred.resolve(null);
+      // if (Utils.wsnPluginEnabled()) {
+      //   console.log('calling deinit');
+      //   window.DriverAppPlugin.deinit(
+      //     function (response) {
+      //       console.log('deinit: ' + response)
+      //       deferred.resolve(response)
+      //     },
+      //     function (reason) {
+      //       console.log('deinit: ' + reason)
+      //       deferred.reject(reason)
+      //     }
+      //   )
+      // } else {
+      //   deferred.resolve(null);
+      // }
 
       return deferred.promise
     }
@@ -135,36 +136,36 @@ angular.module('driverapp.services.wsn', [])
 
     wsnService.getNetworkState = function () {
       var deferred = $q.defer()
+      deferred.resolve(null);
+      // if (Utils.wsnPluginEnabled()) {
+      //   window.DriverAppPlugin.getNetworkState(
+      //     function (networkState) {
+      //       var nsIds = []
+      //       var ns = angular.copy(wsnService.networkState)
+      //       networkState.forEach(function (nodeState) {
+      //         nsIds.push(nodeState.nodeID)
+      //         var upId=nodeState.nodeID.toUpperCase();
+      //         if (!!nodeState.nodeID && ns[upId]) {
+      //           if (ns[upId].status === '') {
+      //             ns[upId].status = wsnService.STATUS_NEW
+      //           }
+      //           ns[upId].timestamp = nodeState[wsnService.NODESTATE_LASTSEEN]
+      //           ns[upId].batteryLevel = nodeState[wsnService.NODESTATE_BATTERYLEVEL]
+      //           ns[upId].batteryVoltage_mV = nodeState[wsnService.NODESTATE_BATTERYVOLTAGE_MV]
+      //           ns[upId].rssi = nodeState[wsnService.NODESTATE_RSSI]
+      //         }
+      //       })
+      //       wsnService.networkState = ns
 
-      if (Utils.wsnPluginEnabled()) {
-        window.DriverAppPlugin.getNetworkState(
-          function (networkState) {
-            var nsIds = []
-            var ns = angular.copy(wsnService.networkState)
-            networkState.forEach(function (nodeState) {
-              nsIds.push(nodeState.nodeID)
-              var upId=nodeState.nodeID.toUpperCase();
-              if (!!nodeState.nodeID && ns[upId]) {
-                if (ns[upId].status === '') {
-                  ns[upId].status = wsnService.STATUS_NEW
-                }
-                ns[upId].timestamp = nodeState[wsnService.NODESTATE_LASTSEEN]
-                ns[upId].batteryLevel = nodeState[wsnService.NODESTATE_BATTERYLEVEL]
-                ns[upId].batteryVoltage_mV = nodeState[wsnService.NODESTATE_BATTERYVOLTAGE_MV]
-                ns[upId].rssi = nodeState[wsnService.NODESTATE_RSSI]
-              }
-            })
-            wsnService.networkState = ns
-
-            console.log('getNetworkState: ' + nsIds)
-            deferred.resolve(networkState)
-          },
-          function (reason) {
-            console.log('getNetworkState: ' + reason)
-            deferred.reject(reason)
-          }
-        )
-      }
+      //       console.log('getNetworkState: ' + nsIds)
+      //       deferred.resolve(networkState)
+      //     },
+      //     function (reason) {
+      //       console.log('getNetworkState: ' + reason)
+      //       deferred.reject(reason)
+      //     }
+      //   )
+      // }
 
       return deferred.promise
     }
@@ -196,21 +197,21 @@ angular.module('driverapp.services.wsn', [])
 
     wsnService.getLogFiles = function () {
       var deferred = $q.defer()
-
-      if (Utils.wsnPluginEnabled()) {
-        window.DriverAppPlugin.getLogFiles(
-          function (response) {
-            console.log('getLogFiles: ' + response)
-            deferred.resolve(response)
-          },
-          function (reason) {
-            console.log('getLogFiles: ' + reason)
-            deferred.reject(reason)
-          }
-        )
-      } else {
-        deferred.reject('log file not present')
-      }
+      deferred.resolve(null);
+      // if (Utils.wsnPluginEnabled()) {
+      //   window.DriverAppPlugin.getLogFiles(
+      //     function (response) {
+      //       console.log('getLogFiles: ' + response)
+      //       deferred.resolve(response)
+      //     },
+      //     function (reason) {
+      //       console.log('getLogFiles: ' + reason)
+      //       deferred.reject(reason)
+      //     }
+      //   )
+      // } else {
+      //   deferred.reject('log file not present')
+      // }
       return deferred.promise
     }
 

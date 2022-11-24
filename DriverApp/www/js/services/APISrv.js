@@ -366,7 +366,7 @@ angular.module('driverapp.services.api', [])
         }
         LoginService.getValidAACtoken().then(
           function (token) {
-            // fileURL = cordova.file.externalRootDirectory + fileURL;
+            // fileURL = cordova.file.dataDirectory + fileURL;
             fileURL = 'file://' + fileURL
 
             var options = new FileUploadOptions()
@@ -411,14 +411,14 @@ angular.module('driverapp.services.api', [])
 
     function deleteFileAndroid(longName){
       longName = 'file://'+longName;
-      var ext = new String(cordova.file.externalRootDirectory);
+      var ext = new String(cordova.file.dataDirectory);
       var index = ext.length;
       var filename = longName.substr(index,longName.length);
       var directory = longName.substr(0,index);
 
       console.log('filename'+filename);
       console.log('directory'+directory);
-      $cordovaFile.removeFile(cordova.file.externalRootDirectory, filename)
+      $cordovaFile.removeFile(cordova.file.dataDirectory, filename)
       .then(function (success) {
         // success
         console.log('ok');
@@ -568,7 +568,7 @@ angular.module('driverapp.services.api', [])
       }
 
     function deleteOldFilesAndroid(){
-      listAndRemoveDirAndroid(cordova.file.externalRootDirectory+'CLIMB_log_data/')
+      listAndRemoveDirAndroid(cordova.file.dataDirectory+'CLIMB_log_data/')
     }
     function deleteOldFilesiOS(){
       listAndRemoveDiriOS(cordova.file.documentsDirectory)
@@ -627,7 +627,7 @@ angular.module('driverapp.services.api', [])
       //   LoginService.getValidAACtoken().then(
       //     function (token) {
       //       var sourceUrl = Config.SERVER_URL + '/image/download/jpg/' + ownerId + '/' + childId
-      //       var targetFile = cordova.file.externalRootDirectory + Config.IMAGES_DIR + childId + '.jpg'
+      //       var targetFile = cordova.file.dataDirectory + Config.IMAGES_DIR + childId + '.jpg'
 
       //       var ft = new FileTransfer()
       //       ft.download(

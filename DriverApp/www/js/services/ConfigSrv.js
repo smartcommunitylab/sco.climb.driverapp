@@ -50,9 +50,9 @@ angular.module('driverapp.services.config', [])
 
     config.imagesDir = function() {
       if (ionic.Platform.isAndroid()) {
-        return cordova.file.externalRootDirectory + config.IMAGES_DIR;
+        return cordova.file.dataDirectory + config.IMAGES_DIR;
       } else {
-        return cordova.file.cacheDirectory  + config.IMAGES_DIR;
+        return cordova.file.dataDirectory  + config.IMAGES_DIR;
       }
     }
 

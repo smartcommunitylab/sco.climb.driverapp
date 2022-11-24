@@ -1,0 +1,21 @@
+<ion-view view-title="Pedibus">
+    <ion-content class="has-header">
+        <div class="padding routes-padding">
+            <ion-list>
+                <div class="card card-routes" ng-repeat="r in routeComplex" ng-click="viewRoute(r.route)">
+                  <div class="item item-divider item-routes title" ng-class="manageLineColor(r.route.name)">
+                    {{r.route.name}}
+                  </div>
+                  <div class="item item-text-wrap item-routes">
+                    {{r.title}}
+                  </div>
+                  <div class="item item-divider item-routes">
+                      <!--<img src="img/pb_blu_line.png" class="passenger-img">-->
+                      <i class="icon ion-ios-body icon-line-passenger" ng-class="manageLineColor(r.route.name)"></i>
+                      <div class="item-route item-text-image-right">{{r.passengers}}</div>
+                  </div>
+                </div>
+            </ion-list>
+        </div>
+    </ion-content>
+</ion-view>

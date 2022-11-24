@@ -1,0 +1,34 @@
+<div class="hardware-popup">
+  <div class="row row-center map-stop-title">
+    <i class="icon popup-icon "></i>
+    <div class="col">
+      <div class="hardware-title"> Per permettere il riconoscimento dei gadget di ogni bambino ti chiediamo di attivare: </div>
+    </div>
+  </div>
+  <div class="map-stop-hline"></div>
+
+  <div class="row" ng-if="!bluetoothEnabled">
+    <div class="col col-10">
+      <i class="icon popup-icon ion-bluetooth hardware-icon"></i>
+    </div>
+    <div class="col col-90">
+      <p> Bluetooth
+      </p>
+    </div>
+  </div>
+  <div class="row" ng-if="!locationEnabled">
+    <div class="col col-10">
+      <i class="icon popup-icon ion-ios-location hardware-icon"></i>
+    </div>
+    <div class="col col-90">
+      <p> Localizzazione
+      </p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <p> Chiudi e riapri l'applicazione
+      </p>
+    </div>
+  </div>
+</div>

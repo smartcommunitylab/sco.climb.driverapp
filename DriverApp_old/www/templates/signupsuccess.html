@@ -1,0 +1,27 @@
+<ion-view id="login" hide-nav-bar="true">
+    <ion-nav-bar class="bar-positive-100" ng-class="{expanded: isExpanded, 'has-header-fab-left': hasHeaderFabLeft, 'has-header-fab-right': hasHeaderFabRight}"
+        align-title="left">
+        <ion-nav-buttons side="left">
+        </ion-nav-buttons>
+
+    </ion-nav-bar>
+    <ion-content id=" content " has-header="true" scroll="false" class="login-page">
+        <!--<div class="login-title">{{'login_title'|translate}}</div>-->
+        <div class="login-title" style="margin-bottom:30px;">
+            <img src="img/climb_logo.png">
+        </div>
+        <div class="login">
+            <div class="login-buttons">
+                <div class="stuffcontainer">
+                    <p>{{'signup_success_text' | translate}}</p>
+                    <button class="button button-block login-button-internal" ng-click="toLogin()">
+                      {{'login_signin' | translate}}
+                </button>
+                    <a class="login-button-signup" ng-click="resend()">
+                    {{'signup_resend' | translate}}
+                </a>
+                </div>
+            </div>
+        </div>
+    </ion-content>
+</ion-view>

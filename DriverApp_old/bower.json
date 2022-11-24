@@ -1,0 +1,22 @@
+{
+    "name": "CLIMB Driver App",
+    "private": "true",
+    "devDependencies": {
+        "ionic": "driftyco/ionic-bower#master"
+    },
+    "install": {
+        "path": "www/lib",
+        "sources": {
+            "ionic": "bower_components/ionic/**",
+            "ngCordova": "bower_components/ngCordova/dist/ng-cordova.min.js",
+            "angular": "bower_components/angular/angular.min.js",
+            "angular-animate": "bower_components/angular-animate/angular-animate.min.js",
+            "angular-i18n": "bower_components/angular-i18n/angular-locale_it-it.js",
+            "angular-sanitize": "bower_components/angular-sanitize/angular-sanitize.min.js",
+            "angular-ui-router": "bower_components/angular-ui-router/release/angular-ui-router.min.js",
+            "angular-translate": "bower_components/angular-translate/angular-translate.min.js",
+            "moment": "bower_components/moment/min/moment-with-locales.min.js",
+            "ionic-wizard": "bower_components/ionic-wizard/dist/ion-wizard.min.js"
+        }
+    }
+}

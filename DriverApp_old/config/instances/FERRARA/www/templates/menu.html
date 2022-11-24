@@ -1,0 +1,115 @@
+<ion-side-menus enable-menu-with-back-views="false" class="dapp-menu">
+    <ion-side-menu-content>
+        <ion-nav-bar class="bar bar-positive">
+            <ion-nav-back-button>
+            </ion-nav-back-button>
+            <ion-nav-buttons side="left">
+                <button class="button button-dapp button-clear button-icon ion-navicon" menu-toggle="left">
+                </button>
+            </ion-nav-buttons>
+            <span class="title"></span>
+            <ion-nav-buttons side="right">
+                <button class="button button-icon icon ion-battery-low button-battery-alarm" ng-if="batteryAlarm" ng-click="openBatteryMonitor()"></button>
+            </ion-nav-buttons>
+        </ion-nav-bar>
+        <ion-nav-view name="menuContent"></ion-nav-view>
+    </ion-side-menu-content>
+
+    <ion-side-menu side="left">
+        <!--<ion-header-bar class="bar-positive">
+        </ion-header-bar>-->
+        <ion-content>
+            <ion-list>
+                <ion-item ng-if="getDriverName()" menu-close class="item item-avatar menu-head-item">
+                    <img ng-src="img/rt_placeholder_child.png">
+                    <h2>{{driverName}}</h2>
+                </ion-item>
+                <!--<ion-item nav-clear menu-close href="#/app/home">
+                    Home
+                </ion-item>-->
+                <!--<ion-item nav-clear menu-close href="#/app/wizard">
+                    <i class="icon ion-home"></i>
+                    <div class="menu-link-wrapper">
+                        Wizard
+                    </div>
+                </ion-item>-->
+                <!--<ion-item nav-clear menu-close ng-href="{{pedibusEnabled ? '#/app/routes' : ''}}" ng-class="{'disabled': pedibusEnabled == false}">-->
+                <ion-item nav-clear menu-close href="" class="disabled">
+                    <i class="icon ion-android-walk"></i>
+                    <div class="menu-link-wrapper">
+                        Pedibus
+                    </div>
+                </ion-item>
+                <!--<ion-item nav-clear menu-close href="#/app/volunteers">-->
+                <ion-item nav-clear menu-close href="" ng-click="showModalVolunteers()">
+                    <i class="icon ion-android-call"></i>
+                    <div class="menu-link-wrapper">
+                        Volontari
+                    </div>
+                </ion-item>
+                <!--<ion-item nav-clear menu-close href="#/app/batteries">-->
+                <ion-item nav-clear menu-close href="" ng-click="openBatteryMonitor()">
+                    <i class="icon ion-battery-charging"></i>
+                    <div class="menu-link-wrapper">
+                        Livelli batterie
+                    </div>
+                </ion-item>
+                <!--<ion-item nav-clear menu-close href="#/app/maintenance">-->
+                <ion-item nav-clear menu-close href="" ng-click="startMaintenanceMode()">
+                    <i class="icon ion-wrench"></i>
+                    <div class="menu-link-wrapper">
+                        Modalità manutenzione
+                    </div>
+                </ion-item>
+                <!-- FIXME dev only! -->
+                <!--
+                <ion-item nav-clear ng-click="WSNSrvGetMasters()">
+                    GET MASTERS
+                </ion-item>
+                <ion-item nav-clear ng-click="WSNSrvConnectMaster('B0:B4:48:BD:8C:02')">
+                    CONNECT MASTER
+                </ion-item>
+                <ion-item nav-clear ng-click="WSNSrvConnectMaster('B0:B4:48:BE:17:85')">
+                    CONNECT MASTER 2
+                </ion-item>
+                <ion-item nav-clear ng-click="WSNSrvSetNodeList()">
+                    SET NODE LIST
+                </ion-item>
+                <ion-item nav-clear ng-click="WSNSrvGetNetworkState()">
+                    GET NETWORK STATE
+                </ion-item>
+                <ion-item nav-clear menu-close href ng-click="uploadFile()">
+                    <i class="icon ion-alert-circled"></i>
+                    <div class="menu-link-wrapper">
+                        Upload file
+                    </div>
+                </ion-item>
+                -->
+                <!--<ion-item nav-clear menu-close href ng-click="WSNSrvCheckMaster()">
+                    <i class="icon ion-alert-circled"></i>
+                    <div class="menu-link-wrapper">
+                        <span ng-class="{'warning': masterError == true}">Diagnostica</span>
+                    </div>
+                </ion-item>-->
+                <ion-item nav-clear menu-close href ng-click="logout()">
+                    <i class="icon ion-log-out"></i>
+                    <div class="menu-link-wrapper">
+                        Logout
+                    </div>
+                </ion-item>
+                <ion-item nav-clear menu-close href ng-click="exitApp()">
+                    <i class="icon ion-close"></i>
+                    <div class="menu-link-wrapper">
+                        Chiudi l'app
+                    </div>
+                </ion-item>
+                <ion-item nav-clear menu-close href ng-click="openCredits()">
+                    <i class="icon ion-ios-information"></i>
+                    <div class="menu-link-wrapper">
+                        Credits
+                    </div>
+                </ion-item>
+            </ion-list>
+        </ion-content>
+    </ion-side-menu>
+</ion-side-menus>

@@ -1,0 +1,1238 @@
+.bar-sub-subheader {
+  top: 88px;
+  display: block;
+  height: 44px !important;
+}
+
+.platform-ios.platform-cordova:not(.fullscreen) .bar-header:not(.bar-subheader).bar-sub-subheader {
+  top: 108px !important;
+}
+
+.platform-ios.platform-cordova:not(.fullscreen) .bar-header:not(.bar-subheader).bar-sub-subheader>* {
+  margin-top: 0 !important;
+}
+
+.platform-ios.platform-cordova:not(.fullscreen) .has-sub-subheader {
+  top: 152px !important;
+}
+
+.has-sub-subheader {
+  top: 132px;
+}
+
+
+/* CLIMB Driver App style */
+
+.dapp-theme {}
+
+.dapp-theme .warning {
+  color: #ff0000 !important;
+}
+
+.dapp-theme .disabled {
+  color: #b0bec5 !important;
+}
+
+
+/* Components */
+
+.dapp-theme .button.button-light {
+  border-color: transparent;
+  background-color: #f2f2f2;
+  color: #f29100;
+}
+
+.dapp-theme .button.button-light.button-clear {
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+  color: #f2f2f2;
+}
+
+.dapp-theme .button.button-light.button-outline {
+  border-color: #f2f2f2;
+  background: transparent;
+  color: #f2f2f2;
+}
+
+.dapp-theme .button.button-light.button-outline.active,
+.dapp-theme .button.button-light.button-outline.activated {
+  background-color: #f2f2f2;
+  box-shadow: none;
+  color: #f29100;
+}
+
+.dapp-theme .button.button-stable {
+  border-color: transparent;
+  background-color: #b0bec5;
+  color: #fff;
+}
+
+.dapp-theme .button.button-stable.button-clear {
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+  color: #b0bec5;
+}
+
+.dapp-theme .button.button-stable.button-outline {
+  border-color: #b0bec5;
+  background: transparent;
+  color: #b0bec5;
+}
+
+.dapp-theme .button.button-stable.button-outline.active,
+.dapp-theme .button.button-stable.button-outline.activated {
+  background-color: #b0bec5;
+  box-shadow: none;
+  color: #fff;
+}
+
+.dapp-theme .button.button-positive {
+  border-color: transparent;
+  background-color: #438699;
+  color: #fff;
+}
+
+.dapp-theme .button.button-positive.button-clear {
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+  color: #438699;
+}
+
+.dapp-theme .button.button-positive.button-outline {
+  border-color: #438699;
+  background: transparent;
+  color: #438699;
+}
+
+.dapp-theme .button.button-positive.button-outline.active,
+.dapp-theme .button.button-positive.button-outline.activated {
+  background-color: #438699;
+  box-shadow: none;
+  color: #fff;
+}
+
+.dapp-theme .button.button-energized {
+  border-color: transparent;
+  background-color: #f29100;
+  color: #fff;
+}
+
+.dapp-theme .button.button-energized.button-clear {
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+  color: #f29100;
+}
+
+.dapp-theme .button.button-energized.button-outline {
+  border-color: #f29100;
+  background: transparent;
+  color: #f29100;
+}
+
+.dapp-theme .button.button-energized.button-outline.active,
+.dapp-theme .button.button-energized.button-outline.activated {
+  background-color: #f29100;
+  box-shadow: none;
+  color: #fff;
+}
+
+.dapp-theme .bar.bar-positive {
+  color: #fff;
+  background-color: #438699;
+  border-color: #438699;
+  background-image: none;
+}
+
+.dapp-theme .bar.bar-calm {
+  background-color: #c6dae0;
+  border-color: #c6dae0;
+  background-image: none;
+}
+
+.dapp-theme .bar.bar-calm .title {
+  color: #000;
+}
+
+.dapp-theme .bar.bar-calm .button {
+  text-transform: uppercase;
+}
+
+.dapp-theme .bar.bar-calm .button.icon {
+  background-color: transparent;
+  color: #f29100;
+}
+
+.dapp-theme .bar.bar-calm .button.icon::before {
+  font-size: 2.5em;
+}
+
+.dapp-theme .bar .button.button-battery-alarm {
+  color: red;
+}
+
+.dapp-theme .checkbox input:before,
+.dapp-theme .checkbox .checkbox-icon:before {
+  background: transparent;
+  border-color: #f29100;
+}
+
+.dapp-theme .checkbox input:checked:before,
+.dapp-theme .checkbox input:checked+.checkbox-icon:before {
+  background: #f29100;
+  border-color: #f29100;
+}
+
+.dapp-theme .checkbox input:disabled:checked:before,
+.dapp-theme .checkbox input:disabled:checked+.checkbox-icon:before {
+  background: #b0bec5;
+}
+
+.dapp-theme .checkbox input:disabled:before,
+.dapp-theme .checkbox input:disabled+.checkbox-icon:before {
+  border-color: #b0bec5;
+}
+
+.dapp-theme .item-checkbox {
+  border: none;
+}
+
+.dapp-theme .modal-maintenance ion-content img {
+  width: 100%;
+}
+
+.dapp-theme .modal-maintenance ion-footer-bar .button {
+  text-transform: uppercase;
+  width: 100%;
+}
+
+.dapp-theme .modal-maintenance .slider {
+  height: 100%;
+}
+
+.dapp-theme .modal-maintenance .slideTutorial {
+  height: 90%;
+}
+
+.dapp-theme .modal-maintenance .tut-prev {
+  position: absolute;
+  left: 0px;
+  color: #f29100;
+  font-weight: bold;
+  font-size: 32px;
+}
+
+.dapp-theme .modal-maintenance .tut-next {
+  position: absolute;
+  right: 0px;
+  color: #f29100;
+  font-weight: bold;
+  font-size: 32px;
+}
+
+.dapp-theme .modal-maintenance .tut-vis {
+  width: 100%;
+  color: #f29100;
+  font-weight: bold;
+}
+
+.dapp-theme .modal-maintenance .tutorial-text {
+  position: absolute;
+}
+
+.dapp-theme .modal-maintenance .customSliderPager {
+  text-align: center;
+  line-height: 40px;
+}
+
+.dapp-theme .modal-maintenance .customSliderPager .customSlider-pager-page {
+  display: inline-block;
+  margin: 0px 3px;
+  width: 8px;
+  color: #000;
+  text-decoration: none;
+  opacity: 0.3;
+}
+
+.dapp-theme .modal-maintenance .customSliderPager .customSlider-pager-page.active {
+  -webkit-transition: opacity 0.4s ease-in;
+  transition: opacity 0.4s ease-in;
+  opacity: 1;
+}
+
+.dapp-theme .modal-maintenance .customSliderPager .icon {
+  font-size: 8px;
+}
+
+
+/* modal batteries*/
+
+.dapp-theme .modal-battery .battery-change {
+  margin: 20px 10px 20px 10px;
+}
+
+.dapp-theme .modal-battery .battery-mode {
+  color: #f29100;
+  font-weight: bold;
+}
+
+.dapp-theme .modal-battery .no-nodes {
+  text-align: center;
+}
+
+
+/* Menu Bar */
+
+.dapp-theme .dapp-menu .menu,
+.dapp-theme .dapp-menu .menu .list .item-complex {
+  color: #438699;
+  background-color: #C6DAE0;
+  border-color: #C6DAE0;
+}
+
+.dapp-theme .dapp-menu .menu .list .item-complex .icon:before {
+  padding-left: 0.2em;
+  font-size: 2em;
+  vertical-align: middle;
+}
+
+.dapp-theme .dapp-menu .menu .item-content {
+  padding-left: 20px;
+}
+
+.dapp-theme .dapp-menu .menu .list .item-complex .item-content {
+  background-color: transparent;
+}
+
+.dapp-theme .dapp-menu .menu-link-wrapper {
+  position: absolute;
+  left: 4.5em;
+  top: 1.5em;
+}
+
+.dapp-theme .dapp-menu .menu-head-item {
+  color: #fff;
+  background-color: #438699;
+  min-height: 100px;
+}
+
+.dapp-theme .dapp-menu .menu-head-item h2 {
+  color: #fff;
+  padding-top: 25px;
+  padding-left: 20px;
+  font-weight: bold;
+}
+
+.dapp-theme .dapp-menu .menu-head-item>img:first-child {
+  top: 20px;
+  max-width: 60px;
+  max-height: 60px;
+}
+
+
+/* Wizard */
+
+.dapp-theme .dapp-wizard ion-content {
+  background-color: #d9e6ea;
+}
+
+.dapp-theme .dapp-wizard .dapp-logo {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  padding: 0 6em;
+}
+
+.dapp-theme .dapp-wizard .swiper-slide {
+  height: 100% !important;
+}
+
+.dapp-theme .dapp-wizard .swiper-slide .swiper-pagination {
+  display: none;
+}
+
+.dapp-theme .dapp-wizard .helptext {
+  text-align: center;
+  padding: 10px;
+}
+
+.dapp-theme .dapp-wizard .helptext strong {
+  text-align: left;
+}
+
+.dapp-theme .dapp-wizard .helptext i.ion-bluetooth {
+  color: #0082FB;
+  font-size: 50px;
+}
+
+.dapp-theme .dapp-wizard .item {
+  background: transparent;
+  border-color: transparent;
+}
+
+.dapp-theme .dapp-wizard .item-select,
+.dapp-theme .dapp-wizard .item-input {
+  border-top: 0;
+  border-right: 0;
+  border-left: 0;
+  border-color: #b0bec5;
+  margin-bottom: 10px;
+}
+
+.dapp-theme .dapp-wizard ion-item.item-select-dapp i.icon {
+  float: right;
+}
+
+.dapp-theme .dapp-wizard ion-footer-bar {
+  background: #d9e6ea;
+}
+
+.dapp-theme .dapp-wizard ion-footer-bar .button {
+  text-transform: uppercase;
+}
+
+.dapp-theme .wiz-scroll-panel {
+  max-height: 250px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.dapp-theme .swiper-container-horizontal>.swiper-pagination {
+  bottom: 0;
+  visibility: hidden;
+}
+
+.hwPopup .hardware-icon {
+  color: #b0bec5;
+  font-size: 22px;
+}
+
+.hwPopup .popup-title {
+  color: #438699;
+}
+
+.hwPopup .popup-buttons .button {
+  background-color: #438699;
+  color: white;
+}
+.data-sent-popup .popup{
+height: 100%;
+    width: 100%;
+    opacity: 1;
+    background-color: white;
+}
+.data-sent-popup .popup .popup-body{
+  height: 100%;
+}
+.data-sent-popup .data-sent-title {
+  height: 20vh;
+  text-align: center;
+  font-size: 26px;
+  display: flex;
+  align-items: center;
+  line-height: 26px;
+}
+.data-sent-popup .img-bruco {
+  width: 150px;
+    margin: auto;
+    text-align: center;
+    display: flex;
+    /* justify-content: center; */
+    align-items: center;
+}
+.data-sent-popup .data-sent-content{
+  height: 20vh;
+  text-align: center;
+  font-size: 26px;
+  display: flex;
+  align-items: center;
+  line-height: 26px;
+}
+/* Route components */
+
+.dapp-theme .route .bar.bar-buttons .button {
+  text-transform: uppercase;
+}
+
+.dapp-theme .route .bar.bar-calm .title {
+  text-transform: uppercase;
+  font-size: 1em;
+  text-align: center;
+}
+
+.route .bar-stops {
+  text-align: center;
+}
+
+.dapp-theme .button-go {
+  box-shadow: 2px 3px 1px #888888;
+  font-weight: bold;
+  font-size: 1em;
+  padding: 0 15px;
+}
+
+.dapp-theme .route .button-takeonboard .icon::before {
+  font-size: 2em;
+}
+
+.dapp-theme .button.button-enroute {
+  width: 27%;
+  position: fixed;
+  /*left: 70%;*/
+  right: 3%;
+  margin-top: 2px;
+  z-index: 1000;
+  box-shadow: 2px 3px 1px #888888;
+  min-height: 30px;
+  max-height: 38px;
+}
+
+.dapp-theme .button.button-enroute.still {
+  border-color: transparent;
+  background-color: #439981;
+  color: #fff;
+}
+
+.dapp-theme .button.button-enroute.moving {
+  border-color: #e53935;
+  background-color: #e53935;
+  color: #fff;
+}
+
+.dapp-theme .button.button-enroute.finished {
+  border-color: #439981;
+  background-color: transparent;
+  color: #439981;
+  box-shadow: none;
+}
+
+.dapp-theme .button.button-passenger {
+  box-shadow: 2px 3px 1px #888888;
+  position: absolute;
+  top: auto;
+  right: 3%;
+  height: 40px;
+  min-height: 35px;
+}
+
+.dapp-theme .listwrapper-reduced {
+  max-height: 60px;
+  min-height: 50px;
+  width: 100%;
+  display: block !important;
+  overflow-y: scroll !important;
+  overflow-x: hidden !important;
+}
+
+.dapp-theme .listwrapper-expanded {
+  max-height: auto;
+  width: 100%;
+}
+
+.dapp-theme .line-background {
+  background-image: url("../img/rt_verticalline.png");
+  background-repeat: repeat-y;
+  background-position: center;
+  background-size: auto;
+  padding-left: 15px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 60px;
+  height: auto;
+}
+
+.dapp-theme .line-background-first {
+  background-image: url("../img/rt_verticalline.png");
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  padding-left: 15px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 60px;
+  height: auto;
+}
+
+.dapp-theme .line-background-last {
+  background-image: url("../img/rt_verticalline.png");
+  background-repeat: no-repeat;
+  background-position: center top;
+  padding-left: 15px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 60px;
+  height: auto;
+}
+
+.dapp-theme .line-background img,
+.dapp-theme .line-background-first img,
+.dapp-theme .line-background-last img {
+  padding-top: 2px;
+  width: 30px;
+  height: 30px;
+}
+
+.dapp-theme .text-background {
+  position: absolute;
+  left: 50px;
+  top: 0px;
+  padding-top: 3%;
+}
+
+.dapp-theme .item.routeitem {
+  border-style: none;
+  font-weight: bold;
+  background-color: #C6DAE0;
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+
+.dapp-theme .item.routeitem.reduced {
+  min-height: 50px;
+  padding-top: 23px;
+}
+
+.dapp-theme .route-row {
+  padding: 1px;
+}
+
+.dapp-theme .route-on-board {
+  position: relative;
+  width: 32%;
+  float: left;
+  margin: 2px;
+  border: 3px solid #B0BEC5;
+  text-align: left;
+  min-height: 100px;
+  color: #000;
+}
+
+.dapp-theme .route-on-board-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("../img/placeholder_child.png");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  opacity: 0.5;
+}
+
+.dapp-theme .route-on-board-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding-left: 2px;
+  font-weight: bold;
+  line-height: 1em;
+}
+
+.dapp-theme .route-on-board .on-board.has-wsnid {
+  background-color: transparent;
+  color: #f29100;
+  position: absolute;
+  top: -5px;
+  left: -10px;
+}
+
+.dapp-theme .route-on-board .on-board.has-wsnid img {
+  max-width: 20px;
+  max-height: 50px;
+}
+
+.dapp-theme .route-on-board .button.button-trasparent.passenger-remove {
+  position: absolute;
+  top: -5px;
+  right: 0;
+  padding: 0;
+  border-color: transparent;
+  background-color: transparent;
+  color: #e53935;
+  pointer-events: auto;
+}
+
+.dapp-theme .route-on-board .button.button-trasparent.passenger-remove.passenger-remove-prev {
+  opacity: 0.5;
+}
+
+.dapp-theme .item.item-route-passenger {
+  line-height: 45px;
+}
+
+.dapp-theme .item.item-route-passenger .item-route-passenger-img {
+  border: 2px solid #B0BEC5;
+}
+
+.dapp-theme .item.item-route-passenger .button {
+  padding-top: 15px;
+}
+
+.dapp-theme .item.item-route-passenger .has-wsnid {
+  position: absolute;
+  top: 30px;
+  left: 48px;
+  max-width: 20px;
+  max-height: 50px;
+}
+
+.dapp-theme .item.item-route-passenger .icon.ion-battery-full {
+  color: green;
+}
+
+.dapp-theme .item.item-route-passenger .icon.ion-battery-half {
+  color: orange;
+}
+
+.dapp-theme .item.item-route-passenger .icon.ion-battery-low {
+  color: red;
+}
+
+.dapp-theme .item.item-route-passenger .icon.ion-alert {
+  color: black;
+}
+
+.dapp-theme .route-title-button {
+  background-color: #438699;
+  color: #fff;
+}
+
+.dapp-theme .on-board-panel-title {
+  background-color: #438699;
+  color: #fff;
+  min-height: 22px;
+}
+
+.dapp-theme .on-board-panel-title .name {
+  float: left;
+  margin-left: 10px;
+}
+
+.dapp-theme .on-board-panel-title .counter {
+  float: right;
+  margin-right: 10px;
+}
+
+.dapp-theme .passenger-panel-title {
+  background-color: #fff;
+  /*min-height: 60px;*/
+}
+
+.dapp-theme .passenger-panel-title h4 {
+  color: #438699;
+}
+
+.dapp-theme .passenger-list {
+  /*height: 480px;*/
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+.dapp-theme .passenger-list-resized {
+  height: 350px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+.dapp-theme .passenger-list-resized-xs {
+  height: 260px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+.dapp-theme .on-board-panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #fff;
+}
+
+.dapp-theme .on-board-panel .scroll-view {
+  max-height: 210px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.dapp-theme .scroll-content .route-view {
+  position: relative;
+}
+
+.dapp-theme .item-avatar img {
+  max-width: 45px;
+  max-height: 45px;
+}
+
+.dapp-theme .route-popup .popup {
+  background-color: #fff;
+  min-width: 90%;
+}
+
+.dapp-theme .route-popup .popup-head {
+  min-height: 60px;
+  border-bottom-width: 0px;
+}
+
+.dapp-theme .route-popup .popup-title {
+  font-size: 16px;
+  color: #438699;
+}
+
+.dapp-theme .route-popup .popup-sub-title {
+  font-size: 15px;
+}
+
+.dapp-theme .route-popup .popup-buttons .button.button-positive {
+  color: #fff;
+  background-color: #438699;
+}
+
+.dapp-theme .route-popup .popup-buttons .button.button-default {
+  color: #fff;
+  background-color: #B0BEC5;
+}
+
+.dapp-theme .route-volunteer-list .item {
+  border-width: 0px;
+}
+
+.dapp-theme .card.card-routes {
+  margin: 15px 0 15px 0;
+}
+
+.dapp-theme .item.item-routes {
+  background-color: #f2f2f2;
+  font-size: 14px;
+  font-weight: bold;
+  border-width: 0px;
+  padding: 5px 5px 5px 15px;
+}
+
+.dapp-theme .item.item-divider.item-routes.title {
+  font-size: 22px;
+  padding-top: 15px;
+  padding-bottom: 2px;
+}
+
+.dapp-theme .item.item-divider.item-routes {
+  padding-bottom: 10px;
+  padding-top: 0px;
+}
+
+.dapp-theme .passenger-img {
+  width: 35px;
+  height: 35px;
+}
+
+.dapp-theme .icon-line-passenger {
+  font-size: 45px;
+}
+
+.dapp-theme .color-bus.blue {
+  color: #3f51b5;
+}
+
+.dapp-theme .color-bus.red {
+  color: #E53935;
+}
+
+.dapp-theme .color-bus.green {
+  color: #439981;
+}
+
+.dapp-theme .color-bus.yellow {
+  color: yellow;
+}
+
+.dapp-theme .color-bus.violet {
+  color: violet;
+}
+
+.dapp-theme .routes-padding {
+  padding-top: 0px;
+}
+
+.dapp-theme .item-text-image-right {
+  position: absolute;
+  bottom: 20px;
+  left: 55px;
+}
+
+
+/* Volunteers */
+
+.dapp-theme .item.item-volunteers {
+  background-color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+  border-width: 0px;
+}
+
+.dapp-theme .button-volunteers.button {
+  background-color: #fff;
+  color: #f29100;
+}
+
+
+/* Person phone number pupup details */
+
+.dapp-theme .item-details-phone {
+  background-color: #f2f2f2;
+  border-width: 0px;
+}
+
+.dapp-theme .item-details-phone i {
+  color: #f29100;
+}
+
+.dapp-theme .person-pupup-phone {
+  background-color: #f2f2f2;
+}
+
+
+/* Test parte route */
+
+#route-open-button-div {
+  height: 25px;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.route-open-button-container {
+  position: absolute;
+  top: -75px;
+  height: 100px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.route-open-button-inner {
+  width: 100px;
+  height: 100px;
+  background-color: #C6DAE0;
+  border-radius: 50px;
+  text-align: center;
+  padding-top: 75px;
+  margin: auto;
+  color: #438699;
+}
+
+#route-button-div {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.route-button-container {
+  position: absolute;
+  z-index: 1002;
+  bottom: 0;
+  height: 25px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.route-button-inner {
+  width: 100px;
+  height: 100px;
+  background-color: #C6DAE0;
+  border-radius: 50px;
+  text-align: center;
+  padding-top: 0px;
+  margin: auto;
+  color: #438699;
+}
+
+.route-driver {
+  height: 300px;
+  overflow-y: scroll;
+}
+
+
+/* Login pages */
+.login-page {
+  /*background-image: url("../img/background_login.jpg");*/
+  background-color: #d9e6ea;
+  height: 100%;
+}
+
+.login-title {
+  padding-top: 10%;
+  padding-bottom: 20px;
+  color: #B1B1B1;
+  font-size: 50px;
+  width: 100%;
+  text-align: center;
+}
+
+.login-title>img {
+  width: 70%;
+  /* background-color: white; */
+}
+
+.login .login-text {
+  color: #000 !important;
+}
+
+.login .login-buttons {
+  position: relative;
+  text-align: center;
+}
+
+.login .login-buttons .stuffcontainer {
+  padding: 0 2em;
+}
+
+.login .item {
+  border: 0;
+}
+
+.login label input {
+  background-color: #fff;
+  padding-left: 5px;
+}
+
+.login .login-title h1,
+.login .login-title h3 {
+  color: #fff;
+}
+
+.login .login-buttons h3,
+.login .login-buttons h4,
+.login-buttons span {
+  /* color: #FFF; */
+}
+
+.login-buttons .row,
+.login-buttons .col {
+  padding: 0;
+}
+
+.login-buttons .col:first-child {
+  padding-right: 5px;
+}
+
+.login-buttons .button {
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+}
+.login .login-button-apple {
+  text-transform: none;
+  border-color: black;
+  background-color: black;
+  color: #FFFFFF;
+  margin:0px;
+  width: 75%;
+  font-size: 4vw;
+  margin: auto;
+
+}
+.login .login-button-google {
+  text-transform: none;
+  border-color: #DB4437;
+  background-color: #DB4437;
+  color: #FFFFFF;
+  margin:0px;
+  width: 75%;
+  font-size: 4vw;
+  margin: auto;
+}
+
+.login .login-button-facebook {
+  text-transform: none;
+  border-color: #3a5795;
+  background-color: #3a5795;
+  color: #FFFFFF;
+  margin:0px;
+  width: 75%;
+  font-size: 4vw;
+  margin: auto;
+
+}
+.my-credential{
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-out;
+}
+.my-credential.show-my-credential{
+  max-height: 1000px;
+}
+.login .login-button-scc {
+  border-color: #4EB0E6;
+  background-color: #4EB0E6;
+  color: #FFFFFF!important;
+  margin-bottom:15px!important;
+  width: 75%;
+  font-size: 4vw;
+  margin: auto;
+  white-space: nowrap;
+  /* width: 50px; */
+  padding: 0px 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.login .login-button-internal {
+  text-transform: uppercase;
+  border-color: #4EB0E6;
+  background-color: #4EB0E6;
+  color: #FFFFFF!important;
+}
+
+.login .login-button-signup {
+  border-color: #4EB0E6;
+  background-color: transparent;
+  color: #4EB0E6;
+  box-shadow: none;
+}
+
+.login .login-link {
+  display: block;
+  color: #4EB0E6;
+  padding: 1em 1em 0em 1em;
+}
+.login .button-register{
+  border: solid 2px  #4EB0E6;
+  color: #4EB0E6;
+
+
+}
+
+.profile-image-round {
+  display: flex;
+  justify-content: center;
+  border-radius: 30%;
+  max-width: 130px !important;
+  max-height: 130px !important;
+  margin: auto;
+}
+
+.profile-image-footer {
+  display: flex;
+  justify-content: center;
+  /* border-radius: 30%; */
+  /* max-width: 130px!important; */
+  /* max-height: 130px!important; */
+  /* width: 100%; */
+  margin: auto;
+  height: 100%;
+}
+
+.change-profile {
+  display: flex;
+  justify-content: center;
+  margin: auto;
+  color: #f29100;
+}
+
+.footer-scroll {
+  width: 100%;
+}
+.credits_title {
+  text-align: center;
+  color: #2975a7;
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  }
+  .credits_title_2{
+  text-align: center;
+  color: #2975a7;
+  font-size: 18px;
+  font-weight: bold;
+  }
+  
+  .credits_subtitle {
+  margin-top: 40px !important;
+  text-align: center;
+  color: #2975a7;
+  font-size: 18px;
+  font-weight: bold;
+  }
+  
+  .credits_row {
+  padding: 0;
+  margin-bottom: 10px;
+  }
+  .credits_row.last {
+  margin-bottom: 20px;
+  }
+  
+  .credits_row.version {
+  color: #aaa;
+  }
+  
+  .credits_row.version .col {
+  font-size: 12px;
+  line-height: 12px;
+  }
+  
+  .credits_mail {
+  color: black;
+  font-size: 14px;
+  font-weight: normal;
+  }
+  
+  .credits_version {
+  text-align: center;
+  }
+  
+  .close-credits {
+  padding: 8px;
+  }
+  .close-modal {
+  font-size: 32px;
+  padding-top: 2px !important;
+  }
+  .bar-positive-100 {
+  color: #fff!important;
+  background-color: #438699;
+  }
+  
+  .title-credits {
+  color: #fff;
+  }
+  .image.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  }
+
+  .nopadding-x {
+    padding-left: 0 !important; 
+    padding-right: 0 !important; 
+  }
+  .button-privacy{
+    padding: 0px 40px;
+  }
+
+  .container-rssi {
+    
+      height: 100%;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align:center;
+  }
+  .container label {
+    margin: 24px 0px;
+
+  }
+  .container-rssi  button {
+    margin: 24px 0px;
+  }
+  .rssi-disabled {
+    opacity:0.5;
+  }
+  
+  

@@ -1,0 +1,6 @@
+bower_components/
+#hooks/
+node_modules/
+platforms/
+plugins/
+www/js/config.js

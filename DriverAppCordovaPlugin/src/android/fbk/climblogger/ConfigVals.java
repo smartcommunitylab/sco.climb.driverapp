@@ -14,7 +14,7 @@ public class ConfigVals {
 
     static String libVersion = "0.4.0";
 
-    private static File root = Environment.getExternalStorageDirectory();
+    private static File root = Environment.getDataDirectory();
 
     static TimeZone tz = TimeZone.getTimeZone("Europe/Rome");
 

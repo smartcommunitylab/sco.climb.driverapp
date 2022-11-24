@@ -2,6 +2,7 @@ angular.module('driverapp', [
   'ionic',
   'ionic.wizard',
   'ngCordova',
+  'ng.oidcclient',
   'pascalprecht.translate',
   'driverapp.services.storage',
   'driverapp.services.config',
@@ -139,25 +140,25 @@ angular.module('driverapp', [
       }
 
       var startWSNService = function () {
-        if (window.DriverAppPlugin) {
-          WSNSrv.init().then(
-            function (response) {
-              WSNSrv.startListener().then(
-                function (response) { },
-                function (reason) { }
-              )
-            },
-            function (reason) { }
-          )
-        }
+        // if (window.DriverAppPlugin) {
+        //   WSNSrv.init().then(
+        //     function (response) {
+        //       WSNSrv.startListener().then(
+        //         function (response) { },
+        //         function (reason) { }
+        //       )
+        //     },
+        //     function (reason) { }
+        //   )
+        // }
       }
       var stopWSNService = function () {
-        if (window.DriverAppPlugin) {
-          WSNSrv.deinit().then(
-            function (response) { },
-            function (reason) { }
-          )
-        }
+        // if (window.DriverAppPlugin) {
+        //   WSNSrv.deinit().then(
+        //     function (response) { },
+        //     function (reason) { }
+        //   )
+        // }
       }
       $ionicModal.fromTemplateUrl('templates/credits.html', {
         id: '3',
@@ -180,17 +181,17 @@ angular.module('driverapp', [
 
       $rootScope.exitApp = function (skipConfirm) {
         var doExit = function () {
-          if (window.DriverAppPlugin) {
-            WSNSrv.init().then(
-              function (response) { },
-              function (reason) { }
-            )
+          // if (window.DriverAppPlugin) {
+          //   WSNSrv.init().then(
+          //     function (response) { },
+          //     function (reason) { }
+          //   )
 
-            WSNSrv.startListener().then(
-              function (response) { },
-              function (reason) { }
-            )
-          }
+          //   WSNSrv.startListener().then(
+          //     function (response) { },
+          //     function (reason) { }
+          //   )
+          // }
           Utils.setMenuDriverTitle(null) // clear driver name in menu
           $state.go('app.home');
           $ionicHistory.nextViewOptions({
@@ -288,7 +289,22 @@ angular.module('driverapp', [
       }, 100)
     })
   })
+  .config(['ngOidcClientProvider', function (ngOidcClientProvider) {
 
+    ngOidcClientProvider.setSettings({
+      authority: "https://aac.platform.smartcommunitylab.it/",
+      client_id: "c_104137f7-0049-40ae-811e-ad33eb59fd36",
+      redirect_uri: "it.smartcommunitylab.climb.driverapp://callback.html",
+      end_session_redirect_url: `it.smartcommunitylab.climb.driverapp://endsession`,
+      response_type: "code",
+      scope: "openid email profile",
+      pkce:true,
+      automaticSilentRenew: false,
+      loadUserInfo: true,
+        popupNavigator: new Oidc.CordovaPopupNavigator(),
+        iframeNavigator: new Oidc.CordovaIFrameNavigator()
+});
+}])
   .config(function ($stateProvider, $urlRouterProvider, $translateProvider,$compileProvider) {
     $stateProvider.state('app', {
       url: '/app',

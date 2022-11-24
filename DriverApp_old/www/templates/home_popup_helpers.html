@@ -1,0 +1,15 @@
+<div class="padding-horizontal">
+  <div id="helptext-helpers" class="helptext">
+    Ciao <strong>{{driver.name}}</strong>! Oggi accompagnerai la <strong>{{route.name}}</strong> assieme a:
+  </div>
+  <ion-list>
+    <ion-item class="nopadding-x">
+      <ion-checkbox class="checkbox-dapp" ng-repeat="volunteer in volunteers| orderBy:'name'" ng-if="volunteer !== driver"
+        ng-model="volunteer.checked">
+        {{volunteer.name}}
+      </ion-checkbox>
+    </ion-item>
+  </ion-list>
+</div>
+<button ng-if="!allhelpers"  class="button button-block button-stable" ng-click="loadAllVolunteers('helper')">Carica tutti</button>
+

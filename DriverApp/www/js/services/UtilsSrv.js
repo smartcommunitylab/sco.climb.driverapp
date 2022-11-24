@@ -162,7 +162,8 @@ angular.module('driverapp.services.utils', [])
       }
 
       Utils.wsnPluginEnabled = function () {
-        return window.DriverAppPlugin && (ionic.Platform.isAndroid() || ionic.Platform.isIOS());
+        return true;
+        // return window.DriverAppPlugin && (ionic.Platform.isAndroid() || ionic.Platform.isIOS());
       }
 
       Utils.chooseAndUploadPhoto = function (ownerId, objectId, photoLibrary, callback) {
