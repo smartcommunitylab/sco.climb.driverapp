@@ -1,9 +1,0 @@
-<ion-list class="route-volunteer-list">
-    <!-- | orderBy : ['ordered', 'name'] -->
-    <ion-checkbox ng-repeat="volunteer in volunteers" ng-model="volunteer.checked" ng-if="volunteer.objectId !== driver.objectId" ng-disabled="volunteer.disabled">
-        {{volunteer.name}}
-    </ion-checkbox>
-</ion-list>
-
-<!-- <button ng-if="!allhelpers"  class="button button-block button-energized" ng-click="loadAllHelpers()">Carica tutti</button> -->
-<button ng-if="volunteerShiftsLink"  class="button button-block button-energized" ng-click="openVolunteer()">Turni accompagnatori</button>
