@@ -15,6 +15,7 @@ if (process.argv.length < 3) {
 if (profile == null) {
     console.error("Profile name is missing!");
 } else {
+    console.log("config/instances/"+profile+"/www");
     ncp("config/instances/"+profile+"/www", "www", function (err) {
      if (err) {
        return console.error(err);

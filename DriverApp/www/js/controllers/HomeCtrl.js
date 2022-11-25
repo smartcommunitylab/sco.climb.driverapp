@@ -479,7 +479,7 @@ angular.module('driverapp.controllers.home', [])
           $rootScope.alertPopup.then(function (res) {
             Config.resetIdentity()
             StorageSrv.clearIdentity()
-            // if (ionic.Platform.isIOS()) {
+            // if (window.cordova.platformId==='ios') {
             LoginService.logout();
             $state.go('app.login');
           });

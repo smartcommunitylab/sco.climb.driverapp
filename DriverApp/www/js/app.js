@@ -26,15 +26,15 @@ angular.module('driverapp', [
     $ionicPlatform.ready(function () {
       // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
       // for form inputs)
-      var initAppUpdate = function () {
-        codePush.sync();
-      }
+      // var initAppUpdate = function () {
+      //   codePush.sync();
+      // }
       var setPlatformVersion = function() {
-        if (ionic.Platform.isAndroid())
+        if (window.cordova.platformId==='android')
           $rootScope.isAndroid=true;
           else $rootScope.isAndroid=false;
       }
-      initAppUpdate();
+      // initAppUpdate();
       setPlatformVersion();
 
       if (window.cordova && window.cordova.plugins.Keyboard) {
@@ -72,7 +72,7 @@ angular.module('driverapp', [
       var checkBTAndEnableHandler = function () {
         cordova.plugins.diagnostic.isBluetoothAvailable(function (available) {
           console.log('Init BT initially', available);
-          if (available || ionic.Platform.isAndroid()) {
+          if (available || window.cordova.platformId==='android') {
             startWSNService();
           } else {
             cordova.plugins.diagnostic.requestBluetoothAuthorization();
@@ -92,7 +92,7 @@ angular.module('driverapp', [
       }
 
 
-      if (ionic.Platform.isAndroid() && window['cordova']) {
+      if (window.cordova.platformId==='android' && window['cordova']) {
         cordova.plugins.diagnostic.requestExternalStorageAuthorization(function (status) {
           GeoSrv.geolocalize();
           console.log("Authorization request for external storage use was " + (status == cordova.plugins.diagnostic.permissionStatus.GRANTED ? "granted" : "denied"));
@@ -140,25 +140,25 @@ angular.module('driverapp', [
       }
 
       var startWSNService = function () {
-        // if (window.DriverAppPlugin) {
-        //   WSNSrv.init().then(
-        //     function (response) {
-        //       WSNSrv.startListener().then(
-        //         function (response) { },
-        //         function (reason) { }
-        //       )
-        //     },
-        //     function (reason) { }
-        //   )
-        // }
+        if (ble) {
+          WSNSrv.init().then(
+            function (response) {
+              WSNSrv.startListener().then(
+                function (response) { },
+                function (reason) { }
+              )
+            },
+            function (reason) { }
+          )
+        }
       }
       var stopWSNService = function () {
-        // if (window.DriverAppPlugin) {
-        //   WSNSrv.deinit().then(
-        //     function (response) { },
-        //     function (reason) { }
-        //   )
-        // }
+        if (ble) {
+          WSNSrv.deinit().then(
+            function (response) { },
+            function (reason) { }
+          )
+        }
       }
       $ionicModal.fromTemplateUrl('templates/credits.html', {
         id: '3',
@@ -181,17 +181,17 @@ angular.module('driverapp', [
 
       $rootScope.exitApp = function (skipConfirm) {
         var doExit = function () {
-          // if (window.DriverAppPlugin) {
-          //   WSNSrv.init().then(
-          //     function (response) { },
-          //     function (reason) { }
-          //   )
+          if (ble) {
+            WSNSrv.init().then(
+              function (response) { },
+              function (reason) { }
+            )
 
-          //   WSNSrv.startListener().then(
-          //     function (response) { },
-          //     function (reason) { }
-          //   )
-          // }
+            WSNSrv.startListener().then(
+              function (response) { },
+              function (reason) { }
+            )
+          }
           Utils.setMenuDriverTitle(null) // clear driver name in menu
           $state.go('app.home');
           $ionicHistory.nextViewOptions({
@@ -222,9 +222,9 @@ angular.module('driverapp', [
           })
       }
       $rootScope.openEmail = function() {
-        if (ionic.Platform.isAndroid()){
+        if (window.cordova.platformId==='android'){
         cordova.InAppBrowser.open('mailto:pedibus-smart@fbk.eu?subject= Richiesta abilitazione account&body= Utilizzo l\'applicazione Climb e vorrei abilitare il mio account', '_system', 'location=yes');
-        } else if (ionic.Platform.isIOS()) {
+        } else if (window.cordova.platformId==='ios') {
           cordova.plugins.email.open({
             to:      'pedibus-smart@fbk.eu',
             subject: 'Richiesta abilitazione account',
@@ -246,10 +246,11 @@ angular.module('driverapp', [
 
           .then(function (result) {
             if (result) {
-              Config.resetIdentity()
-              StorageSrv.clearIdentity()
-              // if (ionic.Platform.isIOS()) {
-              LoginService.logout();
+              Config.resetIdentity();
+              StorageSrv.clearIdentity();
+              localStorage.clear();
+              // if (window.cordova.platformId==='ios') {
+              //LoginService.logout();
               $state.go('app.login').then(function () {
                 // window.location.reload(true);
               });
@@ -294,15 +295,18 @@ angular.module('driverapp', [
     ngOidcClientProvider.setSettings({
       authority: "https://aac.platform.smartcommunitylab.it/",
       client_id: "c_104137f7-0049-40ae-811e-ad33eb59fd36",
-      redirect_uri: "it.smartcommunitylab.climb.driverapp://callback.html",
-      end_session_redirect_url: `it.smartcommunitylab.climb.driverapp://endsession`,
+      redirect_uri: "http://localhost/oidc",
+      end_session_redirect_url: `http://localhost/oidc`,
+      post_logout_redirect_uri: "https://localhost/oidc",
+      silent_redirect_uri: "https://localhost/oidc",
       response_type: "code",
-      scope: "openid email profile",
+      scope: "openid email profile offline_access",
       pkce:true,
-      automaticSilentRenew: false,
+      automaticSilentRenew: true,
+      filterProtocolClaims: true,
       loadUserInfo: true,
-        popupNavigator: new Oidc.CordovaPopupNavigator(),
-        iframeNavigator: new Oidc.CordovaIFrameNavigator()
+      popupNavigator: new Oidc.CordovaPopupNavigator(),
+      iframeNavigator: new Oidc.CordovaIFrameNavigator()
 });
 }])
   .config(function ($stateProvider, $urlRouterProvider, $translateProvider,$compileProvider) {

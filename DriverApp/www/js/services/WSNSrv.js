@@ -74,7 +74,7 @@ angular.module('driverapp.services.wsn', [])
       } else {
         deferred.reject();
       } 
-
+     // ble.startScanWithOptions(['feaa'],{reportDuplicates:false})
         // window.DriverAppPlugin.startListener(
         //   function (response) {
         //     if (response.action === wsnService.STATE_CONNECTED_TO_CLIMB_MASTER) {
@@ -137,35 +137,42 @@ angular.module('driverapp.services.wsn', [])
     wsnService.getNetworkState = function () {
       var deferred = $q.defer()
       deferred.resolve(null);
-      // if (Utils.wsnPluginEnabled()) {
-      //   window.DriverAppPlugin.getNetworkState(
-      //     function (networkState) {
-      //       var nsIds = []
-      //       var ns = angular.copy(wsnService.networkState)
-      //       networkState.forEach(function (nodeState) {
-      //         nsIds.push(nodeState.nodeID)
-      //         var upId=nodeState.nodeID.toUpperCase();
-      //         if (!!nodeState.nodeID && ns[upId]) {
-      //           if (ns[upId].status === '') {
-      //             ns[upId].status = wsnService.STATUS_NEW
-      //           }
-      //           ns[upId].timestamp = nodeState[wsnService.NODESTATE_LASTSEEN]
-      //           ns[upId].batteryLevel = nodeState[wsnService.NODESTATE_BATTERYLEVEL]
-      //           ns[upId].batteryVoltage_mV = nodeState[wsnService.NODESTATE_BATTERYVOLTAGE_MV]
-      //           ns[upId].rssi = nodeState[wsnService.NODESTATE_RSSI]
-      //         }
-      //       })
-      //       wsnService.networkState = ns
+       if (Utils.wsnPluginEnabled()) {
+        
+        ble.startScanWithOptions(['0000FEAA-0000-1000-8000-00805F9B34FB'],{reportDuplicates:false},
 
-      //       console.log('getNetworkState: ' + nsIds)
-      //       deferred.resolve(networkState)
-      //     },
-      //     function (reason) {
-      //       console.log('getNetworkState: ' + reason)
-      //       deferred.reject(reason)
-      //     }
-      //   )
-      // }
+      //   window.DriverAppPlugin.getNetworkState(
+          function (node) {
+            console.log(node);
+        //     var nsIds = []
+        //     var ns = angular.copy(wsnService.networkState)
+        //     networkState.forEach(function (nodeState) {
+        //       nsIds.push(nodeState.nodeID)
+        //       var upId=nodeState.nodeID.toUpperCase();
+        //       if (!!nodeState.nodeID && ns[upId]) {
+        //         if (ns[upId].status === '') {
+        //           ns[upId].status = wsnService.STATUS_NEW
+        //         }
+        //         ns[upId].timestamp = nodeState[wsnService.NODESTATE_LASTSEEN]
+        //         ns[upId].batteryLevel = nodeState[wsnService.NODESTATE_BATTERYLEVEL]
+        //         ns[upId].batteryVoltage_mV = nodeState[wsnService.NODESTATE_BATTERYVOLTAGE_MV]
+        //         ns[upId].rssi = nodeState[wsnService.NODESTATE_RSSI]
+        //       }
+        //     })
+        //     wsnService.networkState = ns
+
+        //     console.log('getNetworkState: ' + nsIds)
+        //     deferred.resolve(networkState)
+        //   },
+        //   function (reason) {
+        //     console.log('getNetworkState: ' + reason)
+        //     deferred.reject(reason)
+          },
+          function(err){
+            console.log(err);
+          }
+         )
+        }
 
       return deferred.promise
     }

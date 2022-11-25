@@ -5,11 +5,11 @@
 // Look for the string CONFIGURE HERE for areas that need configuration
 //
 require('shelljs/global');
-
+console.log('change-plugin');
 var fs = require('fs');
 var path = require('path');
-
-var rootdir = process.argv[2];
+module.exports = function(context) {
+var rootdir =  context.opts.projectRoot;
 var currentProfileFile = path.join(rootdir, "config", "current_profile.txt");
 var target = fs.readFileSync(currentProfileFile, 'utf8')
 console.log("il target è " + target);
@@ -28,4 +28,5 @@ if (rootdir) {
   exec('cordova plugin add https://github.com/EddyVerbruggen/cordova-plugin-googleplus --variable REVERSED_CLIENT_ID=' + REVERSED_CLIENT_ID);
   exec('cordova plugin rm cordova-plugin-facebook4');
   exec('cordova plugin add cordova-plugin-facebook4 --variable APP_ID=' + APP_ID + ' --variable APP_NAME=' + APP_NAME);
+}
 }

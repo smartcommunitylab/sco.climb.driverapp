@@ -9,8 +9,9 @@ angular.module('driverapp.controllers.login', [])
             password: ''
         };
         
-        $scope.newAAC = function () {
-            ngOidcClient.signinPopup().then(function (user) {
+        $scope.newAAC = function (provider) {
+            var prov = provider ? this.getExtraIdp(provider) : undefined
+            ngOidcClient.signinPopup({extraQueryParams:prov}).then(function (user) {
                 $log.log("user:" + JSON.stringify(user));
                 if (!!user) {
                     $log.log('Logged in so going to home state');
@@ -18,6 +19,13 @@ angular.module('driverapp.controllers.login', [])
                 }
             });
         }
+        $scope.getExtraIdp= function(provider) {
+            if (LoginService.IDPHINT[provider]) {
+              // eslint-disable-next-line @typescript-eslint/naming-convention
+              return { idp_hint: LoginService.IDPHINT[provider] };
+            }
+            return undefined;
+          }
         // This method is executed when the user press the "Sign in with Google" button
         $scope.googleSignIn = function () {
             // $ionicLoading.show({
@@ -115,7 +123,7 @@ angular.module('driverapp.controllers.login', [])
 
         $ionicPlatform.ready(function () {
             //check platform 
-            if (ionic.Platform.isIOS() && window.cordova.plugins.SignInWithApple) {
+            if (window.cordova.platformId==='ios' && window.cordova.plugins.SignInWithApple) {
                 $scope.isIOS = true;
             }
             // Config.init().then(function () {

@@ -123,9 +123,9 @@ angular.module('driverapp.services.utils', [])
       }
 
       Utils.isBLESupported = function (cbs, cbe) {
-        if (ionic.Platform.isAndroid() && window.cordova) {
+        if (window.cordova.platformId==='android' && window.cordova) {
           cordova.plugins.diagnostic.hasBluetoothLESupport(cbs, cbe);
-        } else if (ionic.Platform.isIOS()) {
+        } else if (window.cordova.platformId==='ios') {
           var version = ionic.Platform.version();
           console.log('Platform version: ' + version);
           cbs(version >= 8);
@@ -162,8 +162,7 @@ angular.module('driverapp.services.utils', [])
       }
 
       Utils.wsnPluginEnabled = function () {
-        return true;
-        // return window.DriverAppPlugin && (ionic.Platform.isAndroid() || ionic.Platform.isIOS());
+        return ble? true:false;
       }
 
       Utils.chooseAndUploadPhoto = function (ownerId, objectId, photoLibrary, callback) {

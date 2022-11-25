@@ -16,6 +16,7 @@
     <allow-intent href="tel:*" />
     <allow-intent href="sms:*" />
     <allow-navigation href="*" />
+    <preference name="Scheme" value="http" />
     <preference name="webviewbounce" value="false" />
     <preference name="DisallowOverscroll" value="true" />
     <preference name="android-minSdkVersion" value="22" />
@@ -27,6 +28,7 @@
     <preference name="OverrideUserAgent" value="Mozilla/5.0 Google" />
     <preference name="orientation" value="portrait" />
     <preference name="SplashShowOnlyFirstTime" value="false" />
+    <preference name="MixedContentMode" value="2" />
     <feature name="StatusBar">
         <param name="ios-package" onload="true" value="CDVStatusBar" />
     </feature>
@@ -83,37 +85,71 @@
         <splash height="480" src="config/instances/UNICA/resources/ios/splash/Default~iphone.png" width="320" />
         <icon height="1024" src="config/instances/UNICA/resources/ios/icon/icon-1024.png" width="1024" />
         <splash height="2732" src="config/instances/UNICA/resources/ios/splash/Default@2x~universal~anyany.png" width="2732" />
+        <icon height="57" src="resources/ios/icon/icon.png" width="57" />
+        <icon height="114" src="resources/ios/icon/icon@2x.png" width="114" />
+        <icon height="20" src="resources/ios/icon/icon-20.png" width="20" />
+        <icon height="40" src="resources/ios/icon/icon-20@2x.png" width="40" />
+        <icon height="60" src="resources/ios/icon/icon-20@3x.png" width="60" />
+        <icon height="29" src="resources/ios/icon/icon-29.png" width="29" />
+        <icon height="58" src="resources/ios/icon/icon-29@2x.png" width="58" />
+        <icon height="87" src="resources/ios/icon/icon-29@3x.png" width="87" />
+        <icon height="48" src="resources/ios/icon/icon-24@2x.png" width="48" />
+        <icon height="55" src="resources/ios/icon/icon-27.5@2x.png" width="55" />
+        <icon height="88" src="resources/ios/icon/icon-44@2x.png" width="88" />
+        <icon height="172" src="resources/ios/icon/icon-86@2x.png" width="172" />
+        <icon height="196" src="resources/ios/icon/icon-98@2x.png" width="196" />
+        <icon height="216" src="resources/ios/icon/icon-108@2x.png" width="216" />
+        <icon height="40" src="resources/ios/icon/icon-40.png" width="40" />
+        <icon height="80" src="resources/ios/icon/icon-40@2x.png" width="80" />
+        <icon height="120" src="resources/ios/icon/icon-40@3x.png" width="120" />
+        <icon height="50" src="resources/ios/icon/icon-50.png" width="50" />
+        <icon height="100" src="resources/ios/icon/icon-50@2x.png" width="100" />
+        <icon height="60" src="resources/ios/icon/icon-60.png" width="60" />
+        <icon height="120" src="resources/ios/icon/icon-60@2x.png" width="120" />
+        <icon height="180" src="resources/ios/icon/icon-60@3x.png" width="180" />
+        <icon height="72" src="resources/ios/icon/icon-72.png" width="72" />
+        <icon height="144" src="resources/ios/icon/icon-72@2x.png" width="144" />
+        <icon height="76" src="resources/ios/icon/icon-76.png" width="76" />
+        <icon height="152" src="resources/ios/icon/icon-76@2x.png" width="152" />
+        <icon height="167" src="resources/ios/icon/icon-83.5@2x.png" width="167" />
+        <icon height="1024" src="resources/ios/icon/icon-1024.png" width="1024" />
+        <splash height="1136" src="resources/ios/splash/Default-568h@2x~iphone.png" width="640" />
+        <splash height="1334" src="resources/ios/splash/Default-667h.png" width="750" />
+        <splash height="2688" src="resources/ios/splash/Default-2688h~iphone.png" width="1242" />
+        <splash height="1242" src="resources/ios/splash/Default-Landscape-2688h~iphone.png" width="2688" />
+        <splash height="1792" src="resources/ios/splash/Default-1792h~iphone.png" width="828" />
+        <splash height="828" src="resources/ios/splash/Default-Landscape-1792h~iphone.png" width="1792" />
+        <splash height="2436" src="resources/ios/splash/Default-2436h.png" width="1125" />
+        <splash height="1125" src="resources/ios/splash/Default-Landscape-2436h.png" width="2436" />
+        <splash height="2208" src="resources/ios/splash/Default-736h.png" width="1242" />
+        <splash height="1242" src="resources/ios/splash/Default-Landscape-736h.png" width="2208" />
+        <splash height="1536" src="resources/ios/splash/Default-Landscape@2x~ipad.png" width="2048" />
+        <splash height="2048" src="resources/ios/splash/Default-Landscape@~ipadpro.png" width="2732" />
+        <splash height="768" src="resources/ios/splash/Default-Landscape~ipad.png" width="1024" />
+        <splash height="2048" src="resources/ios/splash/Default-Portrait@2x~ipad.png" width="1536" />
+        <splash height="2732" src="resources/ios/splash/Default-Portrait@~ipadpro.png" width="2048" />
+        <splash height="1024" src="resources/ios/splash/Default-Portrait~ipad.png" width="768" />
+        <splash height="960" src="resources/ios/splash/Default@2x~iphone.png" width="640" />
+        <splash height="480" src="resources/ios/splash/Default~iphone.png" width="320" />
+        <splash height="2732" src="resources/ios/splash/Default@2x~universal~anyany.png" width="2732" />
     </platform>
     <icon src="config/instances/UNICA/resources/android/icon/drawable-xhdpi-icon.png" />
     <preference name="SplashShowOnlyFirstTime" value="false" />
-    <engine name="ios" spec="4.5.5" />
     <plugin name="cordova-plugin-add-swift-support" spec="2.0.2" />
     <plugin name="cordova-plugin-camera" spec="4.1.0" />
     <plugin name="cordova-plugin-compat" spec="1.2.0" />
     <plugin name="cordova-plugin-console" spec="1.1.0" />
     <plugin name="cordova-plugin-device" spec="2.0.3" />
-    <plugin name="cordova-plugin-enable-multidex" spec="0.2.0" />
-    <plugin name="cordova-plugin-facebook4" spec="5.0.0">
-        <variable name="APP_ID" value="493172441063173" />
-        <variable name="APP_NAME" value="CLIMB" />
-        <variable name="FACEBOOK_HYBRID_APP_EVENTS" value="false" />
-        <variable name="FACEBOOK_ANDROID_SDK_VERSION" value="5.0.2" />
-    </plugin>
+    <plugin name="cordova-plugin-file" spec="6.0.2" />
     <plugin name="cordova-plugin-geolocation" spec="4.0.2" />
     <plugin name="cordova-plugin-globalization" spec="1.11.0" />
-    <plugin name="cordova-plugin-inappbrowser" spec="3.1.0" />
     <plugin name="cordova-plugin-splashscreen" spec="5.0.3" />
-    <plugin name="cordova-plugin-statusbar" spec="2.4.3" />
     <plugin name="cordova-plugin-network-information" spec="2.0.2" />
     <plugin name="cordova-plugin-x-toast" spec="2.7.2" />
+    <plugin name="cordova.plugins.diagnostic" spec="5.0.0">
+    </plugin>
     <plugin name="ionic-plugin-keyboard" spec="2.2.1" />
     <plugin name="cordova-plugin-crop" spec="git+https://github.com/obeza/cordova-plugin-crop-with-ratio.git" />
-    <plugin name="cordova-plugin-googleplus" spec="git+https://github.com/EddyVerbruggen/cordova-plugin-googleplus.git">
-        <variable name="REVERSED_CLIENT_ID" value="com.googleusercontent.apps.453601816446-tvtmoe6oftsqjnbj5blcgee6qjqq42ku" />
-        <variable name="WEB_APPLICATION_CLIENT_ID" value="453601816446-4meaa3hq39gtnj1spb7skm3faarkl2i6.apps.googleusercontent.com" />
-        <variable name="APP_ID" value="493172441063173" />
-        <variable name="APP_NAME" value="CLIMB" />
-    </plugin>
     <platform name="ios">
         <preference name="WKWebViewOnly" value="true" />
         <feature name="CDVWKWebViewEngine">
@@ -121,18 +157,27 @@
         </feature>
         <preference name="CordovaWebViewEngine" value="CDVWKWebViewEngine" />
         <preference name="pods_ios_min_version" value="8.4" />
-        <preference name="deployment-target" value="9.0" />
+        <preference name="deployment-target" value="12" />
         <preference name="pods_use_frameworks" value="true" />
-        <pod name="GoogleSignIn" version="5.0.2" />
-        <pod name="FBSDKCoreKit" version="5.8.0" />
-        <pod name="FBSDKLoginKit" version="5.8.0" />
-        <pod name="FBSDKShareKit" version="5.8.0" />
+        <preference name="StatusBarOverlaysWebView" value="false" />
+        <preference name="StatusBarStyle" value="lightcontent" />
+        <preference name="StatusBarBackgroundColor" value="#000000" />
     </platform>
     <platform name="android">
-        <preference name="CodePushDeploymentKey" value="oODYvxnGJPtteiTGHC8NbbD-2Y90W-Y6zfrSw" />
+        <config-file parent="/manifest" target="AndroidManifest.xml">
+            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+            <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+        </config-file>
+        <config-file parent="/manifest/application/activity" target="AndroidManifest.xml">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="it.smartcommunitylab.climb.driverapp" />
+            </intent-filter>
+        </config-file>
+        <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application/activity">
+            <activity android:exported="true" />
+        </edit-config>
     </platform>
-    <platform name="ios">
-        <preference name="CodePushDeploymentKey" value="RZA9jf6VIOxcq_I9my7i4b4OATxOkyU34Dz-8" />
-    </platform>
-    <plugin name="cordova.plugins.diagnostic" spec="^7.1.1" />
 </widget>

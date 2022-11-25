@@ -575,11 +575,11 @@ angular.module('driverapp.services.api', [])
 
     }
     function deleteFiles(logFilePath) {
-      if (ionic.Platform.isAndroid()) {
+      if (window.cordova.platformId==='android') {
         deleteFileAndroid(logFilePath);
         deleteOldFilesAndroid();
         }
-        if (ionic.Platform.isIOS()) {
+        if (window.cordova.platformId==='ios') {
           deleteFileiOS(logFilePath);
           deleteOldFilesiOS();
           }

@@ -16,28 +16,28 @@
             <div class="stuffcontainer login-text">
               <div class="row responsive-sm">
                 <div class="col col-bottom text-center">
-                  <button class="button button-block login-button-google" ng-click="googleSignIn()">
+                  <button class="button button-block login-button-google" ng-click="newAAC('google')">
                     <i class="icon ion-social-google"></i> {{'sign_in_google'|translate}}
                   </button>
                 </div>
                 <div class="col col-bottom text-center" ng-if="isIOS">
-                  <button class="button button-block login-button-apple" ng-click="appleSignIn()">
+                  <button class="button button-block login-button-apple" ng-click="newAAC('apple')">
                     <i class="icon ion-social-apple"></i> {{'sign_in_apple'|translate}}
                   </button>
                 </div>
-                <div class="col col-bottom text-center">
+                <!-- <div class="col col-bottom text-center">
                   <button class="button button-block login-button-facebook" ng-click="facebookSignIn()">
                     <i class="icon ion-social-facebook"></i> {{'sign_in_facebook'|translate}}
                   </button>
-                </div>
+                </div> -->
                 <div class="col col-bottom text-center">
-                  <button class="button button-block" ng-click="newAAC()">
-                    <i class="icon ion-social-apple"></i> new AAC
+                  <button class="button button-block login-button-scc" ng-click="newAAC('internal')">
+                    {{'signin_scc' | translate}}
                   </button>
                 </div>
   
               </div>
-              <button class="button button-block login-button-scc" ng-click="myCredential=!myCredential">
+              <!-- <button class="button button-block login-button-scc" ng-click="myCredential=!myCredential">
                 {{'signin_scc' | translate}}
               </button>
               <div class="my-credential" ng-class="{'show-my-credential': myCredential}">
@@ -57,7 +57,7 @@
               </button>
               <button class="button button-block  button-outline button-register" ng-click="goRegister()">
                 {{'login_signup' | translate}}
-            </button>
+            </button> -->
 
                 <br/>
               </div>

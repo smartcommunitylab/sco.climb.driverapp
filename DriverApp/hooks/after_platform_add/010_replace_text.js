@@ -4,12 +4,14 @@
 //
 // Look for the string CONFIGURE HERE for areas that need configuration
 //
+console.log("replace_text");
 
 var fs = require('fs');
 var path = require('path');
 
-var rootdir = process.argv[2];
+module.exports = function(context) {
 
+    var rootdir =  context.opts.projectRoot;
 function replace_string_in_file(filename, to_replace, replace_with) {
     var data = fs.readFileSync(filename, 'utf8');
 
@@ -49,4 +51,5 @@ if (rootdir) {
             console.log("missing: "+fullfilename);
         }
     });
+}
 }

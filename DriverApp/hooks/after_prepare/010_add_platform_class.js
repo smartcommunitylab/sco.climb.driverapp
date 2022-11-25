@@ -11,8 +11,9 @@
 var fs = require('fs');
 var path = require('path');
 
-var rootdir = process.argv[2];
+module.exports = function(context) {
 
+  var rootdir =  context.opts.projectRoot;
 function addPlatformBodyTag(indexPath, platform) {
   // add the platform class to the body tag
   try {
@@ -91,4 +92,5 @@ if (rootdir) {
     }
   }
 
+}
 }

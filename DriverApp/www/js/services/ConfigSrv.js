@@ -49,7 +49,7 @@ angular.module('driverapp.services.config', [])
     }
 
     config.imagesDir = function() {
-      if (ionic.Platform.isAndroid()) {
+      if (window.cordova.platformId==='android') {
         return cordova.file.dataDirectory + config.IMAGES_DIR;
       } else {
         return cordova.file.dataDirectory  + config.IMAGES_DIR;

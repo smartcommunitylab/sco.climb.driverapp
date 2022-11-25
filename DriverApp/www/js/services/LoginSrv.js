@@ -4,7 +4,7 @@
 
 angular.module('driverapp.services.login', [])
 
-  .factory('LoginService', function ($rootScope, $q, $http, $window) {
+  .factory('LoginService', function ($rootScope, $q, $http, $window,ngOidcClient) {
     var service = {};
 
     var libConfigOK;
@@ -22,7 +22,11 @@ angular.module('driverapp.services.login', [])
       FACEBOOK: 'facebook',
       APPLE: 'apple'
     };
-  
+    service.IDPHINT = {
+      internal: 'd0ebf3a6',
+      google: 'HugcB2q8',
+      apple: 'xoubrz2h'
+    };
     var PROVIDER_NATIVE = {
       GOOGLE: 'google',
       FACEBOOK: 'facebook',
@@ -120,6 +124,7 @@ angular.module('driverapp.services.login', [])
     };
 
     var resetUser = function () {
+      ngOidcClient.get().removeUser();
       user = {
         provider: undefined,
         profile: undefined,
@@ -561,7 +566,7 @@ angular.module('driverapp.services.login', [])
             'offline': true
           };
 
-          if (ionic.Platform.isAndroid()) {
+          if (window.cordova.platformId==='android') {
             if (!!settings.googleWebClientId) {
               options['webClientId'] = settings.googleWebClientId;
             } else {
@@ -831,7 +836,10 @@ angular.module('driverapp.services.login', [])
      * GET (REFRESHING FIRST IF NEEDED) AAC TOKEN
      */
     service.getValidAACtoken = function () {
-      // 10 seconds
+      // 10 seconds 
+      var userInfo = ngOidcClient.getUserInfo();
+      var tokenUser = userInfo.user.access_token;
+      console.log(userInfo);
       if (!!refreshTokenDeferred && ((new Date().getTime()) < (refreshTokenTimestamp + (1000 * 10)))) {
         console.log('[LOGIN] use recent refreshToken deferred!');
         return refreshTokenDeferred.promise;
@@ -842,38 +850,43 @@ angular.module('driverapp.services.login', [])
 
       // check for expiry.
       var now = new Date();
-      if (!!user && !!user.tokenInfo && !!user.tokenInfo.refresh_token) {
-        var validUntil = new Date(user.tokenInfo.validUntil);
-        if (validUntil.getTime() >= now.getTime() + (60 * 60 * 1000)) {
-          refreshTokenDeferred.resolve(user.tokenInfo.access_token);
-        } else {
-          $http.post(settings.aacUrl + AAC.TOKEN_URI, null, {
-            params: {
-              'client_id': settings.clientId,
-              'client_secret': settings.clientSecret,
-              'refresh_token': user.tokenInfo.refresh_token,
-              'grant_type': 'refresh_token'
-            }
-          }).then(
-            function (response) {
-              if (response.data.access_token) {
-                console.log('[LOGIN] AAC token refreshed');
-                saveToken(response.data);
-                service.localStorage.saveTokenInfo();
-                refreshTokenDeferred.resolve(response.data.access_token);
-              } else {
-                resetUser();
-                console.log('[LOGIN] invalid refresh_token');
-                refreshTokenDeferred.reject(null);
-              }
-            },
-            function (reason) {
-              resetUser();
-              refreshTokenDeferred.reject(reason);
-            }
-          );
-        }
-      } else {
+      if (!!userInfo && !! tokenUser) {
+        // var validUntil = new Date(userInfo.user.expires_at*1000);
+        // if (validUntil.getTime() >= now.getTime() + (60 * 60 * 1000)) {
+          refreshTokenDeferred.resolve(tokenUser);
+        } 
+        // else {
+        //   refreshTokenDeferred.reject(null);
+        // }
+        // else {
+        //   //refresh token
+        //   $http.post(settings.aacUrl + AAC.TOKEN_URI, null, {
+        //     params: {
+        //       'client_id': settings.clientId,
+        //       'client_secret': settings.clientSecret,
+        //       'refresh_token': user.tokenInfo.refresh_token,
+        //       'grant_type': 'refresh_token'
+        //     }
+        //   }).then(
+        //     function (response) {
+        //       if (response.data.access_token) {
+        //         console.log('[LOGIN] AAC token refreshed');
+        //         saveToken(response.data);
+        //         service.localStorage.saveTokenInfo();
+        //         refreshTokenDeferred.resolve(response.data.access_token);
+        //       } else {
+        //         resetUser();
+        //         console.log('[LOGIN] invalid refresh_token');
+        //         refreshTokenDeferred.reject(null);
+        //       }
+        //     },
+        //     function (reason) {
+        //       resetUser();
+        //       refreshTokenDeferred.reject(reason);
+        //     }
+        //   );
+        // }
+       else {
         resetUser();
         refreshTokenDeferred.reject(null);
       }
