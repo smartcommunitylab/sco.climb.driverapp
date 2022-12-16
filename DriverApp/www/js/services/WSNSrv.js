@@ -20,7 +20,10 @@ angular.module('driverapp.services.wsn', [])
     wsnService.STATUS_OUT_OF_RANGE = 'OUT_OF_RANGE'
 
     wsnService.intervalGetNetworkState = null
-
+    var CLIMB_NAMESPACE_EDDYSTONE = "3906bf230e2885338f44";
+    var UID_FRAME_TYPE = 0x00;
+    var URL_FRAME_TYPE = 0x10;
+    var TLM_FRAME_TYPE = 0x20;
     wsnService.init = function () {
       var deferred = $q.defer()
 
@@ -139,11 +142,11 @@ angular.module('driverapp.services.wsn', [])
       deferred.resolve(null);
        if (Utils.wsnPluginEnabled()) {
         
-        ble.startScanWithOptions(['0000FEAA-0000-1000-8000-00805F9B34FB'],{reportDuplicates:false},
+        ble.startScan([],
 
       //   window.DriverAppPlugin.getNetworkState(
           function (node) {
-            console.log(node);
+            console.log('log'+wsnService.parseBeacon(node.advertising));
         //     var nsIds = []
         //     var ns = angular.copy(wsnService.networkState)
         //     networkState.forEach(function (nodeState) {
@@ -268,6 +271,110 @@ angular.module('driverapp.services.wsn', [])
     wsnService.isNodeByType = function (nodeId, type) {
       return wsnService.networkState[nodeId].type === type
     }
+    function asHexString(i) {
+      var hex;
+  
+      hex = i.toString(16);
+  
+      // zero padding
+      if (hex.length === 1) {
+          hex = "0" + hex;
+      }
+  
+      return "0x" + hex;
+  }
+  
+    wsnService.parseAdvertisement = function(raw){
+      var buffer = new Uint8Array(raw);
+      var length, type, data, i = 0, advertisementData = {};
+      var bytes = new Uint8Array(buffer);
+  
+      while (length !== 0) {
+  
+          length = bytes[i] & 0xFF;
+          i++;
+  
+          // decode type constants from https://www.bluetooth.org/en-us/specification/assigned-numbers/generic-access-profile
+          type = bytes[i] & 0xFF;
+          i++;
+  
+          data = bytes.slice(i, i + length - 1).buffer; // length includes type byte, but not length byte
+          i += length - 2;  // move to end of data
+          i++;
+  
+          advertisementData[asHexString(type)] = data;
+      }
+  
+      return advertisementData;
+    }
+    wsnService.parseBeacon = function(raw) {
+      var adParsed = wsnService.parseAdvertisement(raw);
+      var SERVICE_DATA_KEY = '0x16';
+            serviceData = adParsed[SERVICE_DATA_KEY];
+            if (serviceData) {
+                // first 2 bytes are the 16 bit UUID
+                var parsed = wsnService.parseUidData(serviceData);
+                console.log('parsed',parsed);
+                // var uuidBytes = new Uint16Array(serviceData.slice(0,2));
+                // var uuid = uuidBytes[0].toString(16); // hex string
+                // console.log("Found service data for " + uuid);
+                // // remaining bytes are the service data, expecting 32bit floating point number
+                // var data = new Float32Array(serviceData.slice(2));
+                // celsius = data[0];
+            }
+      console.log('adParsed',adParsed);
+      return;
+      var frameType = new Uint8Array(data)[0];
+    
+      var beacon = {};
+      var type = 'unknown';
+    
+      switch (frameType) {
+        case UID_FRAME_TYPE:
+          type = 'uid';
+          beacon = this.parseUidData(data);
+          break;
+    
+        case URL_FRAME_TYPE:
+          type = 'url';
+          beacon = this.parseUrlData(data);
+          break;
+    
+        case TLM_FRAME_TYPE:
+          type = 'tlm';
+          beacon = this.parseTlmData(data);
+          break;
+    
+        default:
+          break;
+      }
+    }
 
+    
+    wsnService.parseUrlData = function(data) {
+      return {
+        txPower:  new Uint8Array(data)[0],
+        url: urlDecode( new Uint8Array(data)[2])
+      };
+    };
+    
+    wsnService.parseTlmData = function(data) {
+      return {
+        tlm: {
+          version:  new Uint8Array(data)[1], 
+          vbatt: new Uint16Array(data)[2],
+          temp:  new Uint16Array(data)[4] / 256,
+          advCnt: new Uint32Array(data)[6], 
+          secCnt: new Uint32Array(data)[10]
+        }
+      };
+    };
+    wsnService.parseUidData = function(data) {
+      return {
+        // txPower: new Uint8Array(data),
+        namespace: new Uint8Array(data).slice(0, 10).toString('hex'),
+        instance: new Uint8Array(data).slice(10, 16).toString('hex'),
+      };
+    };
     return wsnService
   })
