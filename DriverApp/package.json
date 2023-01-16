@@ -37,11 +37,14 @@
     "angular-translate": "^2.15.2",
     "bower": "^1.3.3",
     "CLIMBDriverAppPlugin": "file:../DriverAppCordovaPlugin",
+    "com.unarin.cordova.beacon": "github:petermetz/cordova-plugin-ibeacon",
     "cordova-android": "^10.1.2",
     "cordova-ios": "^6.2.0",
+    "cordova-plugin-ble": "^2.0.1",
     "cordova-plugin-ble-central": "^1.6.1",
     "cordova-plugin-compat": "^1.2.0",
     "cordova-plugin-device": "^2.0.3",
+    "cordova-plugin-eddystone": "^1.3.0",
     "cordova-plugin-email-composer": "^0.10.1",
     "cordova-plugin-file": "^7.0.0",
     "cordova-plugin-file-transfer": "github:dpa99c/cordova-plugin-file-transfer",
@@ -129,7 +132,9 @@
         "IOS_INIT_ON_LOAD": "true",
         "BLUETOOTH_RESTORE_STATE": "false",
         "BLUETOOTH_USAGE_DESCRIPTION": " "
-      }
+      },
+      "com.unarin.cordova.beacon": {},
+      "cordova-plugin-eddystone": {}
     }
   }
 }

@@ -138,6 +138,8 @@
                 <data android:scheme="it.smartcommunitylab.climb.driverapp" />
             </intent-filter>
         </config-file>
+
+
     </platform>
     <!-- <platform name="android">
         <preference name="CodePushDeploymentKey" value="oODYvxnGJPtteiTGHC8NbbD-2Y90W-Y6zfrSw" />

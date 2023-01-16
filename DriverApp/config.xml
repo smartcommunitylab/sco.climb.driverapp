@@ -176,8 +176,5 @@
                 <data android:scheme="it.smartcommunitylab.climb.driverapp" />
             </intent-filter>
         </config-file>
-        <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application/activity">
-            <activity android:exported="true" />
-        </edit-config>
     </platform>
 </widget>

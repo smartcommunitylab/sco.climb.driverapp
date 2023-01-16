@@ -141,35 +141,15 @@ angular.module('driverapp.services.wsn', [])
       var deferred = $q.defer()
       deferred.resolve(null);
        if (Utils.wsnPluginEnabled()) {
-        
-        ble.startScan([],
-
-      //   window.DriverAppPlugin.getNetworkState(
+        ble.startScanWithOptions(['feaa'],
+          { reportDuplicates: true },
           function (node) {
+            if (node.rssi>-80){
+            console.log("Rssi: " + node.rssi);
+            var adData = new Uint8Array(node.advertising);
+            console.log("RawData: " + adData);
             console.log('log'+wsnService.parseBeacon(node.advertising));
-        //     var nsIds = []
-        //     var ns = angular.copy(wsnService.networkState)
-        //     networkState.forEach(function (nodeState) {
-        //       nsIds.push(nodeState.nodeID)
-        //       var upId=nodeState.nodeID.toUpperCase();
-        //       if (!!nodeState.nodeID && ns[upId]) {
-        //         if (ns[upId].status === '') {
-        //           ns[upId].status = wsnService.STATUS_NEW
-        //         }
-        //         ns[upId].timestamp = nodeState[wsnService.NODESTATE_LASTSEEN]
-        //         ns[upId].batteryLevel = nodeState[wsnService.NODESTATE_BATTERYLEVEL]
-        //         ns[upId].batteryVoltage_mV = nodeState[wsnService.NODESTATE_BATTERYVOLTAGE_MV]
-        //         ns[upId].rssi = nodeState[wsnService.NODESTATE_RSSI]
-        //       }
-        //     })
-        //     wsnService.networkState = ns
-
-        //     console.log('getNetworkState: ' + nsIds)
-        //     deferred.resolve(networkState)
-        //   },
-        //   function (reason) {
-        //     console.log('getNetworkState: ' + reason)
-        //     deferred.reject(reason)
+            }
           },
           function(err){
             console.log(err);
@@ -184,9 +164,9 @@ angular.module('driverapp.services.wsn', [])
       var deferred = $q.defer()
       if (Utils.wsnPluginEnabled()) {
         if (!wsnService.intervalGetNetworkState) {
-          wsnService.intervalGetNetworkState = $interval(function () {
+           wsnService.intervalGetNetworkState = $interval(function () {
             wsnService.getNetworkState()
-          }, Config.NETWORKSTATE_DELAY)
+           }, Config.NETWORKSTATE_DELAY)
         }
       }
       return deferred.promise
@@ -315,12 +295,6 @@ angular.module('driverapp.services.wsn', [])
                 // first 2 bytes are the 16 bit UUID
                 var parsed = wsnService.parseUidData(serviceData);
                 console.log('parsed',parsed);
-                // var uuidBytes = new Uint16Array(serviceData.slice(0,2));
-                // var uuid = uuidBytes[0].toString(16); // hex string
-                // console.log("Found service data for " + uuid);
-                // // remaining bytes are the service data, expecting 32bit floating point number
-                // var data = new Float32Array(serviceData.slice(2));
-                // celsius = data[0];
             }
       console.log('adParsed',adParsed);
       return;
@@ -369,11 +343,14 @@ angular.module('driverapp.services.wsn', [])
         }
       };
     };
+    function i2hex(i) {
+      return ('0' + i.toString(16)).slice(-2);
+    }
     wsnService.parseUidData = function(data) {
       return {
         // txPower: new Uint8Array(data),
-        namespace: new Uint8Array(data).slice(0, 10).toString('hex'),
-        instance: new Uint8Array(data).slice(10, 16).toString('hex'),
+        namespace: new Uint8Array(data).slice(4, 14).reduce(function(memo, i) {return memo + i2hex(i)}, ''),
+        instance:  new Uint8Array(data).slice(14, 20).reduce(function(memo, i) {return memo + i2hex(i)}, '')
       };
     };
     return wsnService
