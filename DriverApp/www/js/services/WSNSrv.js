@@ -18,6 +18,7 @@ angular.module('driverapp.services.wsn', [])
     wsnService.STATUS_NEW = 'NEW'
     wsnService.STATUS_BOARDED_ALREADY = 'BOARDED_ALREADY'
     wsnService.STATUS_OUT_OF_RANGE = 'OUT_OF_RANGE'
+    wsnService.networkState = {}
 
     wsnService.intervalGetNetworkState = null
     var CLIMB_NAMESPACE_EDDYSTONE = "3906bf230e2885338f44";
@@ -72,6 +73,7 @@ angular.module('driverapp.services.wsn', [])
 
       if (Utils.wsnPluginEnabled()) {
         $rootScope.masterError = false
+        
         wsnService.startNetworkStateInterval()
         deferred.resolve();
       } else {
@@ -136,25 +138,81 @@ angular.module('driverapp.services.wsn', [])
 
       return deferred.promise
     }
+    var networkState = [];
 
+    wsnService.scanNetwork = function() {
+      ble.startScanWithOptions(['feaa'],
+          { reportDuplicates: true },
+          function (node) {
+            if (node.rssi>-80){
+            var parsedPacket=wsnService.parseBeacon(node.advertising);
+              if (parsedPacket.namespace==='3906bf230e2885338f44'){
+                var index= networkState.findIndex(x => x.nodeID === parsedPacket.namespace+parsedPacket.instance);
+                if (index>=0){
+                  //update values
+                  networkState[index].rssi=node.rssi;
+                }
+                else {
+                networkState.push({nodeID:parsedPacket.namespace+parsedPacket.instance,rssi:node.rssi});
+                }
+            }
+            // })
+            // wsnService.networkState = ns
+            // console.log('getNetworkState: ' + nsIds)
+            // deferred.resolve(networkState)
+            }
+          },
+          function(err){
+            console.log('getNetworkState: ' + err)
+          }
+         )
+    }
     wsnService.getNetworkState = function () {
       var deferred = $q.defer()
       deferred.resolve(null);
        if (Utils.wsnPluginEnabled()) {
-        ble.startScanWithOptions(['feaa'],
-          { reportDuplicates: true },
-          function (node) {
-            if (node.rssi>-80){
-            console.log("Rssi: " + node.rssi);
-            var adData = new Uint8Array(node.advertising);
-            console.log("RawData: " + adData);
-            console.log('log'+wsnService.parseBeacon(node.advertising));
+        var nsIds = [];
+        var ns = angular.copy(wsnService.networkState);
+        // ble.startScanWithOptions(['feaa'],
+        //   { reportDuplicates: true },
+        //   function (node) {
+        //     if (node.rssi>-80){
+        //     var parsedPacket=wsnService.parseBeacon(node.advertising);
+        //       if (parsedPacket.namespace==='3906bf230e2885338f44'){
+        //         var upId=parsedPacket.namespace+parsedPacket.instance;
+            networkState.forEach(function (nodeState) {
+              nsIds.push(nodeState.nodeID);
+              var upId=nodeState.nodeID.toUpperCase();
+              if (!!upId && ns[upId]) {
+                if (ns[upId].status === '') {
+                  ns[upId].status = wsnService.STATUS_NEW
+                }
+                // ns[upId].timestamp = nodeState[wsnService.NODESTATE_LASTSEEN]
+                // ns[upId].batteryLevel = nodeState[wsnService.NODESTATE_BATTERYLEVEL]
+                // ns[upId].batteryVoltage_mV = nodeState[wsnService.NODESTATE_BATTERYVOLTAGE_MV]
+                ns[upId].rssi = nodeState.rssi;
+              }
             }
-          },
-          function(err){
-            console.log(err);
-          }
-         )
+            // })
+            // wsnService.networkState = ns
+            // console.log('getNetworkState: ' + nsIds)
+            // deferred.resolve(networkState)
+            
+          // ,
+          // function(err){
+          //   console.log('getNetworkState: ' + err)
+          //   deferred.reject(err)
+          // }
+         );
+                     wsnService.networkState = ns
+            //console.log('getNetworkState: ' + nsIds)
+            deferred.resolve(networkState)
+        //  setTimeout(function() { 
+        //   wsnService.networkState = ns
+        //   console.log('getNetworkState: ' + nsIds)
+        //   deferred.resolve(wsnService.networkState)
+        //  },
+        //   5000);
         }
 
       return deferred.promise
@@ -163,6 +221,7 @@ angular.module('driverapp.services.wsn', [])
     wsnService.startNetworkStateInterval = function () {
       var deferred = $q.defer()
       if (Utils.wsnPluginEnabled()) {
+        setTimeout(wsnService.scanNetwork(),5000);
         if (!wsnService.intervalGetNetworkState) {
            wsnService.intervalGetNetworkState = $interval(function () {
             wsnService.getNetworkState()
@@ -266,6 +325,7 @@ angular.module('driverapp.services.wsn', [])
   
     wsnService.parseAdvertisement = function(raw){
       var buffer = new Uint8Array(raw);
+      console.log('raw'+buffer);
       var length, type, data, i = 0, advertisementData = {};
       var bytes = new Uint8Array(buffer);
   
@@ -289,39 +349,41 @@ angular.module('driverapp.services.wsn', [])
     }
     wsnService.parseBeacon = function(raw) {
       var adParsed = wsnService.parseAdvertisement(raw);
+      //g(' adParsed',adParsed);
+
+      // var TELEMETRY="0x20";
       var SERVICE_DATA_KEY = '0x16';
             serviceData = adParsed[SERVICE_DATA_KEY];
             if (serviceData) {
                 // first 2 bytes are the 16 bit UUID
                 var parsed = wsnService.parseUidData(serviceData);
-                console.log('parsed',parsed);
-            }
-      console.log('adParsed',adParsed);
-      return;
-      var frameType = new Uint8Array(data)[0];
+                //console.log('parsed',parsed);
+            } 
+      return parsed;
+      // var frameType = new Uint8Array(data)[0];
     
-      var beacon = {};
-      var type = 'unknown';
+      // var beacon = {};
+      // var type = 'unknown';
     
-      switch (frameType) {
-        case UID_FRAME_TYPE:
-          type = 'uid';
-          beacon = this.parseUidData(data);
-          break;
+      // switch (frameType) {
+      //   case UID_FRAME_TYPE:
+      //     type = 'uid';
+      //     beacon = this.parseUidData(data);
+      //     break;
     
-        case URL_FRAME_TYPE:
-          type = 'url';
-          beacon = this.parseUrlData(data);
-          break;
+      //   case URL_FRAME_TYPE:
+      //     type = 'url';
+      //     beacon = this.parseUrlData(data);
+      //     break;
     
-        case TLM_FRAME_TYPE:
-          type = 'tlm';
-          beacon = this.parseTlmData(data);
-          break;
+      //   case TLM_FRAME_TYPE:
+      //     type = 'tlm';
+      //     beacon = this.parseTlmData(data);
+      //     break;
     
-        default:
-          break;
-      }
+      //   default:
+      //     break;
+      // }
     }
 
     
