@@ -50,6 +50,7 @@
     "cordova-plugin-file-transfer": "github:dpa99c/cordova-plugin-file-transfer",
     "cordova-plugin-ibeacon": "^3.8.1",
     "cordova-plugin-inappbrowser": "^5.0.0",
+    "cordova-plugin-statusbar": "^3.0.0",
     "cordova-plugin-zip": "^3.1.0",
     "gulp-util": "^2.2.14",
     "shelljs": "^0.3.0"
@@ -134,7 +135,8 @@
         "BLUETOOTH_USAGE_DESCRIPTION": " "
       },
       "com.unarin.cordova.beacon": {},
-      "cordova-plugin-eddystone": {}
+      "cordova-plugin-eddystone": {},
+      "cordova-plugin-statusbar": {}
     }
   }
 }

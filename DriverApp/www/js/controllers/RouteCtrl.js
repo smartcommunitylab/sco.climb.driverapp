@@ -113,7 +113,7 @@ angular.module('driverapp.controllers.route', [])
             Object.keys(ns).forEach(function (nodeId) {
               if (WSNSrv.isNodeByType(nodeId, 'child')) {
 
-                if ($rootScope.isAndroid && (!ns[nodeId].rssi || ($rootScope.thresholdOn&&underRSSILevel(ns[nodeId].rssi)))){
+                if ((!ns[nodeId].rssi || ($rootScope.thresholdOn&&underRSSILevel(ns[nodeId].rssi)))){
                   return;
                 }
                 if (ns[nodeId].batteryLevel === BATTERYLEVEL_LOW && $rootScope.batteryAlarm === false) {

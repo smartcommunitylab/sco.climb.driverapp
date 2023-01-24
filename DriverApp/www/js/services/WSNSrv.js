@@ -21,13 +21,12 @@ angular.module('driverapp.services.wsn', [])
     wsnService.networkState = {}
 
     wsnService.intervalGetNetworkState = null
-    var CLIMB_NAMESPACE_EDDYSTONE = "3906bf230e2885338f44";
-    var UID_FRAME_TYPE = 0x00;
-    var URL_FRAME_TYPE = 0x10;
-    var TLM_FRAME_TYPE = 0x20;
+    wsnService.CLIMB_NAMESPACE_EDDYSTONE = "3906bf230e2885338f44";
+
+    wsnService.platform='';
     wsnService.init = function () {
       var deferred = $q.defer()
-
+      wsnService.platform=window.cordova.platformId;
       if (Utils.wsnPluginEnabled()) {
         console.log('calling init');
         deferred.resolve(null)
@@ -141,11 +140,22 @@ angular.module('driverapp.services.wsn', [])
     var networkState = [];
 
     wsnService.scanNetwork = function() {
-      ble.startScanWithOptions(['feaa'],
+      ble.startScanWithOptions(['FEAA'],
           { reportDuplicates: true },
           function (node) {
             if (node.rssi>-80){
+              console.log("id: ",node.id);
             var parsedPacket=wsnService.parseBeacon(node.advertising);
+              if (parsedPacket.batteryLevel){
+                var index= networkState.findIndex(x => x.macAddress === node.id);
+                if (index>=0){
+                  //update values
+                  networkState[index].batteryLevel=parsedPacket.batteryLevel;
+                }
+                else {
+                networkState.push({batteryLevel:parsedPacket.batteryLevel,macAddress:node.id});
+                }
+              }
               if (parsedPacket.namespace==='3906bf230e2885338f44'){
                 var index= networkState.findIndex(x => x.nodeID === parsedPacket.namespace+parsedPacket.instance);
                 if (index>=0){
@@ -153,7 +163,7 @@ angular.module('driverapp.services.wsn', [])
                   networkState[index].rssi=node.rssi;
                 }
                 else {
-                networkState.push({nodeID:parsedPacket.namespace+parsedPacket.instance,rssi:node.rssi});
+                networkState.push({nodeID:parsedPacket.namespace+parsedPacket.instance,rssi:node.rssi,macAddress:node.id});
                 }
             }
             // })
@@ -181,6 +191,7 @@ angular.module('driverapp.services.wsn', [])
         //       if (parsedPacket.namespace==='3906bf230e2885338f44'){
         //         var upId=parsedPacket.namespace+parsedPacket.instance;
             networkState.forEach(function (nodeState) {
+              if (nodeState.nodeID){
               nsIds.push(nodeState.nodeID);
               var upId=nodeState.nodeID.toUpperCase();
               if (!!upId && ns[upId]) {
@@ -188,11 +199,11 @@ angular.module('driverapp.services.wsn', [])
                   ns[upId].status = wsnService.STATUS_NEW
                 }
                 // ns[upId].timestamp = nodeState[wsnService.NODESTATE_LASTSEEN]
-                // ns[upId].batteryLevel = nodeState[wsnService.NODESTATE_BATTERYLEVEL]
+               ns[upId].batteryLevel = nodeState.batteryLevel;
                 // ns[upId].batteryVoltage_mV = nodeState[wsnService.NODESTATE_BATTERYVOLTAGE_MV]
                 ns[upId].rssi = nodeState.rssi;
               }
-            }
+            }}
             // })
             // wsnService.networkState = ns
             // console.log('getNetworkState: ' + nsIds)
@@ -323,9 +334,8 @@ angular.module('driverapp.services.wsn', [])
       return "0x" + hex;
   }
   
-    wsnService.parseAdvertisement = function(raw){
-      var buffer = new Uint8Array(raw);
-      console.log('raw'+buffer);
+    wsnService.parseAdvertisement = function(buffer){
+      console.log('raw: '+buffer);
       var length, type, data, i = 0, advertisementData = {};
       var bytes = new Uint8Array(buffer);
   
@@ -347,19 +357,57 @@ angular.module('driverapp.services.wsn', [])
   
       return advertisementData;
     }
+    wsnService.getBatteryLevel = function(batteryVoltage_mV) {
+      var batteryLevel = 0;
+      if (batteryVoltage_mV == 0){
+          batteryLevel = 0;
+      }else if (batteryVoltage_mV < 2000){
+          batteryLevel = 1;
+      } else if (batteryVoltage_mV >= 2000 && batteryVoltage_mV < 2500) {
+          batteryLevel = 2
+      } else {
+          batteryLevel = 3;
+      }
+      return batteryLevel;
+  }
     wsnService.parseBeacon = function(raw) {
-      var adParsed = wsnService.parseAdvertisement(raw);
-      //g(' adParsed',adParsed);
-
-      // var TELEMETRY="0x20";
+      if (wsnService.platform==='android'){
+      var buffer = new Uint8Array(raw);
+      console.log("Data: "+buffer);
+      var parsed;
+if (buffer[9]==170 && buffer[10]==254 && buffer[11]==32 && buffer[12]==0) {
+  var batteryLevel = wsnService.getBatteryLevel(parseInt(buffer[13].toString(16)+buffer[14].toString(16)+'',16));
+ parsed = {
+    batteryLevel:batteryLevel
+  }
+} else {
+      var adParsed = wsnService.parseAdvertisement(buffer);
+      console.log(' adParsed',adParsed);
+      // print value in hex
       var SERVICE_DATA_KEY = '0x16';
             serviceData = adParsed[SERVICE_DATA_KEY];
             if (serviceData) {
                 // first 2 bytes are the 16 bit UUID
-                var parsed = wsnService.parseUidData(serviceData);
-                //console.log('parsed',parsed);
+                 parsed = wsnService.parseUidDataAndroid(serviceData);
+                console.log('parsed',parsed);
             } 
+          }
       return parsed;
+        } else {
+          var buffer = new Uint8Array(raw.kCBAdvDataServiceData['FEAA']);
+          if (buffer[0]==32 && buffer[1]==0){
+            var batteryLevel = wsnService.getBatteryLevel(parseInt(buffer[2].toString(16)+buffer[3].toString(16)+'',16));
+            parsed = {
+              batteryLevel:batteryLevel
+            }
+          } else {
+                      // first 2 bytes are the 16 bit UUID
+                       parsed = wsnService.parseUidDataiOS(buffer);
+                      console.log('parsed',parsed);
+                  } 
+                  return parsed;
+                }
+        
       // var frameType = new Uint8Array(data)[0];
     
       // var beacon = {};
@@ -386,6 +434,7 @@ angular.module('driverapp.services.wsn', [])
       // }
     }
 
+
     
     wsnService.parseUrlData = function(data) {
       return {
@@ -408,11 +457,18 @@ angular.module('driverapp.services.wsn', [])
     function i2hex(i) {
       return ('0' + i.toString(16)).slice(-2);
     }
-    wsnService.parseUidData = function(data) {
+    wsnService.parseUidDataAndroid = function(data) {
       return {
         // txPower: new Uint8Array(data),
         namespace: new Uint8Array(data).slice(4, 14).reduce(function(memo, i) {return memo + i2hex(i)}, ''),
         instance:  new Uint8Array(data).slice(14, 20).reduce(function(memo, i) {return memo + i2hex(i)}, '')
+      };
+    };
+    wsnService.parseUidDataiOS = function(data) {
+      return {
+        // txPower: new Uint8Array(data),
+        namespace: new Uint8Array(data).slice(2, 12).reduce(function(memo, i) {return memo + i2hex(i)}, ''),
+        instance:  new Uint8Array(data).slice(12, 18).reduce(function(memo, i) {return memo + i2hex(i)}, '')
       };
     };
     return wsnService

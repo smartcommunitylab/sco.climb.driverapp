@@ -10,13 +10,21 @@ angular.module('driverapp.controllers.login', [])
         };
         
         $scope.newAAC = function (provider) {
+            $ionicLoading.show();
             var prov = provider ? this.getExtraIdp(provider) : undefined
             ngOidcClient.signinPopup({extraQueryParams:prov}).then(function (user) {
                 $log.log("user:" + JSON.stringify(user));
                 if (!!user) {
                     $log.log('Logged in so going to home state');
                     $state.go('app.home');
+                    $ionicLoading.hide();
+                } else {
+                    Utils.toast("Errore di comunicazione con il server", "short", "bottom");
+                    $ionicLoading.hide();
                 }
+            }, function (err) {
+                Utils.toast("Errore di comunicazione con il server", "short", "bottom");
+                $ionicLoading.hide();
             });
         }
         $scope.getExtraIdp= function(provider) {

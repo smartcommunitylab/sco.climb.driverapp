@@ -22,17 +22,17 @@ angular.module('driverapp', [
   'driverapp.controllers.img'
 ])
 
-  .run(function ($ionicPlatform, $rootScope, $state, $translate, $ionicHistory, $ionicPopup, $ionicModal, GeoSrv, Config, Utils, StorageSrv, WSNSrv, APISrv, LoginService) {
+  .run(function ($ionicPlatform, $rootScope, $state, $translate, $ionicLoading, $ionicHistory, $log, ngOidcClient, $ionicPopup, $ionicModal, GeoSrv, Config, Utils, StorageSrv, WSNSrv, APISrv, LoginService) {
     $ionicPlatform.ready(function () {
       // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
       // for form inputs)
       // var initAppUpdate = function () {
       //   codePush.sync();
       // }
-      var setPlatformVersion = function() {
-        if (window.cordova.platformId==='android')
-          $rootScope.isAndroid=true;
-          else $rootScope.isAndroid=false;
+      var setPlatformVersion = function () {
+        if (window.cordova.platformId === 'android')
+          $rootScope.isAndroid = true;
+        else $rootScope.isAndroid = false;
       }
       // initAppUpdate();
       setPlatformVersion();
@@ -44,7 +44,7 @@ angular.module('driverapp', [
 
       if (window.StatusBar) {
         // org.apache.cordova.statusbar required
-        window.StatusBar.styleLightContent();
+        window.StatusBar.overlaysWebView(false);
       }
 
       if (typeof navigator.globalization !== "undefined") {
@@ -63,7 +63,24 @@ angular.module('driverapp', [
         clientId: Config.cliendID,
         clientSecret: Config.clientSecID,
         aacUrl: Config.AACURL
-      });
+      }).then(function () {
+        if (StorageSrv.getOwnerId())
+          ngOidcClient.signinSilent().then(function (user) {
+            $log.log("user:" + JSON.stringify(user));
+            if (!!user) {
+              $log.log('Logged in so going to home state');
+              $state.go('app.home');
+              $ionicLoading.hide();
+            } else {
+              Utils.toast("Errore di comunicazione con il server", "short", "bottom");
+              $ionicLoading.hide();
+            }
+          }, function (err) {
+            $log.log(err);
+
+            $ionicLoading.hide();
+          })
+      })
       // });
       /*
        * Check Internet connection
@@ -72,7 +89,7 @@ angular.module('driverapp', [
       var checkBTAndEnableHandler = function () {
         cordova.plugins.diagnostic.isBluetoothAvailable(function (available) {
           console.log('Init BT initially', available);
-          if (available || window.cordova.platformId==='android') {
+          if (available || window.cordova.platformId === 'android') {
             startWSNService();
           } else {
             cordova.plugins.diagnostic.requestBluetoothAuthorization();
@@ -92,7 +109,7 @@ angular.module('driverapp', [
       }
 
 
-      if (window.cordova.platformId==='android' && window['cordova']) {
+      if (window.cordova.platformId === 'android' && window['cordova']) {
         cordova.plugins.diagnostic.requestExternalStorageAuthorization(function (status) {
           GeoSrv.geolocalize();
           console.log("Authorization request for external storage use was " + (status == cordova.plugins.diagnostic.permissionStatus.GRANTED ? "granted" : "denied"));
@@ -221,18 +238,18 @@ angular.module('driverapp', [
             }
           })
       }
-      $rootScope.openEmail = function() {
-        if (window.cordova.platformId==='android'){
-        cordova.InAppBrowser.open('mailto:pedibus-smart@fbk.eu?subject= Richiesta abilitazione account&body= Utilizzo l\'applicazione Climb e vorrei abilitare il mio account', '_system', 'location=yes');
-        } else if (window.cordova.platformId==='ios') {
+      $rootScope.openEmail = function () {
+        if (window.cordova.platformId === 'android') {
+          cordova.InAppBrowser.open('mailto:pedibus-smart@fbk.eu?subject= Richiesta abilitazione account&body= Utilizzo l\'applicazione Climb e vorrei abilitare il mio account', '_system', 'location=yes');
+        } else if (window.cordova.platformId === 'ios') {
           cordova.plugins.email.open({
-            to:      'pedibus-smart@fbk.eu',
+            to: 'pedibus-smart@fbk.eu',
             subject: 'Richiesta abilitazione account',
-            body:    'Utilizzo l\'applicazione Climb e vorrei abilitare il mio account'
-        });
+            body: 'Utilizzo l\'applicazione Climb e vorrei abilitare il mio account'
+          });
         }
       }
-      
+
 
       $rootScope.logout = function () {
         $ionicPopup.confirm({
@@ -249,11 +266,16 @@ angular.module('driverapp', [
               Config.resetIdentity();
               StorageSrv.clearIdentity();
               localStorage.clear();
-              // if (window.cordova.platformId==='ios') {
-              //LoginService.logout();
+              sessionStorage.clear();
+              // ngOidcClient.signoutRedirect().then(res => {
               $state.go('app.login').then(function () {
                 // window.location.reload(true);
-              });
+                // });
+              })
+              // if (window.cordova.platformId==='ios') {
+              //LoginService.logout();
+              //ngOidcClient.signoutSilent();
+
               // } else {
               //   ionic.Platform.exitApp()
               // }
@@ -301,15 +323,17 @@ angular.module('driverapp', [
       silent_redirect_uri: "https://localhost/oidc",
       response_type: "code",
       scope: "openid email profile offline_access",
-      pkce:true,
+      pkce: true,
       automaticSilentRenew: true,
       filterProtocolClaims: true,
+      userStore: new WebStorageStateStore({ store: window.localStorage }),
+
       loadUserInfo: true,
       popupNavigator: new Oidc.CordovaPopupNavigator(),
       iframeNavigator: new Oidc.CordovaIFrameNavigator()
-});
-}])
-  .config(function ($stateProvider, $urlRouterProvider, $translateProvider,$compileProvider) {
+    });
+  }])
+  .config(function ($stateProvider, $urlRouterProvider, $translateProvider, $compileProvider) {
     $stateProvider.state('app', {
       url: '/app',
       abstract: true,
@@ -444,15 +468,15 @@ angular.module('driverapp', [
       upload_error_popup_text: 'Upload dei dati non è andato a buon fine. Riprova più tardi.',
       upload_success_popup_text: 'Upload dei dati è stato completato!',
       credits_privacy_button: 'Privacy',
-      sign_in_apple:"Accedi con Apple",
+      sign_in_apple: "Accedi con Apple",
       sign_in_facebook: 'Accedi con Facebook',
       sign_in_google: 'Accedi con Google',
-      data_already_sent:'Dati giá inviati',
-      data_already_sent_body:'Sono presenti sul server dati per la corsa di oggi. Vuoi continuare?',
-      btn_no:'No',
-      btn_yes:'Si',
-      local_data_present:'Dati locali non inviati',
-      local_data_present_body:'Sono presenti dei dati non ancora inviati. Vuoi ritentare a inviarli?',
+      data_already_sent: 'Dati giá inviati',
+      data_already_sent_body: 'Sono presenti sul server dati per la corsa di oggi. Vuoi continuare?',
+      btn_no: 'No',
+      btn_yes: 'Si',
+      local_data_present: 'Dati locali non inviati',
+      local_data_present_body: 'Sono presenti dei dati non ancora inviati. Vuoi ritentare a inviarli?',
     });
 
     $translateProvider.preferredLanguage(DEFAULT_LANG);

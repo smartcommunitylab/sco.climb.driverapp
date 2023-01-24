@@ -71,6 +71,19 @@ var NgOidcClient;
                     $log.log(err);
                 });
             };
+            var signinSilent = function () {
+                return _this.mgr.signinSilent()
+                    .then(function (user) {
+                    $log.log("signed in", user);
+                    return user;
+                })
+                    .catch(function (err) {
+                    $log.log(err);
+                });
+            };
+            var signoutRedirect = function (args) {
+                return _this.mgr.signoutRedirect();
+            };
             var signoutPopup = function (args) {
                 return _this.mgr.signoutPopup(args);
             };
@@ -91,7 +104,9 @@ var NgOidcClient;
                 getUserInfo: getUserInfo,
                 getUrls: getUrls,
                 signinPopup: signinPopup,
+                signinSilent: signinSilent,
                 signoutPopup: signoutPopup,
+                signoutRedirect:signoutRedirect,
                 userInfoChanged: userInfoChanged
             };
         };
