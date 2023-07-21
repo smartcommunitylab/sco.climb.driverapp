@@ -72,7 +72,7 @@ angular.module('driverapp', [
               $state.go('app.home');
               $ionicLoading.hide();
             } else {
-              Utils.toast("Errore di comunicazione con il server", "short", "bottom");
+              Utils.toast("Errore di comunicazione con il server 1", "short", "bottom");
               $ionicLoading.hide();
             }
           }, function (err) {

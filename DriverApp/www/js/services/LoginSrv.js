@@ -411,7 +411,7 @@ angular.module('driverapp.services.login', [])
         console.log(authUrl);
         // Open the OAuth consent page in the InAppBrowser
         if (!authWindow) {
-          authWindow = $window.open(authUrl, '_blank', 'location=no,toolbar=no');
+          authWindow = cordova.InAppBrowser.open(authUrl, '_blank', 'location=no,toolbar=no');
           processThat = !!authWindow;
         }
 
