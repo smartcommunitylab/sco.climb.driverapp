@@ -26,7 +26,7 @@
     "UNICA": {
         "resource_folder": "config/instances/UNICA",
         "widget_id": "it.smartcommunitylab.climb.driverapp",
-        "version": "1.0.8",
+        "version": "1.0.9",
         "version_code": "10001361",
         "app_name": "CLIMB PedibusSmart",
         "REVERSED_CLIENT_ID":"com.googleusercontent.apps.453601816446-tvtmoe6oftsqjnbj5blcgee6qjqq42ku",
