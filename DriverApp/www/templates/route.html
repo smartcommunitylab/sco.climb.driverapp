@@ -33,7 +33,7 @@
             <img class="profile-image-list" http-src="{{getImageList(passenger)}}">
             <!-- <img class="item-route-passenger-img" ng-src="{{!!passenger.imageUrl ? passenger.imageUrl : 'img/placeholder_child.png'}}"
             /> -->
-            <img class="has-wsnid" ng-if="!!passenger.wsnId" ng-src="img/rt_it.png" />  {{passenger.name}} {{passenger.surname}}
+            <img class="has-wsnid" ng-if="!!passenger.wsnId" src="img/rt.png" />  {{passenger.name}} {{passenger.surname}}
             <button class="button button-energized button-clear button-takeonboard" ng-click="takeOnBoard(passenger.objectId)" ng-disabled="enRouteArrived"
               ng-if="fromWizard">
               <i class="icon ion-ios-checkmark"></i>
@@ -63,7 +63,7 @@
                             <i class="icon ion-minus-circled"></i>
                         </button>
             <div class="on-board has-wsnid" ng-if="passenger.wsnId">
-              <img ng-src="img/rt_it.png"></i>
+              <img src="img/rt.png" />
             </div>
           </div>
         </div>

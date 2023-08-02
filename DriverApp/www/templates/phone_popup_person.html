@@ -1,13 +1,13 @@
 <div class="ion-item">
   <img class="profile-image-round" http-src="{{getImageUrl()}}">
   <div class="change-profile" ng-if="addPedibusPhoto">
-    <div class="button-icon icon ion-camera" ng-click="changeProfile(false)"></div>
-    <div class="button-icon icon ion-folder" ng-click="changeProfile(true)"></div>
+    <!-- <div class="button-icon icon ion-camera" ng-click="changeProfile(false)"></div>
+    <div class="button-icon icon ion-folder" ng-click="changeProfile(true)"></div> -->
   </div>
 </div>
 <!-- <ion-item class="item item-icon-left item-details-phone">
   {{parentDisplayName}}
 </ion-item> -->
 <ion-item class="item item-icon-left item-details-phone" ng-if="!!phone">
-  <i class="icon ion-ios-telephone"></i> <a href="tel:{{phone}}">{{phone}}</a>
+  <i class="icon ion-ios-telephone"></i> <a href="" ng-click="callNumber(phone)">{{phone}}</a>
 </ion-item>

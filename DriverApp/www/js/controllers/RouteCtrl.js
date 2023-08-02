@@ -527,6 +527,7 @@ angular.module('driverapp.controllers.route', [])
             //TODO try to send the local Data
             var eas = JSON.parse(Utils.getDataOnLocalStorage($scope.ownerId, $scope.routeId));
             APISrv.addEvents(eas, $scope.ownerId, $scope.routeId).then(function (res) {
+              Utils.loaded();
               Utils.popupSent();
               APISrv.uploadWsnLogs($scope.routeId, $scope.ownerId).then(
                 function () {
@@ -655,6 +656,10 @@ angular.module('driverapp.controllers.route', [])
         }
         ]
       });
+    }
+    $scope.callNumber = function(number) {
+      cordova.InAppBrowser.open('tel:'+number,'_self', 'hidden=yes, location=yes');
+
     }
     $scope.getImageUrl = function () {
       return Config.SERVER_URL + '/child/image/download/' + $scope.singlechild.ownerId + '/' + $scope.singlechild.objectId + '?timestamp=' + Utils.getImageTimestamp($scope.singlechild.ownerId, $scope.singlechild.objectId);

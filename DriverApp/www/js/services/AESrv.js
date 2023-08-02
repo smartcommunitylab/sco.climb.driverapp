@@ -175,6 +175,7 @@ angular.module('driverapp.services.ae', [])
             function (response) {
               console.log('[Events] Successfully uploaded to the server.')
               uploadWsnLogFiles(deferred);
+              Utils.loaded()
               Utils.popupSent();
               Utils.removeDataOnLocalStorage(ownerId, routeId)
             },
