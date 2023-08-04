@@ -9,5 +9,8 @@
   {{parentDisplayName}}
 </ion-item> -->
 <ion-item class="item item-icon-left item-details-phone" ng-if="!!phone">
-  <i class="icon ion-ios-telephone"></i> <a href="" ng-click="callNumber(phone)">{{phone}}</a>
+  <!-- <i class="icon ion-ios-telephone"></i> <a href="" ng-click="callNumber(phone)">{{phone}}</a> -->
+  <i class="icon ion-ios-telephone"></i> <a  href="tel:{{phone}}">{{phone}}</a>
+  <!-- <a class="button icon-left ion-ios7-telephone button-calm" ng-href="tel: {{phoneno}}">Call (03) 9533 1100</a> -->
+
 </ion-item>

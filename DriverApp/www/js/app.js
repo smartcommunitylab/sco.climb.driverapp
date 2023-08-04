@@ -65,7 +65,7 @@ angular.module('driverapp', [
         aacUrl: Config.AACURL
       }).then(function () {
         if (StorageSrv.getOwnerId())
-          ngOidcClient.signinSilent().then(function (user) {
+          ngOidcClient.signinSilentdocument().then(function (user) {
             $log.log("user:" + JSON.stringify(user));
             if (!!user) {
               $log.log('Logged in so going to home state');
@@ -481,9 +481,8 @@ angular.module('driverapp', [
 
     $translateProvider.preferredLanguage(DEFAULT_LANG);
     $translateProvider.fallbackLanguage(DEFAULT_LANG);
-    // // fix "Failed to load webpage with error: unsupported URL"
-    //   console.log('ciao');
-    // $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|sms|tel|geo|ftp|mailto|file|ghttps?|ms-appx-web|ms-appx|x-wmapp0|ionic):/);
-    // // sanitize the images to open ionic://localhost/ on iOS
-    // $compileProvider.imgSrcSanitizationWhitelist(/^\s*(https?|ftp|file|content|blob|ms-appx|ms-appx-web|x-wmapp0|ionic):|data:image\//);
+    // fix "Failed to load webpage with error: unsupported URL"
+    $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|sms|tel|geo|ftp|mailto|file|ghttps?|ms-appx-web|ms-appx|x-wmapp0|ionic):/);
+    // sanitize the images to open ionic://localhost/ on iOS
+    $compileProvider.imgSrcSanitizationWhitelist(/^\s*(https?|ftp|file|content|blob|ms-appx|ms-appx-web|x-wmapp0|ionic):|data:image\//);
   })

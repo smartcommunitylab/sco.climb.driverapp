@@ -659,7 +659,7 @@ angular.module('driverapp.controllers.route', [])
     }
     $scope.callNumber = function(number) {
       cordova.InAppBrowser.open('tel:'+number,'_self', 'hidden=yes, location=yes');
-
+        // window.plugins.CallNumber.callNumber(null, null, number, false);
     }
     $scope.getImageUrl = function () {
       return Config.SERVER_URL + '/child/image/download/' + $scope.singlechild.ownerId + '/' + $scope.singlechild.objectId + '?timestamp=' + Utils.getImageTimestamp($scope.singlechild.ownerId, $scope.singlechild.objectId);
