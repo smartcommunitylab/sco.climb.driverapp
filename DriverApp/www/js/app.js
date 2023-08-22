@@ -65,7 +65,7 @@ angular.module('driverapp', [
         aacUrl: Config.AACURL
       }).then(function () {
         if (StorageSrv.getOwnerId())
-          ngOidcClient.signinSilentdocument().then(function (user) {
+          ngOidcClient.signinSilent().then(function (user) {
             $log.log("user:" + JSON.stringify(user));
             if (!!user) {
               $log.log('Logged in so going to home state');

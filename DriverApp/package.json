@@ -19,8 +19,6 @@
     "cordova-plugin-globalization": "^1.11.0",
     "cordova-plugin-network-information": "^2.0.2",
     "cordova-plugin-sign-in-with-apple": "^0.1.2",
-    "cordova-plugin-splashscreen": "^5.0.3",
-    "cordova.plugins.diagnostic": "^7.1.1",
     "gulp": "^3.5.6",
     "gulp-concat": "^2.2.0",
     "gulp-minify-css": "^0.3.0",
@@ -37,22 +35,21 @@
     "angular-translate": "^2.15.2",
     "bower": "^1.3.3",
     "CLIMBDriverAppPlugin": "file:../DriverAppCordovaPlugin",
-    "com.unarin.cordova.beacon": "github:petermetz/cordova-plugin-ibeacon",
-    "cordova-android": "^10.1.2",
+    "cordova-android": "^12.0.0",
     "cordova-ios": "^6.3.0",
-    "cordova-plugin-ble": "^2.0.1",
-    "cordova-plugin-ble-central": "^1.6.1",
+    "cordova-plugin-ble-central": "^1.7.0-slim",
     "cordova-plugin-compat": "^1.2.0",
     "cordova-plugin-device": "^2.0.3",
-    "cordova-plugin-eddystone": "^1.3.0",
     "cordova-plugin-email-composer": "^0.10.1",
     "cordova-plugin-file": "^7.0.0",
     "cordova-plugin-file-transfer": "github:dpa99c/cordova-plugin-file-transfer",
     "cordova-plugin-ibeacon": "^3.8.1",
     "cordova-plugin-inappbrowser": "^5.0.0",
+    "cordova-plugin-splashscreen": "^6.0.1",
     "cordova-plugin-statusbar": "^3.0.0",
     "cordova-plugin-x-toast": "^2.7.3",
     "cordova-plugin-zip": "^3.1.0",
+    "cordova.plugins.diagnostic": "^7.1.2",
     "gulp-util": "^2.2.14",
     "shelljs": "^0.3.0"
   },
@@ -101,8 +98,8 @@
   ],
   "cordova": {
     "platforms": [
-      "android",
-      "ios"
+      "ios",
+      "android"
     ],
     "plugins": {
       "cordova-plugin-crop": {},
@@ -114,13 +111,11 @@
       "cordova-plugin-device": {},
       "cordova-plugin-geolocation": {},
       "cordova-plugin-globalization": {},
-      "cordova-plugin-splashscreen": {},
       "cordova-plugin-network-information": {},
       "ionic-plugin-keyboard": {},
       "cordova-plugin-cocoapod-support": {},
       "cordova-plugin-androidx-adapter": {},
       "cordova-plugin-sign-in-with-apple": {},
-      "cordova.plugins.diagnostic": {},
       "cordova-plugin-email-composer": {},
       "cordova-plugin-file": {
         "ANDROIDX_WEBKIT_VERSION": "1.4.0"
@@ -129,15 +124,19 @@
       "cordova-plugin-compat": {},
       "cordova-plugin-file-transfer": {},
       "cordova-plugin-inappbrowser": {},
+      "cordova-plugin-statusbar": {},
+      "cordova-plugin-x-toast": {},
+      "cordova.plugins.diagnostic": {
+        "ANDROIDX_VERSION": "1.0.0",
+        "ANDROIDX_APPCOMPAT_VERSION": "1.3.1"
+      },
       "cordova-plugin-ble-central": {
+        "ACCESS_BACKGROUND_LOCATION": "false",
         "IOS_INIT_ON_LOAD": "true",
         "BLUETOOTH_RESTORE_STATE": "false",
         "BLUETOOTH_USAGE_DESCRIPTION": " "
       },
-      "com.unarin.cordova.beacon": {},
-      "cordova-plugin-eddystone": {},
-      "cordova-plugin-statusbar": {},
-      "cordova-plugin-x-toast": {}
+      "cordova-plugin-splashscreen": {}
     }
   }
 }
