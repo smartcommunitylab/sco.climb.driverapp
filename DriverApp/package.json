@@ -41,8 +41,8 @@
     "cordova-plugin-compat": "^1.2.0",
     "cordova-plugin-device": "^2.0.3",
     "cordova-plugin-email-composer": "^0.10.1",
-    "cordova-plugin-file": "^7.0.0",
-    "cordova-plugin-file-transfer": "github:dpa99c/cordova-plugin-file-transfer",
+    "cordova-plugin-file": "^8.0.0",
+    "cordova-plugin-file-transfer": "^1.7.1",
     "cordova-plugin-ibeacon": "^3.8.1",
     "cordova-plugin-inappbrowser": "^5.0.0",
     "cordova-plugin-splashscreen": "^6.0.1",
@@ -117,12 +117,8 @@
       "cordova-plugin-androidx-adapter": {},
       "cordova-plugin-sign-in-with-apple": {},
       "cordova-plugin-email-composer": {},
-      "cordova-plugin-file": {
-        "ANDROIDX_WEBKIT_VERSION": "1.4.0"
-      },
       "cordova-plugin-zip": {},
       "cordova-plugin-compat": {},
-      "cordova-plugin-file-transfer": {},
       "cordova-plugin-inappbrowser": {},
       "cordova-plugin-statusbar": {},
       "cordova-plugin-x-toast": {},
@@ -136,7 +132,11 @@
         "BLUETOOTH_RESTORE_STATE": "false",
         "BLUETOOTH_USAGE_DESCRIPTION": " "
       },
-      "cordova-plugin-splashscreen": {}
+      "cordova-plugin-splashscreen": {},
+      "cordova-plugin-file": {
+        "ANDROIDX_WEBKIT_VERSION": "1.4.0"
+      },
+      "cordova-plugin-file-transfer": {}
     }
   }
 }
