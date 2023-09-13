@@ -263,27 +263,21 @@ angular.module('driverapp', [
 
           .then(function (result) {
             if (result) {
-              Config.resetIdentity();
-              StorageSrv.clearIdentity();
-              localStorage.clear();
-              sessionStorage.clear();
-              // ngOidcClient.signoutRedirect().then(res => {
-              $state.go('app.login').then(function () {
-                // window.location.reload(true);
-                // });
-              })
-              // if (window.cordova.platformId==='ios') {
-              //LoginService.logout();
-              //ngOidcClient.signoutSilent();
+              ngOidcClient.signoutPopup().then( () =>{
 
-              // } else {
-              //   ionic.Platform.exitApp()
-              // }
-              /*
-              $state.go('app.wizard').then(function () {
-                  window.location.reload(true);
-              });
-              */
+                    $state.go('app.login');
+                    Config.resetIdentity();
+                    StorageSrv.clearIdentity();
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    $ionicLoading.hide();
+               
+            }, function (err) {
+                Utils.toast("Errore di comunicazione con il server", "short", "bottom");
+                $ionicLoading.hide();
+            });
+
+            
 
               /*
               window.location.hash = '/wizard';

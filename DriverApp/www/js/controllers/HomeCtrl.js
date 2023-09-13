@@ -159,7 +159,7 @@ angular.module('driverapp.controllers.home', [])
 
   })
 
-  .controller('HomeCtrl', function ($ionicPlatform, $scope, $ionicLoading, $q, $rootScope, $state, $window, $ionicPopup, $ionicModal, $ionicHistory, $ionicSlideBoxDelegate, $timeout, $filter, Utils, StorageSrv, Config, LoginService, APISrv, WSNSrv) {
+  .controller('HomeCtrl', function ($ionicPlatform, Config,ngOidcClient,$scope, $ionicLoading, $q, $rootScope, $state, $window, $ionicPopup, $ionicModal, $ionicHistory, $ionicSlideBoxDelegate, $timeout, $filter, Utils, StorageSrv, Config, LoginService, APISrv, WSNSrv) {
     StorageSrv.reset()
 
     $scope.schools = null
@@ -468,7 +468,7 @@ angular.module('driverapp.controllers.home', [])
         console.log('ERRROR!', err);
         Utils.loaded();
         if ('INSUFFICIENT_RIGHTS' === err) {
-          if (!$rootScope.alertPopup)
+          //if (!$rootScope.alertPopup)
             $rootScope.alertPopup = $ionicPopup.alert({
               title: $filter('translate')('error_right_title'),
               templateUrl: 'templates/error_right_popup.html',
@@ -477,12 +477,26 @@ angular.module('driverapp.controllers.home', [])
             });
 
           $rootScope.alertPopup.then(function (res) {
-            Config.resetIdentity()
-            StorageSrv.clearIdentity()
+           // Config.resetIdentity()
+          //  StorageSrv.clearIdentity()
             // if (window.cordova.platformId==='ios') {
-            LoginService.logout();
-            $state.go('app.login');
-          });
+            // LoginService.logout();
+            // if (result) {
+              ngOidcClient.signoutPopup().then( () =>{
+                    $state.go('app.login');
+                    Config.resetIdentity();
+                    StorageSrv.clearIdentity();
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    $ionicLoading.hide();
+          })});
+              // });    
+            // }, function (err) {
+            //     Utils.toast("Errore di comunicazione con il server", "short", "bottom");
+            //     $ionicLoading.hide();
+            // });
+            // $state.go('app.login');
+          // });
         } else {
           Utils.showErrorAndExit();
         }
@@ -524,7 +538,7 @@ angular.module('driverapp.controllers.home', [])
       $scope.currentText = $scope.tutorialSlides[index].text;
     }
     $scope.visualizeTutorial = function () {
-      cordova.InAppBrowser.open('https://www.youtube.com/watch?v=zkvGyOunkzQ', '_system', 'location=yes');
+      cordova.InAppBrowser.open('https://www.youtube.com/channel/UCuYfXhR2rMBWfkJ9w05nqqg', '_system', 'location=yes');
       // $rootScope.showTutorial = true;
       // $scope.startTutorial = true;
 

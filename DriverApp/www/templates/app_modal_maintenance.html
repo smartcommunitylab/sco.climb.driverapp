@@ -5,8 +5,8 @@
   </ion-header-bar>
   <ion-content class="has-header padding">
     <div ng-if="!showTutorial">
-      <div>Sei in modalitá manutenzine, puoi procedere con la sostituzione della battería dei gadget</div>
-      <button class="button button-icon tut-vis" ng-click="visualizeTutorial()">MOSTRAMI COME</button>
+      <div>Per esplorare l'app PedibusSmart, guarda i nostri video:</div>
+      <button class="button button-icon tut-vis" ng-click="visualizeTutorial()">VIDEO FAQ</button>
     </div>
     <div ng-if="showTutorial">
       <div class="slideTutorial">
@@ -49,6 +49,6 @@
     </div>
   </ion-content>
   <ion-footer-bar>
-    <button class="button button-energized" ng-click="stopMaintenanceMode()">{{'Ho completato la procedura'|uppercase}}</button>
+    <button class="button button-energized" ng-click="stopMaintenanceMode()">{{'ESCI'|uppercase}}</button>
   </ion-footer-bar>
 </ion-modal-view>
