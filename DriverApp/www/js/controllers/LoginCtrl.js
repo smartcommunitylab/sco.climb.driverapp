@@ -19,11 +19,11 @@ angular.module('driverapp.controllers.login', [])
                     $state.go('app.home');
                     $ionicLoading.hide();
                 } else {
-                    Utils.toast("Errore di comunicazione con il server", "short", "bottom");
+                    Utils.toast("Accesso non eseguito", "short", "bottom");
                     $ionicLoading.hide();
                 }
             }, function (err) {
-                Utils.toast("Errore di comunicazione con il server", "short", "bottom");
+                Utils.toast("Accesso non eseguito", "short", "bottom");
                 $ionicLoading.hide();
             });
         }
@@ -34,88 +34,6 @@ angular.module('driverapp.controllers.login', [])
             }
             return undefined;
           }
-        // This method is executed when the user press the "Sign in with Google" button
-        $scope.googleSignIn = function () {
-            // $ionicLoading.show({
-            //     template: 'Logging in...'
-            // });
-            // $timeout(function () {
-            //     $ionicLoading.hide(); //close the popup after 3 seconds for some reason
-            // }, 3000);
-            LoginService.login(LoginService.PROVIDER.GOOGLE).then(function (profile) {
-                //                                       check if user is valid
-                $ionicLoading.hide();
-                $ionicLoading.show({
-                    template: $filter('translate')('user_check')
-                });
-                StorageSrv.saveIdentity('a');
-                $state.go('app.home');
-                $ionicHistory.nextViewOptions({
-                    disableBack: true,
-                    historyRoot: true
-                });
-            }, function (err) {
-                Utils.toast("Errore di comunicazione con il server", "short", "bottom");
-                $ionicLoading.hide();
-            });
-        }
-        $scope.appleSignIn = function () {
-            $ionicLoading.show({
-              template: 'Logging in...'
-            });
-            $timeout(function () {
-              $ionicLoading.hide(); //close the popup after 3 seconds for some reason
-            }, 3000);
-            LoginService.login(LoginService.PROVIDER.APPLE).then(function (profile) {
-              //                                       check if user is valid
-              $ionicLoading.show({
-                template: $filter('translate')('user_check')
-              });
-              $ionicLoading.hide();
-              $ionicLoading.show({
-                  template: $filter('translate')('user_check')
-              });
-              StorageSrv.saveIdentity('a');
-
-              $state.go('app.home');
-              $ionicHistory.nextViewOptions({
-                  disableBack: true,
-                  historyRoot: true
-              });
-
-            }, function (err) {
-                Utils.toast("Errore di comunicazione con il server", "short", "bottom");
-              $ionicLoading.hide();
-            });
-          }
-        $scope.facebookSignIn = function () {
-            $ionicLoading.show({
-                template: 'Logging in...'
-            });
-            $timeout(function () {
-                $ionicLoading.hide(); //close the popup after 3 seconds for some reason
-            }, 3000);
-            LoginService.login(LoginService.PROVIDER.FACEBOOK).then(function (profile) {
-                //                                       check if user is valid
-                $ionicLoading.hide();
-                $ionicLoading.show({
-                    template: $filter('translate')('user_check')
-                });
-                StorageSrv.saveIdentity('a');
-
-                $state.go('app.home');
-                $ionicHistory.nextViewOptions({
-                    disableBack: true,
-                    historyRoot: true
-                });
-
-            }, function (err) {
-                Utils.toast("Errore di comunicazione con il server", "short", "bottom");
-                $ionicLoading.hide();
-            });
-
-
-        }
 
 
         $scope.$on('$ionicView.leave', function () {
