@@ -1,0 +1,101 @@
+//https://climbdev.smartcommunitylab.it/v3/api/route/TEST/fe21135b-991d-4f1e-ae0f-3d15e15b4ee7/418184aa-26df-4a25-a026-c8511db469b2
+[
+    {
+        "ownerId": "TEST",
+        "objectId": "515df638-f579-44d0-8a16-d45a54e95890",
+        "creationDate": 1566219136668,
+        "lastUpdate": 1674490971221,
+        "name": "Linea Blu",
+        "schoolId": "418184aa-26df-4a25-a026-c8511db469b2",
+        "instituteId": "fe21135b-991d-4f1e-ae0f-3d15e15b4ee7",
+        "from": 1546300800000,
+        "to": 1577750400000,
+        "distance": 0.0,
+        "volunteerList": [],
+        "returnTrip": false
+    },
+    {
+        "ownerId": "TEST",
+        "objectId": "b330949f-3e88-4221-bfd8-9cce6fef08d6",
+        "creationDate": 1566219136670,
+        "lastUpdate": 1566219136670,
+        "name": "Linea Rossa",
+        "schoolId": "418184aa-26df-4a25-a026-c8511db469b2",
+        "instituteId": "fe21135b-991d-4f1e-ae0f-3d15e15b4ee7",
+        "from": 1546300800000,
+        "to": 1577750400000,
+        "distance": 0.0,
+        "volunteerList": [
+            "99351193-ef1f-4b9a-a734-b76b2938e185",
+            "541da1ce-5dba-48ad-82db-d9f246ce610d",
+            "72a06216-8cfa-4e71-9a17-68b126a0851d",
+            "29cc95de-edfc-471f-865a-cbdcfa0607bb",
+            "68707bc2-130b-44ad-bdd3-351f7f62cd0f",
+            "720436a3-7ea1-4fff-8175-370d8962e4b8",
+            "bb0e3efe-3bfe-4389-9caa-518d858a45ac",
+            "ae2bde22-eef8-45d3-9079-1c578f543055",
+            "91413c0f-d93c-4a1f-bada-bb59ac7356bc",
+            "a77fa81e-c960-48cb-ae8c-b79af682dc28",
+            "f2dd8b9b-758e-46dc-a5a0-73c409919919"
+        ],
+        "returnTrip": false
+    },
+    {
+        "ownerId": "TEST",
+        "objectId": "abab6bd6-0601-4b10-acec-12936c8f3a02",
+        "creationDate": 1566219136672,
+        "lastUpdate": 1566219136672,
+        "name": "Linea Verde",
+        "schoolId": "418184aa-26df-4a25-a026-c8511db469b2",
+        "instituteId": "fe21135b-991d-4f1e-ae0f-3d15e15b4ee7",
+        "from": 1546300800000,
+        "to": 1577750400000,
+        "distance": 0.0,
+        "volunteerList": [],
+        "returnTrip": false
+    },
+    {
+        "ownerId": "TEST",
+        "objectId": "d07b939c-d0df-4ef1-ac71-3043c73a1a5f",
+        "creationDate": 1568644302688,
+        "lastUpdate": 1702631829772,
+        "name": "Linea 1 - ARANCIONE",
+        "schoolId": "418184aa-26df-4a25-a026-c8511db469b2",
+        "instituteId": "fe21135b-991d-4f1e-ae0f-3d15e15b4ee7",
+        "from": 1568937600000,
+        "to": 1561852800000,
+        "distance": 0.0,
+        "volunteerList": [
+            "c091fc34-b917-4682-a908-9638ec3743cc",
+            "efef685f-c183-49f4-84ed-b0ddffd02e5c"
+        ],
+        "returnTrip": false
+    },
+    {
+        "ownerId": "TEST",
+        "objectId": "e65f93e4-0756-42d2-8cb4-048f8975ecda",
+        "creationDate": 1568644302689,
+        "lastUpdate": 1568789326627,
+        "name": "Linea 2 - BLU",
+        "schoolId": "418184aa-26df-4a25-a026-c8511db469b2",
+        "instituteId": "fe21135b-991d-4f1e-ae0f-3d15e15b4ee7",
+        "from": 1568937600000,
+        "to": 1561852800000,
+        "distance": 0.0,
+        "volunteerList": [
+            "147c8065-cf35-4df2-9e61-bd199cb52577",
+            "f62bf909-4e6d-4ef9-88d1-75720fa59312",
+            "311fd7ba-3e04-4e61-92fd-d64af3f46583",
+            "fdba8bd6-bde5-4386-8722-30f19376cec7",
+            "51ba0520-590f-4e76-a88e-c7ff585580f5",
+            "3d3e51f2-09d4-4c75-bb8e-056bd29a3f53",
+            "95c99189-0e0f-44b5-a9ec-5e9219b99d5f",
+            "e07d730a-dd9f-4bc3-a388-17dcf691e5ec",
+            "a4c07312-cbec-4ed7-afda-592b76c8532d",
+            "163cfb33-ee93-48d3-98b6-993a83019cc1",
+            "10a3af66-1491-4a7f-9e1f-5b956e5847f1",
+            "293c6672-70d6-4fed-9a43-e387412f0417"
+        ],
+        "returnTrip": false
+    }
+]

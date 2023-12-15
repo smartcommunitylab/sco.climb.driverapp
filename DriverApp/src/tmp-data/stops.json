@@ -1,0 +1,80 @@
+
+//https://climbdev.smartcommunitylab.it/v3/api/stop/TEST/d07b939c-d0df-4ef1-ac71-3043c73a1a5f
+[
+    {
+        "ownerId": "TEST",
+        "objectId": "c5452114-72d6-4747-97b0-901dad62d864",
+        "creationDate": 1690533199316,
+        "lastUpdate": 1690533199316,
+        "name": "Partenza",
+        "routeId": "150ef2f9-8251-417d-9b8f-2c9d43f9a99f",
+        "departureTime": "07:40",
+        "start": true,
+        "destination": false,
+        "school": false,
+        "geocoding": [
+            11.1492158,
+            46.0660421
+        ],
+        "distance": 630.0,
+        "wsnId": null,
+        "position": 0,
+        "passengerList": [
+            "f5a00879-31a1-4fd0-90f1-77940d155a4a",
+            "f2599168-6bbb-4dbd-9c5a-f42b03ee6d41",
+            "abbf8b6f-d5dd-4fbf-bdda-bd00aa1fd76c",
+            "918fa4d6-6509-459e-bef6-cb8fbd683685",
+            "94178cb9-ffd2-4712-a63d-ddaec39fc61d",
+            "b992c178-63de-433b-a8bf-a681d24147fd",
+            "9a1bf5a7-f683-4a39-8e34-a9c98d187d61",
+            "65202966-e568-4c51-9738-635dafbeea56"
+        ]
+    },
+    {
+        "ownerId": "TEST",
+        "objectId": "ba9f2d67-8613-4fb5-8825-e0c1c586437e",
+        "creationDate": 1690533199321,
+        "lastUpdate": 1690533199321,
+        "name": "Casette",
+        "routeId": "150ef2f9-8251-417d-9b8f-2c9d43f9a99f",
+        "departureTime": "07:45",
+        "start": false,
+        "destination": false,
+        "school": false,
+        "geocoding": [
+            11.1496149,
+            46.0697375
+        ],
+        "distance": 355.0,
+        "wsnId": null,
+        "position": 1,
+        "passengerList": [
+            "2cea2072-96fd-437b-83d0-670480691f32",
+            "4e7dd3ec-83d1-46fe-80f7-747c0d2b612d",
+            "a649c160-a9aa-4c8e-bcc8-257814338289",
+            "6f3fbd37-5c1a-43d4-a1c2-22f5ba086913",
+            "808f9de7-1c8a-448a-92eb-b7f9b06b5828",
+            "3303d387-f7fc-4e8a-ae73-b918e066d4bf"
+        ]
+    },
+    {
+        "ownerId": "TEST",
+        "objectId": "7612e0f6-bd72-4884-9893-c72121fb006e",
+        "creationDate": 1690533199322,
+        "lastUpdate": 1690533199322,
+        "name": "Scuola",
+        "routeId": "150ef2f9-8251-417d-9b8f-2c9d43f9a99f",
+        "departureTime": "08:00",
+        "start": false,
+        "destination": true,
+        "school": true,
+        "geocoding": [
+            11.150576,
+            46.073987
+        ],
+        "distance": 0.0,
+        "wsnId": null,
+        "position": 2,
+        "passengerList": []
+    }
+]

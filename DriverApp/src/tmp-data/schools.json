@@ -1,0 +1,77 @@
+//https://climbdev.smartcommunitylab.it/v3/api/school/TEST/fe21135b-991d-4f1e-ae0f-3d15e15b4ee7
+[
+    {
+        "ownerId": "TEST",
+        "objectId": "418184aa-26df-4a25-a026-c8511db469b2",
+        "creationDate": 1566217482500,
+        "lastUpdate": 1601970959335,
+        "name": "Scuola test",
+        "address": "via filari longhi",
+        "instituteId": "fe21135b-991d-4f1e-ae0f-3d15e15b4ee7",
+        "classes": [
+            {
+                "name": "3A",
+                "schoolYear": null
+            },
+            {
+                "name": "3B",
+                "schoolYear": null
+            },
+            {
+                "name": "1A",
+                "schoolYear": null
+            },
+            {
+                "name": "1B",
+                "schoolYear": null
+            },
+            {
+                "name": "2A",
+                "schoolYear": null
+            },
+            {
+                "name": "2B",
+                "schoolYear": null
+            },
+            {
+                "name": "4A",
+                "schoolYear": null
+            },
+            {
+                "name": "5A",
+                "schoolYear": null
+            },
+            {
+                "name": "5B",
+                "schoolYear": null
+            }
+        ],
+        "type": null,
+        "volunteerShiftsLink": "https://pedibussmart.fbk.eu/wp-content/uploads/2020/04/Informativa-Privacy_APP-PedibusSmart.pdf"
+    },
+    {
+        "ownerId": "TEST",
+        "objectId": "f47d4c77-2a48-46d5-abfa-68713574d40d",
+        "creationDate": 1568794697294,
+        "lastUpdate": 1601970966304,
+        "name": "FBK Test School",
+        "address": "via sommarive 18",
+        "instituteId": "fe21135b-991d-4f1e-ae0f-3d15e15b4ee7",
+        "classes": [
+            {
+                "name": "1A",
+                "schoolYear": null
+            },
+            {
+                "name": "2A",
+                "schoolYear": null
+            },
+            {
+                "name": "3A",
+                "schoolYear": null
+            }
+        ],
+        "type": null,
+        "volunteerShiftsLink": "https://pedibussmart.fbk.eu/wp-content/uploads/2020/04/Informativa-Privacy_APP-PedibusSmart.pdf"
+    }
+]

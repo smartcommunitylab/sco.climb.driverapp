@@ -1,0 +1,83 @@
+//https://climbdev.smartcommunitylab.it/v3/api/institute/TEST
+[
+    {
+        "ownerId": "TEST",
+        "objectId": "fe21135b-991d-4f1e-ae0f-3d15e15b4ee7",
+        "creationDate": 1566217397213,
+        "lastUpdate": 1602623058811,
+        "name": "Istituto test",
+        "address": "via dei filari longhi",
+        "warningBatteryLowMail": "murphy@fbk.eu",
+        "addPedibusPhoto": true
+    },
+    {
+        "ownerId": "TEST",
+        "objectId": "a357d272-2c50-4a87-b74f-741572fd29e0",
+        "creationDate": 1570084761053,
+        "lastUpdate": 1570084761053,
+        "name": "Istituto Immaginario",
+        "address": "via Sogni d'oro, 1",
+        "warningBatteryLowMail": null,
+        "addPedibusPhoto": false
+    },
+    {
+        "ownerId": "TEST",
+        "objectId": "8000d852-65b7-44dc-a54a-c772f34d837d",
+        "creationDate": 1571225089370,
+        "lastUpdate": 1571225089370,
+        "name": "istituto import",
+        "address": "asd",
+        "warningBatteryLowMail": null,
+        "addPedibusPhoto": false
+    },
+    {
+        "ownerId": "TEST",
+        "objectId": "fa8b3281-60d1-40ea-ae1b-c42c166b8aa6",
+        "creationDate": 1590502120191,
+        "lastUpdate": 1590502120191,
+        "name": "Istituto Giulia",
+        "address": "Via Campofiore",
+        "warningBatteryLowMail": null,
+        "addPedibusPhoto": false
+    },
+    {
+        "ownerId": "TEST",
+        "objectId": "687f1a37-428d-4240-8cce-02026c157b2b",
+        "creationDate": 1597149542153,
+        "lastUpdate": 1597149542153,
+        "name": "test Pamela",
+        "address": "civezzano",
+        "warningBatteryLowMail": null,
+        "addPedibusPhoto": false
+    },
+    {
+        "ownerId": "TEST",
+        "objectId": "26fb9183-ce2f-4bad-ac23-b72e3939973c",
+        "creationDate": 1600958838871,
+        "lastUpdate": 1601047695984,
+        "name": "Istituto Matteo",
+        "address": "dcvdvdv",
+        "warningBatteryLowMail": "matteo.chini@gmail.com",
+        "addPedibusPhoto": true
+    },
+    {
+        "ownerId": "TEST",
+        "objectId": "ed0a35e1-c32d-4f5e-9405-63c4703859e2",
+        "creationDate": 1602256804313,
+        "lastUpdate": 1602256804313,
+        "name": "TestBorgo",
+        "address": "Borgo",
+        "warningBatteryLowMail": "",
+        "addPedibusPhoto": false
+    },
+    {
+        "ownerId": "TEST",
+        "objectId": "98715d9c-8e74-4dca-a16b-72950e60c5f5",
+        "creationDate": 1621332622492,
+        "lastUpdate": 1621332622492,
+        "name": "Istituto PBS test",
+        "address": "Istituto PBS test",
+        "warningBatteryLowMail": "murphy@fbk.eu",
+        "addPedibusPhoto": false
+    }
+]
