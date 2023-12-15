@@ -1,139 +1,43 @@
 {
-  "name": "driverapp",
-  "version": "1.1.1",
-  "description": "CLIMB DriverApp",
+  "name": "driverApp",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview",
+    "test:e2e": "cypress run",
+    "test:unit": "vitest",
+    "lint": "eslint ."
+  },
   "dependencies": {
-    "@ionic/app-scripts": "^3.1.11",
-    "CLIMBDriverAppPlugin": "file:../DriverAppCordovaPlugin",
-    "android-versions": "^1.3.0",
-    "cordova": "^8.0.0",
-    "cordova-android": "6.4.0",
-    "cordova-android-support-gradle-release": "3.0.1",
-    "cordova-common": "^3.2.0",
-    "cordova-ios": "4.5.5",
-    "cordova-plugin-add-swift-support": "2.0.2",
-    "cordova-plugin-camera": "4.1.0",
-    "cordova-plugin-compat": "1.2.0",
-    "cordova-plugin-console": "1.1.0",
-    "cordova-plugin-crop": "git+https://github.com/obeza/cordova-plugin-crop-with-ratio.git",
-    "cordova-plugin-device": "2.0.3",
-    "cordova-plugin-enable-multidex": "0.2.0",
-    "cordova-plugin-facebook4": "6.0.0",
-    "cordova-plugin-file": "6.0.2",
-    "cordova-plugin-file-transfer": "1.7.1",
-    "cordova-plugin-geolocation": "4.0.2",
-    "cordova-plugin-globalization": "1.11.0",
-    "cordova-plugin-googleplus": "git+https://github.com/EddyVerbruggen/cordova-plugin-googleplus.git",
-    "cordova-plugin-inappbrowser": "3.1.0",
-    "cordova-plugin-network-information": "2.0.2",
-    "cordova-plugin-splashscreen": "5.0.3",
-    "cordova-plugin-statusbar": "2.4.3",
-    "cordova-plugin-whitelist": "1.3.4",
-    "cordova-plugin-x-toast": "2.7.2",
-    "cordova.plugins.diagnostic": "5.0.0",
-    "gulp": "^3.5.6",
-    "gulp-concat": "^2.2.0",
-    "gulp-minify-css": "^0.3.0",
-    "gulp-rename": "^1.2.0",
-    "gulp-sass": "^2.0.4",
-    "ionic-plugin-keyboard": "2.2.1",
-    "it.smartcommunitylab.climb.dap": "../DriverAppCordovaPlugin"
+    "@capacitor/app": "5.0.6",
+    "@capacitor/core": "5.5.1",
+    "@capacitor/haptics": "5.0.6",
+    "@capacitor/keyboard": "5.0.6",
+    "@capacitor/status-bar": "5.0.6",
+    "@ionic/vue": "^7.0.0",
+    "@ionic/vue-router": "^7.0.0",
+    "ionicons": "^7.0.0",
+    "vue": "^3.3.0",
+    "vue-router": "^4.2.0"
   },
   "devDependencies": {
-    "@ionic/cli-plugin-cordova": "1.4.0",
-    "@ionic/cli-plugin-gulp": "1.0.1",
-    "@ionic/cli-plugin-ionic1": "2.0.0",
-    "@ionic/v1-toolkit": "1.0.4",
-    "angular-translate": "^2.15.2",
-    "bower": "^1.3.3",
-    "gulp-util": "^2.2.14",
-    "shelljs": "^0.3.0"
+    "@capacitor/cli": "5.5.1",
+    "@vitejs/plugin-legacy": "^5.0.0",
+    "@vitejs/plugin-vue": "^4.0.0",
+    "@vue/eslint-config-typescript": "^12.0.0",
+    "@vue/test-utils": "^2.3.0",
+    "cypress": "^13.5.0",
+    "eslint": "^8.35.0",
+    "eslint-plugin-vue": "^9.9.0",
+    "jsdom": "^22.1.0",
+    "terser": "^5.4.0",
+    "typescript": "^5.1.6",
+    "vite": "^5.0.0",
+    "vitest": "^0.34.6",
+    "vue-tsc": "^1.0.24"
   },
-  "standard": {
-    "globals": [
-      "ionic",
-      "angular",
-      "cordova",
-      "moment"
-    ]
-  },
-  "cordovaPlugins": [
-    "cordova-plugin-device",
-    "cordova-plugin-console",
-    "cordova-plugin-inappbrowser",
-    "cordova-plugin-whitelist",
-    "cordova-plugin-splashscreen",
-    "cordova-plugin-statusbar",
-    "ionic-plugin-keyboard",
-    {
-      "locator": "https://github.com/apache/cordova-plugin-geolocation.git",
-      "id": "cordova-plugin-geolocation"
-    },
-    "cordova-plugin-x-toast",
-    "cordova-plugin-file-transfer",
-    "cordova-plugin-network-information",
-    "cordova-plugin-crosswalk-webview",
-    {
-      "variables": {
-        "REVERSED_CLIENT_ID": "com.googleusercontent.apps.453601816446-tvtmoe6oftsqjnbj5blcgee6qjqq42ku"
-      },
-      "locator": "https://github.com/EddyVerbruggen/cordova-plugin-googleplus",
-      "id": "cordova-plugin-googleplus"
-    },
-    {
-      "variables": {
-        "APP_ID": "493172441063173",
-        "APP_NAME": "CLIMB"
-      },
-      "locator": "cordova-plugin-facebook4@1.7.4",
-      "id": "cordova-plugin-facebook4"
-    },
-    "cordova.plugins.diagnostic"
-  ],
-  "cordovaPlatforms": [
-    "ios"
-  ],
-  "cordova": {
-    "platforms": [
-      "android",
-      "ios"
-    ],
-    "plugins": {
-      "cordova-plugin-crop": {},
-      "cordova-android-support-gradle-release": {
-        "ANDROID_SUPPORT_VERSION": "27.+"
-      },
-      "cordova-plugin-add-swift-support": {},
-      "cordova-plugin-camera": {},
-      "cordova-plugin-compat": {},
-      "cordova-plugin-console": {},
-      "cordova-plugin-device": {},
-      "cordova-plugin-enable-multidex": {},
-      "cordova-plugin-file": {},
-      "cordova-plugin-file-transfer": {},
-      "cordova-plugin-geolocation": {},
-      "cordova-plugin-globalization": {},
-      "cordova-plugin-inappbrowser": {},
-      "cordova-plugin-whitelist": {},
-      "cordova-plugin-splashscreen": {},
-      "cordova-plugin-statusbar": {},
-      "cordova-plugin-network-information": {},
-      "cordova-plugin-x-toast": {},
-      "cordova.plugins.diagnostic": {
-        "ANDROID_SUPPORT_VERSION": "27.+"
-      },
-      "ionic-plugin-keyboard": {},
-      "it.smartcommunitylab.climb.dap": {},
-      "cordova-plugin-googleplus": {
-        "REVERSED_CLIENT_ID": "com.googleusercontent.apps.453601816446-tvtmoe6oftsqjnbj5blcgee6qjqq42ku",
-        "PLAY_SERVICES_VERSION": "15.0.1"
-      },
-      "cordova-plugin-facebook4": {
-        "APP_ID": "493172441063173",
-        "APP_NAME": "CLIMB",
-        "FACEBOOK_HYBRID_APP_EVENTS": "false",
-        "FACEBOOK_ANDROID_SDK_VERSION": "5.2.0"
-      }
-    }
-  }
+  "description": "An Ionic project"
 }

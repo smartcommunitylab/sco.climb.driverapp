@@ -1,5 +1,0 @@
-<ion-list>
-    <ion-checkbox ng-repeat="child in children | orderBy : ['surname', 'name']" ng-if="onBoard.indexOf(child.objectId) === -1 && onBoardTemp.indexOf(child.objectId) === -1" ng-model="child.checked" ng-change="setToBeTaken(child)">
-        {{child.surname}} {{child.name}}
-    </ion-checkbox>
-</ion-list>
