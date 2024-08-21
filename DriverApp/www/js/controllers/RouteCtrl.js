@@ -662,13 +662,13 @@ angular.module('driverapp.controllers.route', [])
         // window.plugins.CallNumber.callNumber(null, null, number, false);
     }
     $scope.getImageUrl = function () {
-      return Config.SERVER_URL + '/child/image/download/' + $scope.singlechild.ownerId + '/' + $scope.singlechild.objectId + '?timestamp=' + Utils.getImageTimestamp($scope.singlechild.ownerId, $scope.singlechild.objectId);
+      return Config.SERVER_URL + '/child/image/download/' + $scope.singlechild.ownerId + '/' + $scope.singlechild.objectId ;
     }
     $scope.getImageFooter = function (child) {
-      return Config.SERVER_URL + '/child/image/download/' + child.ownerId + '/' + child.objectId + '?timestamp=' + Utils.getImageTimestamp(child.ownerId, child.objectId);
+      return Config.SERVER_URL + '/child/image/download/' + child.ownerId + '/' + child.objectId ;
     }
     $scope.getImageList = function (child) {
-      return Config.SERVER_URL + '/child/image/download/' + child.ownerId + '/' + child.objectId + '?timestamp=' + Utils.getImageTimestamp(child.ownerId, child.objectId);
+      return Config.SERVER_URL + '/child/image/download/' + child.ownerId + '/' + child.objectId ;
     }
     $scope.choosePhoto = function (fromLibrary) {
       Utils.chooseAndUploadPhoto($scope.singlechild.ownerId, $scope.singlechild.objectId, fromLibrary, APISrv.uploadFileImage);
