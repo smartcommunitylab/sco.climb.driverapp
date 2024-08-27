@@ -161,11 +161,19 @@ angular.module('driverapp', [
           WSNSrv.init().then(
             function (response) {
               WSNSrv.startListener().then(
-                function (response) { },
-                function (reason) { }
+                function (response) {
+                  console.log("response",response)
+
+                 },
+                function (reason) {
+                  console.log("reason",reason)
+
+                 }
               )
             },
-            function (reason) { }
+            function (reason) { 
+              console.log("reason",reason)
+            }
           )
         }
       }

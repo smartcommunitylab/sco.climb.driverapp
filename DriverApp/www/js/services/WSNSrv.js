@@ -48,21 +48,6 @@ angular.module('driverapp.services.wsn', [])
     wsnService.deinit = function () {
       var deferred = $q.defer()
       deferred.resolve(null);
-      // if (Utils.wsnPluginEnabled()) {
-      //   console.log('calling deinit');
-      //   window.DriverAppPlugin.deinit(
-      //     function (response) {
-      //       console.log('deinit: ' + response)
-      //       deferred.resolve(response)
-      //     },
-      //     function (reason) {
-      //       console.log('deinit: ' + reason)
-      //       deferred.reject(reason)
-      //     }
-      //   )
-      // } else {
-      //   deferred.resolve(null);
-      // }
 
       return deferred.promise
     }
@@ -78,52 +63,7 @@ angular.module('driverapp.services.wsn', [])
       } else {
         deferred.reject();
       } 
-     // ble.startScanWithOptions(['feaa'],{reportDuplicates:false})
-        // window.DriverAppPlugin.startListener(
-        //   function (response) {
-        //     if (response.action === wsnService.STATE_CONNECTED_TO_CLIMB_MASTER) {
-        //       if (response.errorMsg === null || response.errorMsg === undefined) {
-        //         console.log('### Yippee-ki-yay! Welcome, Master! ###')
-        //         $rootScope.masterError = false
-        //         wsnService.setNodeList(wsnService.getNodeListByType('child'))
-        //         wsnService.startNetworkStateInterval()
-        //       } else {
-        //         console.log('/// Master connection timeout! ///')
-        //         $rootScope.masterError = true
-        //         // TODO toast for failure
-        //         // Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
-        //       }
-        //     } else if (response.action === wsnService.STATE_DISCONNECTED_FROM_CLIMB_MASTER) {
-        //       console.log('=== Where is my Master?!? ===')
-        //       // TODO toast for failure
-        //       // Utils.toast('Problema di connessione con il nodo Master!', 5000, 'center');
-
-        //       // Retry
-        //       wsnService.connectMaster(response.id)
-        //     }
-        //     /*
-        //     else if (response.action === wsnService.STATE_CHECKEDIN_CHILD) {
-        //         if (response.errorMsg === null || response.errorMsg === undefined) {
-        //             console.log('+++ Child ' + response.id + ' checked in! +++');
-        //         } else {
-        //             console.log('/// Child ' + response.id + ' NOT checked in! ///');
-        //         }
-        //     } else if (response.action === wsnService.STATE_CHECKEDOUT_CHILD) {
-        //         if (response.errorMsg === null || response.errorMsg === undefined) {
-        //             console.log('--- Child ' + response.id + ' checked out! ---');
-        //         } else {
-        //             console.log('/// Child ' + response.id + ' NOT checked out! ///');
-        //         }
-        //     }
-        //     */
-
-        //     deferred.resolve(response)
-        //   },
-        //   function (reason) {
-        //     deferred.reject(reason)
-        //   }
-        // )
-      // }
+     
 
       return deferred.promise
     }
@@ -173,7 +113,11 @@ angular.module('driverapp.services.wsn', [])
             }
           },
           function(err){
-            console.log('getNetworkState: ' + err)
+              console.log('err',err);
+            if (err === 'No permissions not granted.') {
+              setTimeout(wsnService.scanNetwork(),5000);
+            }
+          
           }
          )
     }
